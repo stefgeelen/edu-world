@@ -56,7 +56,7 @@ export function QuestMap() {
       id: 1, 
       name: 'Fluisterbomen', 
       status: 'completed', 
-      yPos: 85, 
+      yPos: 76, 
       xPos: 30, 
       icon: '🌳', 
       btnClass: 'bg-emerald-400 border-b-8 border-emerald-600 shadow-xl ring-4 ring-emerald-300' 
@@ -168,7 +168,7 @@ export function QuestMap() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              d="M 30 85 C 30 70, 50 75, 50 60 C 50 45, 25 50, 25 35 C 25 20, 65 25, 65 12" 
+              d="M 30 76 C 30 66, 50 75, 50 60 C 50 45, 25 50, 25 35 C 25 20, 65 25, 65 12" 
               fill="none" 
               stroke="url(#glowPath)" 
               strokeWidth="4" 
