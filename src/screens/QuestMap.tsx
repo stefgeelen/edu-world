@@ -160,7 +160,7 @@ export function QuestMap() {
         ref={containerRef}
         className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-10"
       >
-        <div className="h-[140vh] md:h-[130vh] w-full relative pt-48 pb-40 max-w-2xl mx-auto">
+        <div className="h-[160vh] md:h-[150vh] w-full relative pt-48 pb-48 max-w-2xl mx-auto">
           
           {/* Winding Glowing Path SVG */}
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
