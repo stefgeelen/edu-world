@@ -48,7 +48,7 @@ export function QuestMap() {
       name: 'Borrelende Beek', 
       status: 'current', 
       yPos: 60, 
-      xPos: 75, 
+      xPos: 50, 
       icon: '🌊', 
       btnClass: 'bg-cyan-400 border-b-8 border-cyan-600 shadow-xl ring-4 ring-white' 
     },
@@ -160,7 +160,7 @@ export function QuestMap() {
         ref={containerRef}
         className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-10"
       >
-        <div className="h-[140vh] md:h-[130vh] w-full relative pt-48 pb-32 max-w-2xl mx-auto">
+        <div className="h-[140vh] md:h-[130vh] w-full relative pt-48 pb-40 max-w-2xl mx-auto">
           
           {/* Winding Glowing Path SVG */}
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
@@ -168,7 +168,7 @@ export function QuestMap() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              d="M 30 85 C 30 70, 75 75, 75 60 C 75 45, 25 50, 25 35 C 25 20, 65 25, 65 12" 
+              d="M 30 85 C 30 70, 50 75, 50 60 C 50 45, 25 50, 25 35 C 25 20, 65 25, 65 12" 
               fill="none" 
               stroke="url(#glowPath)" 
               strokeWidth="4" 
@@ -252,9 +252,9 @@ export function QuestMap() {
                      initial={{ opacity: 0, y: 10 }}
                      animate={{ opacity: 1, y: 0 }}
                      transition={{ delay: 1 }}
-                     className="absolute -top-14 flex flex-col items-center z-30 pointer-events-none"
+                     className="absolute -top-14 left-1/2 -translate-x-1/2 flex flex-col items-center z-30 pointer-events-none"
                    >
-                      <div className="bg-amber-400 text-amber-900 text-[10px] md:text-xs font-black px-3 py-1.5 rounded-full shadow-lg border-2 border-white uppercase tracking-wider">
+                      <div className="bg-amber-400 text-amber-900 text-[10px] md:text-xs font-black px-3 py-1.5 rounded-full shadow-lg border-2 border-white uppercase tracking-wider whitespace-nowrap">
                          Jij bent hier!
                       </div>
                       <div className="w-3 h-3 bg-amber-400 rotate-45 -mt-2 border-r-2 border-b-2 border-white shadow-sm" />
