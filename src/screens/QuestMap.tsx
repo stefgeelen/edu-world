@@ -48,7 +48,7 @@ export function QuestMap() {
       name: 'Borrelende Beek', 
       status: 'current', 
       yPos: 60, 
-      xPos: 55, 
+      xPos: 50, 
       icon: '🌊', 
       btnClass: 'bg-cyan-400 border-b-8 border-cyan-600 shadow-xl ring-4 ring-white' 
     },
@@ -168,7 +168,7 @@ export function QuestMap() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              d="M 30 85 C 30 70, 55 75, 55 60 C 55 45, 25 50, 25 35 C 25 20, 65 25, 65 12" 
+              d="M 30 85 C 30 70, 50 75, 50 60 C 50 45, 25 50, 25 35 C 25 20, 65 25, 65 12" 
               fill="none" 
               stroke="url(#glowPath)" 
               strokeWidth="4" 
