@@ -160,7 +160,7 @@ export function QuestMap() {
       {/* Map Scroll Container */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-10"
+        className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-10 pb-24 md:pb-28"
       >
         <div className="h-[160vh] md:h-[150vh] w-full relative pt-48 pb-48 max-w-2xl mx-auto">
           
