@@ -37,8 +37,15 @@ export function ExerciseLanguage() {
   }, []);
 
   const handlePlayAudio = () => {
+    if (isPlaying) return;
     setIsPlaying(true);
-    setTimeout(() => setIsPlaying(false), 1000);
+    const utterance = new SpeechSynthesisUtterance(correctWord);
+    utterance.lang = 'nl-NL';
+    utterance.rate = 0.8;
+    utterance.onend = () => setIsPlaying(false);
+    utterance.onerror = () => setIsPlaying(false);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
   };
 
   const handleWordSelect = (word: string) => {
