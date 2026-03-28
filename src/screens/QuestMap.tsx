@@ -5,13 +5,13 @@ import { Lock, Star, Check, ChevronLeft } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 
 export function QuestMap() {
   const navigate = useNavigate();
   const { selectedAvatar } = useGame();
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
+  
 
   // Auto-scroll roughly to the current level on mount
   useEffect(() => {
@@ -58,7 +58,7 @@ export function QuestMap() {
       id: 1, 
       name: 'Fluisterbomen', 
       status: 'completed', 
-      yPos: isMobile ? 68 : 76, 
+      yPos: 76, 
       xPos: 30, 
       icon: '🌳', 
       btnClass: 'bg-emerald-400 border-b-8 border-emerald-600 shadow-xl ring-4 ring-emerald-300' 
@@ -170,7 +170,7 @@ export function QuestMap() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              d={isMobile ? "M 30 68 C 30 58, 50 75, 50 60 C 50 45, 25 50, 25 35 C 25 20, 65 25, 65 12" : "M 30 76 C 30 66, 50 75, 50 60 C 50 45, 25 50, 25 35 C 25 20, 65 25, 65 12"} 
+              d="M 30 76 C 30 66, 50 75, 50 60 C 50 45, 25 50, 25 35 C 25 20, 65 25, 65 12" 
               fill="none" 
               stroke="url(#glowPath)" 
               strokeWidth="4" 
