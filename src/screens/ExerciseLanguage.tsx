@@ -36,6 +36,14 @@ export function ExerciseLanguage() {
     generateQuestion();
   }, []);
 
+  // Auto-play word when correctWord changes
+  useEffect(() => {
+    if (correctWord) {
+      const timer = setTimeout(() => handlePlayAudio(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [correctWord]);
+
   const handlePlayAudio = () => {
     if (isPlaying) return;
     setIsPlaying(true);
