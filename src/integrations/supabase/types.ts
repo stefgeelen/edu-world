@@ -14,16 +14,460 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      badges: {
+        Row: {
+          created_at: string
+          description: string | null
+          gradient_from: string | null
+          gradient_to: string | null
+          icon: string
+          id: string
+          max_progress: number
+          name: string
+          requirement: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          gradient_from?: string | null
+          gradient_to?: string | null
+          icon: string
+          id: string
+          max_progress?: number
+          name: string
+          requirement?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          gradient_from?: string | null
+          gradient_to?: string | null
+          icon?: string
+          id?: string
+          max_progress?: number
+          name?: string
+          requirement?: string | null
+        }
+        Relationships: []
+      }
+      child_badges: {
+        Row: {
+          badge_id: string
+          child_id: string
+          id: string
+          is_unlocked: boolean
+          progress: number
+          unlocked_at: string | null
+        }
+        Insert: {
+          badge_id: string
+          child_id: string
+          id?: string
+          is_unlocked?: boolean
+          progress?: number
+          unlocked_at?: string | null
+        }
+        Update: {
+          badge_id?: string
+          child_id?: string
+          id?: string
+          is_unlocked?: boolean
+          progress?: number
+          unlocked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "child_badges_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      child_progress: {
+        Row: {
+          average_score: number | null
+          child_id: string
+          exercises_completed: number
+          id: string
+          subject: Database["public"]["Enums"]["subject_type"]
+          total_time_seconds: number
+          total_xp: number
+          updated_at: string
+        }
+        Insert: {
+          average_score?: number | null
+          child_id: string
+          exercises_completed?: number
+          id?: string
+          subject: Database["public"]["Enums"]["subject_type"]
+          total_time_seconds?: number
+          total_xp?: number
+          updated_at?: string
+        }
+        Update: {
+          average_score?: number | null
+          child_id?: string
+          exercises_completed?: number
+          id?: string
+          subject?: Database["public"]["Enums"]["subject_type"]
+          total_time_seconds?: number
+          total_xp?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_progress_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          age: number | null
+          avatar_id: string | null
+          avatar_url: string | null
+          created_at: string
+          grade: number
+          id: string
+          last_active_date: string | null
+          level: number
+          name: string
+          organization_id: string | null
+          parent_id: string | null
+          streak: number
+          updated_at: string
+          xp: number
+        }
+        Insert: {
+          age?: number | null
+          avatar_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          grade?: number
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          name: string
+          organization_id?: string | null
+          parent_id?: string | null
+          streak?: number
+          updated_at?: string
+          xp?: number
+        }
+        Update: {
+          age?: number | null
+          avatar_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          grade?: number
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          name?: string
+          organization_id?: string | null
+          parent_id?: string | null
+          streak?: number
+          updated_at?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_attempts: {
+        Row: {
+          answers: Json | null
+          child_id: string
+          completed_at: string
+          exercise_id: string
+          id: string
+          max_score: number
+          score: number
+          stars: number
+          time_spent_seconds: number
+        }
+        Insert: {
+          answers?: Json | null
+          child_id: string
+          completed_at?: string
+          exercise_id: string
+          id?: string
+          max_score?: number
+          score?: number
+          stars?: number
+          time_spent_seconds?: number
+        }
+        Update: {
+          answers?: Json | null
+          child_id?: string
+          completed_at?: string
+          exercise_id?: string
+          id?: string
+          max_score?: number
+          score?: number
+          stars?: number
+          time_spent_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_attempts_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_attempts_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
+        Row: {
+          created_at: string
+          display_order: number
+          grade: number
+          id: string
+          route: string
+          stage: string
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          grade?: number
+          id?: string
+          route: string
+          stage?: string
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+          xp_reward?: number
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          grade?: number
+          id?: string
+          route?: string
+          stage?: string
+          subject?: Database["public"]["Enums"]["subject_type"]
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          locale: string
+          updated_at: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          locale?: string
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          locale?: string
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          max_children: number
+          organization_id: string | null
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          max_children?: number
+          organization_id?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          max_children?: number
+          organization_id?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      exercise_status: "completed" | "available" | "locked"
+      org_role: "owner" | "admin" | "teacher"
+      subject_type: "math" | "reading" | "writing"
+      subscription_plan: "free" | "basic" | "family" | "school"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "expired"
+      user_type: "parent" | "teacher"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +594,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      exercise_status: ["completed", "available", "locked"],
+      org_role: ["owner", "admin", "teacher"],
+      subject_type: ["math", "reading", "writing"],
+      subscription_plan: ["free", "basic", "family", "school"],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "expired",
+      ],
+      user_type: ["parent", "teacher"],
+    },
   },
 } as const
