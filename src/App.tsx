@@ -3,7 +3,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/context/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { Auth } from "@/screens/Auth";
+import { ResetPassword } from "@/screens/ResetPassword";
 import { AvatarSelection } from "@/screens/AvatarSelection";
 import { Dashboard } from "@/screens/Dashboard";
 import { QuestMap } from "@/screens/QuestMap";
@@ -30,27 +34,34 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<AvatarSelection />} />
-            <Route path="add-child" element={<AddChild />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="map" element={<QuestMap />} />
-            <Route path="stage/fluisterbos" element={<Fluisterbos />} />
-            <Route path="exercise/:id" element={<Exercise />} />
-            <Route path="exercise-bonds/:id" element={<ExerciseNumberBond />} />
-            <Route path="exercise-lang/:id" element={<ExerciseLanguage />} />
-            <Route path="exercise-dots/:id" element={<ExerciseDotCount />} />
-            <Route path="exercise-write/:id" element={<ExerciseWriteNumber />} />
-            <Route path="exercise-numline/:id" element={<ExerciseNumberLine />} />
-            <Route path="exercise-compare/:id" element={<ExerciseComparison />} />
-            <Route path="exercise-write-digit/:digit" element={<ExerciseWriteDigit />} />
-            <Route path="badges" element={<BadgeOverview />} />
-            <Route path="badges/:id" element={<BadgeDetail />} />
-            <Route path="progress" element={<Progress />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Protected routes */}
+            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+              <Route index element={<AvatarSelection />} />
+              <Route path="add-child" element={<AddChild />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="map" element={<QuestMap />} />
+              <Route path="stage/fluisterbos" element={<Fluisterbos />} />
+              <Route path="exercise/:id" element={<Exercise />} />
+              <Route path="exercise-bonds/:id" element={<ExerciseNumberBond />} />
+              <Route path="exercise-lang/:id" element={<ExerciseLanguage />} />
+              <Route path="exercise-dots/:id" element={<ExerciseDotCount />} />
+              <Route path="exercise-write/:id" element={<ExerciseWriteNumber />} />
+              <Route path="exercise-numline/:id" element={<ExerciseNumberLine />} />
+              <Route path="exercise-compare/:id" element={<ExerciseComparison />} />
+              <Route path="exercise-write-digit/:digit" element={<ExerciseWriteDigit />} />
+              <Route path="badges" element={<BadgeOverview />} />
+              <Route path="badges/:id" element={<BadgeDetail />} />
+              <Route path="progress" element={<Progress />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
