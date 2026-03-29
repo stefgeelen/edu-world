@@ -49,7 +49,16 @@ export function ExerciseLanguage() {
     setIsPlaying(true);
     const utterance = new SpeechSynthesisUtterance(correctWord);
     utterance.lang = 'nl-NL';
-    utterance.rate = 0.8;
+    utterance.rate = 0.75;
+    
+    // Try to find a Dutch voice explicitly
+    const voices = window.speechSynthesis.getVoices();
+    const dutchVoice = voices.find(v => v.lang === 'nl-NL') 
+      || voices.find(v => v.lang.startsWith('nl'));
+    if (dutchVoice) {
+      utterance.voice = dutchVoice;
+    }
+    
     utterance.onend = () => setIsPlaying(false);
     utterance.onerror = () => setIsPlaying(false);
     window.speechSynthesis.cancel();
