@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check } from 'lucide-react';
+import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 
@@ -34,14 +35,26 @@ export function Dashboard() {
           </div>
         </motion.div>
         
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-xl border border-orange-100 shadow-sm"
-        >
-          <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
-          <span className="text-orange-700 font-bold text-lg">{streak}</span>
-        </motion.div>
+        <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-xl border border-orange-100 shadow-sm"
+          >
+            <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
+            <span className="text-orange-700 font-bold text-lg">{streak}</span>
+          </motion.div>
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate('/auth');
+            }}
+            className="p-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-xl transition-colors"
+            title="Uitloggen"
+          >
+            <LogOut className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
