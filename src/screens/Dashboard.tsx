@@ -1,14 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check, LogOut } from 'lucide-react';
+import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check, LogOut, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGame } from '@/context/GameContext';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { cn } from '@/lib/utils';
 
 export function Dashboard() {
   const navigate = useNavigate();
   const { selectedAvatar, xp, streak, level } = useGame();
+  const { isAdmin } = useAdminRole();
 
   const xpRequired = level * 1000;
   const progress = (xp / xpRequired) * 100;
@@ -44,6 +46,15 @@ export function Dashboard() {
             <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
             <span className="text-orange-700 font-bold text-lg">{streak}</span>
           </motion.div>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="p-2.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 rounded-xl transition-colors border border-indigo-200"
+              title="Admin panel"
+            >
+              <Shield className="w-5 h-5 text-indigo-600" />
+            </button>
+          )}
           <button
             onClick={async () => {
               await supabase.auth.signOut();
