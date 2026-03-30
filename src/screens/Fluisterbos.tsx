@@ -11,9 +11,13 @@ import {
   BookOpen,
   PenTool,
   Leaf,
+  Loader2,
 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 
 // Types
 type ExerciseStatus = 'completed' | 'available' | 'locked';
@@ -38,78 +42,62 @@ const SUBJECTS: { id: SubjectType; label: string; icon: React.ElementType; emoji
   { id: 'writing', label: 'Schrijven', icon: PenTool,   emoji: '✏️', color: 'text-orange-600', lightBg: 'bg-orange-50 border-orange-200', darkBg: 'bg-orange-500' },
 ];
 
-const SUBJECT_MAP = Object.fromEntries(SUBJECTS.map(s => [s.id, s]));
+function useExercises() {
+  return useQuery({
+    queryKey: ['exercises', 'stage-1'],
+    queryFn: async (): Promise<StageExercise[]> => {
+      const { data: exercises, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('stage', 'stage-1')
+        .order('subject')
+        .order('display_order');
 
-// Exercise data organised by subject
-const ALL_EXERCISES: StageExercise[] = [
-  // ── MATH ──
-  { id: 'fb-01', order: 1,  title: 'Tellen tot 10',        subject: 'math', status: 'completed', xpReward: 20,  route: '/exercise/1',       stars: 3 },
-  { id: 'fb-03', order: 2,  title: 'Optellen tot 10',      subject: 'math', status: 'completed', xpReward: 25,  route: '/exercise/2',       stars: 2 },
-  { id: 'fb-05', order: 3,  title: 'Getallen splitsen',    subject: 'math', status: 'completed', xpReward: 30,  route: '/exercise-bonds/1', stars: 2 },
-  { id: 'fb-09', order: 4,  title: 'Plus en min',          subject: 'math', status: 'completed', xpReward: 35,  route: '/exercise/4',       stars: 2 },
-  { id: 'fb-11', order: 5,  title: 'Rekenen tot 20',       subject: 'math', status: 'completed', xpReward: 35,  route: '/exercise/6',       stars: 3 },
-  { id: 'fb-13', order: 6,  title: 'Getallenlijn',         subject: 'math', status: 'available', xpReward: 40,  route: '/exercise-bonds/2', stars: 0 },
-  { id: 'fb-15', order: 7,  title: 'Meten & vergelijken',  subject: 'math', status: 'available', xpReward: 40,  route: '/exercise/7',       stars: 0 },
-  { id: 'fb-17', order: 8,  title: 'Getallenpatronen',     subject: 'math', status: 'available', xpReward: 40,  route: '/exercise-bonds/3', stars: 0 },
-  { id: 'fb-21', order: 9,  title: 'Tafels van 2',         subject: 'math', status: 'locked',    xpReward: 50,  route: '/exercise/10',      stars: 0 },
-  { id: 'fb-23', order: 10, title: 'Breuken intro',        subject: 'math', status: 'locked',    xpReward: 55,  route: '/exercise-bonds/4', stars: 0 },
-  { id: 'fb-25', order: 11, title: 'Klokkijken',           subject: 'math', status: 'locked',    xpReward: 55,  route: '/exercise/11',      stars: 0 },
-  { id: 'fb-28', order: 12, title: 'Tafels van 5',         subject: 'math', status: 'locked',    xpReward: 60,  route: '/exercise/14',      stars: 0 },
-  { id: 'fb-30', order: 13, title: 'Getallen tot 100',     subject: 'math', status: 'locked',    xpReward: 60,  route: '/exercise-bonds/5', stars: 0 },
-  { id: 'fb-40', order: 14, title: 'Geld rekenen',         subject: 'math', status: 'locked',    xpReward: 80,  route: '/exercise-bonds/7', stars: 0 },
-  { id: 'fb-dot-1',     order: 15, title: 'Stippen plaatsen',  subject: 'math', status: 'available', xpReward: 30, route: '/exercise-dots/1',    stars: 0 },
-  { id: 'fb-numline-1', order: 16, title: 'Getallenlijn',      subject: 'math', status: 'available', xpReward: 40, route: '/exercise-numline/1', stars: 0 },
-  { id: 'fb-compare-1', order: 17, title: 'Groter of kleiner', subject: 'math', status: 'available', xpReward: 35, route: '/exercise-compare/1', stars: 0 },
+      if (error) throw error;
 
-  // ── READING ──
-  { id: 'fb-02', order: 1,  title: 'Letters herkennen',    subject: 'reading', status: 'completed', xpReward: 20,  route: '/exercise-lang/1',  stars: 3 },
-  { id: 'fb-06', order: 2,  title: 'Rijmwoorden',          subject: 'reading', status: 'completed', xpReward: 25,  route: '/exercise-lang/3',  stars: 3 },
-  { id: 'fb-08', order: 3,  title: 'Zinnen maken',         subject: 'reading', status: 'completed', xpReward: 30,  route: '/exercise-lang/4',  stars: 3 },
-  { id: 'fb-12', order: 4,  title: 'Begrijpend lezen 1',   subject: 'reading', status: 'completed', xpReward: 35,  route: '/exercise-lang/5',  stars: 2 },
-  { id: 'fb-14', order: 5,  title: 'Woordenschat bos',     subject: 'reading', status: 'available', xpReward: 35,  route: '/exercise-lang/6',  stars: 0 },
-  { id: 'fb-16', order: 6,  title: 'Leestekens',           subject: 'reading', status: 'available', xpReward: 35,  route: '/exercise-lang/7',  stars: 0 },
-  { id: 'fb-20', order: 7,  title: 'Samenstellingen',      subject: 'reading', status: 'available', xpReward: 40,  route: '/exercise-lang/8',  stars: 0 },
-  { id: 'fb-22', order: 8,  title: 'Begrijpend lezen 2',   subject: 'reading', status: 'locked',    xpReward: 50,  route: '/exercise-lang/9',  stars: 0 },
-  { id: 'fb-29', order: 9,  title: 'Synoniemen',           subject: 'reading', status: 'locked',    xpReward: 50,  route: '/exercise-lang/11', stars: 0 },
-  { id: 'fb-34', order: 10, title: 'Woordzoeker',          subject: 'reading', status: 'locked',    xpReward: 55,  route: '/exercise-lang/13', stars: 0 },
-  { id: 'fb-37', order: 11, title: 'Leesdiploma',          subject: 'reading', status: 'locked',    xpReward: 75,  route: '/exercise-lang/14', stars: 0 },
-  { id: 'fb-39', order: 12, title: 'Spreekwoorden',        subject: 'reading', status: 'locked',    xpReward: 75,  route: '/exercise-lang/15', stars: 0 },
-  { id: 'fb-47', order: 13, title: 'Woordenschat meester', subject: 'reading', status: 'locked',    xpReward: 90,  route: '/exercise-lang/17', stars: 0 },
-
-  // ── WRITING ──
-  { id: 'fb-04', order: 1,  title: 'Woorden spellen',      subject: 'writing', status: 'completed', xpReward: 25,  route: '/exercise-lang/2',  stars: 3 },
-  { id: 'fb-24', order: 2,  title: 'Schrijf een verhaal',  subject: 'writing', status: 'locked',    xpReward: 50,  route: '/exercise-lang/10', stars: 0 },
-  { id: 'fb-32', order: 3,  title: 'Gedicht schrijven',    subject: 'writing', status: 'locked',    xpReward: 55,  route: '/exercise-lang/12', stars: 0 },
-  { id: 'fb-44', order: 4,  title: 'Dictee kampioen',      subject: 'writing', status: 'locked',    xpReward: 85,  route: '/exercise-lang/16', stars: 0 },
-  { id: 'fb-write-1',   order: 5, title: 'Getal schrijven',   subject: 'writing', status: 'available', xpReward: 30, route: '/exercise-write/1',   stars: 0 },
-  { id: 'fb-digit-0', order: 6,  title: 'Schrijf: 0',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/0', stars: 0 },
-  { id: 'fb-digit-1', order: 7,  title: 'Schrijf: 1',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/1', stars: 0 },
-  { id: 'fb-digit-2', order: 8,  title: 'Schrijf: 2',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/2', stars: 0 },
-  { id: 'fb-digit-3', order: 9,  title: 'Schrijf: 3',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/3', stars: 0 },
-  { id: 'fb-digit-4', order: 10, title: 'Schrijf: 4',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/4', stars: 0 },
-  { id: 'fb-digit-5', order: 11, title: 'Schrijf: 5',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/5', stars: 0 },
-  { id: 'fb-digit-6', order: 12, title: 'Schrijf: 6',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/6', stars: 0 },
-  { id: 'fb-digit-7', order: 13, title: 'Schrijf: 7',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/7', stars: 0 },
-  { id: 'fb-digit-8', order: 14, title: 'Schrijf: 8',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/8', stars: 0 },
-  { id: 'fb-digit-9', order: 15, title: 'Schrijf: 9',  subject: 'writing', status: 'available', xpReward: 25, route: '/exercise-write-digit/9', stars: 0 },
-];
+      // For now, all exercises default to 'available'. 
+      // Status/stars will be derived from exercise_attempts once child context is wired.
+      return (exercises || []).map((ex) => ({
+        id: ex.id,
+        order: ex.display_order,
+        title: ex.title,
+        subject: ex.subject as SubjectType,
+        status: 'available' as ExerciseStatus,
+        xpReward: ex.xp_reward,
+        route: ex.route,
+        stars: 0,
+      }));
+    },
+  });
+}
 
 export function Fluisterbos() {
   const navigate = useNavigate();
   const { xp: _xp } = useGame();
   const [activeTab, setActiveTab] = useState<SubjectTab>('all');
+  const { data: allExercises = [], isLoading } = useExercises();
 
-  const completed = ALL_EXERCISES.filter(e => e.status === 'completed');
+  const completed = allExercises.filter(e => e.status === 'completed');
   const totalXpEarned = completed.reduce((s, e) => s + e.xpReward, 0);
-  const progressPct = Math.round((completed.length / ALL_EXERCISES.length) * 100);
+  const progressPct = allExercises.length > 0
+    ? Math.round((completed.length / allExercises.length) * 100)
+    : 0;
 
   const filteredExercises = activeTab === 'all'
-    ? ALL_EXERCISES
-    : ALL_EXERCISES.filter(e => e.subject === activeTab);
+    ? allExercises
+    : allExercises.filter(e => e.subject === activeTab);
 
   const subjectsToShow = activeTab === 'all'
     ? SUBJECTS
     : SUBJECTS.filter(s => s.id === activeTab);
+
+  if (isLoading) {
+    return (
+      <div className="h-full w-full bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full w-full bg-slate-50 flex flex-col overflow-hidden">
@@ -137,7 +125,7 @@ export function Fluisterbos() {
         {/* Progress bar */}
         <div className="max-w-2xl mx-auto w-full">
           <div className="flex justify-between items-center mb-1.5">
-            <span className="text-xs font-bold text-slate-500">{completed.length} / {ALL_EXERCISES.length} opdrachten</span>
+            <span className="text-xs font-bold text-slate-500">{completed.length} / {allExercises.length} opdrachten</span>
             <span className="text-xs font-bold text-teal-600">{progressPct}%</span>
           </div>
           <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
@@ -158,10 +146,10 @@ export function Fluisterbos() {
             active={activeTab === 'all'}
             onClick={() => setActiveTab('all')}
             label="Alles"
-            count={ALL_EXERCISES.length}
+            count={allExercises.length}
           />
           {SUBJECTS.map(sub => {
-            const count = ALL_EXERCISES.filter(e => e.subject === sub.id).length;
+            const count = allExercises.filter(e => e.subject === sub.id).length;
             return (
               <TabButton
                 key={sub.id}
