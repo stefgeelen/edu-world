@@ -46,6 +46,15 @@ export function Dashboard() {
             <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
             <span className="text-orange-700 font-bold text-lg">{streak}</span>
           </motion.div>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="p-2.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 rounded-xl transition-colors border border-indigo-200"
+              title="Admin panel"
+            >
+              <Shield className="w-5 h-5 text-indigo-600" />
+            </button>
+          )}
           <button
             onClick={async () => {
               await supabase.auth.signOut();
