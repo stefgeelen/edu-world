@@ -88,9 +88,9 @@ export const badgesData: Badge[] = [
     color: 'bg-yellow-400',
     gradientFrom: '#fbbf24',
     gradientTo: '#f59e0b',
-    progress: 1,
+    progress: 0,
     maxProgress: 1,
-    isUnlocked: true,
+    isUnlocked: false,
   },
   {
     id: 'fire-streak',
@@ -101,9 +101,9 @@ export const badgesData: Badge[] = [
     color: 'bg-orange-500',
     gradientFrom: '#f97316',
     gradientTo: '#ea580c',
-    progress: 5,
+    progress: 0,
     maxProgress: 5,
-    isUnlocked: true,
+    isUnlocked: false,
   },
   {
     id: 'perfect',
@@ -114,7 +114,7 @@ export const badgesData: Badge[] = [
     color: 'bg-purple-500',
     gradientFrom: '#a855f7',
     gradientTo: '#9333ea',
-    progress: 7,
+    progress: 0,
     maxProgress: 10,
     isUnlocked: false,
   },
@@ -127,9 +127,9 @@ export const badgesData: Badge[] = [
     color: 'bg-blue-500',
     gradientFrom: '#3b82f6',
     gradientTo: '#2563eb',
-    progress: 1250,
+    progress: 0,
     maxProgress: 500,
-    isUnlocked: true,
+    isUnlocked: false,
   },
   {
     id: 'champion',
@@ -140,7 +140,7 @@ export const badgesData: Badge[] = [
     color: 'bg-amber-500',
     gradientFrom: '#f59e0b',
     gradientTo: '#d97706',
-    progress: 4,
+    progress: 0,
     maxProgress: 6,
     isUnlocked: false,
   },
@@ -153,7 +153,7 @@ export const badgesData: Badge[] = [
     color: 'bg-teal-500',
     gradientFrom: '#14b8a6',
     gradientTo: '#0d9488',
-    progress: 12,
+    progress: 0,
     maxProgress: 20,
     isUnlocked: false,
   },
@@ -166,7 +166,7 @@ export const badgesData: Badge[] = [
     color: 'bg-yellow-500',
     gradientFrom: '#eab308',
     gradientTo: '#ca8a04',
-    progress: 2,
+    progress: 0,
     maxProgress: 5,
     isUnlocked: false,
   },
@@ -179,7 +179,7 @@ export const badgesData: Badge[] = [
     color: 'bg-pink-500',
     gradientFrom: '#ec4899',
     gradientTo: '#db2777',
-    progress: 3,
+    progress: 0,
     maxProgress: 5,
     isUnlocked: false,
   },
@@ -192,7 +192,7 @@ export const badgesData: Badge[] = [
     color: 'bg-rose-500',
     gradientFrom: '#f43f5e',
     gradientTo: '#e11d48',
-    progress: 1,
+    progress: 0,
     maxProgress: 5,
     isUnlocked: false,
   },
@@ -205,12 +205,11 @@ export const badgesData: Badge[] = [
     color: 'bg-indigo-500',
     gradientFrom: '#6366f1',
     gradientTo: '#4f46e5',
-    progress: 3,
+    progress: 0,
     maxProgress: 10,
     isUnlocked: false,
   },
 ];
-
 type GameContextType = {
   selectedAvatar: Avatar | null;
   setSelectedAvatar: (avatar: Avatar) => void;
@@ -228,10 +227,10 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
-  const [xp, setXp] = useState(1250);
-  const [streak, setStreak] = useState(5);
-  const [level, setLevel] = useState(3);
-  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1, 2, 3]);
+  const [xp, setXp] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]);
   const [badges, setBadges] = useState<Badge[]>(badgesData);
 
   const addXp = (amount: number) => setXp((prev) => prev + amount);
