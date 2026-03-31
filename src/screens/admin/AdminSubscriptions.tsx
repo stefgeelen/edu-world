@@ -77,7 +77,7 @@ export function AdminSubscriptions() {
               'bg-slate-50 text-slate-500 border-slate-200'
             )}
           >
-            {status}: {count}
+            {status}: {count as number}
           </span>
         ))}
       </div>
