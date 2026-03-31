@@ -227,10 +227,10 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
-  const [xp, setXp] = useState(1250);
-  const [streak, setStreak] = useState(5);
-  const [level, setLevel] = useState(3);
-  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1, 2, 3]);
+  const [xp, setXp] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]);
   const [badges, setBadges] = useState<Badge[]>(badgesData);
 
   const addXp = (amount: number) => setXp((prev) => prev + amount);
