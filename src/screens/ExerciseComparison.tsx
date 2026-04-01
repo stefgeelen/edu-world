@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Delete, Heart, HeartCrack, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { randomInt } from '@/lib/random';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
