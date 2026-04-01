@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Heart, HeartCrack, Loader2 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 
 export function Exercise() {
   const navigate = useNavigate();
