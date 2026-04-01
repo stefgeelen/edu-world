@@ -176,12 +176,7 @@ export function ExerciseNumberLine() {
     if (!allFilled || roundDone) return;
     setRoundDone(true);
     addXp(20);
-    confetti({
-      particleCount: 150,
-      spread: 80,
-      origin: { y: 0.5 },
-      colors: ['#818cf8', '#a5b4fc', '#fcd34d', '#34d399', '#60a5fa'],
-    });
+    triggerConfetti('large', { colors: ['#818cf8', '#a5b4fc', '#fcd34d', '#34d399', '#60a5fa'], originY: 0.5 });
     const nextProg = progress + 25;
     setProgress(nextProg);
     setTimeout(() => {

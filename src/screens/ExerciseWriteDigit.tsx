@@ -565,12 +565,7 @@ export function ExerciseWriteDigit() {
     if (isCorrect) {
       setStatus('correct');
       addXp(15);
-      confetti({
-        particleCount: 160,
-        spread: 80,
-        origin: { y: 0.45 },
-        colors: ['#f97316', '#fcd34d', '#34d399', '#60a5fa', '#c084fc'],
-      });
+      triggerConfetti('large', { colors: ['#f97316', '#fcd34d', '#34d399', '#60a5fa', '#c084fc'], originY: 0.45 });
       setTimeout(() => {
         const next = iteration + 1;
         if (next >= TOTAL_ITERATIONS) {

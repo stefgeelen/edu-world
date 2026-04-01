@@ -75,12 +75,7 @@ export function ExerciseLanguage() {
       setProgress(p => p + 20);
       addXp(10);
       
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#10b981', '#f59e0b', '#3b82f6']
-      });
+      triggerConfetti('large', { colors: ['#10b981', '#f59e0b', '#3b82f6'], originY: 0.6 });
       
       setTimeout(() => {
         if (progress + 20 >= 100) {

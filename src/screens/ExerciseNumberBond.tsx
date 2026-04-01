@@ -55,12 +55,7 @@ export function ExerciseNumberBond() {
       setProgress(p => p + 20);
       addXp(10);
       
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#10b981', '#34d399', '#fcd34d']
-      });
+      triggerConfetti('large', { colors: ['#10b981', '#34d399', '#fcd34d'], originY: 0.6 });
       
       setTimeout(() => {
         if (progress + 20 >= 100) {

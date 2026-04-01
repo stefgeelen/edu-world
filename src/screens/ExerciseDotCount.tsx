@@ -72,12 +72,7 @@ export function ExerciseDotCount() {
     if (dots.length === target) {
       setStatus('correct');
       addXp(15);
-      confetti({
-        particleCount: 140,
-        spread: 75,
-        origin: { y: 0.55 },
-        colors: ['#14b8a6', '#34d399', '#fcd34d', '#60a5fa'],
-      });
+      triggerConfetti('medium');
       const nextProgress = progress + 20;
       setProgress(nextProgress);
       setTimeout(() => {

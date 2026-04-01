@@ -179,12 +179,7 @@ export function ExerciseWriteNumber() {
     if (correct) {
       setStatus('correct');
       addXp(15);
-      confetti({
-        particleCount: 140,
-        spread: 75,
-        origin: { y: 0.55 },
-        colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'],
-      });
+      triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
       const nextProgress = progress + 20;
       setProgress(nextProgress);
       setTimeout(() => {

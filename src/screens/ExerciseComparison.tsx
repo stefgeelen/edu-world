@@ -188,12 +188,7 @@ export function ExerciseComparison() {
     if (correct) {
       setStatus('correct');
       addXp(10);
-      confetti({
-        particleCount: 120,
-        spread: 70,
-        origin: { y: 0.55 },
-        colors: ['#f97316', '#fb923c', '#fcd34d', '#34d399', '#60a5fa'],
-      });
+      triggerConfetti('medium', { colors: ['#f97316', '#fb923c', '#fcd34d', '#34d399', '#60a5fa'] });
       const nextProgress = Math.min(progress + 25, 100);
       setProgress(nextProgress);
       setTimeout(() => {
