@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Trash2, Heart, HeartCrack, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
 
 function getRandomTarget() {
