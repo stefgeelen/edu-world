@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Delete, Heart, HeartCrack, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { randomInt } from '@/lib/random';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -20,10 +21,6 @@ interface Question {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 function generateQuestion(): Question {
   const variation = randomInt(1, 4) as VariationType;
@@ -187,12 +184,7 @@ export function ExerciseComparison() {
     if (correct) {
       setStatus('correct');
       addXp(10);
-      confetti({
-        particleCount: 120,
-        spread: 70,
-        origin: { y: 0.55 },
-        colors: ['#f97316', '#fb923c', '#fcd34d', '#34d399', '#60a5fa'],
-      });
+      triggerConfetti('medium', { colors: ['#f97316', '#fb923c', '#fcd34d', '#34d399', '#60a5fa'] });
       const nextProgress = Math.min(progress + 25, 100);
       setProgress(nextProgress);
       setTimeout(() => {

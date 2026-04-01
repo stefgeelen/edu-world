@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Trash2, Heart, HeartCrack, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
 
 function getRandomTarget() {
@@ -179,12 +179,7 @@ export function ExerciseWriteNumber() {
     if (correct) {
       setStatus('correct');
       addXp(15);
-      confetti({
-        particleCount: 140,
-        spread: 75,
-        origin: { y: 0.55 },
-        colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'],
-      });
+      triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
       const nextProgress = progress + 20;
       setProgress(nextProgress);
       setTimeout(() => {

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Heart, HeartCrack, Loader2 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 
 export function Exercise() {
   const navigate = useNavigate();
@@ -53,12 +53,7 @@ export function Exercise() {
     if (option === question.answer) {
       setStatus('correct');
       setProgress(p => p + 20);
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#3b82f6', '#14b8a6', '#f59e0b']
-      });
+      triggerConfetti('small', { colors: ['#3b82f6', '#14b8a6', '#f59e0b'], originY: 0.6 });
       addXp(10);
       
       setTimeout(() => {

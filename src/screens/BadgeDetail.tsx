@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Sparkles,
@@ -33,11 +33,9 @@ export function BadgeDetail() {
     if (badge?.isUnlocked) {
       // Trigger confetti for unlocked badges
       setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.5 },
+        triggerConfetti('small', {
           colors: [badge.gradientFrom, badge.gradientTo, '#fbbf24'],
+          originY: 0.5,
         });
       }, 300);
     }
