@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, RotateCcw, Check, Heart, HeartCrack, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
 
 // ── Digit SVG paths (100 × 130 normalized space) ──────────────────────────
