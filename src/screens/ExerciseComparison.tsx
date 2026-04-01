@@ -22,10 +22,6 @@ interface Question {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 function generateQuestion(): Question {
   const variation = randomInt(1, 4) as VariationType;
   let leftValue: number;
