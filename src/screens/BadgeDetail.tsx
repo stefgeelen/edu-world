@@ -33,11 +33,9 @@ export function BadgeDetail() {
     if (badge?.isUnlocked) {
       // Trigger confetti for unlocked badges
       setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.5 },
+        triggerConfetti('small', {
           colors: [badge.gradientFrom, badge.gradientTo, '#fbbf24'],
+          originY: 0.5,
         });
       }, 300);
     }
