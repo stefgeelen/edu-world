@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Sparkles,
