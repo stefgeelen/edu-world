@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Volume2, Star, Heart, HeartCrack } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import confetti from 'canvas-confetti';
+import { triggerConfetti } from '@/lib/confetti';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { useGame } from '@/context/GameContext';
 
