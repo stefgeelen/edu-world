@@ -1,60 +1,66 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  TrendingUp, ChevronLeft, Star, Trophy, Target, BookOpen, 
-  Calculator, Clock, Award, Medal, Zap, ArrowUp, ArrowDown
+  TrendingUp, ChevronLeft, Target, BookOpen, 
+  Calculator, Clock, Zap, Trophy, ArrowUp, ArrowDown, Loader2
 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
+import { useChildProgress } from '@/hooks/useChildProgress';
+import { BentoTable } from '@/components/ui/bento-table';
+import { TableSection } from '@/components/ui/table-section';
 
-function BentoTable({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`bg-white rounded-3xl shadow-lg border-2 border-slate-100 overflow-hidden ${className}`}>
-      {children}
-    </div>
-  );
+const SUBJECT_LABELS: Record<string, string> = {
+  math: 'Rekenen',
+  reading: 'Lezen',
+  writing: 'Schrijven',
+};
+
+const SUBJECT_ICONS: Record<string, string> = {
+  math: '🔢',
+  reading: '📖',
+  writing: '✏️',
+};
+
+const SUBJECT_COLORS: Record<string, { bg: string; accent: string }> = {
+  math: { bg: 'bg-emerald-50', accent: 'text-emerald-600' },
+  reading: { bg: 'bg-blue-50', accent: 'text-blue-600' },
+  writing: { bg: 'bg-purple-50', accent: 'text-purple-600' },
+};
+
+function formatTime(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  const remainMins = mins % 60;
+  return `${hrs}u ${remainMins}m`;
 }
 
-function TableSection({ title, icon: Icon, color }: { title: string; icon: React.ComponentType<{ className?: string }>; color: string }) {
-  return (
-    <div className={`px-6 py-4 bg-gradient-to-r ${color} border-b-2 border-slate-100`}>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-white/90 rounded-xl flex items-center justify-center shadow-sm">
-          <Icon className="w-5 h-5 text-slate-700" />
-        </div>
-        <h3 className="text-lg font-black text-slate-800">{title}</h3>
-      </div>
-    </div>
-  );
+function getScoreLevel(score: number): string {
+  if (score >= 90) return 'Expert';
+  if (score >= 75) return 'Gevorderd';
+  if (score >= 50) return 'Gemiddeld';
+  return 'Basis';
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'Vandaag';
+  if (diffDays === 1) return 'Gisteren';
+  return `${diffDays} dagen`;
 }
 
 export function Progress() {
   const navigate = useNavigate();
   const { selectedAvatar } = useGame();
+  const { isLoading, progressData, recentAttempts, child } = useChildProgress();
 
-  const skillsData = [
-    { id: 1, name: 'Optellen',          icon: '+',  score: 92, trend: 'up',   exercises: 45, time: '3u 20m', level: 'Expert',    color: 'bg-emerald-50', accentColor: 'text-emerald-600' },
-    { id: 2, name: 'Aftrekken',         icon: '-',  score: 85, trend: 'up',   exercises: 38, time: '2u 45m', level: 'Gevorderd', color: 'bg-blue-50',    accentColor: 'text-blue-600' },
-    { id: 3, name: 'Vermenigvuldigen',  icon: 'x',  score: 78, trend: 'down', exercises: 32, time: '2u 10m', level: 'Gemiddeld', color: 'bg-purple-50',  accentColor: 'text-purple-600' },
-    { id: 4, name: 'Delen',             icon: '/',  score: 71, trend: 'up',   exercises: 25, time: '1u 35m', level: 'Basis',     color: 'bg-orange-50',  accentColor: 'text-orange-600' },
-  ];
-
-  const recentActivities = [
-    { date: 'Vandaag',   subject: 'Rekenen', topic: 'Groep 5 - Keer Kust',   score: 95,  xp: 50, time: '14:30' },
-    { date: 'Vandaag',   subject: 'Spelling', topic: 'Woorden met -tion',     score: 88,  xp: 40, time: '10:15' },
-    { date: 'Gisteren',  subject: 'Rekenen', topic: 'Groep 4 - Min Moeras',  score: 100, xp: 75, time: '16:20' },
-    { date: 'Gisteren',  subject: 'Lezen',   topic: 'Begrijpend Lezen',      score: 82,  xp: 35, time: '11:00' },
-    { date: '2 dagen',   subject: 'Rekenen', topic: 'Groep 5 - Keer Kust',   score: 91,  xp: 45, time: '15:10' },
-  ];
-
-  const changeForMe = -1;
-  const leaderboardData = [
-    { rank: 1, name: 'Emma',                            avatar: '👧', score: 2850, change: 0,         isYou: false },
-    { rank: 2, name: 'Lucas',                           avatar: '👦', score: 2720, change: 1,         isYou: false },
-    { rank: 3, name: selectedAvatar?.name || 'Jij',    avatar: '⭐', score: 2680, change: changeForMe, isYou: true  },
-    { rank: 4, name: 'Sophie',                          avatar: '👧', score: 2520, change: 2,         isYou: false },
-    { rank: 5, name: 'Noah',                            avatar: '👦', score: 2490, change: -2,        isYou: false },
-  ];
+  const hasProgress = progressData.length > 0;
+  const hasAttempts = recentAttempts.length > 0;
 
   return (
     <div className="h-full w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 overflow-y-auto pb-32 flex flex-col pt-12">
@@ -89,113 +95,131 @@ export function Progress() {
 
       {/* Main Content */}
       <div className="px-6 md:px-12 lg:px-16 max-w-7xl mx-auto w-full space-y-6">
-        
-        {/* Skills Overview Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <BentoTable>
-            <TableSection 
-              title="Vaardigheden Overzicht" 
-              icon={Target} 
-              color="from-purple-50 to-indigo-50" 
-            />
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 border-slate-100">
-                    <th className="px-6 py-4 text-left">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Vaardigheid</span>
-                    </th>
-                    <th className="px-6 py-4 text-center hidden md:table-cell">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Niveau</span>
-                    </th>
-                    <th className="px-6 py-4 text-center">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Score</span>
-                    </th>
-                    <th className="px-6 py-4 text-center hidden sm:table-cell">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Oefeningen</span>
-                    </th>
-                    <th className="px-6 py-4 text-center hidden lg:table-cell">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Tijd</span>
-                    </th>
-                    <th className="px-6 py-4 text-center">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Trend</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {skillsData.map((skill, index) => (
-                    <motion.tr 
-                      key={skill.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 + index * 0.05 }}
-                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors group"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 ${skill.color} rounded-xl flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-transform`}>
-                            {skill.icon}
-                          </div>
-                          <span className="font-bold text-slate-800">{skill.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center hidden md:table-cell">
-                        <span className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold ${skill.accentColor} ${skill.color}`}>
-                          {skill.level}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex flex-col items-center">
-                          <span className="text-2xl font-black text-slate-800">{skill.score}%</span>
-                          <div className="w-16 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
-                            <div 
-                              className={`h-full ${skill.score >= 90 ? 'bg-emerald-500' : skill.score >= 75 ? 'bg-blue-500' : 'bg-orange-500'} rounded-full`}
-                              style={{ width: `${skill.score}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center hidden sm:table-cell">
-                        <div className="flex items-center justify-center gap-2">
-                          <Calculator className="w-4 h-4 text-slate-400" />
-                          <span className="font-bold text-slate-700">{skill.exercises}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center hidden lg:table-cell">
-                        <div className="flex items-center justify-center gap-2">
-                          <Clock className="w-4 h-4 text-slate-400" />
-                          <span className="font-medium text-slate-600">{skill.time}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full ${skill.trend === 'up' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                          {skill.trend === 'up' ? (
-                            <ArrowUp className="w-4 h-4" />
-                          ) : (
-                            <ArrowDown className="w-4 h-4" />
-                          )}
-                          <span className="text-xs font-bold">
-                            {skill.trend === 'up' ? '+5%' : '-3%'}
-                          </span>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </BentoTable>
-        </motion.div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Recent Activity */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+          </div>
+        )}
+
+        {!isLoading && !hasProgress && !hasAttempts && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <BentoTable>
+              <div className="px-8 py-16 text-center">
+                <div className="text-6xl mb-4">📊</div>
+                <h3 className="text-xl font-bold text-slate-700 mb-2">Nog geen voortgang</h3>
+                <p className="text-slate-500 max-w-md mx-auto">
+                  Begin met oefeningen om je statistieken hier te zien! Ga naar de kaart om je eerste oefening te starten.
+                </p>
+                <button
+                  onClick={() => navigate('/map')}
+                  className="mt-6 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl font-bold transition-colors"
+                >
+                  Naar de kaart →
+                </button>
+              </div>
+            </BentoTable>
+          </motion.div>
+        )}
+
+        {/* Skills Overview Table */}
+        {!isLoading && hasProgress && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <BentoTable>
+              <TableSection 
+                title="Vaardigheden Overzicht" 
+                icon={Target} 
+                color="from-purple-50 to-indigo-50" 
+              />
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-slate-100">
+                      <th className="px-6 py-4 text-left">
+                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Vaardigheid</span>
+                      </th>
+                      <th className="px-6 py-4 text-center hidden md:table-cell">
+                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Niveau</span>
+                      </th>
+                      <th className="px-6 py-4 text-center">
+                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Score</span>
+                      </th>
+                      <th className="px-6 py-4 text-center hidden sm:table-cell">
+                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Oefeningen</span>
+                      </th>
+                      <th className="px-6 py-4 text-center hidden lg:table-cell">
+                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Tijd</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {progressData.map((row, index) => {
+                      const score = Math.round(row.average_score ?? 0);
+                      const colors = SUBJECT_COLORS[row.subject] ?? { bg: 'bg-slate-50', accent: 'text-slate-600' };
+                      return (
+                        <motion.tr 
+                          key={row.subject}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 + index * 0.05 }}
+                          className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors group"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-transform`}>
+                                {SUBJECT_ICONS[row.subject] ?? '📚'}
+                              </div>
+                              <span className="font-bold text-slate-800">{SUBJECT_LABELS[row.subject] ?? row.subject}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center hidden md:table-cell">
+                            <span className={`inline-block px-3 py-1.5 rounded-full text-xs font-bold ${colors.accent} ${colors.bg}`}>
+                              {getScoreLevel(score)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-2xl font-black text-slate-800">{score}%</span>
+                              <div className="w-16 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                                <div 
+                                  className={`h-full ${score >= 90 ? 'bg-emerald-500' : score >= 75 ? 'bg-blue-500' : 'bg-orange-500'} rounded-full`}
+                                  style={{ width: `${score}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center hidden sm:table-cell">
+                            <div className="flex items-center justify-center gap-2">
+                              <Calculator className="w-4 h-4 text-slate-400" />
+                              <span className="font-bold text-slate-700">{row.exercises_completed}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center hidden lg:table-cell">
+                            <div className="flex items-center justify-center gap-2">
+                              <Clock className="w-4 h-4 text-slate-400" />
+                              <span className="font-medium text-slate-600">{formatTime(row.total_time_seconds)}</span>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </BentoTable>
+          </motion.div>
+        )}
+
+        {/* Recent Activity */}
+        {!isLoading && hasAttempts && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -224,45 +248,53 @@ export function Progress() {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentActivities.map((activity, index) => (
-                      <tr 
-                        key={index}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-4 py-4">
-                          <div className="space-y-1">
-                            <div className="font-bold text-slate-800 text-sm">{activity.topic}</div>
-                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                              <span className="font-semibold">{activity.date}</span>
-                              <span>&#x2022;</span>
-                              <span>{activity.time}</span>
+                    {recentAttempts.map((attempt) => {
+                      const pct = attempt.max_score > 0 ? Math.round((attempt.score / attempt.max_score) * 100) : 0;
+                      const exerciseData = Array.isArray(attempt.exercise) ? attempt.exercise[0] : attempt.exercise;
+                      return (
+                        <tr 
+                          key={attempt.id}
+                          className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="px-4 py-4">
+                            <div className="space-y-1">
+                              <div className="font-bold text-slate-800 text-sm">
+                                {exerciseData?.title ?? 'Oefening'}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-500">
+                                <span className="font-semibold">{formatDate(attempt.completed_at)}</span>
+                                <span>&#x2022;</span>
+                                <span>{SUBJECT_LABELS[exerciseData?.subject ?? ''] ?? exerciseData?.subject}</span>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-center hidden sm:table-cell">
-                          <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${
-                            activity.score >= 90 ? 'bg-emerald-100 text-emerald-600' : 
-                            activity.score >= 75 ? 'bg-blue-100 text-blue-600' : 
-                            'bg-orange-100 text-orange-600'
-                          }`}>
-                            <span className="text-lg font-black">{activity.score}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100">
-                            <Zap className="w-3 h-3 text-amber-600 fill-amber-600" />
-                            <span className="text-sm font-black text-amber-700">+{activity.xp}</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-4 py-4 text-center hidden sm:table-cell">
+                            <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${
+                              pct >= 90 ? 'bg-emerald-100 text-emerald-600' : 
+                              pct >= 75 ? 'bg-blue-100 text-blue-600' : 
+                              'bg-orange-100 text-orange-600'
+                            }`}>
+                              <span className="text-lg font-black">{pct}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100">
+                              <Zap className="w-3 h-3 text-amber-600 fill-amber-600" />
+                              <span className="text-sm font-black text-amber-700">+{exerciseData?.xp_reward ?? 0}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </BentoTable>
           </motion.div>
+        )}
 
-          {/* Leaderboard */}
+        {/* Leaderboard placeholder — will be real once multiplayer is added */}
+        {!isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -274,100 +306,14 @@ export function Progress() {
                 icon={Trophy} 
                 color="from-amber-50 to-yellow-50" 
               />
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-slate-100">
-                      <th className="px-4 py-3 text-center">
-                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">#</span>
-                      </th>
-                      <th className="px-4 py-3 text-left">
-                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Speler</span>
-                      </th>
-                      <th className="px-4 py-3 text-center">
-                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Score</span>
-                      </th>
-                      <th className="px-4 py-3 text-center hidden sm:table-cell">
-                        <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Verandering</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaderboardData.map((player) => (
-                      <tr 
-                        key={player.rank}
-                        className={`border-b border-slate-100 last:border-0 transition-all ${
-                          player.isYou 
-                            ? 'bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100' 
-                            : 'hover:bg-slate-50'
-                        }`}
-                      >
-                        <td className="px-4 py-4 text-center">
-                          <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl font-black ${
-                            player.rank === 1 ? 'bg-amber-100 text-amber-600' :
-                            player.rank === 2 ? 'bg-slate-200 text-slate-600' :
-                            player.rank === 3 ? 'bg-orange-100 text-orange-600' :
-                            'bg-slate-100 text-slate-500'
-                          }`}>
-                            {player.rank <= 3 ? (
-                              player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : '🥉'
-                            ) : (
-                              player.rank
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-2xl ${
-                              player.isYou ? 'bg-gradient-to-br from-blue-200 to-purple-200' : 'bg-slate-100'
-                            }`}>
-                              {player.avatar}
-                            </div>
-                            <span className={`font-bold ${player.isYou ? 'text-blue-600' : 'text-slate-800'}`}>
-                              {player.name}
-                              {player.isYou && (
-                                <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">JIJ</span>
-                              )}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <div className="flex flex-col items-center">
-                            <span className="text-lg font-black text-slate-800">{player.score.toLocaleString()}</span>
-                            <span className="text-xs font-medium text-slate-400">punten</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-center hidden sm:table-cell">
-                          {player.change === 0 ? (
-                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-400 text-xs font-bold">-</span>
-                          ) : (
-                            <div className={`inline-flex items-center gap-1 ${
-                              player.change > 0 ? 'text-emerald-600' : 'text-red-600'
-                            }`}>
-                              {player.change > 0 ? (
-                                <ArrowUp className="w-4 h-4" />
-                              ) : (
-                                <ArrowDown className="w-4 h-4" />
-                              )}
-                              <span className="text-sm font-bold">{Math.abs(player.change)}</span>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="px-6 py-4 bg-slate-50 border-t-2 border-slate-100">
-                <p className="text-center text-sm font-semibold text-slate-600">
-                  Blijf oefenen om hoger te komen! 💪
-                </p>
+              <div className="px-8 py-12 text-center">
+                <div className="text-5xl mb-3">🏆</div>
+                <h3 className="text-lg font-bold text-slate-700 mb-1">Binnenkort beschikbaar</h3>
+                <p className="text-sm text-slate-500">Het klassement wordt binnenkort geactiveerd!</p>
               </div>
             </BentoTable>
           </motion.div>
-        </div>
+        )}
       </div>
     </div>
   );
