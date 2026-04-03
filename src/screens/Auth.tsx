@@ -18,7 +18,7 @@ export function Auth() {
 
   // Redirect if already logged in
   React.useEffect(() => {
-    if (user) navigate('/', { replace: true });
+    if (user) navigate('/app', { replace: true });
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
