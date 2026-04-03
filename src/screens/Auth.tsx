@@ -38,7 +38,7 @@ export function Auth() {
       if (error) {
         toast.error('Ongeldige inloggegevens. Probeer het opnieuw.');
       } else {
-        navigate('/', { replace: true });
+        navigate('/app', { replace: true });
       }
     }
 

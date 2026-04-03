@@ -9,18 +9,18 @@ export function TabBar() {
   const location = useLocation();
 
   const tabs = [
-    { id: 'dashboard', label: 'Home', icon: Home, path: '/dashboard' },
-    { id: 'map', label: 'Kaart', icon: Map, path: '/map' },
-    { id: 'progress', label: 'Voortgang', icon: TrendingUp, path: '/progress' },
-    { id: 'badges', label: 'Badges', icon: Trophy, path: '/badges' },
+    { id: 'dashboard', label: 'Home', icon: Home, path: '/app/dashboard' },
+    { id: 'map', label: 'Kaart', icon: Map, path: '/app/map' },
+    { id: 'progress', label: 'Voortgang', icon: TrendingUp, path: '/app/progress' },
+    { id: 'badges', label: 'Badges', icon: Trophy, path: '/app/badges' },
   ];
 
   // Don't show tabbar on certain pages
   const hideTabBar =
-    location.pathname === '/' ||
-    location.pathname === '/add-child' ||
-    location.pathname.startsWith('/exercise') ||
-    location.pathname.startsWith('/stage/');
+    location.pathname === '/app' ||
+    location.pathname === '/app/add-child' ||
+    location.pathname.startsWith('/app/exercise') ||
+    location.pathname.startsWith('/app/stage/');
 
   if (hideTabBar) return null;
 
