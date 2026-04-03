@@ -175,7 +175,7 @@ export function QuestMap() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              d="M 30 85 C 30 70, 75 75, 75 60 C 75 45, 25 50, 25 35 C 25 20, 65 25, 65 12"
+              d="M 40 82 C 40 72, 65 68, 65 58 C 65 48, 30 45, 30 35 C 30 25, 60 20, 60 10"
               fill="none"
               stroke="url(#glowPath)"
               strokeWidth="4"
