@@ -79,7 +79,7 @@ export function ExerciseLanguage() {
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
-          navigate('/map');
+          navigate('/app/map');
         } else {
           generateQuestion();
         }
@@ -90,7 +90,7 @@ export function ExerciseLanguage() {
       
       setTimeout(() => {
         if (lives - 1 <= 0) {
-          navigate('/map');
+          navigate('/app/map');
         } else {
           setStatus('idle');
           setSelectedWord(null);
@@ -124,7 +124,7 @@ export function ExerciseLanguage() {
       {/* Unified Header with Progress Bar and Lives */}
       <div className="pt-8 md:pt-12 px-6 flex items-center gap-4 z-20 w-full max-w-2xl mx-auto">
         <button 
-          onClick={() => navigate('/map')}
+          onClick={() => navigate('/app/map')}
           className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-b-[4px] border-slate-200 active:border-b-0 active:translate-y-1 transition-all flex-shrink-0 shadow-md"
         >
           <X className="w-6 h-6 text-slate-400" />

@@ -167,7 +167,7 @@ export function ExerciseNumberLine() {
       setLives(next);
       clearCanvas();
       if (next <= 0) {
-        setTimeout(() => navigate('/stage/fluisterbos'), 1200);
+        setTimeout(() => navigate('/app/stage/fluisterbos'), 1200);
       }
     }
   };
@@ -181,7 +181,7 @@ export function ExerciseNumberLine() {
     setProgress(nextProg);
     setTimeout(() => {
       if (nextProg >= 100) {
-        navigate('/stage/fluisterbos');
+        navigate('/app/stage/fluisterbos');
       } else {
         setSlots(makeSlots());
         setRoundDone(false);
@@ -209,7 +209,7 @@ export function ExerciseNumberLine() {
       <div className="bg-gradient-to-r from-indigo-500 to-violet-500 px-4 pt-10 pb-4 flex-shrink-0 shadow-lg relative z-10">
         <div className="flex items-center gap-3 max-w-md mx-auto w-full">
           <button
-            onClick={() => navigate('/stage/fluisterbos')}
+            onClick={() => navigate('/app/stage/fluisterbos')}
             className="p-2.5 bg-white/20 hover:bg-white/30 rounded-2xl transition-colors flex-shrink-0"
           >
             <X className="w-5 h-5 text-white" strokeWidth={2.5} />

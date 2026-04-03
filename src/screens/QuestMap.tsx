@@ -117,7 +117,7 @@ export function QuestMap() {
           {/* Top Row: Back button, Title, Avatar */}
           <div className="flex items-center justify-between gap-3">
             <button 
-              onClick={() => navigate('/dashboard')} 
+              onClick={() => navigate('/app/dashboard')} 
               className="w-12 h-12 bg-[#2d1b54] rounded-full flex items-center justify-center border-b-[4px] border-[#1c1134] active:border-b-0 active:translate-y-1 transition-all flex-shrink-0 shadow-lg"
             >
               <ChevronLeft className="w-7 h-7 text-[#9d8bce]" />

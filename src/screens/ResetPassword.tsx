@@ -33,7 +33,7 @@ export function ResetPassword() {
     } else {
       setDone(true);
       toast.success('Wachtwoord succesvol gewijzigd!');
-      setTimeout(() => navigate('/', { replace: true }), 2000);
+      setTimeout(() => navigate('/app', { replace: true }), 2000);
     }
     setLoading(false);
   };
