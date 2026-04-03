@@ -48,7 +48,7 @@ export function QuestMap() {
       name: "Borrelende Beek",
       status: "current",
       yPos: 60,
-      xPos: 50,
+      xPos: 75,
       icon: "🌊",
       btnClass: "bg-cyan-400 border-b-8 border-cyan-600 shadow-xl ring-4 ring-white",
     },
@@ -56,7 +56,7 @@ export function QuestMap() {
       id: 1,
       name: "Fluisterbomen",
       status: "completed",
-      yPos: 76,
+      yPos: 85,
       xPos: 30,
       icon: "🌳",
       btnClass: "bg-emerald-400 border-b-8 border-emerald-600 shadow-xl ring-4 ring-emerald-300",
@@ -79,6 +79,7 @@ export function QuestMap() {
 
   return (
     <div className="h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] flex flex-col relative overflow-hidden font-sans">
+      
       {/* Dynamic Starry Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(60)].map((_, i) => (
@@ -110,6 +111,7 @@ export function QuestMap() {
       {/* Top Navigation Bar */}
       <div className="absolute top-0 left-0 right-0 p-4 md:p-6 z-50 pointer-events-none w-full max-w-2xl mx-auto">
         <div className="flex flex-col gap-3 pointer-events-auto bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-[#3b2d71] shadow-xl">
+          
           {/* Top Row: Back button, Title, Avatar */}
           <div className="flex items-center justify-between gap-3">
             <button
@@ -143,14 +145,12 @@ export function QuestMap() {
           {/* Shiny Progress Bar */}
           <div className="px-1">
             <div className="w-full bg-[#1c1134] rounded-full h-5 border-2 border-[#3b2d71] overflow-hidden relative shadow-inner">
-              {/* Progress Fill */}
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: "25%" }}
                 transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
                 className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-300 rounded-full overflow-hidden"
               >
-                {/* Shiny reflection on top half */}
                 <div className="absolute top-0 left-0 right-0 h-[40%] bg-white/40 rounded-t-full" />
               </motion.div>
             </div>
@@ -164,6 +164,7 @@ export function QuestMap() {
         className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] z-10 pb-[110px] md:pb-[126px]"
       >
         <div className="h-[140vh] md:h-[130vh] w-full relative pt-48 pb-32 max-w-2xl mx-auto">
+          
           {/* Winding Glowing Path SVG */}
           <svg
             viewBox="0 0 100 100"
@@ -225,9 +226,8 @@ export function QuestMap() {
               <button
                 onClick={() => {
                   if (cp.status !== "locked") {
-                    // Navigate to different exercise types based on ID for demo purposes
                     if (cp.id === 1) {
-                      navigate(`/app/stage/fluisterbos`);
+                      navigate("/app/stage/fluisterbos");
                     } else if (cp.id === 2) {
                       navigate(`/app/exercise-bonds/${cp.id}`);
                     } else if (cp.id === 3) {
