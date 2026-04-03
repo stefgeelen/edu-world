@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Trash2, Sparkles, ThumbsUp, ThumbsDown, X } from 'lucide-react';
+import { Check, Trash2, Sparkles, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { supabase } from '@/integrations/supabase/client';
 
 function getRandomTarget() {
   return Math.floor(Math.random() * 10) + 1;
@@ -57,9 +58,10 @@ export function ExerciseWriteNumber() {
 
   const [target, setTarget] = useState(getRandomTarget);
   const [hasDrawn, setHasDrawn] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'drawn' | 'selfcheck' | 'correct' | 'incorrect'>('idle');
+  const [status, setStatus] = useState<'idle' | 'drawn' | 'checking' | 'correct' | 'incorrect'>('idle');
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
+  const [feedbackText, setFeedbackText] = useState('');
 
   const getPos = (e: MouseEvent | TouchEvent, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -81,7 +83,7 @@ export function ExerciseWriteNumber() {
   };
 
   const startDraw = useCallback((e: MouseEvent | TouchEvent) => {
-    if (status !== 'idle' && status !== 'drawn' && status !== 'selfcheck') return;
+    if (status !== 'idle' && status !== 'drawn') return;
     e.preventDefault();
     const res = getCtx();
     if (!res) return;
@@ -157,45 +159,80 @@ export function ExerciseWriteNumber() {
     hasDrawnRef.current = false;
     setHasDrawn(false);
     setStatus('idle');
+    setFeedbackText('');
   };
 
   const generateNew = () => {
     clearCanvas();
     setTarget(getRandomTarget());
     setStatus('idle');
+    setFeedbackText('');
   };
 
-  const handleConfirm = () => {
-    if (!hasDrawn) return;
-    setStatus('selfcheck');
+  const getCanvasBase64 = (): string | null => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const dataUrl = canvas.toDataURL('image/png');
+    return dataUrl.split(',')[1]; // strip "data:image/png;base64,"
   };
 
-  const handleSelfCheck = (correct: boolean) => {
-    if (correct) {
-      setStatus('correct');
-      addXp(15);
-      triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
-      const nextProgress = progress + 20;
-      setProgress(nextProgress);
-      setTimeout(() => {
-        if (nextProgress >= 100) {
-          navigate('/app/stage/fluisterbos');
+  const handleConfirm = async () => {
+    if (!hasDrawn || status === 'checking') return;
+    setStatus('checking');
+    setFeedbackText('');
+
+    const imageBase64 = getCanvasBase64();
+    if (!imageBase64) {
+      setStatus('drawn');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('recognize-digit', {
+        body: { imageBase64, target },
+      });
+
+      if (error) throw error;
+
+      if (data.isCorrect) {
+        setStatus('correct');
+        addXp(15);
+        triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
+        const nextProgress = progress + 20;
+        setProgress(nextProgress);
+        setFeedbackText(`Geweldig! Je hebt het getal ${target} geschreven! +15 XP`);
+        setTimeout(() => {
+          if (nextProgress >= 100) {
+            navigate('/app/stage/fluisterbos');
+          } else {
+            generateNew();
+          }
+        }, 1800);
+      } else {
+        setStatus('incorrect');
+        const recognized = data.recognized;
+        const nextLives = lives - 1;
+        setLives(nextLives);
+
+        if (recognized !== null) {
+          setFeedbackText(`Hmm, ik zie het getal ${recognized}, maar we zoeken ${target}. Probeer het nog eens!`);
         } else {
-          generateNew();
+          setFeedbackText(`Oeps! Ik kon het getal niet herkennen. Schrijf het getal ${target} nog eens!`);
         }
-      }, 1800);
-    } else {
-      setStatus('incorrect');
-      const nextLives = lives - 1;
-      setLives(nextLives);
-      setTimeout(() => {
-        if (nextLives <= 0) {
-          navigate('/app/stage/fluisterbos');
-        } else {
-          clearCanvas();
-          setStatus('idle');
-        }
-      }, 1600);
+
+        setTimeout(() => {
+          if (nextLives <= 0) {
+            navigate('/app/stage/fluisterbos');
+          } else {
+            clearCanvas();
+            setStatus('idle');
+          }
+        }, 2200);
+      }
+    } catch (err) {
+      console.error('Recognition error:', err);
+      setFeedbackText('Er ging iets mis. Probeer het nog eens!');
+      setStatus('drawn');
     }
   };
 
@@ -240,7 +277,7 @@ export function ExerciseWriteNumber() {
               ? 'border-emerald-400/50 bg-[#1c1134]'
               : status === 'incorrect'
                 ? 'border-red-400/50 bg-[#1c1134]'
-                : status === 'selfcheck'
+                : status === 'checking'
                   ? 'border-amber-400/50 bg-[#1c1134]'
                   : hasDrawn
                     ? 'border-[#4c3b82] bg-[#1c1134]'
@@ -269,7 +306,7 @@ export function ExerciseWriteNumber() {
               width={800}
               height={600}
               className="absolute inset-0 w-full h-full touch-none"
-              style={{ cursor: status === 'selfcheck' ? 'default' : 'crosshair' }}
+              style={{ cursor: status === 'checking' ? 'wait' : 'crosshair' }}
             />
 
             {/* Status overlay */}
@@ -298,33 +335,15 @@ export function ExerciseWriteNumber() {
                   </div>
                 </motion.div>
               )}
-              {status === 'selfcheck' && (
+              {status === 'checking' && (
                 <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-end pb-4 bg-gradient-to-t from-[#1a103c]/95 to-transparent pt-10"
+                  className="absolute inset-0 flex items-center justify-center bg-[#1c1134]/40 backdrop-blur-[1px] pointer-events-none"
                 >
-                  <p className="font-black text-white mb-3 text-center">
-                    Heb je het getal <span className="text-[#a78bfa]">{target}</span> geschreven?
-                  </p>
-                  <div className="flex gap-3">
-                    <motion.button
-                      whileTap={{ scale: 0.92 }}
-                      onClick={() => handleSelfCheck(false)}
-                      className="flex items-center gap-2 px-5 py-3 bg-[#2d1b54] border-2 border-red-400/50 text-red-400 rounded-2xl font-black shadow-sm hover:bg-red-500/20 transition-colors"
-                    >
-                      <ThumbsDown className="w-4 h-4" strokeWidth={2.5} />
-                      Nee, opnieuw
-                    </motion.button>
-                    <motion.button
-                      whileTap={{ scale: 0.92 }}
-                      onClick={() => handleSelfCheck(true)}
-                      className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 border-2 border-emerald-700 text-white rounded-2xl font-black shadow-sm hover:from-emerald-600 hover:to-emerald-700 transition-colors"
-                    >
-                      <ThumbsUp className="w-4 h-4" strokeWidth={2.5} />
-                      Ja, klopt!
-                    </motion.button>
+                  <div className="bg-gradient-to-br from-violet-400 to-violet-600 rounded-full p-4 shadow-xl ring-4 ring-violet-200/30">
+                    <Loader2 className="w-10 h-10 text-white animate-spin" strokeWidth={3} />
                   </div>
                 </motion.div>
               )}
@@ -334,29 +353,28 @@ export function ExerciseWriteNumber() {
 
         {/* Feedback banners */}
         <AnimatePresence>
-          {status === 'incorrect' && (
+          {feedbackText && (status === 'incorrect' || status === 'correct') && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="flex-shrink-0 flex items-center gap-2 bg-orange-500/20 border-2 border-orange-400/30 rounded-2xl px-4 py-3 shadow-sm"
+              className={cn(
+                'flex-shrink-0 flex items-center gap-2 rounded-2xl px-4 py-3 shadow-sm border-2',
+                status === 'correct'
+                  ? 'bg-emerald-500/20 border-emerald-400/30'
+                  : 'bg-orange-500/20 border-orange-400/30'
+              )}
             >
-              <Sparkles className="w-4 h-4 text-orange-400 flex-shrink-0" />
-              <p className="text-sm font-bold text-orange-300">
-                Oeps! Probeer het getal <span className="text-orange-200">{target}</span> nog eens te schrijven!
-              </p>
-            </motion.div>
-          )}
-          {status === 'correct' && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              className="flex-shrink-0 flex items-center gap-2 bg-emerald-500/20 border-2 border-emerald-400/30 rounded-2xl px-4 py-3 shadow-sm"
-            >
-              <span className="text-lg">🎉</span>
-              <p className="text-sm font-bold text-emerald-400">
-                Geweldig! Je hebt het getal {target} geschreven! +15 XP
+              {status === 'correct' ? (
+                <span className="text-lg">🎉</span>
+              ) : (
+                <Sparkles className="w-4 h-4 text-orange-400 flex-shrink-0" />
+              )}
+              <p className={cn(
+                'text-sm font-bold',
+                status === 'correct' ? 'text-emerald-400' : 'text-orange-300'
+              )}>
+                {feedbackText}
               </p>
             </motion.div>
           )}
@@ -370,10 +388,10 @@ export function ExerciseWriteNumber() {
         <div className="max-w-md mx-auto w-full flex items-center gap-3">
           <button
             onClick={clearCanvas}
-            disabled={!hasDrawn || status === 'selfcheck'}
+            disabled={!hasDrawn || status === 'checking'}
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 font-bold text-sm transition-all flex-shrink-0',
-              hasDrawn && status !== 'selfcheck'
+              hasDrawn && status !== 'checking'
                 ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-red-500/20 hover:border-red-400/50 hover:text-red-400 active:scale-95'
                 : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
             )}
@@ -393,8 +411,12 @@ export function ExerciseWriteNumber() {
                 : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
             )}
           >
-            <Check className="w-4 h-4" strokeWidth={3} />
-            Controleer
+            {status === 'checking' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Check className="w-4 h-4" strokeWidth={3} />
+            )}
+            {status === 'checking' ? 'Controleren...' : 'Controleer'}
           </motion.button>
         </div>
       </div>
