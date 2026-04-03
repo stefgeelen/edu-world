@@ -51,9 +51,9 @@ function expectedMinuteAngle(half: boolean): number {
   return half ? 180 : 0;
 }
 
-/** Snap angle to nearest 30° (hour positions) */
+/** Snap angle to nearest 15° (hour + half-hour positions) */
 function snapHour(angle: number): number {
-  return Math.round(angle / 30) * 30;
+  return Math.round(angle / 15) * 15;
 }
 
 /** Snap minute to nearest 180° (12 or 6 position) */
