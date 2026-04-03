@@ -219,13 +219,13 @@ export function QuestMap() {
                   if (cp.status !== 'locked') {
                     // Navigate to different exercise types based on ID for demo purposes
                     if (cp.id === 1) {
-                      navigate(`/stage/fluisterbos`);
+                      navigate(`/app/stage/fluisterbos`);
                     } else if (cp.id === 2) {
-                      navigate(`/exercise-bonds/${cp.id}`);
+                      navigate(`/app/exercise-bonds/${cp.id}`);
                     } else if (cp.id === 3) {
-                      navigate(`/exercise-lang/${cp.id}`);
+                      navigate(`/app/exercise-lang/${cp.id}`);
                     } else {
-                      navigate(`/exercise/${cp.id}`);
+                      navigate(`/app/exercise/${cp.id}`);
                     }
                   }
                 }}
