@@ -30,6 +30,7 @@ import { AdminUsers } from "@/screens/admin/AdminUsers";
 import { AdminSubscriptions } from "@/screens/admin/AdminSubscriptions";
 import { AdminStats } from "@/screens/admin/AdminStats";
 import NotFound from "./pages/NotFound.tsx";
+import Index from "./pages/Index.tsx";
 
 const queryClient = new QueryClient();
 
