@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Undo2, Trash2, Heart, HeartCrack, Sparkles } from 'lucide-react';
+import { Check, Undo2, Trash2, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 interface Dot {
   id: string;
@@ -44,7 +45,6 @@ export function ExerciseDotCount() {
     const rect = areaRef.current.getBoundingClientRect();
     const x = ((clientX - rect.left) / rect.width) * 100;
     const y = ((clientY - rect.top) / rect.height) * 100;
-    // clamp so dots don't go off edge
     const cx = Math.min(Math.max(x, 6), 94);
     const cy = Math.min(Math.max(y, 8), 92);
     setDots(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, x: cx, y: cy }]);
@@ -104,57 +104,17 @@ export function ExerciseDotCount() {
   const isExact = dotCount === target;
 
   return (
-    <div className="h-full w-full bg-gradient-to-b from-teal-100 via-emerald-50 to-cyan-50 flex flex-col overflow-hidden relative">
-
-      {/* ── Floating forest decorations ── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {['🌿','🍃','✨','🌟','💧','🌱','⭐','🍀'].map((icon, i) => (
-          <span key={i} className="absolute select-none" style={{
-            left: `${[6, 18, 30, 44, 58, 70, 82, 90][i]}%`,
-            top:  `${[12, 72, 28, 85, 18, 60, 40, 78][i]}%`,
-            fontSize: `${[20, 16, 22, 14, 18, 24, 16, 20][i]}px`,
-            opacity: 0.12,
-            transform: `rotate(${i * 22}deg)`,
-          }}>{icon}</span>
-        ))}
-      </div>
-
-      {/* ── Header ── */}
-      <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-4 pt-10 pb-4 flex-shrink-0 shadow-lg relative z-10">
-        <div className="flex items-center gap-3 max-w-md mx-auto w-full">
-          <button
-            onClick={() => navigate('/app/stage/fluisterbos')}
-            className="p-2.5 bg-white/20 hover:bg-white/30 rounded-2xl transition-colors flex-shrink-0"
-          >
-            <X className="w-5 h-5 text-white" strokeWidth={2.5} />
-          </button>
-
-          {/* Progress bar */}
-          <div className="flex-1 h-3.5 bg-white/30 rounded-full overflow-hidden shadow-inner">
-            <motion.div
-              animate={{ width: `${progress}%` }}
-              transition={{ type: 'spring', damping: 20 }}
-              className="h-full bg-white rounded-full shadow-sm"
-            />
-          </div>
-
-          {/* Lives */}
-          <div className="flex gap-1 flex-shrink-0">
-            {[...Array(3)].map((_, i) =>
-              i < lives
-                ? <Heart key={i} className="w-5 h-5 text-red-300 fill-red-300 drop-shadow" />
-                : <HeartCrack key={i} className="w-5 h-5 text-white/30" />
-            )}
-          </div>
-        </div>
-      </div>
-
+    <ExerciseShell
+      progress={progress}
+      lives={lives}
+      onClose={() => navigate('/app/stage/fluisterbos')}
+    >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         {/* Instruction + number */}
         <div className="flex-shrink-0">
-          <p className="text-sm font-bold text-teal-700 mb-3 flex items-center gap-1.5">
+          <p className="text-sm font-bold text-[#9d8bce] mb-3 flex items-center gap-1.5">
             <span className="text-lg">🌲</span>
             Tik op het veld om stippen te plaatsen!
           </p>
@@ -164,15 +124,15 @@ export function ExerciseDotCount() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', bounce: 0.5 }}
-            className="bg-white/90 rounded-3xl border-2 border-teal-200 shadow-md p-5 flex items-center gap-5"
+            className="bg-[#1c1134]/60 backdrop-blur-sm rounded-3xl border-2 border-[#3b2d71] shadow-md p-5 flex items-center gap-5"
           >
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg flex-shrink-0 ring-4 ring-teal-200">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg flex-shrink-0 ring-4 ring-teal-200/20">
               <span className="font-black text-white drop-shadow-md" style={{ fontSize: 44 }}>{target}</span>
             </div>
             <div>
-              <p className="font-black text-slate-800 mb-0.5">Maak dit getal!</p>
-              <p className="text-sm text-slate-500 leading-snug">
-                Zet precies <span className="font-black text-teal-600">{target}</span> {target === 1 ? 'stip' : 'stippen'} in het veld hieronder.
+              <p className="font-black text-white mb-0.5">Maak dit getal!</p>
+              <p className="text-sm text-white/60 leading-snug">
+                Zet precies <span className="font-black text-emerald-400">{target}</span> {target === 1 ? 'stip' : 'stippen'} in het veld hieronder.
               </p>
             </div>
           </motion.div>
@@ -189,19 +149,19 @@ export function ExerciseDotCount() {
             className={cn(
               'relative w-full h-full rounded-3xl overflow-hidden select-none touch-none cursor-crosshair transition-all duration-300 shadow-inner',
               status === 'correct'
-                ? 'bg-teal-50 border-2 border-teal-400 shadow-teal-100'
+                ? 'bg-emerald-500/20 border-2 border-emerald-400/50'
                 : status === 'incorrect'
-                  ? 'bg-red-50 border-2 border-red-300'
+                  ? 'bg-red-500/20 border-2 border-red-400/50'
                   : isOver
-                    ? 'bg-orange-50 border-2 border-dashed border-orange-400'
-                    : 'bg-white/80 border-2 border-dashed border-teal-300 hover:border-teal-400 hover:bg-white/95',
+                    ? 'bg-orange-500/20 border-2 border-dashed border-orange-400/50'
+                    : 'bg-[#1c1134]/80 border-2 border-dashed border-[#3b2d71] hover:border-[#4c3b82]',
             )}
           >
             {/* Background hint */}
             {dotCount === 0 && status === 'idle' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                 <span className="text-4xl opacity-20">✦</span>
-                <p className="text-teal-300 font-bold text-sm">Tik hier om een stip te zetten</p>
+                <p className="text-[#4c3b82] font-bold text-sm">Tik hier om een stip te zetten</p>
               </div>
             )}
 
@@ -209,7 +169,7 @@ export function ExerciseDotCount() {
             {[...Array(15)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-1.5 h-1.5 rounded-full bg-teal-200 pointer-events-none"
+                className="absolute w-1.5 h-1.5 rounded-full bg-[#3b2d71] pointer-events-none"
                 style={{
                   left: `${((i % 5) + 1) * 16.5}%`,
                   top: `${(Math.floor(i / 5) + 1) * 24}%`,
@@ -247,9 +207,9 @@ export function ExerciseDotCount() {
                   initial={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 flex items-center justify-center bg-teal-400/25 backdrop-blur-[1px] pointer-events-none"
+                  className="absolute inset-0 flex items-center justify-center bg-emerald-400/25 backdrop-blur-[1px] pointer-events-none"
                 >
-                  <div className="bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full p-4 shadow-xl ring-4 ring-teal-200">
+                  <div className="bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full p-4 shadow-xl ring-4 ring-emerald-200/30">
                     <Check className="w-10 h-10 text-white" strokeWidth={3} />
                   </div>
                 </motion.div>
@@ -261,7 +221,7 @@ export function ExerciseDotCount() {
                   exit={{ opacity: 0 }}
                   className="absolute inset-0 flex items-center justify-center bg-red-400/20 backdrop-blur-[1px] pointer-events-none"
                 >
-                  <div className="bg-gradient-to-br from-red-400 to-rose-500 rounded-full p-4 shadow-xl ring-4 ring-red-200">
+                  <div className="bg-gradient-to-br from-red-400 to-rose-500 rounded-full p-4 shadow-xl ring-4 ring-red-200/30">
                     <X className="w-10 h-10 text-white" strokeWidth={3} />
                   </div>
                 </motion.div>
@@ -277,10 +237,10 @@ export function ExerciseDotCount() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="flex-shrink-0 flex items-center gap-2 bg-orange-50 border-2 border-orange-200 rounded-2xl px-4 py-3 shadow-sm"
+              className="flex-shrink-0 flex items-center gap-2 bg-orange-500/20 border-2 border-orange-400/30 rounded-2xl px-4 py-3 shadow-sm"
             >
-              <Sparkles className="w-4 h-4 text-orange-500 flex-shrink-0" />
-              <p className="text-sm font-bold text-orange-700">
+              <Sparkles className="w-4 h-4 text-orange-400 flex-shrink-0" />
+              <p className="text-sm font-bold text-orange-300">
                 {dotCount < target
                   ? `Bijna! Je hebt ${dotCount} stippen, maar je hebt er ${target} nodig.`
                   : `Oeps! Je hebt ${dotCount} stippen, maar je hebt er ${target} nodig.`}
@@ -292,35 +252,34 @@ export function ExerciseDotCount() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="flex-shrink-0 flex items-center gap-2 bg-teal-50 border-2 border-teal-300 rounded-2xl px-4 py-3 shadow-sm"
+              className="flex-shrink-0 flex items-center gap-2 bg-emerald-500/20 border-2 border-emerald-400/30 rounded-2xl px-4 py-3 shadow-sm"
             >
               <span className="text-lg">🎉</span>
-              <p className="text-sm font-bold text-teal-700">
+              <p className="text-sm font-bold text-emerald-400">
                 Super goed! Precies {target} {target === 1 ? 'stip' : 'stippen'}! +15 XP
               </p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Bottom spacing */}
         <div className="flex-shrink-0 h-2" />
       </div>
 
       {/* ── Sticky action bar ── */}
-      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t-2 border-teal-100 px-4 py-3 shadow-[0_-4px_20px_rgba(20,184,166,0.12)] relative z-10">
+      <div className="flex-shrink-0 bg-[#1a103c]/90 backdrop-blur-sm border-t-2 border-[#3b2d71] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] relative z-10">
         <div className="max-w-md mx-auto w-full flex items-center gap-2">
 
           {/* Counter badge */}
           <div className={cn(
             'flex items-center gap-1 px-3 py-2.5 rounded-2xl border-2 font-black text-sm transition-colors flex-shrink-0 shadow-sm',
             isOver
-              ? 'bg-orange-50 border-orange-300 text-orange-700'
+              ? 'bg-orange-500/20 border-orange-400/40 text-orange-400'
               : isExact
-                ? 'bg-teal-50 border-teal-400 text-teal-700'
-                : 'bg-white border-teal-200 text-slate-700'
+                ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-400'
+                : 'bg-[#1c1134] border-[#3b2d71] text-white/80'
           )}>
             <span className="text-base leading-none">{dotCount}</span>
-            <span className="text-slate-400 text-xs">/</span>
+            <span className="text-[#4c3b82] text-xs">/</span>
             <span className="text-base leading-none">{target}</span>
           </div>
 
@@ -331,8 +290,8 @@ export function ExerciseDotCount() {
             className={cn(
               'flex items-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-bold text-sm transition-all flex-shrink-0',
               dotCount > 0 && status === 'idle'
-                ? 'bg-white border-slate-200 text-slate-700 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 active:scale-95'
-                : 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-amber-500/20 hover:border-amber-400/40 hover:text-amber-400 active:scale-95'
+                : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
             )}
           >
             <Undo2 className="w-4 h-4" strokeWidth={2.5} />
@@ -346,8 +305,8 @@ export function ExerciseDotCount() {
             className={cn(
               'flex items-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-bold text-sm transition-all flex-shrink-0',
               dotCount > 0 && status === 'idle'
-                ? 'bg-white border-slate-200 text-slate-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600 active:scale-95'
-                : 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-400 active:scale-95'
+                : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
             )}
           >
             <Trash2 className="w-4 h-4" strokeWidth={2.5} />
@@ -362,8 +321,8 @@ export function ExerciseDotCount() {
             className={cn(
               'ml-auto flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all flex-shrink-0 shadow-md',
               dotCount > 0 && status === 'idle'
-                ? 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white border border-teal-600'
-                : 'bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
+                : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
             )}
           >
             <Check className="w-4 h-4" strokeWidth={3} />
@@ -371,6 +330,6 @@ export function ExerciseDotCount() {
           </motion.button>
         </div>
       </div>
-    </div>
+    </ExerciseShell>
   );
 }

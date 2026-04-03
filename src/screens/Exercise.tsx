@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, ArrowRight, Heart, HeartCrack, Loader2 } from 'lucide-react';
+import { Check, X, Loader2 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
+import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 export function Exercise() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ export function Exercise() {
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
-          navigate('/app/dashboard'); // Or a success screen
+          navigate('/app/dashboard');
         } else {
           generateQuestion();
         }
@@ -70,7 +71,7 @@ export function Exercise() {
       
       setTimeout(() => {
         if (lives - 1 <= 0) {
-          navigate('/app/dashboard'); // Or fail screen
+          navigate('/app/dashboard');
         } else {
           setSelectedOption(null);
           setStatus('idle');
@@ -80,52 +81,11 @@ export function Exercise() {
   };
 
   return (
-    <div className="h-full w-full bg-gradient-to-b from-amber-100 via-yellow-50 to-orange-50 flex flex-col overflow-hidden relative">
-      
-      {/* Forest / magic particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        {['🌳','🍂','🌟','🍃','✨','🦋','🌸','⭐'].map((icon, i) => (
-          <span key={i} className="absolute select-none" style={{
-            left: `${[5, 16, 30, 46, 60, 72, 84, 92][i]}%`,
-            top:  `${[8, 72, 20, 85, 12, 55, 35, 70][i]}%`,
-            fontSize: `${[18, 14, 20, 16, 22, 14, 18, 16][i]}px`,
-            opacity: 0.10,
-            transform: `rotate(${i * 22}deg)`,
-          }}>{icon}</span>
-        ))}
-      </div>
-
-      {/* Header */}
-      <div className="pt-8 md:pt-12 px-6 md:px-12 lg:px-16 flex items-center gap-4 z-10 max-w-7xl mx-auto w-full">
-        <button 
-          onClick={() => navigate('/app/map')}
-          className="p-3 md:p-4 bg-white/80 hover:bg-white rounded-2xl shadow-md border-2 border-amber-200 transition-colors backdrop-blur-sm"
-        >
-          <X className="w-6 h-6 md:w-7 md:h-7 text-amber-600" />
-        </button>
-        
-        {/* Progress Bar */}
-        <div className="flex-1 h-6 md:h-8 bg-amber-200/60 rounded-full overflow-hidden relative shadow-inner border border-amber-300/50">
-          <motion.div 
-            className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-amber-400 to-orange-500"
-            initial={{ width: `${progress}%` }}
-            animate={{ width: `${progress}%` }}
-            transition={{ type: 'spring' }}
-          >
-            <div className="absolute inset-0 bg-white/20" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.2) 10px, rgba(255,255,255,0.2) 20px)' }} />
-          </motion.div>
-        </div>
-
-        {/* Lives */}
-        <div className="flex gap-1 md:gap-2">
-          {[...Array(3)].map((_, i) => (
-            i < lives ? 
-              <Heart key={i} className="w-6 h-6 md:w-8 md:h-8 text-red-500 fill-red-500" /> : 
-              <HeartCrack key={i} className="w-6 h-6 md:w-8 md:h-8 text-amber-300" />
-          ))}
-        </div>
-      </div>
-
+    <ExerciseShell
+      progress={progress}
+      lives={lives}
+      onClose={() => navigate('/app/map')}
+    >
       {/* Main Content */}
       <div className="flex-1 flex flex-col px-6 md:px-12 lg:px-16 justify-center max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full z-10 relative mt-8 md:mt-12">
         
@@ -134,36 +94,30 @@ export function Exercise() {
           key={`${question.num1}${question.operator}${question.num2}`}
           initial={{ opacity: 0, scale: 0.8, rotate: -2 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          className="bg-white/90 backdrop-blur-sm rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-[0_20px_60px_rgba(245,158,11,0.15)] border-2 border-amber-200 flex items-center justify-center min-h-[200px] md:min-h-[280px] lg:min-h-[320px] mb-8 md:mb-12 relative overflow-hidden"
+          className="bg-[#1c1134]/60 backdrop-blur-sm rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-[0_20px_60px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] flex items-center justify-center min-h-[200px] md:min-h-[280px] lg:min-h-[320px] mb-8 md:mb-12 relative overflow-hidden"
         >
-          {/* Corner decorations */}
-          <div className="absolute top-4 left-4 w-5 h-5 rounded-full bg-amber-200 shadow-inner" />
-          <div className="absolute top-4 right-4 w-5 h-5 rounded-full bg-orange-200 shadow-inner" />
-          <div className="absolute bottom-4 left-4 w-5 h-5 rounded-full bg-yellow-200 shadow-inner" />
-          <div className="absolute bottom-4 right-4 w-5 h-5 rounded-full bg-amber-200 shadow-inner" />
-          
-          <h2 className="text-6xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black text-slate-800 tracking-tight flex items-center gap-3 md:gap-6">
-            <span className="text-blue-500 drop-shadow-sm">{question.num1}</span>
+          <h2 className="text-6xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black text-white tracking-tight flex items-center gap-3 md:gap-6">
+            <span className="text-cyan-400 drop-shadow-sm">{question.num1}</span>
             <span className="text-amber-400">{question.operator}</span>
-            <span className="text-teal-500 drop-shadow-sm">{question.num2}</span>
-            <span className="text-amber-300">=</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500 border-b-4 md:border-b-8 border-dashed border-amber-300 w-20 md:w-32 lg:w-40 text-center">
+            <span className="text-emerald-400 drop-shadow-sm">{question.num2}</span>
+            <span className="text-[#9d8bce]">=</span>
+            <span className="text-[#a78bfa] border-b-4 md:border-b-8 border-dashed border-[#3b2d71] w-20 md:w-32 lg:w-40 text-center">
               ?
             </span>
           </h2>
         </motion.div>
 
-        {/* Options — each button gets its own vivid color */}
+        {/* Options */}
         <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8">
           {options.map((option, i) => {
             const isSelected = selectedOption === option;
             const isCorrect = status === 'correct' && option === question.answer;
             const isWrong = status === 'incorrect' && isSelected;
             const COLORS = [
-              'from-blue-400 to-blue-500 border-blue-600 hover:from-blue-500 hover:to-blue-600',
-              'from-violet-400 to-violet-500 border-violet-600 hover:from-violet-500 hover:to-violet-600',
-              'from-teal-400 to-teal-500 border-teal-600 hover:from-teal-500 hover:to-teal-600',
-              'from-rose-400 to-rose-500 border-rose-600 hover:from-rose-500 hover:to-rose-600',
+              'from-blue-500 to-blue-600 border-blue-700 hover:from-blue-600 hover:to-blue-700',
+              'from-violet-500 to-violet-600 border-violet-700 hover:from-violet-600 hover:to-violet-700',
+              'from-teal-500 to-teal-600 border-teal-700 hover:from-teal-600 hover:to-teal-700',
+              'from-rose-500 to-rose-600 border-rose-700 hover:from-rose-600 hover:to-rose-700',
             ];
             return (
               <motion.button
@@ -177,7 +131,7 @@ export function Exercise() {
                   !isSelected && status === 'idle'
                     ? `bg-gradient-to-br ${COLORS[i]} text-white hover:-translate-y-1 hover:border-b-[8px] hover:shadow-xl`
                     : '',
-                  isCorrect ? "bg-gradient-to-br from-green-400 to-emerald-500 border-green-600 border-b-[6px] text-white scale-105 shadow-xl" : '',
+                  isCorrect ? "bg-gradient-to-br from-emerald-400 to-emerald-500 border-emerald-600 border-b-[6px] text-white scale-105 shadow-xl" : '',
                   isWrong   ? "bg-gradient-to-br from-red-400 to-rose-500 border-red-600 border-b-[6px] text-white" : '',
                 )}
               >
@@ -216,22 +170,20 @@ export function Exercise() {
           className="absolute -bottom-10 -left-10 md:-bottom-12 md:-left-12 z-20 pointer-events-none"
         >
           <div className="relative">
-            {/* Speech Bubble */}
             <motion.div 
               initial={{ opacity: 0, scale: 0, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: 0.5, type: 'spring' }}
-              className="absolute -top-12 left-24 md:-top-16 md:left-32 bg-white px-5 py-3 md:px-6 md:py-4 rounded-2xl rounded-bl-none shadow-[0_10px_30px_rgba(0,0,0,0.1)] border-2 border-slate-100 w-48 md:w-56"
+              className="absolute -top-12 left-24 md:-top-16 md:left-32 bg-[#1c1134]/80 backdrop-blur-md px-5 py-3 md:px-6 md:py-4 rounded-2xl rounded-bl-none shadow-[0_10px_30px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] w-48 md:w-56"
             >
-              <p className="text-sm md:text-base font-bold text-slate-700">
+              <p className="text-sm md:text-base font-bold text-white/90">
                 {status === 'idle' && "Jij kan dit!"}
-                {status === 'correct' && <span className="text-teal-500">Goed gedaan! +10 XP</span>}
-                {status === 'incorrect' && <span className="text-red-500">Oeps! Probeer opnieuw!</span>}
+                {status === 'correct' && <span className="text-emerald-400">Goed gedaan! +10 XP</span>}
+                {status === 'incorrect' && <span className="text-orange-400">Oeps! Probeer opnieuw!</span>}
               </p>
             </motion.div>
             
-            {/* Avatar image */}
-            <div className="w-48 h-48 md:w-56 md:h-56 rounded-full border-8 border-white shadow-2xl overflow-hidden bg-white/50 backdrop-blur-md">
+            <div className="w-48 h-48 md:w-56 md:h-56 rounded-full border-8 border-[#3b2d71] shadow-2xl overflow-hidden bg-[#1c1134]/50 backdrop-blur-md">
               {selectedAvatar ? (
                 <img 
                   src={selectedAvatar.imageUrl} 
@@ -243,8 +195,8 @@ export function Exercise() {
                   )} 
                 />
               ) : (
-                <div className="w-full h-full bg-blue-100 flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 md:w-12 md:h-12 animate-spin text-blue-500" />
+                <div className="w-full h-full bg-[#2d1b54] flex items-center justify-center">
+                  <Loader2 className="w-10 h-10 md:w-12 md:h-12 animate-spin text-[#9d8bce]" />
                 </div>
               )}
             </div>
@@ -252,8 +204,7 @@ export function Exercise() {
         </motion.div>
       </AnimatePresence>
       
-      {/* Footer / Continue button logic */}
       <div className="h-32 pointer-events-none" />
-    </div>
+    </ExerciseShell>
   );
 }
