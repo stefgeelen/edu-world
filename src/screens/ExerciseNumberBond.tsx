@@ -59,7 +59,7 @@ export function ExerciseNumberBond() {
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
-          navigate('/map');
+          navigate('/app/map');
         } else {
           generateQuestion();
         }
@@ -68,7 +68,7 @@ export function ExerciseNumberBond() {
       setStatus('incorrect');
       setLives(l => l - 1);
       if (lives - 1 <= 0) {
-        setTimeout(() => navigate('/map'), 1500);
+        setTimeout(() => navigate('/app/map'), 1500);
       }
     }
   };
@@ -103,7 +103,7 @@ export function ExerciseNumberBond() {
         <button 
           onClick={(e) => {
             e.stopPropagation();
-            navigate('/map');
+            navigate('/app/map');
           }}
           className="w-12 h-12 bg-[#2d1b54] rounded-full flex items-center justify-center border-b-[4px] border-[#1c1134] active:border-b-0 active:translate-y-1 transition-all flex-shrink-0 shadow-lg"
         >

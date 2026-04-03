@@ -58,7 +58,7 @@ export function Exercise() {
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
-          navigate('/dashboard'); // Or a success screen
+          navigate('/app/dashboard'); // Or a success screen
         } else {
           generateQuestion();
         }
@@ -70,7 +70,7 @@ export function Exercise() {
       
       setTimeout(() => {
         if (lives - 1 <= 0) {
-          navigate('/dashboard'); // Or fail screen
+          navigate('/app/dashboard'); // Or fail screen
         } else {
           setSelectedOption(null);
           setStatus('idle');
@@ -98,7 +98,7 @@ export function Exercise() {
       {/* Header */}
       <div className="pt-8 md:pt-12 px-6 md:px-12 lg:px-16 flex items-center gap-4 z-10 max-w-7xl mx-auto w-full">
         <button 
-          onClick={() => navigate('/map')}
+          onClick={() => navigate('/app/map')}
           className="p-3 md:p-4 bg-white/80 hover:bg-white rounded-2xl shadow-md border-2 border-amber-200 transition-colors backdrop-blur-sm"
         >
           <X className="w-6 h-6 md:w-7 md:h-7 text-amber-600" />

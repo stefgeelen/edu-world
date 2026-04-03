@@ -18,7 +18,7 @@ export function Auth() {
 
   // Redirect if already logged in
   React.useEffect(() => {
-    if (user) navigate('/', { replace: true });
+    if (user) navigate('/app', { replace: true });
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,14 +31,14 @@ export function Auth() {
         toast.error(error.message);
       } else {
         toast.success('Account aangemaakt! Welkom bij EduWorld.');
-        navigate('/add-child', { replace: true });
+        navigate('/app/add-child', { replace: true });
       }
     } else {
       const { error } = await signIn(email, password);
       if (error) {
         toast.error('Ongeldige inloggegevens. Probeer het opnieuw.');
       } else {
-        navigate('/', { replace: true });
+        navigate('/app', { replace: true });
       }
     }
 

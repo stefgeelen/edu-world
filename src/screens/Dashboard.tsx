@@ -112,7 +112,7 @@ export function Dashboard() {
               transition={{ delay: 0.2 }}
             >
               <button 
-                onClick={() => navigate('/map')}
+                onClick={() => navigate('/app/map')}
                 className="w-full p-6 bg-teal-500 hover:bg-teal-600 rounded-3xl flex items-center justify-between shadow-sm hover:shadow-md transition-all group outline-none focus-visible:ring-4 ring-teal-500/30 active:scale-[0.98]"
               >
                 <div className="flex items-center gap-4">
@@ -135,7 +135,7 @@ export function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              onClick={() => navigate('/progress')}
+              onClick={() => navigate('/app/progress')}
               className="bg-indigo-600 hover:bg-indigo-700 rounded-3xl p-6 shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.98] group"
             >
               <div className="flex items-center justify-between mb-6">
@@ -180,7 +180,7 @@ export function Dashboard() {
                   Recente Badges
                 </h3>
                 <button 
-                  onClick={() => navigate('/badges')}
+                  onClick={() => navigate('/app/badges')}
                   className="text-blue-600 text-sm font-bold hover:bg-blue-50 px-4 py-2 rounded-xl transition-colors"
                 >
                   Bekijk Alles

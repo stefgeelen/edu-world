@@ -47,7 +47,7 @@ export function BadgeDetail() {
         <div className="text-center">
           <p className="text-xl font-bold text-slate-600">Badge niet gevonden</p>
           <button
-            onClick={() => navigate('/badges')}
+            onClick={() => navigate('/app/badges')}
             className="mt-4 px-6 py-3 bg-blue-500 text-white rounded-2xl font-bold"
           >
             Terug naar badges
@@ -73,7 +73,7 @@ export function BadgeDetail() {
       {/* Header */}
       <div className="pt-12 md:pt-16 px-6 md:px-12 lg:px-16 flex items-center gap-4 z-10 max-w-4xl mx-auto w-full">
         <button
-          onClick={() => navigate('/badges')}
+          onClick={() => navigate('/app/badges')}
           className="p-3 md:p-4 bg-white hover:bg-slate-100 rounded-2xl shadow-lg border border-slate-200 transition-colors"
         >
           <ChevronLeft className="w-6 h-6 md:w-7 md:h-7 text-slate-600" />
@@ -231,7 +231,7 @@ export function BadgeDetail() {
           className="mt-8"
         >
           <button
-            onClick={() => navigate('/badges')}
+            onClick={() => navigate('/app/badges')}
             className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-3xl font-extrabold text-lg shadow-lg shadow-blue-500/30 transition-transform active:scale-95 border-b-4 border-blue-700 active:border-b-0 active:translate-y-1"
           >
             Terug naar Badges

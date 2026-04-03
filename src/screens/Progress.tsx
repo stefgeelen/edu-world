@@ -68,7 +68,7 @@ export function Progress() {
       <div className="px-6 md:px-12 lg:px-16 mb-8 max-w-7xl mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
           <button 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/app/dashboard')}
             className="w-12 h-12 md:w-14 md:h-14 bg-white hover:bg-slate-50 rounded-2xl flex items-center justify-center border-2 border-slate-100 transition-colors shadow-sm"
           >
             <ChevronLeft className="w-6 h-6 md:w-7 md:h-7 text-slate-600" />
@@ -115,7 +115,7 @@ export function Progress() {
                   Begin met oefeningen om je statistieken hier te zien! Ga naar de kaart om je eerste oefening te starten.
                 </p>
                 <button
-                  onClick={() => navigate('/map')}
+                  onClick={() => navigate('/app/map')}
                   className="mt-6 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl font-bold transition-colors"
                 >
                   Naar de kaart →

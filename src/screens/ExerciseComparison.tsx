@@ -188,7 +188,7 @@ export function ExerciseComparison() {
       const nextProgress = Math.min(progress + 25, 100);
       setProgress(nextProgress);
       setTimeout(() => {
-        if (nextProgress >= 100) navigate('/stage/fluisterbos');
+        if (nextProgress >= 100) navigate('/app/stage/fluisterbos');
         else generateNext();
       }, 1800);
     } else {
@@ -196,7 +196,7 @@ export function ExerciseComparison() {
       const nextLives = lives - 1;
       setLives(nextLives);
       setTimeout(() => {
-        if (nextLives <= 0) navigate('/stage/fluisterbos');
+        if (nextLives <= 0) navigate('/app/stage/fluisterbos');
         else generateNext();
       }, 1600);
     }
@@ -387,7 +387,7 @@ export function ExerciseComparison() {
       <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-4 pt-10 pb-4 flex-shrink-0 shadow-lg relative z-10">
         <div className="flex items-center gap-3 max-w-md mx-auto w-full">
           <button
-            onClick={() => navigate('/stage/fluisterbos')}
+            onClick={() => navigate('/app/stage/fluisterbos')}
             className="p-2.5 bg-white/20 hover:bg-white/30 rounded-2xl transition-colors flex-shrink-0"
           >
             <X className="w-5 h-5 text-white" strokeWidth={2.5} />

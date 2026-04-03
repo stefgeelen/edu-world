@@ -97,7 +97,7 @@ export function BadgeOverview() {
                 transition={{ delay: index * 0.05, type: 'spring' }}
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => navigate(`/badges/${badge.id}`)}
+                onClick={() => navigate(`/app/badges/${badge.id}`)}
                 className="relative cursor-pointer group"
               >
                 <div

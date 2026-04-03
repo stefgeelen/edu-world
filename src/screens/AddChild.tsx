@@ -49,7 +49,7 @@ export function AddChild() {
 
       if (error) throw error;
       toast.success(`${name.trim()} is toegevoegd!`);
-      navigate('/');
+      navigate('/app');
     } catch (err: any) {
       toast.error(err.message || 'Er ging iets mis bij het opslaan.');
     } finally {

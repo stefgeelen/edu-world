@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -39,6 +39,14 @@ All colors MUST be HSL.
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    --edu-blue: 217 91% 60%;
+    --edu-teal: 168 72% 48%;
+    --edu-orange: 25 95% 53%;
+    --edu-pink: 340 82% 62%;
+    --edu-purple: 265 70% 60%;
+    --edu-yellow: 42 100% 62%;
+    --edu-green: 142 72% 45%;
 
     --sidebar-background: 0 0% 98%;
 

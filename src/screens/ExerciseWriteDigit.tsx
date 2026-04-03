@@ -569,7 +569,7 @@ export function ExerciseWriteDigit() {
       setTimeout(() => {
         const next = iteration + 1;
         if (next >= TOTAL_ITERATIONS) {
-          navigate('/stage/fluisterbos');
+          navigate('/app/stage/fluisterbos');
         } else {
           setIteration(next);
           clearDrawing();
@@ -580,7 +580,7 @@ export function ExerciseWriteDigit() {
       const nextLives = lives - 1;
       setLives(nextLives);
       setTimeout(() => {
-        if (nextLives <= 0) navigate('/stage/fluisterbos');
+        if (nextLives <= 0) navigate('/app/stage/fluisterbos');
         else clearDrawing();
       }, 1800);
     }
@@ -594,7 +594,7 @@ export function ExerciseWriteDigit() {
       <div className="bg-white border-b border-slate-200 px-4 pt-10 pb-4 flex-shrink-0 shadow-sm">
         <div className="flex items-center gap-3 max-w-md mx-auto w-full">
           <button
-            onClick={() => navigate('/stage/fluisterbos')}
+            onClick={() => navigate('/app/stage/fluisterbos')}
             className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-colors flex-shrink-0"
           >
             <X className="w-5 h-5 text-slate-600" strokeWidth={2.5} />

@@ -105,7 +105,7 @@ export function Fluisterbos() {
       <div className="bg-white border-b border-slate-200 px-4 pt-10 pb-4 flex-shrink-0 shadow-sm">
         <div className="flex items-center gap-3 mb-4 max-w-2xl mx-auto w-full">
           <button
-            onClick={() => navigate('/map')}
+            onClick={() => navigate('/app/map')}
             className="p-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-2xl transition-colors flex-shrink-0"
           >
             <ChevronLeft className="w-5 h-5 text-slate-600" strokeWidth={2.5} />
@@ -277,7 +277,7 @@ function ExerciseGrid({ exercises, subject }: { exercises: StageExercise[]; subj
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: Math.min(i * 0.03, 0.5), type: 'spring', bounce: 0.3 }}
-            onClick={() => { if (isAvailable) navigate(ex.route); }}
+            onClick={() => { if (isAvailable) navigate(`/app${ex.route}`); }}
             disabled={!isAvailable}
             className={cn(
               'relative rounded-2xl p-3 flex flex-col items-center gap-1.5 border transition-all text-center',

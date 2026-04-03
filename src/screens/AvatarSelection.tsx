@@ -14,7 +14,7 @@ export function AvatarSelection() {
 
   const handleSelect = (avatar: Avatar) => {
     setSelectedAvatar(avatar);
-    navigate('/dashboard');
+    navigate('/app/dashboard');
   };
 
   const getSubjectIcon = (subject: string) => {
@@ -48,7 +48,7 @@ export function AvatarSelection() {
 
       {/* Parent Area Button */}
       <button 
-        onClick={() => navigate('/add-child')}
+        onClick={() => navigate('/app/add-child')}
         className="absolute top-6 right-6 md:top-8 md:right-8 z-50 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 text-white transition-all duration-300 flex items-center gap-2 group"
       >
         <UserPlus className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
