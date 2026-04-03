@@ -81,7 +81,7 @@ export function ExerciseWriteNumber() {
   };
 
   const startDraw = useCallback((e: MouseEvent | TouchEvent) => {
-    if (status !== 'idle' && status !== 'drawn') return;
+    if (status !== 'idle' && status !== 'drawn' && status !== 'selfcheck') return;
     e.preventDefault();
     const res = getCtx();
     if (!res) return;
