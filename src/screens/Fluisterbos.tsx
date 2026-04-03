@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ChevronLeft,
-  Check,
-  Lock,
+  ChevronRight,
   Star,
   Zap,
   Calculator,
@@ -12,39 +11,95 @@ import {
   PenTool,
   Leaf,
   Loader2,
+  Lock,
+  CheckCircle2,
 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/types';
+import { useAuth } from '@/context/AuthContext';
 
 // Types
-type ExerciseStatus = 'completed' | 'available' | 'locked';
 type SubjectType = 'math' | 'reading' | 'writing';
 type SubjectTab = 'all' | SubjectType;
+
+const REQUIRED_COMPLETIONS = 5;
 
 interface StageExercise {
   id: string;
   order: number;
   title: string;
   subject: SubjectType;
-  status: ExerciseStatus;
   xpReward: number;
   route: string;
-  stars: number;
+  completions: number; // how many times completed
+  bestStars: number;
 }
 
 // Subject config
-const SUBJECTS: { id: SubjectType; label: string; icon: React.ElementType; emoji: string; color: string; lightBg: string; darkBg: string }[] = [
-  { id: 'math',    label: 'Rekenen',  icon: Calculator, emoji: '🔢', color: 'text-blue-600',   lightBg: 'bg-blue-50 border-blue-200',   darkBg: 'bg-blue-500' },
-  { id: 'reading', label: 'Lezen',    icon: BookOpen,   emoji: '📖', color: 'text-violet-600', lightBg: 'bg-violet-50 border-violet-200', darkBg: 'bg-violet-500' },
-  { id: 'writing', label: 'Schrijven', icon: PenTool,   emoji: '✏️', color: 'text-orange-600', lightBg: 'bg-orange-50 border-orange-200', darkBg: 'bg-orange-500' },
+const SUBJECTS: {
+  id: SubjectType;
+  label: string;
+  icon: React.ElementType;
+  emoji: string;
+  gradient: string;
+  accentColor: string;
+  progressColor: string;
+}[] = [
+  {
+    id: 'math',
+    label: 'Rekenen',
+    icon: Calculator,
+    emoji: '🔢',
+    gradient: 'from-blue-500 to-blue-600',
+    accentColor: 'text-blue-600',
+    progressColor: 'bg-blue-500',
+  },
+  {
+    id: 'reading',
+    label: 'Lezen',
+    icon: BookOpen,
+    emoji: '📖',
+    gradient: 'from-violet-500 to-violet-600',
+    accentColor: 'text-violet-600',
+    progressColor: 'bg-violet-500',
+  },
+  {
+    id: 'writing',
+    label: 'Schrijven',
+    icon: PenTool,
+    emoji: '✏️',
+    gradient: 'from-orange-500 to-orange-600',
+    accentColor: 'text-orange-600',
+    progressColor: 'bg-orange-500',
+  },
 ];
 
-function useExercises() {
+function useStageExercises() {
+  const { user } = useAuth();
+
+  // Get child
+  const childQuery = useQuery({
+    queryKey: ['my-child', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('children')
+        .select('id')
+        .eq('parent_id', user!.id)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const childId = childQuery.data?.id;
+
+  // Get exercises + attempts count
   return useQuery({
-    queryKey: ['exercises', 'stage-1'],
+    queryKey: ['stage-exercises-progress', childId],
     queryFn: async (): Promise<StageExercise[]> => {
       const { data: exercises, error } = await supabase
         .from('exercises')
@@ -55,41 +110,60 @@ function useExercises() {
 
       if (error) throw error;
 
-      // For now, all exercises default to 'available'. 
-      // Status/stars will be derived from exercise_attempts once child context is wired.
+      // Fetch attempts for this child
+      let attemptsByExercise: Record<string, { count: number; bestStars: number }> = {};
+      if (childId) {
+        const { data: attempts } = await supabase
+          .from('exercise_attempts')
+          .select('exercise_id, stars')
+          .eq('child_id', childId);
+
+        if (attempts) {
+          for (const a of attempts) {
+            if (!attemptsByExercise[a.exercise_id]) {
+              attemptsByExercise[a.exercise_id] = { count: 0, bestStars: 0 };
+            }
+            attemptsByExercise[a.exercise_id].count++;
+            attemptsByExercise[a.exercise_id].bestStars = Math.max(
+              attemptsByExercise[a.exercise_id].bestStars,
+              a.stars
+            );
+          }
+        }
+      }
+
       return (exercises || []).map((ex) => ({
         id: ex.id,
         order: ex.display_order,
         title: ex.title,
         subject: ex.subject as SubjectType,
-        status: 'available' as ExerciseStatus,
         xpReward: ex.xp_reward,
         route: ex.route,
-        stars: 0,
+        completions: attemptsByExercise[ex.id]?.count ?? 0,
+        bestStars: attemptsByExercise[ex.id]?.bestStars ?? 0,
       }));
     },
+    enabled: childQuery.isFetched,
   });
 }
 
 export function Fluisterbos() {
   const navigate = useNavigate();
-  const { xp: _xp } = useGame();
   const [activeTab, setActiveTab] = useState<SubjectTab>('all');
-  const { data: allExercises = [], isLoading } = useExercises();
+  const { data: allExercises = [], isLoading } = useStageExercises();
 
-  const completed = allExercises.filter(e => e.status === 'completed');
-  const totalXpEarned = completed.reduce((s, e) => s + e.xpReward, 0);
-  const progressPct = allExercises.length > 0
-    ? Math.round((completed.length / allExercises.length) * 100)
-    : 0;
+  const mastered = allExercises.filter((e) => e.completions >= REQUIRED_COMPLETIONS);
+  const totalXpEarned = mastered.reduce((s, e) => s + e.xpReward, 0);
+  const overallPct =
+    allExercises.length > 0
+      ? Math.round((mastered.length / allExercises.length) * 100)
+      : 0;
 
-  const filteredExercises = activeTab === 'all'
-    ? allExercises
-    : allExercises.filter(e => e.subject === activeTab);
+  const filteredExercises =
+    activeTab === 'all' ? allExercises : allExercises.filter((e) => e.subject === activeTab);
 
-  const subjectsToShow = activeTab === 'all'
-    ? SUBJECTS
-    : SUBJECTS.filter(s => s.id === activeTab);
+  const subjectsToShow =
+    activeTab === 'all' ? SUBJECTS : SUBJECTS.filter((s) => s.id === activeTab);
 
   if (isLoading) {
     return (
@@ -122,16 +196,18 @@ export function Fluisterbos() {
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Overall progress */}
         <div className="max-w-2xl mx-auto w-full">
           <div className="flex justify-between items-center mb-1.5">
-            <span className="text-xs font-bold text-slate-500">{completed.length} / {allExercises.length} opdrachten</span>
-            <span className="text-xs font-bold text-teal-600">{progressPct}%</span>
+            <span className="text-xs font-bold text-slate-500">
+              {mastered.length} / {allExercises.length} voltooid
+            </span>
+            <span className="text-xs font-bold text-teal-600">{overallPct}%</span>
           </div>
           <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${progressPct}%` }}
+              animate={{ width: `${overallPct}%` }}
               transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
               className="h-full bg-gradient-to-r from-teal-400 to-teal-500 rounded-full"
             />
@@ -148,8 +224,8 @@ export function Fluisterbos() {
             label="Alles"
             count={allExercises.length}
           />
-          {SUBJECTS.map(sub => {
-            const count = allExercises.filter(e => e.subject === sub.id).length;
+          {SUBJECTS.map((sub) => {
+            const count = allExercises.filter((e) => e.subject === sub.id).length;
             return (
               <TabButton
                 key={sub.id}
@@ -165,36 +241,36 @@ export function Fluisterbos() {
 
       {/* Exercise list grouped by subject */}
       <div className="flex-1 overflow-y-auto px-4 pb-6 pt-1 max-w-2xl mx-auto w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {subjectsToShow.map(sub => {
-          const exercises = filteredExercises.filter(e => e.subject === sub.id);
+        {subjectsToShow.map((sub) => {
+          const exercises = filteredExercises.filter((e) => e.subject === sub.id);
           if (exercises.length === 0) return null;
-          const subCompleted = exercises.filter(e => e.status === 'completed').length;
-          const subAvailable = exercises.filter(e => e.status === 'available').length;
+          const subMastered = exercises.filter((e) => e.completions >= REQUIRED_COMPLETIONS).length;
+          const subPct = Math.round((subMastered / exercises.length) * 100);
           const Icon = sub.icon;
 
           return (
             <div key={sub.id} className="mb-6">
               {/* Section header */}
-              <div className={cn(
-                'flex items-center gap-3 p-3 rounded-2xl border mb-3',
-                sub.lightBg
-              )}>
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', sub.darkBg)}>
+              <div className={cn('flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r mb-3', sub.gradient)}>
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                   <Icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="font-black text-slate-800 text-base">{sub.emoji} {sub.label}</h2>
-                  <p className="text-xs text-slate-500 font-semibold">
-                    {subCompleted} voltooid · {subAvailable} beschikbaar
+                  <h2 className="font-black text-white text-base">
+                    {sub.emoji} {sub.label}
+                  </h2>
+                  <p className="text-xs text-white/80 font-semibold">
+                    {subMastered} / {exercises.length} voltooid · {subPct}%
                   </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <SubjectProgress completed={subCompleted} total={exercises.length} />
                 </div>
               </div>
 
-              {/* Exercise grid */}
-              <ExerciseGrid exercises={exercises} subject={sub} />
+              {/* Exercise list */}
+              <div className="space-y-2">
+                {exercises.map((ex, i) => (
+                  <ExerciseRow key={ex.id} exercise={ex} subject={sub} index={i} />
+                ))}
+              </div>
             </div>
           );
         })}
@@ -203,33 +279,118 @@ export function Fluisterbos() {
   );
 }
 
-// Subject progress ring
-function SubjectProgress({ completed, total }: { completed: number; total: number }) {
-  const pct = total > 0 ? (completed / total) * 100 : 0;
-  const r = 16;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (pct / 100) * circ;
+// Single exercise row with progress bar
+function ExerciseRow({
+  exercise,
+  subject,
+  index,
+}: {
+  exercise: StageExercise;
+  subject: (typeof SUBJECTS)[number];
+  index: number;
+}) {
+  const navigate = useNavigate();
+  const pct = Math.min((exercise.completions / REQUIRED_COMPLETIONS) * 100, 100);
+  const isMastered = exercise.completions >= REQUIRED_COMPLETIONS;
+  const Icon = subject.icon;
 
   return (
-    <div className="relative w-11 h-11 flex items-center justify-center">
-      <svg width="44" height="44" className="-rotate-90">
-        <circle cx="22" cy="22" r={r} fill="none" stroke="#e2e8f0" strokeWidth="3" />
-        <motion.circle
-          cx="22" cy="22" r={r} fill="none" stroke="#14b8a6" strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray={circ}
-          initial={{ strokeDashoffset: circ }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
-        />
-      </svg>
-      <span className="absolute text-[10px] font-black text-slate-600">{Math.round(pct)}%</span>
-    </div>
+    <motion.button
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.04, 0.4), type: 'spring', bounce: 0.2 }}
+      onClick={() => navigate(`/app${exercise.route}`)}
+      className={cn(
+        'w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left',
+        isMastered
+          ? 'bg-teal-50 border-teal-200'
+          : 'bg-white border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0'
+      )}
+    >
+      {/* Icon */}
+      <div
+        className={cn(
+          'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0',
+          isMastered ? 'bg-teal-500' : `bg-gradient-to-br ${subject.gradient}`
+        )}
+      >
+        {isMastered ? (
+          <CheckCircle2 className="w-5 h-5 text-white" strokeWidth={2.5} />
+        ) : (
+          <Icon className="w-5 h-5 text-white" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1">
+          <p
+            className={cn(
+              'font-bold text-sm truncate',
+              isMastered ? 'text-teal-700' : 'text-slate-800'
+            )}
+          >
+            {exercise.title}
+          </p>
+          <span className="text-[11px] font-bold text-slate-400 flex-shrink-0 ml-2">
+            {exercise.completions}/{REQUIRED_COMPLETIONS}
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 0.8, delay: Math.min(index * 0.04, 0.4) + 0.2, ease: 'easeOut' }}
+            className={cn('h-full rounded-full', isMastered ? 'bg-teal-500' : subject.progressColor)}
+          />
+        </div>
+
+        {/* Stars + XP row */}
+        <div className="flex items-center gap-2 mt-1">
+          {exercise.bestStars > 0 && (
+            <div className="flex gap-0.5">
+              {[1, 2, 3].map((s) => (
+                <Star
+                  key={s}
+                  className={cn(
+                    'w-3 h-3',
+                    s <= exercise.bestStars
+                      ? 'text-amber-400 fill-amber-400'
+                      : 'text-slate-200 fill-slate-200'
+                  )}
+                />
+              ))}
+            </div>
+          )}
+          <span className="text-[10px] font-bold text-amber-600">+{exercise.xpReward} XP</span>
+        </div>
+      </div>
+
+      {/* Arrow */}
+      <ChevronRight
+        className={cn(
+          'w-4 h-4 flex-shrink-0',
+          isMastered ? 'text-teal-400' : 'text-slate-300'
+        )}
+      />
+    </motion.button>
   );
 }
 
 // Tab button
-function TabButton({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number }) {
+function TabButton({
+  active,
+  onClick,
+  label,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+}) {
   return (
     <button
       onClick={onClick}
@@ -241,109 +402,14 @@ function TabButton({ active, onClick, label, count }: { active: boolean; onClick
       )}
     >
       {label}
-      <span className={cn(
-        'text-xs px-1.5 py-0.5 rounded-lg font-black',
-        active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-      )}>
+      <span
+        className={cn(
+          'text-xs px-1.5 py-0.5 rounded-lg font-black',
+          active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+        )}
+      >
         {count}
       </span>
     </button>
-  );
-}
-
-// Exercise grid component
-function ExerciseGrid({ exercises, subject }: { exercises: StageExercise[]; subject: typeof SUBJECTS[number] }) {
-  const navigate = useNavigate();
-
-  if (exercises.length === 0) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-4xl mb-3">🌱</p>
-        <p className="text-slate-400 font-semibold">Geen opdrachten gevonden</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-3 gap-2.5">
-      {exercises.map((ex, i) => {
-        const isCompleted = ex.status === 'completed';
-        const isAvailable = ex.status === 'available';
-        const isLocked = ex.status === 'locked';
-
-        return (
-          <motion.button
-            key={ex.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: Math.min(i * 0.03, 0.5), type: 'spring', bounce: 0.3 }}
-            onClick={() => { if (isAvailable) navigate(`/app${ex.route}`); }}
-            disabled={!isAvailable}
-            className={cn(
-              'relative rounded-2xl p-3 flex flex-col items-center gap-1.5 border transition-all text-center',
-              isCompleted && 'bg-teal-50 border-teal-200 cursor-default',
-              isAvailable && 'bg-white border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm cursor-pointer',
-              isLocked && 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed',
-            )}
-          >
-            {/* Order badge */}
-            <div className={cn(
-              'absolute -top-2 -left-2 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm',
-              isCompleted ? 'bg-teal-500' : isAvailable ? 'bg-orange-400' : 'bg-slate-400'
-            )}>
-              <span className="text-white font-black" style={{ fontSize: '9px' }}>{ex.order}</span>
-            </div>
-
-            {/* Status icon */}
-            <div className={cn(
-              'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border',
-              isCompleted
-                ? 'bg-teal-500 border-teal-600'
-                : isAvailable
-                  ? subject.lightBg
-                  : 'bg-slate-200 border-slate-300'
-            )}>
-              {isCompleted && <Check className="w-5 h-5 text-white" strokeWidth={3} />}
-              {isLocked && <Lock className="w-4 h-4 text-slate-400" strokeWidth={2.5} />}
-              {isAvailable && (
-                <span className={subject.color}>
-                  <subject.icon className="w-4 h-4" />
-                </span>
-              )}
-            </div>
-
-            {/* Title */}
-            <p className={cn(
-              'font-bold leading-tight text-[11px]',
-              isCompleted ? 'text-teal-700' : isAvailable ? 'text-slate-700' : 'text-slate-400'
-            )}>
-              {ex.title}
-            </p>
-
-            {/* Stars for completed */}
-            {isCompleted && (
-              <div className="flex gap-0.5">
-                {[1, 2, 3].map(s => (
-                  <Star
-                    key={s}
-                    className={cn(
-                      'w-3 h-3',
-                      s <= ex.stars ? 'text-amber-400 fill-amber-400' : 'text-slate-300 fill-slate-300'
-                    )}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* XP for available */}
-            {isAvailable && (
-              <span className="text-[10px] font-black text-amber-600 bg-amber-50 border border-amber-200 px-1.5 rounded-lg">
-                +{ex.xpReward} XP
-              </span>
-            )}
-          </motion.button>
-        );
-      })}
-    </div>
   );
 }
