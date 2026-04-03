@@ -383,9 +383,9 @@ export function ExerciseWriteNumber() {
           </button>
 
           <motion.button
-            whileTap={{ scale: hasDrawn && status === 'idle' ? 0.94 : 1 }}
+            whileTap={{ scale: hasDrawn && (status === 'idle' || status === 'drawn') ? 0.94 : 1 }}
             onClick={handleConfirm}
-            disabled={!hasDrawn || status !== 'idle'}
+            disabled={!hasDrawn || (status !== 'idle' && status !== 'drawn')}
             className={cn(
               'ml-auto flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-sm transition-all shadow-md active:scale-95',
               hasDrawn && status === 'idle'
