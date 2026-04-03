@@ -3,13 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserPlus, ArrowRight, Baby, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 export function AddChild() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [age, setAge] = useState<number | ''>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Determine study year based on age
   const getStudyYear = (ageValue: number | '') => {
     if (ageValue === '') return null;
     if (ageValue <= 6) return '1ste leerjaar';
@@ -21,15 +25,35 @@ export function AddChild() {
     return null;
   };
 
+  const getGrade = (ageValue: number | ''): number => {
+    if (ageValue === '' || ageValue <= 6) return 1;
+    if (ageValue >= 11) return 6;
+    return ageValue - 5;
+  };
+
   const studyYear = getStudyYear(age);
   const isFormValid = name.trim().length > 0 && age !== '' && age > 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isFormValid) {
-      // In a real app we'd save this to context or backend
-      // Redirect to home page (avatar selection) as requested
+    if (!isFormValid || !user || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('children').insert({
+        name: name.trim(),
+        age: age as number,
+        grade: getGrade(age),
+        parent_id: user.id,
+      });
+
+      if (error) throw error;
+      toast.success(`${name.trim()} is toegevoegd!`);
       navigate('/');
+    } catch (err: any) {
+      toast.error(err.message || 'Er ging iets mis bij het opslaan.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
