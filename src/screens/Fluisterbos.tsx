@@ -277,7 +277,7 @@ function ExerciseGrid({ exercises, subject }: { exercises: StageExercise[]; subj
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: Math.min(i * 0.03, 0.5), type: 'spring', bounce: 0.3 }}
-            onClick={() => { if (isAvailable) navigate(ex.route); }}
+            onClick={() => { if (isAvailable) navigate(`/app${ex.route}`); }}
             disabled={!isAvailable}
             className={cn(
               'relative rounded-2xl p-3 flex flex-col items-center gap-1.5 border transition-all text-center',
