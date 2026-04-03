@@ -81,7 +81,7 @@ export function ExerciseWriteNumber() {
   };
 
   const startDraw = useCallback((e: MouseEvent | TouchEvent) => {
-    if (status !== 'idle' && status !== 'drawn') return;
+    if (status !== 'idle' && status !== 'drawn' && status !== 'selfcheck') return;
     e.preventDefault();
     const res = getCtx();
     if (!res) return;
@@ -383,12 +383,12 @@ export function ExerciseWriteNumber() {
           </button>
 
           <motion.button
-            whileTap={{ scale: hasDrawn && status === 'idle' ? 0.94 : 1 }}
+            whileTap={{ scale: hasDrawn && (status === 'idle' || status === 'drawn') ? 0.94 : 1 }}
             onClick={handleConfirm}
-            disabled={!hasDrawn || status !== 'idle'}
+            disabled={!hasDrawn || (status !== 'idle' && status !== 'drawn')}
             className={cn(
               'ml-auto flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-sm transition-all shadow-md active:scale-95',
-              hasDrawn && status === 'idle'
+              hasDrawn && (status === 'idle' || status === 'drawn')
                 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
                 : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
             )}
