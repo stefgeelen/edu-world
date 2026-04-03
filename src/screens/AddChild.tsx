@@ -180,16 +180,16 @@ export function AddChild() {
       >
         <button
           onClick={handleSubmit}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isSubmitting}
           className={cn(
             "w-full max-w-md h-[4.5rem] rounded-[2rem] font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300",
-            isFormValid 
+            isFormValid && !isSubmitting
               ? "bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-500 text-white shadow-[0_8px_30px_rgba(249,115,22,0.4)] shadow-orange-500/50 active:scale-95 border-b-[6px] border-orange-600 active:border-b-0 active:translate-y-[6px]"
               : "bg-slate-100 text-slate-400 cursor-not-allowed border-b-[6px] border-slate-200"
           )}
         >
-          Verder
-          <ArrowRight className="w-6 h-6" strokeWidth={3} />
+          {isSubmitting ? 'Opslaan...' : 'Verder'}
+          {!isSubmitting && <ArrowRight className="w-6 h-6" strokeWidth={3} />}
         </button>
       </motion.div>
     </div>
