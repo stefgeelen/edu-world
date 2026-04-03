@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Trash2, Heart, HeartCrack, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Check, Trash2, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,6 @@ export function ExerciseNumberLine() {
   const allFilled = blanks.length > 0 && filled.length === blanks.length;
   const remaining = blanks.length - filled.length;
 
-  // Reset canvas state whenever the active slot changes
   useEffect(() => {
     isDrawing.current = false;
     lastPt.current = null;
@@ -74,7 +74,6 @@ export function ExerciseNumberLine() {
     setChecking(false);
 
     if (activeSlot !== null) {
-      // Small delay so the sheet finishes mounting before we clear
       const t = setTimeout(() => {
         const c = canvasRef.current;
         if (!c) return;
@@ -85,12 +84,10 @@ export function ExerciseNumberLine() {
     }
   }, [activeSlot]);
 
-  // ── Canvas pointer handlers (no useEffect needed — React events are reliable) ──
-
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     if (checking) return;
     e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId); // keep events even if pointer leaves
+    e.currentTarget.setPointerCapture(e.pointerId);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -100,7 +97,7 @@ export function ExerciseNumberLine() {
     lastPt.current = pos;
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = '#312e81';
+    ctx.fillStyle = '#a78bfa';
     ctx.fill();
   }, [checking]);
 
@@ -117,7 +114,7 @@ export function ExerciseNumberLine() {
       ctx.beginPath();
       ctx.moveTo(last.x, last.y);
       ctx.lineTo(pos.x, pos.y);
-      ctx.strokeStyle = '#312e81';
+      ctx.strokeStyle = '#a78bfa';
       ctx.lineWidth = 16;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -134,8 +131,6 @@ export function ExerciseNumberLine() {
     isDrawing.current = false;
     lastPt.current = null;
   }, []);
-
-  // ── Canvas actions ─────────────────────────────────────────────────────
 
   const clearCanvas = useCallback(() => {
     const c = canvasRef.current;
@@ -190,68 +185,30 @@ export function ExerciseNumberLine() {
   };
 
   return (
-    <div className="h-full w-full bg-gradient-to-b from-indigo-100 via-violet-50 to-purple-50 flex flex-col overflow-hidden relative">
-
-      {/* ── Floating star decorations ── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {['⭐','🌟','✨','💜','🔮','⭐','✨','🌟'].map((icon, i) => (
-          <span key={i} className="absolute select-none" style={{
-            left: `${[5, 17, 32, 48, 62, 74, 85, 92][i]}%`,
-            top:  `${[10, 75, 25, 88, 15, 55, 38, 72][i]}%`,
-            fontSize: `${[18, 14, 22, 12, 20, 16, 18, 14][i]}px`,
-            opacity: 0.12,
-            transform: `rotate(${i * 28}deg)`,
-          }}>{icon}</span>
-        ))}
-      </div>
-
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-indigo-500 to-violet-500 px-4 pt-10 pb-4 flex-shrink-0 shadow-lg relative z-10">
-        <div className="flex items-center gap-3 max-w-md mx-auto w-full">
-          <button
-            onClick={() => navigate('/app/stage/fluisterbos')}
-            className="p-2.5 bg-white/20 hover:bg-white/30 rounded-2xl transition-colors flex-shrink-0"
-          >
-            <X className="w-5 h-5 text-white" strokeWidth={2.5} />
-          </button>
-
-          <div className="flex-1 h-3.5 bg-white/30 rounded-full overflow-hidden shadow-inner">
-            <motion.div
-              animate={{ width: `${progress}%` }}
-              transition={{ type: 'spring', damping: 20 }}
-              className="h-full bg-white rounded-full shadow-sm"
-            />
-          </div>
-
-          <div className="flex gap-1 flex-shrink-0">
-            {[0, 1, 2].map(i =>
-              i < lives
-                ? <Heart key={i} className="w-5 h-5 text-red-300 fill-red-300 drop-shadow" />
-                : <HeartCrack key={i} className="w-5 h-5 text-white/30" />
-            )}
-          </div>
-        </div>
-      </div>
-
+    <ExerciseShell
+      progress={progress}
+      lives={lives}
+      onClose={() => navigate('/app/stage/fluisterbos')}
+    >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         {/* Instruction card */}
         <div className="flex-shrink-0">
-          <p className="text-sm font-bold text-indigo-700 mb-3 flex items-center gap-1.5">
+          <p className="text-sm font-bold text-[#9d8bce] mb-3 flex items-center gap-1.5">
             <span className="text-lg">🔢</span>
             Tik op een vraagteken om het getal te schrijven!
           </p>
-          <div className="bg-white/90 rounded-3xl border-2 border-indigo-200 shadow-md p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-md flex-shrink-0 text-2xl ring-2 ring-indigo-200">
+          <div className="bg-[#1c1134]/60 backdrop-blur-sm rounded-3xl border-2 border-[#3b2d71] shadow-md p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-md flex-shrink-0 text-2xl ring-2 ring-indigo-200/30">
               📏
             </div>
             <div>
-              <p className="font-black text-slate-800 mb-0.5">Vul de getallenlijn in!</p>
-              <p className="text-sm text-slate-500 leading-snug">
-                <span className="font-black text-indigo-600">{filled.length}</span>
+              <p className="font-black text-white mb-0.5">Vul de getallenlijn in!</p>
+              <p className="text-sm text-white/60 leading-snug">
+                <span className="font-black text-emerald-400">{filled.length}</span>
                 {' '}van{' '}
-                <span className="font-black text-indigo-600">{blanks.length}</span>
+                <span className="font-black text-emerald-400">{blanks.length}</span>
                 {' '}lege vakjes ingevuld
               </p>
             </div>
@@ -261,8 +218,8 @@ export function ExerciseNumberLine() {
         {/* Number line */}
         <div className="flex-shrink-0">
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-violet-50 to-transparent pointer-events-none z-10" />
-            <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-violet-50 to-transparent pointer-events-none z-10" />
+            <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#0a0618] to-transparent pointer-events-none z-10" />
+            <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#0a0618] to-transparent pointer-events-none z-10" />
             <div className="overflow-x-auto pb-3" style={{ WebkitOverflowScrolling: 'touch' }}>
               <div className="flex items-center px-4 pt-3 pb-1" style={{ minWidth: 'max-content' }}>
                 {slots.map((slot, idx) => {
@@ -275,7 +232,7 @@ export function ExerciseNumberLine() {
                       {idx > 0 && (
                         <div className={cn(
                           'h-1.5 w-5 flex-shrink-0 rounded-full',
-                          isFilled ? 'bg-violet-400' : isGiven ? 'bg-indigo-400' : 'bg-indigo-200'
+                          isFilled ? 'bg-violet-400' : isGiven ? 'bg-[#4c3b82]' : 'bg-[#3b2d71]'
                         )} />
                       )}
                       <button
@@ -283,18 +240,18 @@ export function ExerciseNumberLine() {
                         disabled={!isEmpty || roundDone}
                         className={cn(
                           'relative w-14 h-14 rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 transition-all shadow-md',
-                          isGiven && 'bg-gradient-to-b from-indigo-400 to-indigo-600 border-indigo-700 text-white cursor-default',
-                          isEmpty && !roundDone && 'bg-white border-dashed border-indigo-300 hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer',
-                          isEmpty && roundDone && 'bg-white border-dashed border-slate-300 cursor-default',
+                          isGiven && 'bg-gradient-to-b from-indigo-500 to-indigo-700 border-indigo-800 text-white cursor-default',
+                          isEmpty && !roundDone && 'bg-[#1c1134] border-dashed border-[#4c3b82] hover:border-[#a78bfa] hover:bg-[#2d1b54] cursor-pointer',
+                          isEmpty && roundDone && 'bg-[#1c1134] border-dashed border-[#3b2d71] cursor-default',
                           isFilled && 'bg-gradient-to-b from-violet-400 to-violet-600 border-violet-700 text-white cursor-default',
-                          isActive && 'ring-4 ring-indigo-200 scale-110 shadow-indigo-200',
+                          isActive && 'ring-4 ring-[#a78bfa]/50 scale-110 shadow-[#a78bfa]/30',
                         )}
                         style={{ fontSize: 22 }}
                       >
                         {isGiven && <span>{slot.value}</span>}
                         {isFilled && <span>{slot.value}</span>}
                         {isEmpty && (
-                          <span className={cn('font-black text-xl', isActive ? 'text-indigo-500' : 'text-indigo-300')}>?</span>
+                          <span className={cn('font-black text-xl', isActive ? 'text-[#a78bfa]' : 'text-[#4c3b82]')}>?</span>
                         )}
                         {isFilled && (
                           <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center shadow-sm">
@@ -302,7 +259,7 @@ export function ExerciseNumberLine() {
                           </div>
                         )}
                         {isEmpty && !roundDone && (
-                          <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-indigo-400 flex items-center justify-center shadow-sm">
+                          <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#4c3b82] flex items-center justify-center shadow-sm">
                             <span style={{ fontSize: 9, color: 'white', fontWeight: 900 }}>✏</span>
                           </div>
                         )}
@@ -317,12 +274,12 @@ export function ExerciseNumberLine() {
           {/* Legend */}
           <div className="flex items-center gap-4 mt-1 px-1">
             <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-lg bg-gradient-to-b from-indigo-400 to-indigo-600 border border-indigo-700 flex-shrink-0" />
-              <span className="text-xs font-bold text-indigo-400">Gegeven</span>
+              <div className="w-4 h-4 rounded-lg bg-gradient-to-b from-indigo-500 to-indigo-700 border border-indigo-800 flex-shrink-0" />
+              <span className="text-xs font-bold text-[#9d8bce]">Gegeven</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-lg bg-white border-2 border-dashed border-indigo-300 flex-shrink-0" />
-              <span className="text-xs font-bold text-indigo-400">Leeg</span>
+              <div className="w-4 h-4 rounded-lg bg-[#1c1134] border-2 border-dashed border-[#4c3b82] flex-shrink-0" />
+              <span className="text-xs font-bold text-[#9d8bce]">Leeg</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-4 h-4 rounded-lg bg-gradient-to-b from-violet-400 to-violet-600 border border-violet-700 flex-shrink-0" />
@@ -333,10 +290,10 @@ export function ExerciseNumberLine() {
 
         {/* Tip card */}
         {filled.length === 0 && (
-          <div className="flex-shrink-0 bg-indigo-100 border-2 border-indigo-200 rounded-2xl px-4 py-3 flex items-start gap-2 shadow-sm">
-            <Sparkles className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
-            <p className="text-sm font-bold text-indigo-700">
-              Tik op een vakje met een <span className="text-indigo-900">?</span> en schrijf het juiste getal met je vinger!
+          <div className="flex-shrink-0 bg-[#1c1134]/60 border-2 border-[#3b2d71] rounded-2xl px-4 py-3 flex items-start gap-2 shadow-sm">
+            <Sparkles className="w-4 h-4 text-[#a78bfa] mt-0.5 flex-shrink-0" />
+            <p className="text-sm font-bold text-white/80">
+              Tik op een vakje met een <span className="text-[#a78bfa]">?</span> en schrijf het juiste getal met je vinger!
             </p>
           </div>
         )}
@@ -348,12 +305,12 @@ export function ExerciseNumberLine() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="flex-shrink-0 flex items-center gap-3 bg-indigo-100 border-2 border-indigo-300 rounded-2xl px-4 py-3 shadow-md"
+              className="flex-shrink-0 flex items-center gap-3 bg-emerald-500/20 border-2 border-emerald-500/40 rounded-2xl px-4 py-3 shadow-md"
             >
               <span className="text-2xl">🎉</span>
               <div>
-                <p className="font-black text-indigo-800">Geweldig gedaan!</p>
-                <p className="text-sm font-bold text-indigo-600">De getallenlijn is compleet! +20 XP</p>
+                <p className="font-black text-emerald-400">Geweldig gedaan!</p>
+                <p className="text-sm font-bold text-emerald-300/80">De getallenlijn is compleet! +20 XP</p>
               </div>
             </motion.div>
           )}
@@ -363,7 +320,7 @@ export function ExerciseNumberLine() {
       </div>
 
       {/* ── Sticky check bar ───────────────────────────────────────────── */}
-      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t-2 border-indigo-100 px-4 py-3 shadow-[0_-4px_20px_rgba(99,102,241,0.12)] relative z-10">
+      <div className="flex-shrink-0 bg-[#1a103c]/90 backdrop-blur-sm border-t-2 border-[#3b2d71] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] relative z-10">
         <div className="max-w-md mx-auto w-full">
           <button
             onClick={handleCheckAll}
@@ -371,8 +328,8 @@ export function ExerciseNumberLine() {
             className={cn(
               'w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-black transition-all shadow-md',
               allFilled && !roundDone
-                ? 'bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white border border-indigo-600'
-                : 'bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
+                : 'bg-[#1c1134] text-[#4c3b82] border border-[#3b2d71] cursor-not-allowed'
             )}
           >
             <Check className="w-5 h-5" strokeWidth={3} />
@@ -392,12 +349,12 @@ export function ExerciseNumberLine() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setActiveSlot(null)}
-            className="absolute inset-0 bg-indigo-900/40 z-40"
+            className="absolute inset-0 bg-black/50 z-40"
           />
         )}
       </AnimatePresence>
 
-      {/* ── Canvas bottom sheet — fixed 70 % of screen height ─────────── */}
+      {/* ── Canvas bottom sheet ─────────────────────────────────────────── */}
       <AnimatePresence>
         {activeSlot !== null && (
           <motion.div
@@ -406,52 +363,52 @@ export function ExerciseNumberLine() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 32, stiffness: 320 }}
-            className="absolute inset-x-0 bottom-0 bg-gradient-to-b from-white to-indigo-50 rounded-t-[2rem] shadow-[0_-8px_48px_rgba(99,102,241,0.25)] z-50 flex flex-col border-t-4 border-indigo-200"
+            className="absolute inset-x-0 bottom-0 bg-gradient-to-b from-[#1a103c] to-[#0a0618] rounded-t-[2rem] shadow-[0_-8px_48px_rgba(0,0,0,0.5)] z-50 flex flex-col border-t-4 border-[#3b2d71]"
             style={{ height: '70vh' }}
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-0 flex-shrink-0">
-              <div className="w-10 h-1.5 rounded-full bg-indigo-200" />
+              <div className="w-10 h-1.5 rounded-full bg-[#3b2d71]" />
             </div>
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-3 pb-2 flex-shrink-0">
               <div>
-                <p className="font-black text-slate-800 text-base">Schrijf het getal</p>
-                <p className="text-sm text-slate-500">
+                <p className="font-black text-white text-base">Schrijf het getal</p>
+                <p className="text-sm text-white/60">
                   Welk getal hoort op plek{' '}
-                  <span className="font-black text-indigo-600">{activeSlot}</span>?
+                  <span className="font-black text-[#a78bfa]">{activeSlot}</span>?
                 </p>
               </div>
               <button
                 onClick={() => setActiveSlot(null)}
-                className="p-2 bg-indigo-100 hover:bg-indigo-200 rounded-xl transition-colors"
+                className="p-2 bg-[#2d1b54] hover:bg-[#3b2d71] rounded-xl transition-colors"
               >
-                <X className="w-4 h-4 text-indigo-600" strokeWidth={2.5} />
+                <span className="text-[#9d8bce] font-bold text-sm">✕</span>
               </button>
             </div>
 
             {/* Mini number line context */}
             <div className="px-5 pb-3 flex-shrink-0">
               <div
-                className="bg-indigo-100 rounded-2xl p-2.5 overflow-x-auto flex items-center gap-0 border border-indigo-200"
+                className="bg-[#1c1134] rounded-2xl p-2.5 overflow-x-auto flex items-center gap-0 border border-[#3b2d71]"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 {slots.map((s, idx) => {
                   const isTarget = s.value === activeSlot;
                   return (
                     <React.Fragment key={s.value}>
-                      {idx > 0 && <div className="h-0.5 w-3 flex-shrink-0 bg-indigo-300" />}
+                      {idx > 0 && <div className="h-0.5 w-3 flex-shrink-0 bg-[#4c3b82]" />}
                       <div
                         className={cn(
                           'w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs flex-shrink-0 border shadow-sm',
                           isTarget
-                            ? 'bg-indigo-500 border-indigo-600 text-white ring-2 ring-indigo-300 ring-offset-1'
+                            ? 'bg-[#a78bfa] border-[#8b5cf6] text-white ring-2 ring-[#a78bfa]/40 ring-offset-1 ring-offset-[#1c1134]'
                             : !s.isBlank
-                              ? 'bg-indigo-400 border-indigo-500 text-white'
+                              ? 'bg-indigo-500 border-indigo-600 text-white'
                               : s.filled
-                                ? 'bg-violet-400 border-violet-500 text-white'
-                                : 'bg-white border-dashed border-indigo-300 text-indigo-300'
+                                ? 'bg-violet-500 border-violet-600 text-white'
+                                : 'bg-[#1c1134] border-dashed border-[#4c3b82] text-[#4c3b82]'
                         )}
                       >
                         {isTarget ? '?' : (s.isBlank && !s.filled) ? '?' : s.value}
@@ -462,23 +419,23 @@ export function ExerciseNumberLine() {
               </div>
             </div>
 
-            {/* ── Drawing canvas — fills remaining space ── */}
+            {/* ── Drawing canvas ── */}
             <div className="flex-1 px-5 pb-2 min-h-0">
               <div
                 className={cn(
                   'relative w-full h-full rounded-2xl border-2 transition-colors duration-300',
                   checking
-                    ? 'border-amber-300 bg-amber-50'
+                    ? 'border-amber-400/50 bg-[#1c1134]'
                     : hasDrawn
-                      ? 'border-indigo-300 bg-white'
-                      : 'border-dashed border-indigo-200 bg-white'
+                      ? 'border-[#4c3b82] bg-[#1c1134]'
+                      : 'border-dashed border-[#3b2d71] bg-[#1c1134]'
                 )}
               >
                 {/* Lined-paper guide */}
                 <div
-                  className="absolute inset-0 rounded-2xl pointer-events-none opacity-[0.07]"
+                  className="absolute inset-0 rounded-2xl pointer-events-none opacity-[0.05]"
                   style={{
-                    backgroundImage: 'repeating-linear-gradient(transparent, transparent 39px, #94a3b8 39px, #94a3b8 40px)',
+                    backgroundImage: 'repeating-linear-gradient(transparent, transparent 39px, #a78bfa 39px, #a78bfa 40px)',
                     backgroundPositionY: '20px',
                   }}
                 />
@@ -487,7 +444,7 @@ export function ExerciseNumberLine() {
                 {!hasDrawn && !checking && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                     <span className="text-5xl opacity-10">✏️</span>
-                    <p className="text-indigo-300 font-bold text-sm">Schrijf hier het getal</p>
+                    <p className="text-[#4c3b82] font-bold text-sm">Schrijf hier het getal</p>
                   </div>
                 )}
 
@@ -514,24 +471,24 @@ export function ExerciseNumberLine() {
                       initial={{ opacity: 0, y: 14 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-x-0 bottom-0 flex flex-col items-center pb-5 bg-gradient-to-t from-amber-50/98 via-amber-50/80 to-transparent pt-12 rounded-b-2xl"
+                      className="absolute inset-x-0 bottom-0 flex flex-col items-center pb-5 bg-gradient-to-t from-[#1a103c]/95 via-[#1a103c]/80 to-transparent pt-12 rounded-b-2xl"
                     >
-                      <p className="font-black text-slate-800 mb-3 text-center text-sm px-4">
+                      <p className="font-black text-white mb-3 text-center text-sm px-4">
                         Heb je het getal{' '}
-                        <span className="text-indigo-600 text-base">{activeSlot}</span>{' '}
+                        <span className="text-[#a78bfa] text-base">{activeSlot}</span>{' '}
                         geschreven?
                       </p>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSelfCheck(false)}
-                          className="flex items-center gap-1.5 px-4 py-2.5 bg-white border-2 border-red-300 text-red-600 rounded-2xl font-black text-sm shadow-sm hover:bg-red-50 transition-colors"
+                          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#2d1b54] border-2 border-red-400/50 text-red-400 rounded-2xl font-black text-sm shadow-sm hover:bg-red-500/20 transition-colors"
                         >
                           <ThumbsDown className="w-3.5 h-3.5" strokeWidth={2.5} />
                           Nee, opnieuw
                         </button>
                         <button
                           onClick={() => handleSelfCheck(true)}
-                          className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-violet-500 border-2 border-indigo-600 text-white rounded-2xl font-black text-sm shadow-sm hover:from-indigo-600 hover:to-violet-600 transition-colors"
+                          className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 border-2 border-emerald-700 text-white rounded-2xl font-black text-sm shadow-sm hover:from-emerald-600 hover:to-emerald-700 transition-colors"
                         >
                           <ThumbsUp className="w-3.5 h-3.5" strokeWidth={2.5} />
                           Ja, klopt!
@@ -544,15 +501,15 @@ export function ExerciseNumberLine() {
             </div>
 
             {/* ── Action bar ── */}
-            <div className="flex-shrink-0 px-5 py-3 flex items-center gap-3 border-t border-indigo-100">
+            <div className="flex-shrink-0 px-5 py-3 flex items-center gap-3 border-t border-[#3b2d71]">
               <button
                 onClick={clearCanvas}
                 disabled={!hasDrawn || checking}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 font-bold text-sm transition-all',
                   hasDrawn && !checking
-                    ? 'bg-white border-slate-200 text-slate-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600 active:scale-95'
-                    : 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                    ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-red-500/20 hover:border-red-400/50 hover:text-red-400 active:scale-95'
+                    : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
                 )}
               >
                 <Trash2 className="w-4 h-4" strokeWidth={2.5} />
@@ -565,8 +522,8 @@ export function ExerciseNumberLine() {
                 className={cn(
                   'ml-auto flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-sm transition-all shadow-sm active:scale-95',
                   hasDrawn && !checking
-                    ? 'bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white border border-indigo-600'
-                    : 'bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
+                    : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
                 )}
               >
                 <Check className="w-4 h-4" strokeWidth={3} />
@@ -576,6 +533,6 @@ export function ExerciseNumberLine() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </ExerciseShell>
   );
 }
