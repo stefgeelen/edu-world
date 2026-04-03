@@ -57,6 +57,19 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        edu: {
+          blue: "hsl(var(--edu-blue))",
+          teal: "hsl(var(--edu-teal))",
+          orange: "hsl(var(--edu-orange))",
+          pink: "hsl(var(--edu-pink))",
+          purple: "hsl(var(--edu-purple))",
+          yellow: "hsl(var(--edu-yellow))",
+          green: "hsl(var(--edu-green))",
+        },
+      },
+      fontFamily: {
+        display: ["Nunito", "sans-serif"],
+        body: ["Inter", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
