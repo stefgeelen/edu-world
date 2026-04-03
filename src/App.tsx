@@ -42,6 +42,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -54,7 +55,7 @@ const App = () => (
             </Route>
 
             {/* Protected routes */}
-            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<AvatarSelection />} />
               <Route path="add-child" element={<AddChild />} />
               <Route path="dashboard" element={<Dashboard />} />
