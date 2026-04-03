@@ -40,6 +40,14 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    --edu-blue: 217 91% 60%;
+    --edu-teal: 168 72% 48%;
+    --edu-orange: 25 95% 53%;
+    --edu-pink: 340 82% 62%;
+    --edu-purple: 265 70% 60%;
+    --edu-yellow: 42 100% 62%;
+    --edu-green: 142 72% 45%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
