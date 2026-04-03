@@ -388,7 +388,7 @@ export function ExerciseWriteNumber() {
             disabled={!hasDrawn || (status !== 'idle' && status !== 'drawn')}
             className={cn(
               'ml-auto flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-sm transition-all shadow-md active:scale-95',
-              hasDrawn && status === 'idle'
+              hasDrawn && (status === 'idle' || status === 'drawn')
                 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
                 : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
             )}
