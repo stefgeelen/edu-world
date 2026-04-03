@@ -29,8 +29,8 @@ export function QuestMap() {
       id: 4,
       name: "Uilenkasteel",
       status: "locked",
-      yPos: 12,
-      xPos: 65,
+      yPos: 10,
+      xPos: 60,
       icon: "🏰",
       btnClass: "bg-slate-700 border-b-8 border-slate-900 shadow-xl ring-4 ring-slate-600 opacity-90",
     },
@@ -39,7 +39,7 @@ export function QuestMap() {
       name: "Woordenwoud",
       status: "completed",
       yPos: 35,
-      xPos: 25,
+      xPos: 30,
       icon: "🦊",
       btnClass: "bg-emerald-400 border-b-8 border-emerald-600 shadow-xl ring-4 ring-emerald-300",
     },
@@ -47,8 +47,8 @@ export function QuestMap() {
       id: 2,
       name: "Borrelende Beek",
       status: "current",
-      yPos: 60,
-      xPos: 75,
+      yPos: 58,
+      xPos: 65,
       icon: "🌊",
       btnClass: "bg-cyan-400 border-b-8 border-cyan-600 shadow-xl ring-4 ring-white",
     },
@@ -56,8 +56,8 @@ export function QuestMap() {
       id: 1,
       name: "Fluisterbomen",
       status: "completed",
-      yPos: 85,
-      xPos: 30,
+      yPos: 82,
+      xPos: 40,
       icon: "🌳",
       btnClass: "bg-emerald-400 border-b-8 border-emerald-600 shadow-xl ring-4 ring-emerald-300",
     },
@@ -175,7 +175,7 @@ export function QuestMap() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              d="M 30 85 C 30 70, 75 75, 75 60 C 75 45, 25 50, 25 35 C 25 20, 65 25, 65 12"
+              d="M 40 82 C 40 72, 65 68, 65 58 C 65 48, 30 45, 30 35 C 30 25, 60 20, 60 10"
               fill="none"
               stroke="url(#glowPath)"
               strokeWidth="4"
