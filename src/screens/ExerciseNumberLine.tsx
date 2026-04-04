@@ -246,7 +246,7 @@ export function ExerciseNumberLine() {
                           isFilled && 'bg-gradient-to-b from-violet-400 to-violet-600 border-violet-700 text-white cursor-default',
                           isActive && 'ring-4 ring-[#a78bfa]/50 scale-110 shadow-[#a78bfa]/30',
                         )}
-                        style={{ fontSize: 22 }}
+                        style={{ fontSize: undefined }}
                       >
                         {isGiven && <span>{slot.value}</span>}
                         {isFilled && <span>{slot.value}</span>}
