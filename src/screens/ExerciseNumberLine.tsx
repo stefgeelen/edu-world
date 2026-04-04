@@ -191,7 +191,7 @@ export function ExerciseNumberLine() {
       onClose={() => navigate('/app/stage/fluisterbos')}
     >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         {/* Instruction card */}
         <div className="flex-shrink-0">
