@@ -363,8 +363,8 @@ export function ExerciseNumberLine() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 32, stiffness: 320 }}
-            className="absolute inset-x-0 bottom-0 bg-gradient-to-b from-[#1a103c] to-[#0a0618] rounded-t-[2rem] shadow-[0_-8px_48px_rgba(0,0,0,0.5)] z-50 flex flex-col border-t-4 border-[#3b2d71]"
-            style={{ height: '70vh' }}
+            className="absolute inset-x-0 bottom-0 bg-gradient-to-b from-[#1a103c] to-[#0a0618] rounded-t-[2rem] shadow-[0_-8px_48px_rgba(0,0,0,0.5)] z-50 flex flex-col border-t-4 border-[#3b2d71] max-w-2xl mx-auto"
+            style={{ height: '65vh', maxHeight: 600 }}
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-0 flex-shrink-0">
