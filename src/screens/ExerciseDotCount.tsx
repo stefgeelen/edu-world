@@ -50,15 +50,9 @@ export function ExerciseDotCount() {
     setDots(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, x: cx, y: cy }]);
   }, [status]);
 
-  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    addDotAt(e.clientX, e.clientY);
-  };
-
-  const handleAreaTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const touch = e.touches[0] ?? e.changedTouches[0];
-    if (!touch) return;
-    addDotAt(touch.clientX, touch.clientY);
+    addDotAt(e.clientX, e.clientY);
   };
 
   const handleDeleteLast = () => {
