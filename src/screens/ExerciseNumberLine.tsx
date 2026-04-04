@@ -321,7 +321,7 @@ export function ExerciseNumberLine() {
 
       {/* ── Sticky check bar ───────────────────────────────────────────── */}
       <div className="flex-shrink-0 bg-[#1a103c]/90 backdrop-blur-sm border-t-2 border-[#3b2d71] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] relative z-10">
-        <div className="max-w-md mx-auto w-full">
+        <div className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full">
           <button
             onClick={handleCheckAll}
             disabled={!allFilled || roundDone}
