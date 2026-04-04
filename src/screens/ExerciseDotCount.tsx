@@ -50,15 +50,9 @@ export function ExerciseDotCount() {
     setDots(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, x: cx, y: cy }]);
   }, [status]);
 
-  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    addDotAt(e.clientX, e.clientY);
-  };
-
-  const handleAreaTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const touch = e.touches[0] ?? e.changedTouches[0];
-    if (!touch) return;
-    addDotAt(touch.clientX, touch.clientY);
+    addDotAt(e.clientX, e.clientY);
   };
 
   const handleDeleteLast = () => {
@@ -144,8 +138,7 @@ export function ExerciseDotCount() {
             ref={areaRef}
             animate={shake ? { x: [-6, 6, -5, 5, -3, 3, 0] } : {}}
             transition={{ duration: 0.45 }}
-            onClick={handleAreaClick}
-            onTouchStart={handleAreaTouch}
+            onPointerDown={handlePointerDown}
             className={cn(
               'relative w-full h-full rounded-3xl overflow-hidden select-none touch-none cursor-crosshair transition-all duration-300 shadow-inner',
               status === 'correct'
