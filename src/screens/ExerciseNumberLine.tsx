@@ -239,7 +239,7 @@ export function ExerciseNumberLine() {
                         onClick={() => { if (isEmpty && !roundDone) setActiveSlot(slot.value); }}
                         disabled={!isEmpty || roundDone}
                         className={cn(
-                          'relative w-14 h-14 rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 transition-all shadow-md',
+                          'relative w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 transition-all shadow-md text-base sm:text-lg md:text-xl',
                           isGiven && 'bg-gradient-to-b from-indigo-500 to-indigo-700 border-indigo-800 text-white cursor-default',
                           isEmpty && !roundDone && 'bg-[#1c1134] border-dashed border-[#4c3b82] hover:border-[#a78bfa] hover:bg-[#2d1b54] cursor-pointer',
                           isEmpty && roundDone && 'bg-[#1c1134] border-dashed border-[#3b2d71] cursor-default',
