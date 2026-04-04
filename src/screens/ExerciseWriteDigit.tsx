@@ -188,7 +188,7 @@ export function ExerciseWriteDigit() {
 
   const progress = (iteration / TOTAL_ITERATIONS) * 100;
   const guideCfg = GUIDE_CONFIGS[Math.min(iteration, GUIDE_CONFIGS.length - 1)];
-  const safeDigit = DIGIT_PATHS[digit] ? digit : '8';
+  const safeDigit = DIGIT_PATHS[currentDigit] ? currentDigit : '8';
   const isMultiStroke = getSubpathStarts(DIGIT_PATHS[safeDigit]).length > 1;
 
   useEffect(() => {

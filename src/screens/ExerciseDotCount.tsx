@@ -138,8 +138,7 @@ export function ExerciseDotCount() {
             ref={areaRef}
             animate={shake ? { x: [-6, 6, -5, 5, -3, 3, 0] } : {}}
             transition={{ duration: 0.45 }}
-            onClick={handleAreaClick}
-            onTouchStart={handleAreaTouch}
+            onPointerDown={handlePointerDown}
             className={cn(
               'relative w-full h-full rounded-3xl overflow-hidden select-none touch-none cursor-crosshair transition-all duration-300 shadow-inner',
               status === 'correct'
