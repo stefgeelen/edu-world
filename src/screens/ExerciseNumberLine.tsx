@@ -231,7 +231,7 @@ export function ExerciseNumberLine() {
                     <React.Fragment key={slot.value}>
                       {idx > 0 && (
                         <div className={cn(
-                          'h-1.5 w-5 flex-shrink-0 rounded-full',
+                          'h-1 sm:h-1.5 w-3 sm:w-5 md:w-7 flex-shrink-0 rounded-full',
                           isFilled ? 'bg-violet-400' : isGiven ? 'bg-[#4c3b82]' : 'bg-[#3b2d71]'
                         )} />
                       )}
