@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Star } from 'lucide-react';
@@ -10,9 +10,51 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 const WORD_POOL = ['boom', 'roos', 'vis', 'maan', 'vuur', 'huis', 'boek', 'kat', 'hond', 'zon', 'ster', 'wolk', 'gras', 'berg', 'meer'];
 
+/**
+ * Preloads SpeechSynthesis voices and returns a stable speak() function
+ * that works across mobile, tablet & desktop browsers.
+ */
+function useSpeech() {
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    const load = () => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) voicesRef.current = v;
+    };
+    load();
+    window.speechSynthesis.addEventListener('voiceschanged', load);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
+  }, []);
+
+  const speak = useCallback((text: string): SpeechSynthesisUtterance | null => {
+    if (!text) return null;
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'nl-NL';
+    utterance.rate = 0.75;
+
+    const voices = voicesRef.current.length > 0
+      ? voicesRef.current
+      : window.speechSynthesis.getVoices();
+
+    const dutchVoice =
+      voices.find(v => v.lang === 'nl-NL') ||
+      voices.find(v => v.lang.startsWith('nl'));
+    if (dutchVoice) utterance.voice = dutchVoice;
+
+    window.speechSynthesis.speak(utterance);
+    return utterance;
+  }, []);
+
+  return { speak };
+}
+
 export function ExerciseLanguage() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const { speak } = useSpeech();
   
   const [currentWords, setCurrentWords] = useState<string[]>([]);
   const [correctWord, setCorrectWord] = useState<string>('');
@@ -39,30 +81,23 @@ export function ExerciseLanguage() {
 
   useEffect(() => {
     if (correctWord) {
-      const timer = setTimeout(() => handlePlayAudio(), 500);
+      const timer = setTimeout(() => playAudio(), 500);
       return () => clearTimeout(timer);
     }
   }, [correctWord]);
 
-  const handlePlayAudio = () => {
-    if (isPlaying) return;
+  const playAudio = useCallback(() => {
+    if (isPlaying || !correctWord) return;
     setIsPlaying(true);
-    const utterance = new SpeechSynthesisUtterance(correctWord);
-    utterance.lang = 'nl-NL';
-    utterance.rate = 0.75;
-    
-    const voices = window.speechSynthesis.getVoices();
-    const dutchVoice = voices.find(v => v.lang === 'nl-NL') 
-      || voices.find(v => v.lang.startsWith('nl'));
-    if (dutchVoice) {
-      utterance.voice = dutchVoice;
+
+    const utterance = speak(correctWord);
+    if (utterance) {
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+    } else {
+      setTimeout(() => setIsPlaying(false), 600);
     }
-    
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-  };
+  }, [isPlaying, correctWord, speak]);
 
   const handleWordSelect = (word: string) => {
     if (status !== 'idle') return;
@@ -133,7 +168,7 @@ export function ExerciseLanguage() {
           </AnimatePresence>
 
           <motion.button
-            onClick={handlePlayAudio}
+            onClick={playAudio}
             animate={{ scale: isPlaying ? 0.95 : 1 }}
             className="relative w-32 h-32 md:w-40 md:h-40 bg-orange-500 rounded-full flex items-center justify-center border-b-[10px] border-orange-700 shadow-[0_15px_35px_rgba(249,115,22,0.4)] active:border-b-0 active:translate-y-[10px] transition-all group z-10"
           >
