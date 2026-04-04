@@ -221,7 +221,7 @@ export function ExerciseNumberLine() {
             <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#0a0618] to-transparent pointer-events-none z-10" />
             <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#0a0618] to-transparent pointer-events-none z-10" />
             <div className="overflow-x-auto pb-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <div className="flex items-center px-4 pt-3 pb-1" style={{ minWidth: 'max-content' }}>
+              <div className="flex items-center justify-center px-2 sm:px-4 pt-3 pb-1" style={{ minWidth: 'max-content' }}>
                 {slots.map((slot, idx) => {
                   const isActive = activeSlot === slot.value;
                   const isGiven = !slot.isBlank;
