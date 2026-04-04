@@ -191,7 +191,7 @@ export function ExerciseNumberLine() {
       onClose={() => navigate('/app/stage/fluisterbos')}
     >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         {/* Instruction card */}
         <div className="flex-shrink-0">
@@ -221,7 +221,7 @@ export function ExerciseNumberLine() {
             <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#0a0618] to-transparent pointer-events-none z-10" />
             <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#0a0618] to-transparent pointer-events-none z-10" />
             <div className="overflow-x-auto pb-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <div className="flex items-center px-4 pt-3 pb-1" style={{ minWidth: 'max-content' }}>
+              <div className="flex items-center justify-center px-2 sm:px-4 pt-3 pb-1" style={{ minWidth: 'max-content' }}>
                 {slots.map((slot, idx) => {
                   const isActive = activeSlot === slot.value;
                   const isGiven = !slot.isBlank;
@@ -231,7 +231,7 @@ export function ExerciseNumberLine() {
                     <React.Fragment key={slot.value}>
                       {idx > 0 && (
                         <div className={cn(
-                          'h-1.5 w-5 flex-shrink-0 rounded-full',
+                          'h-1 sm:h-1.5 w-3 sm:w-5 md:w-7 flex-shrink-0 rounded-full',
                           isFilled ? 'bg-violet-400' : isGiven ? 'bg-[#4c3b82]' : 'bg-[#3b2d71]'
                         )} />
                       )}
@@ -239,14 +239,14 @@ export function ExerciseNumberLine() {
                         onClick={() => { if (isEmpty && !roundDone) setActiveSlot(slot.value); }}
                         disabled={!isEmpty || roundDone}
                         className={cn(
-                          'relative w-14 h-14 rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 transition-all shadow-md',
+                          'relative w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 transition-all shadow-md text-base sm:text-lg md:text-xl',
                           isGiven && 'bg-gradient-to-b from-indigo-500 to-indigo-700 border-indigo-800 text-white cursor-default',
                           isEmpty && !roundDone && 'bg-[#1c1134] border-dashed border-[#4c3b82] hover:border-[#a78bfa] hover:bg-[#2d1b54] cursor-pointer',
                           isEmpty && roundDone && 'bg-[#1c1134] border-dashed border-[#3b2d71] cursor-default',
                           isFilled && 'bg-gradient-to-b from-violet-400 to-violet-600 border-violet-700 text-white cursor-default',
                           isActive && 'ring-4 ring-[#a78bfa]/50 scale-110 shadow-[#a78bfa]/30',
                         )}
-                        style={{ fontSize: 22 }}
+                        style={{ fontSize: undefined }}
                       >
                         {isGiven && <span>{slot.value}</span>}
                         {isFilled && <span>{slot.value}</span>}
@@ -321,7 +321,7 @@ export function ExerciseNumberLine() {
 
       {/* ── Sticky check bar ───────────────────────────────────────────── */}
       <div className="flex-shrink-0 bg-[#1a103c]/90 backdrop-blur-sm border-t-2 border-[#3b2d71] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] relative z-10">
-        <div className="max-w-md mx-auto w-full">
+        <div className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full">
           <button
             onClick={handleCheckAll}
             disabled={!allFilled || roundDone}
@@ -363,8 +363,8 @@ export function ExerciseNumberLine() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 32, stiffness: 320 }}
-            className="absolute inset-x-0 bottom-0 bg-gradient-to-b from-[#1a103c] to-[#0a0618] rounded-t-[2rem] shadow-[0_-8px_48px_rgba(0,0,0,0.5)] z-50 flex flex-col border-t-4 border-[#3b2d71]"
-            style={{ height: '70vh' }}
+            className="absolute inset-x-0 bottom-0 bg-gradient-to-b from-[#1a103c] to-[#0a0618] rounded-t-[2rem] shadow-[0_-8px_48px_rgba(0,0,0,0.5)] z-50 flex flex-col border-t-4 border-[#3b2d71] max-w-2xl mx-auto"
+            style={{ height: '65vh', maxHeight: 600 }}
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-0 flex-shrink-0">
