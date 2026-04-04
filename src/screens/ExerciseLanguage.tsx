@@ -168,7 +168,7 @@ export function ExerciseLanguage() {
           </AnimatePresence>
 
           <motion.button
-            onClick={handlePlayAudio}
+            onClick={playAudio}
             animate={{ scale: isPlaying ? 0.95 : 1 }}
             className="relative w-32 h-32 md:w-40 md:h-40 bg-orange-500 rounded-full flex items-center justify-center border-b-[10px] border-orange-700 shadow-[0_15px_35px_rgba(249,115,22,0.4)] active:border-b-0 active:translate-y-[10px] transition-all group z-10"
           >
