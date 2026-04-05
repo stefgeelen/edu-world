@@ -87,7 +87,7 @@ export function ExerciseNumberLine() {
   }, [activeSlot]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (checking) return;
+    if (checkStatus !== 'idle') return;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     const canvas = canvasRef.current;
