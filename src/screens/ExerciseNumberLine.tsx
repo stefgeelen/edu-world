@@ -143,7 +143,8 @@ export function ExerciseNumberLine() {
     lastPt.current = null;
     drawnOnce.current = false;
     setHasDrawn(false);
-    setChecking(false);
+    setCheckStatus('idle');
+    setFeedbackText('');
   }, []);
 
   const [checkStatus, setCheckStatus] = useState<'idle' | 'checking' | 'correct' | 'incorrect'>('idle');
