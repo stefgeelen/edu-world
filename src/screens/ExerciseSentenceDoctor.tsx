@@ -58,36 +58,8 @@ const FIX_SENTENCES: FixQuestion[] = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Speech hook                                                        */
+/*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-function useSpeech() {
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-
-  useEffect(() => {
-    const load = () => {
-      const v = window.speechSynthesis.getVoices();
-      if (v.length > 0) voicesRef.current = v;
-    };
-    load();
-    window.speechSynthesis.addEventListener('voiceschanged', load);
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
-  }, []);
-
-  const speak = useCallback((text: string) => {
-    if (!text) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'nl-NL';
-    utterance.rate = 0.75;
-    const voices = voicesRef.current.length > 0 ? voicesRef.current : window.speechSynthesis.getVoices();
-    const dutchVoice = voices.find(v => v.lang === 'nl-NL') || voices.find(v => v.lang.startsWith('nl'));
-    if (dutchVoice) utterance.voice = dutchVoice;
-    window.speechSynthesis.speak(utterance);
-  }, []);
-
-  return { speak };
-}
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
