@@ -55,7 +55,7 @@ export function ExerciseNumberLine() {
   const [lives, setLives] = useState(3);
   const [roundDone, setRoundDone] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
-  const [checking, setChecking] = useState(false);
+  
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
