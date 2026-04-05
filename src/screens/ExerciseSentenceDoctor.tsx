@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { useSpeech } from '@/hooks/useSpeech';
 
 /* ------------------------------------------------------------------ */
 /*  Types & Data                                                       */

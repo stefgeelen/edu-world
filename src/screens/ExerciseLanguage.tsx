@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Star } from 'lucide-react';
@@ -7,49 +7,9 @@ import { triggerConfetti } from '@/lib/confetti';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { useGame } from '@/context/GameContext';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { useSpeech } from '@/hooks/useSpeech';
 
 const WORD_POOL = ['boom', 'roos', 'vis', 'maan', 'vuur', 'huis', 'boek', 'kat', 'hond', 'zon', 'ster', 'wolk', 'gras', 'berg', 'meer'];
-
-/**
- * Preloads SpeechSynthesis voices and returns a stable speak() function
- * that works across mobile, tablet & desktop browsers.
- */
-function useSpeech() {
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-
-  useEffect(() => {
-    const load = () => {
-      const v = window.speechSynthesis.getVoices();
-      if (v.length > 0) voicesRef.current = v;
-    };
-    load();
-    window.speechSynthesis.addEventListener('voiceschanged', load);
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
-  }, []);
-
-  const speak = useCallback((text: string): SpeechSynthesisUtterance | null => {
-    if (!text) return null;
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'nl-NL';
-    utterance.rate = 0.75;
-
-    const voices = voicesRef.current.length > 0
-      ? voicesRef.current
-      : window.speechSynthesis.getVoices();
-
-    const dutchVoice =
-      voices.find(v => v.lang === 'nl-NL') ||
-      voices.find(v => v.lang.startsWith('nl'));
-    if (dutchVoice) utterance.voice = dutchVoice;
-
-    window.speechSynthesis.speak(utterance);
-    return utterance;
-  }, []);
-
-  return { speak };
-}
 
 export function ExerciseLanguage() {
   const navigate = useNavigate();
