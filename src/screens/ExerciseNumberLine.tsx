@@ -72,7 +72,8 @@ export function ExerciseNumberLine() {
     lastPt.current = null;
     drawnOnce.current = false;
     setHasDrawn(false);
-    setChecking(false);
+    setCheckStatus('idle');
+    setFeedbackText('');
 
     if (activeSlot !== null) {
       const t = setTimeout(() => {
