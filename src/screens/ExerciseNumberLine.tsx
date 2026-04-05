@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { supabase } from '@/integrations/supabase/client';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
