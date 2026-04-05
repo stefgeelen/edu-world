@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Trash2, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Check, Trash2, Sparkles, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
