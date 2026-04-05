@@ -101,7 +101,7 @@ export function ExerciseNumberLine() {
     ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2);
     ctx.fillStyle = '#a78bfa';
     ctx.fill();
-  }, [checking]);
+  }, [checkStatus]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing.current) return;
