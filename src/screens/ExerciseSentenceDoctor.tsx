@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
@@ -8,15 +8,20 @@ import { useExerciseState } from '@/hooks/useExerciseState';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 
 /* ------------------------------------------------------------------ */
-/*  Data                                                               */
+/*  Types & Data                                                       */
 /* ------------------------------------------------------------------ */
 
-interface BuildSentence {
-  mode: 'build';
-  words: string[];
+interface WordItem {
+  id: string;
+  word: string;
 }
 
-interface FixSentence {
+interface BuildQuestion {
+  mode: 'build';
+  correctOrder: WordItem[];
+}
+
+interface FixQuestion {
   mode: 'fix';
   sentence: string[];
   wrongIndex: number;
@@ -25,7 +30,7 @@ interface FixSentence {
   distractors: string[];
 }
 
-type Question = BuildSentence | FixSentence;
+type Question = BuildQuestion | FixQuestion;
 
 const BUILD_SENTENCES: string[][] = [
   ['de', 'poes', 'slaapt', 'op', 'de', 'mat'],
@@ -40,7 +45,7 @@ const BUILD_SENTENCES: string[][] = [
   ['ik', 'drink', 'een', 'glas', 'melk'],
 ];
 
-const FIX_SENTENCES: FixSentence[] = [
+const FIX_SENTENCES: FixQuestion[] = [
   { mode: 'fix', sentence: ['de', 'vis', 'vliegt', 'in', 'de', 'kom'], wrongIndex: 2, wrongWord: 'vliegt', correctWord: 'zwemt', distractors: ['zingt', 'danst'] },
   { mode: 'fix', sentence: ['de', 'koe', 'blaft', 'in', 'de', 'wei'], wrongIndex: 2, wrongWord: 'blaft', correctWord: 'loeit', distractors: ['vliegt', 'zingt'] },
   { mode: 'fix', sentence: ['ik', 'slaap', 'in', 'mijn', 'auto'], wrongIndex: 4, wrongWord: 'auto', correctWord: 'bed', distractors: ['boom', 'tafel'] },
@@ -100,10 +105,6 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function arraysEqual(a: string[], b: string[]): boolean {
-  return a.length === b.length && a.every((v, i) => v === b[i]);
-}
-
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -113,29 +114,31 @@ export function ExerciseSentenceDoctor() {
   const { speak } = useSpeech();
 
   const [question, setQuestion] = useState<Question | null>(null);
-  // build mode state
-  const [orderedWords, setOrderedWords] = useState<string[]>([]);
-  // fix mode state
+  // build mode
+  const [orderedItems, setOrderedItems] = useState<WordItem[]>([]);
+  // fix mode
   const [fixedSentence, setFixedSentence] = useState<string[]>([]);
-  const [selectedWordIndex, setSelectedWordIndex] = useState<number | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  // memoize alternatives so they don't reshuffle on every render
+  const [alternatives, setAlternatives] = useState<string[]>([]);
 
   const generateQuestion = useCallback(() => {
     const mode = Math.random() < 0.5 ? 'build' : 'fix';
     if (mode === 'build') {
       const words = pickRandom(BUILD_SENTENCES);
-      const shuffled = shuffle(words);
-      // make sure it's not already in correct order
-      if (arraysEqual(shuffled, words)) {
+      const correctOrder: WordItem[] = words.map((w, i) => ({ id: `${i}-${w}`, word: w }));
+      let shuffled = shuffle(correctOrder);
+      // ensure not already correct
+      if (shuffled.every((item, i) => item.id === correctOrder[i].id)) {
         shuffled.reverse();
       }
-      setQuestion({ mode: 'build', words });
-      setOrderedWords(shuffled);
+      setQuestion({ mode: 'build', correctOrder });
+      setOrderedItems(shuffled);
     } else {
       const q = pickRandom(FIX_SENTENCES);
       setQuestion(q);
       setFixedSentence([...q.sentence]);
-      setSelectedWordIndex(null);
+      setAlternatives(shuffle([q.correctWord, ...q.distractors]));
     }
     setPopoverOpen(false);
   }, []);
@@ -155,11 +158,11 @@ export function ExerciseSentenceDoctor() {
     generateQuestion();
   }, [generateQuestion]);
 
-  // Auto-speak the sentence on new question
+  // Auto-speak on new question
   useEffect(() => {
     if (!question) return;
     const text = question.mode === 'build'
-      ? question.words.join(' ')
+      ? question.correctOrder.map(i => i.word).join(' ')
       : question.sentence.join(' ');
     const t = setTimeout(() => speak(text), 600);
     return () => clearTimeout(t);
@@ -168,34 +171,24 @@ export function ExerciseSentenceDoctor() {
   const handleSpeaker = () => {
     if (!question) return;
     const text = question.mode === 'build'
-      ? question.words.join(' ')
+      ? orderedItems.map(i => i.word).join(' ')
       : fixedSentence.join(' ');
     speak(text);
   };
 
-  /* Build mode: check answer */
   const handleCheckBuild = () => {
     if (!question || question.mode !== 'build' || status !== 'idle') return;
-    if (arraysEqual(orderedWords, question.words)) {
-      handleCorrect();
-    } else {
-      handleIncorrect();
-    }
+    const isCorrect = orderedItems.every((item, i) => item.id === question.correctOrder[i].id);
+    isCorrect ? handleCorrect() : handleIncorrect();
   };
 
-  /* Fix mode: pick alternative */
   const handlePickWord = (word: string) => {
     if (!question || question.mode !== 'fix' || status !== 'idle') return;
     setPopoverOpen(false);
     const newSentence = [...fixedSentence];
     newSentence[question.wrongIndex] = word;
     setFixedSentence(newSentence);
-
-    if (word === question.correctWord) {
-      handleCorrect();
-    } else {
-      handleIncorrect();
-    }
+    word === question.correctWord ? handleCorrect() : handleIncorrect();
   };
 
   if (!question) return null;
@@ -206,7 +199,7 @@ export function ExerciseSentenceDoctor() {
     <ExerciseShell progress={progress} lives={lives} onClose={() => navigate('/app/map')}>
       <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-10 w-full max-w-xl mx-auto">
 
-        {/* Title + Speaker */}
+        {/* Title */}
         <div className="flex items-center gap-3 mb-2">
           <Stethoscope className="w-7 h-7 text-emerald-400" />
           <h2 className="text-lg sm:text-xl font-bold text-white/90">
@@ -220,29 +213,29 @@ export function ExerciseSentenceDoctor() {
             : 'Tik op het foute woord en kies het juiste.'}
         </p>
 
-        {/* Speaker button */}
+        {/* Speaker */}
         <motion.button
           onPointerDown={handleSpeaker}
           whileTap={{ scale: 0.9 }}
-          className="mb-8 w-16 h-16 sm:w-20 sm:h-20 bg-teal-500 rounded-full flex items-center justify-center border-b-[6px] border-teal-700 shadow-[0_10px_25px_rgba(20,184,166,0.35)] active:border-b-0 active:translate-y-[6px] transition-all"
+          className="relative mb-8 w-16 h-16 sm:w-20 sm:h-20 bg-teal-500 rounded-full flex items-center justify-center border-b-[6px] border-teal-700 shadow-[0_10px_25px_rgba(20,184,166,0.35)] active:border-b-0 active:translate-y-[6px] transition-all"
         >
           <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/25 to-transparent h-1/2 pointer-events-none" />
           <Volume2 className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-md" strokeWidth={2.5} />
         </motion.button>
 
-        {/* ---- BUILD MODE ---- */}
+        {/* BUILD MODE */}
         {isBuild && (
           <>
             <Reorder.Group
               axis="x"
-              values={orderedWords}
-              onReorder={setOrderedWords}
+              values={orderedItems}
+              onReorder={setOrderedItems}
               className="flex flex-wrap justify-center gap-3 mb-10"
             >
-              {orderedWords.map((word) => (
+              {orderedItems.map((item) => (
                 <Reorder.Item
-                  key={word}
-                  value={word}
+                  key={item.id}
+                  value={item}
                   drag={status === 'idle'}
                   className={cn(
                     'select-none touch-none cursor-grab active:cursor-grabbing',
@@ -256,7 +249,7 @@ export function ExerciseSentenceDoctor() {
                   )}
                   whileDrag={{ scale: 1.12, zIndex: 50, boxShadow: '0 12px 30px rgba(0,0,0,0.4)' }}
                 >
-                  {word}
+                  {item.word}
                 </Reorder.Item>
               ))}
             </Reorder.Group>
@@ -277,26 +270,21 @@ export function ExerciseSentenceDoctor() {
           </>
         )}
 
-        {/* ---- FIX MODE ---- */}
+        {/* FIX MODE */}
         {!isBuild && question.mode === 'fix' && (
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {fixedSentence.map((word, i) => {
               const isWrongSlot = i === question.wrongIndex;
               const isFixed = isWrongSlot && word === question.correctWord;
-              const isStillWrong = isWrongSlot && word === question.wrongWord;
 
               if (isWrongSlot && status === 'idle') {
-                const alternatives = shuffle([question.correctWord, ...question.distractors]);
                 return (
                   <Popover key={i} open={popoverOpen} onOpenChange={setPopoverOpen}>
                     <PopoverTrigger asChild>
                       <motion.button
                         onPointerDown={() => setPopoverOpen(true)}
                         whileTap={{ scale: 0.95 }}
-                        className={cn(
-                          'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] transition-all',
-                          'bg-red-400/80 border-red-600 text-white animate-pulse',
-                        )}
+                        className="px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] bg-red-400/80 border-red-600 text-white animate-pulse"
                       >
                         🩹 {word}
                       </motion.button>
@@ -324,11 +312,7 @@ export function ExerciseSentenceDoctor() {
               return (
                 <motion.span
                   key={i}
-                  animate={
-                    status === 'incorrect' && isWrongSlot
-                      ? { x: [-4, 4, -3, 3, 0] }
-                      : {}
-                  }
+                  animate={status === 'incorrect' && isWrongSlot ? { x: [-4, 4, -3, 3, 0] } : {}}
                   className={cn(
                     'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] transition-colors',
                     isFixed
@@ -338,14 +322,14 @@ export function ExerciseSentenceDoctor() {
                         : 'bg-[#2d1b54] border-[#1c1134] text-white/90',
                   )}
                 >
-                  {isStillWrong && status === 'idle' ? `🩹 ${word}` : word}
+                  {word}
                 </motion.span>
               );
             })}
           </div>
         )}
 
-        {/* Feedback overlay */}
+        {/* Feedback */}
         <AnimatePresence>
           {status !== 'idle' && (
             <motion.div

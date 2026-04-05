@@ -74,6 +74,7 @@ const App = () => (
               <Route path="exercise-write-digit/:digit" element={<ExerciseWriteDigit />} />
               <Route path="exercise-money/:id" element={<ExerciseMoney />} />
               <Route path="exercise-clock/:id" element={<ExerciseClock />} />
+              <Route path="exercise-sentence-doctor/:id" element={<ExerciseSentenceDoctor />} />
               <Route path="badges" element={<BadgeOverview />} />
               <Route path="badges/:id" element={<BadgeDetail />} />
               <Route path="progress" element={<Progress />} />
