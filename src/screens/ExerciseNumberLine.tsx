@@ -462,11 +462,15 @@ export function ExerciseNumberLine() {
               <div
                 className={cn(
                   'relative w-full h-full rounded-2xl border-2 transition-colors duration-300',
-                  checking
+                  checkStatus === 'checking'
                     ? 'border-amber-400/50 bg-[#1c1134]'
-                    : hasDrawn
-                      ? 'border-[#4c3b82] bg-[#1c1134]'
-                      : 'border-dashed border-[#3b2d71] bg-[#1c1134]'
+                    : checkStatus === 'correct'
+                      ? 'border-emerald-400/50 bg-[#1c1134]'
+                      : checkStatus === 'incorrect'
+                        ? 'border-red-400/50 bg-[#1c1134]'
+                        : hasDrawn
+                          ? 'border-[#4c3b82] bg-[#1c1134]'
+                          : 'border-dashed border-[#3b2d71] bg-[#1c1134]'
                 )}
               >
                 {/* Lined-paper guide */}
