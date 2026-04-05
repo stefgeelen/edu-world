@@ -500,36 +500,61 @@ export function ExerciseNumberLine() {
                   onPointerCancel={handlePointerUp}
                 />
 
-                {/* Self-check overlay */}
+                {/* Status overlay */}
                 <AnimatePresence>
-                  {checking && (
+                  {checkStatus === 'correct' && (
                     <motion.div
-                      initial={{ opacity: 0, y: 14 }}
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex items-center justify-center bg-emerald-400/15 backdrop-blur-[1px] pointer-events-none rounded-2xl"
+                    >
+                      <div className="bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full p-4 shadow-xl ring-4 ring-emerald-200/30">
+                        <Check className="w-10 h-10 text-white" strokeWidth={3} />
+                      </div>
+                    </motion.div>
+                  )}
+                  {checkStatus === 'incorrect' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex items-center justify-center bg-red-400/15 backdrop-blur-[1px] pointer-events-none rounded-2xl"
+                    >
+                      <div className="bg-gradient-to-br from-red-400 to-rose-500 rounded-full p-4 shadow-xl ring-4 ring-red-200/30">
+                        <X className="w-10 h-10 text-white" strokeWidth={3} />
+                      </div>
+                    </motion.div>
+                  )}
+                  {checkStatus === 'checking' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex items-center justify-center bg-[#1c1134]/40 backdrop-blur-[1px] pointer-events-none rounded-2xl"
+                    >
+                      <div className="bg-gradient-to-br from-violet-400 to-violet-600 rounded-full p-4 shadow-xl ring-4 ring-violet-200/30">
+                        <Loader2 className="w-10 h-10 text-white animate-spin" strokeWidth={3} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Feedback text */}
+                <AnimatePresence>
+                  {feedbackText && (checkStatus === 'correct' || checkStatus === 'incorrect') && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-x-0 bottom-0 flex flex-col items-center pb-5 bg-gradient-to-t from-[#1a103c]/95 via-[#1a103c]/80 to-transparent pt-12 rounded-b-2xl"
+                      className={cn(
+                        'absolute inset-x-3 bottom-3 rounded-xl px-3 py-2 text-center',
+                        checkStatus === 'correct' ? 'bg-emerald-500/30' : 'bg-orange-500/30'
+                      )}
                     >
-                      <p className="font-black text-white mb-3 text-center text-sm px-4">
-                        Heb je het getal{' '}
-                        <span className="text-[#a78bfa] text-base">{activeSlot}</span>{' '}
-                        geschreven?
+                      <p className={cn('text-xs font-black', checkStatus === 'correct' ? 'text-emerald-400' : 'text-orange-300')}>
+                        {feedbackText}
                       </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSelfCheck(false)}
-                          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#2d1b54] border-2 border-red-400/50 text-red-400 rounded-2xl font-black text-sm shadow-sm hover:bg-red-500/20 transition-colors"
-                        >
-                          <ThumbsDown className="w-3.5 h-3.5" strokeWidth={2.5} />
-                          Nee, opnieuw
-                        </button>
-                        <button
-                          onClick={() => handleSelfCheck(true)}
-                          className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 border-2 border-emerald-700 text-white rounded-2xl font-black text-sm shadow-sm hover:from-emerald-600 hover:to-emerald-700 transition-colors"
-                        >
-                          <ThumbsUp className="w-3.5 h-3.5" strokeWidth={2.5} />
-                          Ja, klopt!
-                        </button>
-                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -540,10 +565,10 @@ export function ExerciseNumberLine() {
             <div className="flex-shrink-0 px-5 py-3 flex items-center gap-3 border-t border-[#3b2d71]">
               <button
                 onClick={clearCanvas}
-                disabled={!hasDrawn || checking}
+                disabled={!hasDrawn || checkStatus === 'checking'}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 font-bold text-sm transition-all',
-                  hasDrawn && !checking
+                  hasDrawn && checkStatus !== 'checking'
                     ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-red-500/20 hover:border-red-400/50 hover:text-red-400 active:scale-95'
                     : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
                 )}
@@ -554,16 +579,20 @@ export function ExerciseNumberLine() {
 
               <button
                 onClick={handleConfirmDraw}
-                disabled={!hasDrawn || checking}
+                disabled={!hasDrawn || (checkStatus !== 'idle')}
                 className={cn(
                   'ml-auto flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-sm transition-all shadow-sm active:scale-95',
-                  hasDrawn && !checking
+                  hasDrawn && checkStatus === 'idle'
                     ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
                     : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
                 )}
               >
-                <Check className="w-4 h-4" strokeWidth={3} />
-                Controleer
+                {checkStatus === 'checking' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" strokeWidth={3} />
+                )}
+                {checkStatus === 'checking' ? 'Controleren...' : 'Controleer'}
               </button>
             </div>
           </motion.div>
