@@ -483,7 +483,7 @@ export function ExerciseNumberLine() {
                 />
 
                 {/* Empty hint */}
-                {!hasDrawn && !checking && (
+                {!hasDrawn && checkStatus === 'idle' && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                     <span className="text-5xl opacity-10">✏️</span>
                     <p className="text-[#4c3b82] font-bold text-sm">Schrijf hier het getal</p>
