@@ -27,6 +27,7 @@ import { ExerciseComparison } from "@/screens/ExerciseComparison";
 import { ExerciseWriteDigit } from "@/screens/ExerciseWriteDigit";
 import { ExerciseMoney } from "@/screens/ExerciseMoney";
 import { ExerciseClock } from "@/screens/ExerciseClock";
+import { ExerciseSentenceDoctor } from "@/screens/ExerciseSentenceDoctor";
 import { AdminDashboard } from "@/screens/admin/AdminDashboard";
 import { AdminUsers } from "@/screens/admin/AdminUsers";
 import { AdminSubscriptions } from "@/screens/admin/AdminSubscriptions";
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="exercise-write-digit/:digit" element={<ExerciseWriteDigit />} />
               <Route path="exercise-money/:id" element={<ExerciseMoney />} />
               <Route path="exercise-clock/:id" element={<ExerciseClock />} />
+              <Route path="exercise-sentence-doctor/:id" element={<ExerciseSentenceDoctor />} />
               <Route path="badges" element={<BadgeOverview />} />
               <Route path="badges/:id" element={<BadgeDetail />} />
               <Route path="progress" element={<Progress />} />
