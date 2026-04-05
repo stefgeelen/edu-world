@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { useSpeech } from '@/hooks/useSpeech';
 
 /* ------------------------------------------------------------------ */
 /*  Types & Data                                                       */
@@ -57,36 +58,8 @@ const FIX_SENTENCES: FixQuestion[] = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Speech hook                                                        */
+/*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-function useSpeech() {
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-
-  useEffect(() => {
-    const load = () => {
-      const v = window.speechSynthesis.getVoices();
-      if (v.length > 0) voicesRef.current = v;
-    };
-    load();
-    window.speechSynthesis.addEventListener('voiceschanged', load);
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
-  }, []);
-
-  const speak = useCallback((text: string) => {
-    if (!text) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'nl-NL';
-    utterance.rate = 0.75;
-    const voices = voicesRef.current.length > 0 ? voicesRef.current : window.speechSynthesis.getVoices();
-    const dutchVoice = voices.find(v => v.lang === 'nl-NL') || voices.find(v => v.lang.startsWith('nl'));
-    if (dutchVoice) utterance.voice = dutchVoice;
-    window.speechSynthesis.speak(utterance);
-  }, []);
-
-  return { speak };
-}
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
