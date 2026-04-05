@@ -27,6 +27,7 @@ import { ExerciseComparison } from "@/screens/ExerciseComparison";
 import { ExerciseWriteDigit } from "@/screens/ExerciseWriteDigit";
 import { ExerciseMoney } from "@/screens/ExerciseMoney";
 import { ExerciseClock } from "@/screens/ExerciseClock";
+import { ExerciseSentenceDoctor } from "@/screens/ExerciseSentenceDoctor";
 import { AdminDashboard } from "@/screens/admin/AdminDashboard";
 import { AdminUsers } from "@/screens/admin/AdminUsers";
 import { AdminSubscriptions } from "@/screens/admin/AdminSubscriptions";
