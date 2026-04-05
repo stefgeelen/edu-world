@@ -145,26 +145,61 @@ export function ExerciseNumberLine() {
     setChecking(false);
   }, []);
 
-  const handleConfirmDraw = () => {
-    if (!hasDrawn) return;
-    setChecking(true);
+  const [checkStatus, setCheckStatus] = useState<'idle' | 'checking' | 'correct' | 'incorrect'>('idle');
+  const [feedbackText, setFeedbackText] = useState('');
+
+  const getCanvasBase64 = (): string | null => {
+    const c = canvasRef.current;
+    if (!c) return null;
+    return c.toDataURL('image/png').split(',')[1];
   };
 
-  const handleSelfCheck = (correct: boolean) => {
-    if (correct) {
-      setSlots(prev =>
-        prev.map(s =>
-          s.value === activeSlot ? { ...s, filled: true } : s
-        )
-      );
-      setActiveSlot(null);
-    } else {
-      const next = lives - 1;
-      setLives(next);
-      clearCanvas();
-      if (next <= 0) {
-        setTimeout(() => navigate('/app/stage/fluisterbos'), 1200);
+  const handleConfirmDraw = async () => {
+    if (!hasDrawn || checkStatus === 'checking' || activeSlot === null) return;
+    setCheckStatus('checking');
+    setFeedbackText('');
+
+    const imageBase64 = getCanvasBase64();
+    if (!imageBase64) { setCheckStatus('idle'); return; }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('recognize-digit', {
+        body: { imageBase64, target: activeSlot },
+      });
+      if (error) throw error;
+
+      if (data.isCorrect) {
+        setCheckStatus('correct');
+        setFeedbackText(`Goed zo! Dat is inderdaad ${activeSlot}!`);
+        setTimeout(() => {
+          setSlots(prev => prev.map(s => s.value === activeSlot ? { ...s, filled: true } : s));
+          setActiveSlot(null);
+          setCheckStatus('idle');
+          setFeedbackText('');
+        }, 1400);
+      } else {
+        setCheckStatus('incorrect');
+        const recognized = data.recognized;
+        const nextLives = lives - 1;
+        setLives(nextLives);
+        setFeedbackText(
+          recognized !== null
+            ? `Hmm, ik zie ${recognized}, maar we zoeken ${activeSlot}. Probeer het nog eens!`
+            : `Ik kon het getal niet herkennen. Schrijf ${activeSlot} nog eens!`
+        );
+        setTimeout(() => {
+          if (nextLives <= 0) {
+            navigate('/app/stage/fluisterbos');
+          } else {
+            clearCanvas();
+            setCheckStatus('idle');
+          }
+        }, 2000);
       }
+    } catch (err) {
+      console.error('Recognition error:', err);
+      setFeedbackText('Er ging iets mis. Probeer het nog eens!');
+      setCheckStatus('idle');
     }
   };
 
