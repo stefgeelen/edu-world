@@ -148,8 +148,6 @@ export function ExerciseNumberLine() {
     setFeedbackText('');
   }, []);
 
-  const [checkStatus, setCheckStatus] = useState<'idle' | 'checking' | 'correct' | 'incorrect'>('idle');
-  const [feedbackText, setFeedbackText] = useState('');
 
   const getCanvasBase64 = (): string | null => {
     const c = canvasRef.current;
