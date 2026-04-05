@@ -497,7 +497,7 @@ export function ExerciseNumberLine() {
                   className="absolute inset-0 w-full h-full rounded-2xl"
                   style={{
                     touchAction: 'none',
-                    cursor: checking ? 'default' : 'crosshair',
+                    cursor: checkStatus !== 'idle' ? 'default' : 'crosshair',
                   }}
                   onPointerDown={handlePointerDown}
                   onPointerMove={handlePointerMove}
