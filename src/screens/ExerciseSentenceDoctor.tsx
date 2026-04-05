@@ -1,0 +1,374 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { useExerciseState } from '@/hooks/useExerciseState';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+
+/* ------------------------------------------------------------------ */
+/*  Data                                                               */
+/* ------------------------------------------------------------------ */
+
+interface BuildSentence {
+  mode: 'build';
+  words: string[];
+}
+
+interface FixSentence {
+  mode: 'fix';
+  sentence: string[];
+  wrongIndex: number;
+  wrongWord: string;
+  correctWord: string;
+  distractors: string[];
+}
+
+type Question = BuildSentence | FixSentence;
+
+const BUILD_SENTENCES: string[][] = [
+  ['de', 'poes', 'slaapt', 'op', 'de', 'mat'],
+  ['ik', 'ga', 'naar', 'school'],
+  ['de', 'zon', 'schijnt', 'vandaag'],
+  ['mama', 'leest', 'een', 'boek'],
+  ['de', 'hond', 'blaft', 'hard'],
+  ['wij', 'spelen', 'in', 'de', 'tuin'],
+  ['papa', 'kookt', 'het', 'eten'],
+  ['het', 'kind', 'lacht', 'hard'],
+  ['de', 'vogel', 'zingt', 'mooi'],
+  ['ik', 'drink', 'een', 'glas', 'melk'],
+];
+
+const FIX_SENTENCES: FixSentence[] = [
+  { mode: 'fix', sentence: ['de', 'vis', 'vliegt', 'in', 'de', 'kom'], wrongIndex: 2, wrongWord: 'vliegt', correctWord: 'zwemt', distractors: ['zingt', 'danst'] },
+  { mode: 'fix', sentence: ['de', 'koe', 'blaft', 'in', 'de', 'wei'], wrongIndex: 2, wrongWord: 'blaft', correctWord: 'loeit', distractors: ['vliegt', 'zingt'] },
+  { mode: 'fix', sentence: ['ik', 'slaap', 'in', 'mijn', 'auto'], wrongIndex: 4, wrongWord: 'auto', correctWord: 'bed', distractors: ['boom', 'tafel'] },
+  { mode: 'fix', sentence: ['de', 'vogel', 'zwemt', 'in', 'de', 'lucht'], wrongIndex: 2, wrongWord: 'zwemt', correctWord: 'vliegt', distractors: ['rent', 'slaapt'] },
+  { mode: 'fix', sentence: ['we', 'eten', 'soep', 'met', 'een', 'kam'], wrongIndex: 5, wrongWord: 'kam', correctWord: 'lepel', distractors: ['pen', 'sleutel'] },
+  { mode: 'fix', sentence: ['de', 'kat', 'leest', 'op', 'de', 'bank'], wrongIndex: 2, wrongWord: 'leest', correctWord: 'slaapt', distractors: ['kookt', 'rijdt'] },
+  { mode: 'fix', sentence: ['papa', 'rijdt', 'op', 'een', 'banaan'], wrongIndex: 4, wrongWord: 'banaan', correctWord: 'fiets', distractors: ['appel', 'wortel'] },
+  { mode: 'fix', sentence: ['de', 'baby', 'kookt', 'in', 'de', 'wieg'], wrongIndex: 2, wrongWord: 'kookt', correctWord: 'slaapt', distractors: ['rijdt', 'leest'] },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Speech hook                                                        */
+/* ------------------------------------------------------------------ */
+
+function useSpeech() {
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    const load = () => {
+      const v = window.speechSynthesis.getVoices();
+      if (v.length > 0) voicesRef.current = v;
+    };
+    load();
+    window.speechSynthesis.addEventListener('voiceschanged', load);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
+  }, []);
+
+  const speak = useCallback((text: string) => {
+    if (!text) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'nl-NL';
+    utterance.rate = 0.75;
+    const voices = voicesRef.current.length > 0 ? voicesRef.current : window.speechSynthesis.getVoices();
+    const dutchVoice = voices.find(v => v.lang === 'nl-NL') || voices.find(v => v.lang.startsWith('nl'));
+    if (dutchVoice) utterance.voice = dutchVoice;
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  return { speak };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function arraysEqual(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export function ExerciseSentenceDoctor() {
+  const navigate = useNavigate();
+  const { speak } = useSpeech();
+
+  const [question, setQuestion] = useState<Question | null>(null);
+  // build mode state
+  const [orderedWords, setOrderedWords] = useState<string[]>([]);
+  // fix mode state
+  const [fixedSentence, setFixedSentence] = useState<string[]>([]);
+  const [selectedWordIndex, setSelectedWordIndex] = useState<number | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  const generateQuestion = useCallback(() => {
+    const mode = Math.random() < 0.5 ? 'build' : 'fix';
+    if (mode === 'build') {
+      const words = pickRandom(BUILD_SENTENCES);
+      const shuffled = shuffle(words);
+      // make sure it's not already in correct order
+      if (arraysEqual(shuffled, words)) {
+        shuffled.reverse();
+      }
+      setQuestion({ mode: 'build', words });
+      setOrderedWords(shuffled);
+    } else {
+      const q = pickRandom(FIX_SENTENCES);
+      setQuestion(q);
+      setFixedSentence([...q.sentence]);
+      setSelectedWordIndex(null);
+    }
+    setPopoverOpen(false);
+  }, []);
+
+  const {
+    lives, progress, status, handleCorrect, handleIncorrect,
+  } = useExerciseState({
+    totalQuestions: 5,
+    xpReward: 10,
+    returnPath: '/app/map',
+    confettiIntensity: 'large',
+    confettiColors: ['#10b981', '#3b82f6', '#a78bfa'],
+    onNextQuestion: generateQuestion,
+  });
+
+  useEffect(() => {
+    generateQuestion();
+  }, [generateQuestion]);
+
+  // Auto-speak the sentence on new question
+  useEffect(() => {
+    if (!question) return;
+    const text = question.mode === 'build'
+      ? question.words.join(' ')
+      : question.sentence.join(' ');
+    const t = setTimeout(() => speak(text), 600);
+    return () => clearTimeout(t);
+  }, [question, speak]);
+
+  const handleSpeaker = () => {
+    if (!question) return;
+    const text = question.mode === 'build'
+      ? question.words.join(' ')
+      : fixedSentence.join(' ');
+    speak(text);
+  };
+
+  /* Build mode: check answer */
+  const handleCheckBuild = () => {
+    if (!question || question.mode !== 'build' || status !== 'idle') return;
+    if (arraysEqual(orderedWords, question.words)) {
+      handleCorrect();
+    } else {
+      handleIncorrect();
+    }
+  };
+
+  /* Fix mode: pick alternative */
+  const handlePickWord = (word: string) => {
+    if (!question || question.mode !== 'fix' || status !== 'idle') return;
+    setPopoverOpen(false);
+    const newSentence = [...fixedSentence];
+    newSentence[question.wrongIndex] = word;
+    setFixedSentence(newSentence);
+
+    if (word === question.correctWord) {
+      handleCorrect();
+    } else {
+      handleIncorrect();
+    }
+  };
+
+  if (!question) return null;
+
+  const isBuild = question.mode === 'build';
+
+  return (
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate('/app/map')}>
+      <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-10 w-full max-w-xl mx-auto">
+
+        {/* Title + Speaker */}
+        <div className="flex items-center gap-3 mb-2">
+          <Stethoscope className="w-7 h-7 text-emerald-400" />
+          <h2 className="text-lg sm:text-xl font-bold text-white/90">
+            {isBuild ? 'Maak de zin!' : 'Genees de zin!'}
+          </h2>
+        </div>
+
+        <p className="text-sm text-white/60 mb-6 text-center">
+          {isBuild
+            ? 'Sleep de woorden in de juiste volgorde.'
+            : 'Tik op het foute woord en kies het juiste.'}
+        </p>
+
+        {/* Speaker button */}
+        <motion.button
+          onPointerDown={handleSpeaker}
+          whileTap={{ scale: 0.9 }}
+          className="mb-8 w-16 h-16 sm:w-20 sm:h-20 bg-teal-500 rounded-full flex items-center justify-center border-b-[6px] border-teal-700 shadow-[0_10px_25px_rgba(20,184,166,0.35)] active:border-b-0 active:translate-y-[6px] transition-all"
+        >
+          <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/25 to-transparent h-1/2 pointer-events-none" />
+          <Volume2 className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-md" strokeWidth={2.5} />
+        </motion.button>
+
+        {/* ---- BUILD MODE ---- */}
+        {isBuild && (
+          <>
+            <Reorder.Group
+              axis="x"
+              values={orderedWords}
+              onReorder={setOrderedWords}
+              className="flex flex-wrap justify-center gap-3 mb-10"
+            >
+              {orderedWords.map((word) => (
+                <Reorder.Item
+                  key={word}
+                  value={word}
+                  drag={status === 'idle'}
+                  className={cn(
+                    'select-none touch-none cursor-grab active:cursor-grabbing',
+                    'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold',
+                    'border-b-[5px] transition-colors',
+                    status === 'correct'
+                      ? 'bg-emerald-400 border-emerald-600 text-white'
+                      : status === 'incorrect'
+                        ? 'bg-red-400 border-red-600 text-white'
+                        : 'bg-[#2d1b54] border-[#1c1134] text-white/90 hover:bg-[#3b2d71]',
+                  )}
+                  whileDrag={{ scale: 1.12, zIndex: 50, boxShadow: '0 12px 30px rgba(0,0,0,0.4)' }}
+                >
+                  {word}
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+
+            <motion.button
+              onPointerDown={handleCheckBuild}
+              disabled={status !== 'idle'}
+              whileTap={{ scale: 0.95 }}
+              className={cn(
+                'w-full max-w-xs py-4 rounded-2xl font-bold text-lg border-b-[6px] transition-all',
+                status === 'idle'
+                  ? 'bg-emerald-500 border-emerald-700 text-white shadow-[0_8px_25px_rgba(16,185,129,0.4)] active:border-b-0 active:translate-y-[6px]'
+                  : 'bg-[#1c1134]/50 border-[#1c1134]/30 text-white/40 cursor-not-allowed',
+              )}
+            >
+              Controleer ✓
+            </motion.button>
+          </>
+        )}
+
+        {/* ---- FIX MODE ---- */}
+        {!isBuild && question.mode === 'fix' && (
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {fixedSentence.map((word, i) => {
+              const isWrongSlot = i === question.wrongIndex;
+              const isFixed = isWrongSlot && word === question.correctWord;
+              const isStillWrong = isWrongSlot && word === question.wrongWord;
+
+              if (isWrongSlot && status === 'idle') {
+                const alternatives = shuffle([question.correctWord, ...question.distractors]);
+                return (
+                  <Popover key={i} open={popoverOpen} onOpenChange={setPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <motion.button
+                        onPointerDown={() => setPopoverOpen(true)}
+                        whileTap={{ scale: 0.95 }}
+                        className={cn(
+                          'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] transition-all',
+                          'bg-red-400/80 border-red-600 text-white animate-pulse',
+                        )}
+                      >
+                        🩹 {word}
+                      </motion.button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto p-2 bg-[#1c1134] border-2 border-[#3b2d71] rounded-2xl shadow-xl"
+                      sideOffset={8}
+                    >
+                      <div className="flex flex-col gap-2">
+                        {alternatives.map((alt) => (
+                          <button
+                            key={alt}
+                            onPointerDown={() => handlePickWord(alt)}
+                            className="px-4 py-3 rounded-xl text-base sm:text-lg font-bold text-white/90 bg-[#2d1b54] hover:bg-teal-500 hover:text-white border-b-[4px] border-[#1c1134] hover:border-teal-700 transition-all active:border-b-0 active:translate-y-[4px]"
+                          >
+                            {alt}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                );
+              }
+
+              return (
+                <motion.span
+                  key={i}
+                  animate={
+                    status === 'incorrect' && isWrongSlot
+                      ? { x: [-4, 4, -3, 3, 0] }
+                      : {}
+                  }
+                  className={cn(
+                    'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] transition-colors',
+                    isFixed
+                      ? 'bg-emerald-400 border-emerald-600 text-white'
+                      : status === 'incorrect' && isWrongSlot
+                        ? 'bg-red-400 border-red-600 text-white'
+                        : 'bg-[#2d1b54] border-[#1c1134] text-white/90',
+                  )}
+                >
+                  {isStillWrong && status === 'idle' ? `🩹 ${word}` : word}
+                </motion.span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Feedback overlay */}
+        <AnimatePresence>
+          {status !== 'idle' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="mt-4 flex items-center gap-2"
+            >
+              {status === 'correct' ? (
+                <>
+                  <Check className="w-8 h-8 text-emerald-400" />
+                  <span className="text-xl font-bold text-emerald-400">Goed gedaan!</span>
+                </>
+              ) : (
+                <>
+                  <XIcon className="w-8 h-8 text-red-400" />
+                  <span className="text-xl font-bold text-red-400">Probeer opnieuw!</span>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </ExerciseShell>
+  );
+}
