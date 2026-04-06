@@ -273,6 +273,7 @@ function ExerciseIcon({ route, className }: { route: string; className?: string 
   if (route.includes('exercise-compare')) return <BarChart3 className={className} />;
   if (route.includes('exercise-dots')) return <Hash className={className} />;
   if (route.includes('exercise-bonds')) return <Zap className={className} />;
+  if (route.includes('exercise-write-letter')) return <PenTool className={className} />;
   if (route.includes('exercise-write-digit')) return <Pencil className={className} />;
   if (route.includes('exercise-write')) return <Type className={className} />;
   if (route.includes('exercise-lang')) return <BookOpen className={className} />;
