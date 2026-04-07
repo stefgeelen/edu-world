@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Volume2 } from 'lucide-react';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
+import { useExerciseId } from '@/hooks/useExerciseId';
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClockTask {

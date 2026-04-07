@@ -5,6 +5,7 @@ import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { useSpeech } from '@/hooks/useSpeech';
 

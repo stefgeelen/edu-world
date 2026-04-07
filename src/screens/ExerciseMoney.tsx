@@ -16,6 +16,7 @@ import {
 import { RotateCcw } from 'lucide-react';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 
 /* ── Products ─────────────────────────────────────────────────── */
