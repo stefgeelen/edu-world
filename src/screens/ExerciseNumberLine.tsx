@@ -213,12 +213,17 @@ export function ExerciseNumberLine() {
   const handleCheckAll = () => {
     if (!allFilled || roundDone) return;
     setRoundDone(true);
+    correctCount.current += 1;
     addXp(20);
     triggerConfetti('large', { colors: ['#818cf8', '#a5b4fc', '#fcd34d', '#34d399', '#60a5fa'], originY: 0.5 });
     const nextProg = progress + 25;
     setProgress(nextProg);
     setTimeout(() => {
       if (nextProg >= 100) {
+        if (exerciseId) {
+          const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+          completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+        }
         navigate('/app/stage/fluisterbos');
       } else {
         setSlots(makeSlots());

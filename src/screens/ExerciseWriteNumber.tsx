@@ -202,6 +202,7 @@ export function ExerciseWriteNumber() {
 
       if (data.isCorrect) {
         setStatus('correct');
+        correctCount.current += 1;
         addXp(15);
         triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
         const nextProgress = progress + 20;
@@ -209,6 +210,10 @@ export function ExerciseWriteNumber() {
         setFeedbackText(`Geweldig! Je hebt het getal ${target} geschreven! +15 XP`);
         setTimeout(() => {
           if (nextProgress >= 100) {
+            if (exerciseId) {
+              const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
+              completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+            }
             navigate('/app/stage/fluisterbos');
           } else {
             generateNew();

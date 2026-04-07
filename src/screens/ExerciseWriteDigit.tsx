@@ -353,19 +353,24 @@ export function ExerciseWriteDigit() {
     const isCorrect = drawn >= minPixels && inZone >= THRESHOLD;
 
     if (isCorrect) {
-      setStatus('correct'); addXp(15);
+      setStatus('correct'); correctCount.current += 1; addXp(15);
       triggerConfetti('large', { colors: ['#f97316', '#fcd34d', '#34d399', '#60a5fa', '#c084fc'], originY: 0.45 });
       setTimeout(() => {
         const next = iteration + 1;
-        if (next >= TOTAL_ITERATIONS) { navigate('/app/stage/fluisterbos'); }
-        else { setIteration(next); clearDrawing(); }
+        if (next >= TOTAL_ITERATIONS) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: TOTAL_ITERATIONS, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
+          navigate('/app/stage/fluisterbos');
+        } else { setIteration(next); clearDrawing(); }
       }, 2000);
     } else {
       setStatus('incorrect');
       const nextLives = lives - 1; setLives(nextLives);
       setTimeout(() => { if (nextLives <= 0) navigate('/app/stage/fluisterbos'); else clearDrawing(); }, 1800);
     }
-  }, [cSize, safeDigit, hasDrawn, status, iteration, lives, addXp, navigate, clearDrawing]);
+  }, [cSize, safeDigit, hasDrawn, status, iteration, lives, addXp, navigate, clearDrawing, exerciseId, completeExercise]);
 
   return (
     <ExerciseShell
