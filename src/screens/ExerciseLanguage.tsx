@@ -16,6 +16,10 @@ const WORD_POOL = ['boom', 'roos', 'vis', 'maan', 'vuur', 'huis', 'boek', 'kat',
 export function ExerciseLanguage() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
   const { speak } = useSpeech();
   
   const [currentWords, setCurrentWords] = useState<string[]>([]);
