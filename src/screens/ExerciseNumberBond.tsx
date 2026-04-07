@@ -13,6 +13,10 @@ import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 export function ExerciseNumberBond() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
   
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
