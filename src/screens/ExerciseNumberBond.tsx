@@ -55,12 +55,17 @@ export function ExerciseNumberBond() {
       setStatus('correct');
       setIsNumpadOpen(false);
       setProgress(p => p + 20);
+      correctCount.current += 1;
       addXp(10);
       
       triggerConfetti('large', { colors: ['#10b981', '#34d399', '#fcd34d'], originY: 0.6 });
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
           navigate('/app/map');
         } else {
           generateQuestion();

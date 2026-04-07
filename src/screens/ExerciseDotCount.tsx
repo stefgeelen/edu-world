@@ -71,12 +71,17 @@ export function ExerciseDotCount() {
 
     if (dots.length === target) {
       setStatus('correct');
+      correctCount.current += 1;
       addXp(15);
       triggerConfetti('medium');
       const nextProgress = progress + 20;
       setProgress(nextProgress);
       setTimeout(() => {
         if (nextProgress >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
           navigate('/app/stage/fluisterbos');
         } else {
           generateNew();
