@@ -50,6 +50,10 @@ function getPosFromPointer(
 export function ExerciseNumberLine() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
 
   const [slots, setSlots] = useState<Slot[]>(makeSlots);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);

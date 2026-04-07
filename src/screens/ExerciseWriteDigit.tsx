@@ -164,6 +164,10 @@ function getTransform(cw: number, ch: number) {
 export function ExerciseWriteDigit() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
 
   // Generate a random digit (0-9) on mount; ignore URL param
   const [currentDigit, setCurrentDigit] = useState(() => String(Math.floor(Math.random() * 10)));

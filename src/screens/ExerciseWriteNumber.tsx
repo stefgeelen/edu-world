@@ -52,6 +52,10 @@ function TenFrameDots({ count }: { count: number }) {
 export function ExerciseWriteNumber() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTimeRef = useRef(Date.now());
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);

@@ -179,6 +179,10 @@ function getTransform(cw: number, ch: number) {
 export function ExerciseWriteLetter() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCountRef = useRef(0);
+  const startTimeRef = useRef(Date.now());
   const { speak: speakWord } = useSpeech();
 
   const pickRandomLetter = useCallback(() => ALPHABET[Math.floor(Math.random() * ALPHABET.length)], []);
