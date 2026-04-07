@@ -65,6 +65,15 @@ const App = () => (
               <Route path="stats" element={<AdminStats />} />
             </Route>
 
+            {/* Parent portal routes */}
+            <Route path="/app/parent" element={<ProtectedRoute><ParentLayout /></ProtectedRoute>}>
+              <Route index element={<ParentChildren />} />
+              <Route path="child/:childId" element={<ParentChildDetail />} />
+              <Route path="rewards" element={<ParentRewards />} />
+              <Route path="subscription" element={<ParentSubscription />} />
+              <Route path="add-child" element={<ParentAddChild />} />
+            </Route>
+
             {/* Protected routes */}
             <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<AvatarSelection />} />
