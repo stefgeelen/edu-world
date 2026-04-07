@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, X } from 'lucide-react';
-import { fireConfetti } from '@/lib/confetti';
+import { triggerConfetti } from '@/lib/confetti';
 
 interface CompletedReward {
   id: string;
