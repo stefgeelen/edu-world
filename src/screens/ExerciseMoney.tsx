@@ -16,6 +16,7 @@ import {
 import { RotateCcw } from 'lucide-react';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 
 /* ── Products ─────────────────────────────────────────────────── */
@@ -172,6 +173,7 @@ export function ExerciseMoney() {
     setFeedback(null);
   }, []);
 
+  const exerciseId = useExerciseId();
   const {
     lives,
     progress,
@@ -182,6 +184,7 @@ export function ExerciseMoney() {
     totalQuestions: 5,
     xpReward: 15,
     returnPath: '/app/map',
+    exerciseId,
     onNextQuestion: nextQuestion,
   });
 

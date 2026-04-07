@@ -5,6 +5,8 @@ import { Check, Trash2, Sparkles, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -48,6 +50,10 @@ function getPosFromPointer(
 export function ExerciseNumberLine() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
 
   const [slots, setSlots] = useState<Slot[]>(makeSlots);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
@@ -207,12 +213,17 @@ export function ExerciseNumberLine() {
   const handleCheckAll = () => {
     if (!allFilled || roundDone) return;
     setRoundDone(true);
+    correctCount.current += 1;
     addXp(20);
     triggerConfetti('large', { colors: ['#818cf8', '#a5b4fc', '#fcd34d', '#34d399', '#60a5fa'], originY: 0.5 });
     const nextProg = progress + 25;
     setProgress(nextProg);
     setTimeout(() => {
       if (nextProg >= 100) {
+        if (exerciseId) {
+          const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+          completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+        }
         navigate('/app/stage/fluisterbos');
       } else {
         setSlots(makeSlots());

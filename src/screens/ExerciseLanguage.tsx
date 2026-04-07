@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Star } from 'lucide-react';
@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { useGame } from '@/context/GameContext';
+import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
 
@@ -14,6 +16,10 @@ const WORD_POOL = ['boom', 'roos', 'vis', 'maan', 'vuur', 'huis', 'boek', 'kat',
 export function ExerciseLanguage() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
   const { speak } = useSpeech();
   
   const [currentWords, setCurrentWords] = useState<string[]>([]);
@@ -67,12 +73,17 @@ export function ExerciseLanguage() {
     if (word === correctWord) {
       setStatus('correct');
       setProgress(p => p + 20);
+      correctCount.current += 1;
       addXp(10);
       
       triggerConfetti('large', { colors: ['#10b981', '#f59e0b', '#3b82f6'], originY: 0.6 });
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
           navigate('/app/map');
         } else {
           generateQuestion();

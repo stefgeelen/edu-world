@@ -5,6 +5,7 @@ import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { useSpeech } from '@/hooks/useSpeech';
 
@@ -116,12 +117,14 @@ export function ExerciseSentenceDoctor() {
     setPopoverOpen(false);
   }, []);
 
+  const exerciseId = useExerciseId();
   const {
     lives, progress, status, handleCorrect, handleIncorrect,
   } = useExerciseState({
     totalQuestions: 5,
     xpReward: 10,
     returnPath: '/app/map',
+    exerciseId,
     confettiIntensity: 'large',
     confettiColors: ['#10b981', '#3b82f6', '#a78bfa'],
     onNextQuestion: generateQuestion,

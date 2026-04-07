@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Volume2 } from 'lucide-react';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
+import { useExerciseId } from '@/hooks/useExerciseId';
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClockTask {
@@ -223,10 +224,12 @@ export function ExerciseClock() {
     setHint('');
   }, []);
 
+  const exerciseId = useExerciseId();
   const { lives, progress, status, handleCorrect, handleIncorrect } = useExerciseState({
     totalQuestions: 5,
     xpReward: 10,
     returnPath: '/app/map',
+    exerciseId,
     onNextQuestion: nextQuestion,
   });
 

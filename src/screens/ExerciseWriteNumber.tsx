@@ -5,6 +5,8 @@ import { Check, Trash2, Sparkles, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -50,6 +52,10 @@ function TenFrameDots({ count }: { count: number }) {
 export function ExerciseWriteNumber() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTimeRef = useRef(Date.now());
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
@@ -196,6 +202,7 @@ export function ExerciseWriteNumber() {
 
       if (data.isCorrect) {
         setStatus('correct');
+        correctCount.current += 1;
         addXp(15);
         triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
         const nextProgress = progress + 20;
@@ -203,6 +210,10 @@ export function ExerciseWriteNumber() {
         setFeedbackText(`Geweldig! Je hebt het getal ${target} geschreven! +15 XP`);
         setTimeout(() => {
           if (nextProgress >= 100) {
+            if (exerciseId) {
+              const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
+              completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+            }
             navigate('/app/stage/fluisterbos');
           } else {
             generateNew();

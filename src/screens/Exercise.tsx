@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Loader2 } from 'lucide-react';
@@ -6,11 +6,17 @@ import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { useExerciseId } from '@/hooks/useExerciseId';
 
 export function Exercise() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { selectedAvatar, addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
   
   const [question, setQuestion] = useState({ num1: 5, num2: 4, operator: '×', answer: 20 });
   const [options, setOptions] = useState([18, 20, 24, 15]);
@@ -54,11 +60,16 @@ export function Exercise() {
     if (option === question.answer) {
       setStatus('correct');
       setProgress(p => p + 20);
+      correctCount.current += 1;
       triggerConfetti('small', { colors: ['#3b82f6', '#14b8a6', '#f59e0b'], originY: 0.6 });
       addXp(10);
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
           navigate('/app/dashboard');
         } else {
           generateQuestion();

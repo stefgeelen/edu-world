@@ -5,6 +5,8 @@ import { Check, Undo2, Trash2, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 interface Dot {
@@ -20,6 +22,10 @@ function getRandomTarget() {
 export function ExerciseDotCount() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
   const areaRef = useRef<HTMLDivElement>(null);
 
   const [target, setTarget] = useState(getRandomTarget);
@@ -65,12 +71,17 @@ export function ExerciseDotCount() {
 
     if (dots.length === target) {
       setStatus('correct');
+      correctCount.current += 1;
       addXp(15);
       triggerConfetti('medium');
       const nextProgress = progress + 20;
       setProgress(nextProgress);
       setTimeout(() => {
         if (nextProgress >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
           navigate('/app/stage/fluisterbos');
         } else {
           generateNew();

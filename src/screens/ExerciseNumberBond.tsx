@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 
 export function ExerciseNumberBond() {
   const navigate = useNavigate();
   const { addXp } = useGame();
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
   
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
@@ -49,12 +55,17 @@ export function ExerciseNumberBond() {
       setStatus('correct');
       setIsNumpadOpen(false);
       setProgress(p => p + 20);
+      correctCount.current += 1;
       addXp(10);
       
       triggerConfetti('large', { colors: ['#10b981', '#34d399', '#fcd34d'], originY: 0.6 });
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
           navigate('/app/map');
         } else {
           generateQuestion();
