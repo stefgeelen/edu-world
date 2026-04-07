@@ -145,24 +145,35 @@ export function ExerciseComparison() {
   const handleResult = useCallback((correct: boolean) => {
     if (correct) {
       setStatus('correct');
+      correctCount.current += 1;
       addXp(10);
       triggerConfetti('medium', { colors: ['#f97316', '#fb923c', '#fcd34d', '#34d399', '#60a5fa'] });
       const nextProgress = Math.min(progress + 25, 100);
       setProgress(nextProgress);
       setTimeout(() => {
-        if (nextProgress >= 100) navigate('/app/stage/fluisterbos');
-        else generateNext();
+        if (nextProgress >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
+          navigate('/app/stage/fluisterbos');
+        } else generateNext();
       }, 1800);
     } else {
       setStatus('incorrect');
       const nextLives = lives - 1;
       setLives(nextLives);
       setTimeout(() => {
-        if (nextLives <= 0) navigate('/app/stage/fluisterbos');
-        else generateNext();
+        if (nextLives <= 0) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: 0, timeSpent });
+          }
+          navigate('/app/stage/fluisterbos');
+        } else generateNext();
       }, 1600);
     }
-  }, [progress, lives, addXp, navigate, generateNext]);
+  }, [progress, lives, addXp, navigate, generateNext, exerciseId, completeExercise]);
 
   const handleSymbolSelect = (sym: CompSymbol) => {
     if (status !== 'idle') return;
