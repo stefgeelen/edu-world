@@ -118,8 +118,10 @@ function SymBadge({ sym }: { sym: CompSymbol }) {
 export function ExerciseComparison() {
   const navigate = useNavigate();
   const { addXp } = useGame();
-
-  const [question, setQuestion] = useState<Question>(generateQuestion);
+  const exerciseId = useExerciseId();
+  const completeExercise = useCompleteExercise();
+  const correctCount = useRef(0);
+  const startTime = useRef(Date.now());
   const [selectedSymbol, setSelectedSymbol] = useState<CompSymbol | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
