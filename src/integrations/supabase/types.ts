@@ -374,6 +374,56 @@ export type Database = {
         }
         Relationships: []
       }
+      rewards: {
+        Row: {
+          child_id: string
+          completed_at: string | null
+          created_at: string
+          current_progress: number
+          id: string
+          is_completed: boolean
+          parent_id: string
+          required_exercises: number
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+          is_completed?: boolean
+          parent_id: string
+          required_exercises?: number
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+          is_completed?: boolean
+          parent_id?: string
+          required_exercises?: number
+          subject?: Database["public"]["Enums"]["subject_type"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string

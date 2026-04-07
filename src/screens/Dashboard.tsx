@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check, LogOut, Shield } from 'lucide-react';
+import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check, LogOut, Shield, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGame } from '@/context/GameContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { cn } from '@/lib/utils';
+import { ChildRewards } from '@/components/ChildRewards';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -55,6 +56,13 @@ export function Dashboard() {
               <Shield className="w-5 h-5 text-indigo-600" />
             </button>
           )}
+          <button
+            onClick={() => navigate('/app/parent')}
+            className="p-2.5 bg-teal-50 hover:bg-teal-100 active:bg-teal-200 rounded-xl transition-colors border border-teal-200"
+            title="Ouderportaal"
+          >
+            <Users className="w-5 h-5 text-teal-600" />
+          </button>
           <button
             onClick={async () => {
               await supabase.auth.signOut();
@@ -270,6 +278,16 @@ export function Dashboard() {
                   </div>
                 ))}
               </div>
+            </motion.div>
+
+            {/* Rewards */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+              className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/60"
+            >
+              <ChildRewards />
             </motion.div>
 
           </div>
