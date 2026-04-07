@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check, LogOut, Shield } from 'lucide-react';
+import { Flame, Star, Trophy, Target, Award, Hexagon, Medal, Zap, LayoutGrid, TrendingUp, ChevronRight, Check, LogOut, Shield, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGame } from '@/context/GameContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { cn } from '@/lib/utils';
+import { ChildRewards } from '@/components/ChildRewards';
 
 export function Dashboard() {
   const navigate = useNavigate();
