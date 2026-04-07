@@ -173,6 +173,7 @@ export function ExerciseMoney() {
     setFeedback(null);
   }, []);
 
+  const exerciseId = useExerciseId();
   const {
     lives,
     progress,
@@ -183,6 +184,7 @@ export function ExerciseMoney() {
     totalQuestions: 5,
     xpReward: 15,
     returnPath: '/app/map',
+    exerciseId,
     onNextQuestion: nextQuestion,
   });
 

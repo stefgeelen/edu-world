@@ -224,10 +224,12 @@ export function ExerciseClock() {
     setHint('');
   }, []);
 
+  const exerciseId = useExerciseId();
   const { lives, progress, status, handleCorrect, handleIncorrect } = useExerciseState({
     totalQuestions: 5,
     xpReward: 10,
     returnPath: '/app/map',
+    exerciseId,
     onNextQuestion: nextQuestion,
   });
 

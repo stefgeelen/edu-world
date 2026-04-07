@@ -117,12 +117,14 @@ export function ExerciseSentenceDoctor() {
     setPopoverOpen(false);
   }, []);
 
+  const exerciseId = useExerciseId();
   const {
     lives, progress, status, handleCorrect, handleIncorrect,
   } = useExerciseState({
     totalQuestions: 5,
     xpReward: 10,
     returnPath: '/app/map',
+    exerciseId,
     confettiIntensity: 'large',
     confettiColors: ['#10b981', '#3b82f6', '#a78bfa'],
     onNextQuestion: generateQuestion,
