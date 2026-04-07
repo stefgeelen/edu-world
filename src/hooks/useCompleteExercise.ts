@@ -58,16 +58,17 @@ export function useCompleteExercise() {
       });
 
       if (error) throw error;
-      return data as { attempt_id: string; xp_earned: number; all_trimesters_completed: boolean };
+      return data as { attempt_id: string; xp_earned: number; all_trimesters_completed: boolean; completed_rewards: { id: string; title: string }[] };
     },
     onSuccess: () => {
-      // Invalidate all progress-related queries for real-time UI updates
       queryClient.invalidateQueries({ queryKey: ['stage-exercises-progress'] });
       queryClient.invalidateQueries({ queryKey: ['child-progress'] });
       queryClient.invalidateQueries({ queryKey: ['trimester-progress'] });
       queryClient.invalidateQueries({ queryKey: ['my-child'] });
       queryClient.invalidateQueries({ queryKey: ['my-children'] });
       queryClient.invalidateQueries({ queryKey: ['recent-attempts'] });
+      queryClient.invalidateQueries({ queryKey: ['child-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['parent-rewards'] });
     },
   });
 }
