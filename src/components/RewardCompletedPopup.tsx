@@ -20,7 +20,7 @@ export function RewardCompletedPopup({
   useEffect(() => {
     if (rewards.length > 0) {
       setVisible(true);
-      fireConfetti();
+      triggerConfetti('large', { colors: ['#ec4899', '#a855f7', '#fcd34d'] });
     }
   }, [rewards]);
 
