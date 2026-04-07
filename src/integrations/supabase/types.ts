@@ -146,6 +146,7 @@ export type Database = {
           name: string
           organization_id: string | null
           parent_id: string | null
+          pending_promotion: boolean
           streak: number
           updated_at: string
           xp: number
@@ -162,6 +163,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           parent_id?: string | null
+          pending_promotion?: boolean
           streak?: number
           updated_at?: string
           xp?: number
@@ -178,6 +180,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           parent_id?: string | null
+          pending_promotion?: boolean
           streak?: number
           updated_at?: string
           xp?: number
@@ -424,6 +427,53 @@ export type Database = {
           },
         ]
       }
+      trimester_progress: {
+        Row: {
+          child_id: string
+          completed_at: string | null
+          created_at: string
+          grade_level: number
+          id: string
+          is_completed: boolean
+          trimester_number: number
+          updated_at: string
+          xp_earned: number
+          xp_threshold: number
+        }
+        Insert: {
+          child_id: string
+          completed_at?: string | null
+          created_at?: string
+          grade_level?: number
+          id?: string
+          is_completed?: boolean
+          trimester_number: number
+          updated_at?: string
+          xp_earned?: number
+          xp_threshold?: number
+        }
+        Update: {
+          child_id?: string
+          completed_at?: string | null
+          created_at?: string
+          grade_level?: number
+          id?: string
+          is_completed?: boolean
+          trimester_number?: number
+          updated_at?: string
+          xp_earned?: number
+          xp_threshold?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trimester_progress_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -447,6 +497,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_exercise: {
+        Args: {
+          p_answers?: Json
+          p_child_id: string
+          p_exercise_id: string
+          p_max_score: number
+          p_score: number
+          p_stars: number
+          p_time_spent: number
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
