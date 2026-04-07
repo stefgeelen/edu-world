@@ -57,6 +57,13 @@ export function Dashboard() {
             </button>
           )}
           <button
+            onClick={() => navigate('/app/parent')}
+            className="p-2.5 bg-teal-50 hover:bg-teal-100 active:bg-teal-200 rounded-xl transition-colors border border-teal-200"
+            title="Ouderportaal"
+          >
+            <Users className="w-5 h-5 text-teal-600" />
+          </button>
+          <button
             onClick={async () => {
               await supabase.auth.signOut();
               navigate('/auth');
