@@ -33,6 +33,12 @@ import { AdminDashboard } from "@/screens/admin/AdminDashboard";
 import { AdminUsers } from "@/screens/admin/AdminUsers";
 import { AdminSubscriptions } from "@/screens/admin/AdminSubscriptions";
 import { AdminStats } from "@/screens/admin/AdminStats";
+import { ParentLayout } from "@/screens/parent/ParentLayout";
+import { ParentChildren } from "@/screens/parent/ParentChildren";
+import { ParentChildDetail } from "@/screens/parent/ParentChildDetail";
+import { ParentRewards } from "@/screens/parent/ParentRewards";
+import { ParentSubscription } from "@/screens/parent/ParentSubscription";
+import { ParentAddChild } from "@/screens/parent/ParentAddChild";
 import NotFound from "./pages/NotFound.tsx";
 import Index from "./pages/Index.tsx";
 
