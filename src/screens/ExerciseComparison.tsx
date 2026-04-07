@@ -122,6 +122,8 @@ export function ExerciseComparison() {
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
+
+  const [question, setQuestion] = useState<Question>(generateQuestion);
   const [selectedSymbol, setSelectedSymbol] = useState<CompSymbol | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
