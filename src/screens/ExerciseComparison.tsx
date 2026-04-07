@@ -5,6 +5,8 @@ import { Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useGame } from '@/context/GameContext';
+import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
