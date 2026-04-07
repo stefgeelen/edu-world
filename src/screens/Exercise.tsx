@@ -60,11 +60,16 @@ export function Exercise() {
     if (option === question.answer) {
       setStatus('correct');
       setProgress(p => p + 20);
+      correctCount.current += 1;
       triggerConfetti('small', { colors: ['#3b82f6', '#14b8a6', '#f59e0b'], originY: 0.6 });
       addXp(10);
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
+          }
           navigate('/app/dashboard');
         } else {
           generateQuestion();
