@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 import { publicRoutes } from "@/routes/publicRoutes";
 import { adminRoutes } from "@/routes/adminRoutes";
@@ -30,6 +31,7 @@ const App = () => (
             {appRoutes}
             <Route path="*" element={<Suspense fallback={<LoadingSpinner />}><NotFound /></Suspense>} />
           </Routes>
+          <InstallPrompt />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
