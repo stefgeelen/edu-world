@@ -267,15 +267,15 @@ function ExerciseCard({
 
 /* ── Route-based icon picker ────────────────────────── */
 function ExerciseIcon({ route, className }: { route: string; className?: string }) {
-  if (route.includes('exercise-clock')) return <Clock className={className} />;
-  if (route.includes('exercise-money')) return <Coins className={className} />;
-  if (route.includes('exercise-numline')) return <Ruler className={className} />;
-  if (route.includes('exercise-compare')) return <BarChart3 className={className} />;
-  if (route.includes('exercise-dots')) return <Hash className={className} />;
-  if (route.includes('exercise-bonds')) return <Zap className={className} />;
-  if (route.includes('exercise-write-letter')) return <PenTool className={className} />;
-  if (route.includes('exercise-write-digit')) return <Pencil className={className} />;
-  if (route.includes('exercise-write')) return <Type className={className} />;
-  if (route.includes('exercise-lang')) return <BookOpen className={className} />;
+  if (route.includes('exercises/clock')) return <Clock className={className} />;
+  if (route.includes('exercises/money')) return <Coins className={className} />;
+  if (route.includes('exercises/number-line')) return <Ruler className={className} />;
+  if (route.includes('exercises/comparison')) return <BarChart3 className={className} />;
+  if (route.includes('exercises/dots')) return <Hash className={className} />;
+  if (route.includes('exercises/bonds')) return <Zap className={className} />;
+  if (route.includes('exercises/write-letter')) return <PenTool className={className} />;
+  if (route.includes('exercises/write-digit')) return <Pencil className={className} />;
+  if (route.includes('exercises/write-number')) return <Type className={className} />;
+  if (route.includes('exercises/language')) return <BookOpen className={className} />;
   return <Calculator className={className} />;
 }

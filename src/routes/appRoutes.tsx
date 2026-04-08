@@ -36,18 +36,18 @@ export const appRoutes = (
     <Route path="dashboard" element={<S><Dashboard /></S>} />
     <Route path="map" element={<S><QuestMap /></S>} />
     <Route path="stage/fluisterbos" element={<S><Fluisterbos /></S>} />
-    <Route path="exercise/:id" element={<S><Exercise /></S>} />
-    <Route path="exercise-bonds/:id" element={<S><ExerciseNumberBond /></S>} />
-    <Route path="exercise-lang/:id" element={<S><ExerciseLanguage /></S>} />
-    <Route path="exercise-dots/:id" element={<S><ExerciseDotCount /></S>} />
-    <Route path="exercise-write/:id" element={<S><ExerciseWriteNumber /></S>} />
-    <Route path="exercise-numline/:id" element={<S><ExerciseNumberLine /></S>} />
-    <Route path="exercise-compare/:id" element={<S><ExerciseComparison /></S>} />
-    <Route path="exercise-write-digit/:digit" element={<S><ExerciseWriteDigit /></S>} />
-    <Route path="exercise-money/:id" element={<S><ExerciseMoney /></S>} />
-    <Route path="exercise-clock/:id" element={<S><ExerciseClock /></S>} />
-    <Route path="exercise-sentence-doctor/:id" element={<S><ExerciseSentenceDoctor /></S>} />
-    <Route path="exercise-write-letter/:id" element={<S><ExerciseWriteLetter /></S>} />
+    <Route path="exercises/math/:id" element={<S><Exercise /></S>} />
+    <Route path="exercises/bonds/:id" element={<S><ExerciseNumberBond /></S>} />
+    <Route path="exercises/language/:id" element={<S><ExerciseLanguage /></S>} />
+    <Route path="exercises/dots/:id" element={<S><ExerciseDotCount /></S>} />
+    <Route path="exercises/write-number/:id" element={<S><ExerciseWriteNumber /></S>} />
+    <Route path="exercises/number-line/:id" element={<S><ExerciseNumberLine /></S>} />
+    <Route path="exercises/comparison/:id" element={<S><ExerciseComparison /></S>} />
+    <Route path="exercises/write-digit/:id" element={<S><ExerciseWriteDigit /></S>} />
+    <Route path="exercises/money/:id" element={<S><ExerciseMoney /></S>} />
+    <Route path="exercises/clock/:id" element={<S><ExerciseClock /></S>} />
+    <Route path="exercises/sentence-doctor/:id" element={<S><ExerciseSentenceDoctor /></S>} />
+    <Route path="exercises/write-letter/:id" element={<S><ExerciseWriteLetter /></S>} />
     <Route path="badges" element={<S><BadgeOverview /></S>} />
     <Route path="badges/:id" element={<S><BadgeDetail /></S>} />
     <Route path="progress" element={<S><Progress /></S>} />
