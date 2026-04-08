@@ -9,9 +9,9 @@ import { useTrimesterProgress } from "@/hooks/useTrimesterProgress";
 
 const TRIMESTER_CONFIG = [
   { id: 1, name: "Fluisterbomen", icon: "🌳", yPos: 82, xPos: 40, stagePath: "/app/stage/fluisterbos" },
-  { id: 2, name: "Borrelende Beek", icon: "🌊", yPos: 58, xPos: 65, stagePath: "/app/exercise-bonds/2" },
-  { id: 3, name: "Woordenwoud", icon: "🦊", yPos: 35, xPos: 30, stagePath: "/app/exercise-lang/3" },
-  { id: 4, name: "Uilenkasteel", icon: "🏰", yPos: 10, xPos: 60, stagePath: "/app/exercise/4" },
+  { id: 2, name: "Borrelende Beek", icon: "🌊", yPos: 58, xPos: 65, stagePath: "/app/exercises/bonds/2" },
+  { id: 3, name: "Woordenwoud", icon: "🦊", yPos: 35, xPos: 30, stagePath: "/app/exercises/language/3" },
+  { id: 4, name: "Uilenkasteel", icon: "🏰", yPos: 10, xPos: 60, stagePath: "/app/exercises/math/4" },
 ];
 
 const DECORATIVE_ELEMENTS = [
