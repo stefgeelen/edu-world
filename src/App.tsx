@@ -31,7 +31,7 @@ const App = () => (
             {appRoutes}
             <Route path="*" element={<Suspense fallback={<LoadingSpinner />}><NotFound /></Suspense>} />
           </Routes>
-        </AuthProvider>
+          <InstallPrompt />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
