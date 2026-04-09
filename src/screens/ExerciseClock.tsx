@@ -57,12 +57,9 @@ function snapHour(angle: number): number {
   return Math.round(angle / 15) * 15;
 }
 
-/** Snap minute to nearest 180° (12 or 6 position) */
+/** Snap minute to nearest 30° (each number position) */
 function snapMinute(angle: number): number {
-  // Normalize to 0-360
-  let a = ((angle % 360) + 360) % 360;
-  // Snap to 0 or 180
-  return a >= 90 && a < 270 ? 180 : 0;
+  return Math.round(((angle % 360 + 360) % 360) / 30) * 30 % 360;
 }
 
 /** Normalize angle to 0-360 */
