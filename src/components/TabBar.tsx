@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, Map, Trophy, TrendingUp } from 'lucide-react';
+import { Home, Map, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function TabBar() {
@@ -11,7 +11,6 @@ export function TabBar() {
   const tabs = [
     { id: 'dashboard', label: 'Home', icon: Home, path: '/app/dashboard' },
     { id: 'map', label: 'Kaart', icon: Map, path: '/app/map' },
-    { id: 'progress', label: 'Voortgang', icon: TrendingUp, path: '/app/progress' },
     { id: 'badges', label: 'Badges', icon: Trophy, path: '/app/badges' },
   ];
 
