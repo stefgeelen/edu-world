@@ -128,7 +128,7 @@ export function BadgeOverview() {
                     className={cn(
                       "relative rounded-[2rem] p-6 md:p-8 border-2 transition-all duration-300 backdrop-blur-md",
                       badge.isUnlocked
-                        ? "border-amber-500/40 hover:border-amber-400/60"
+                        ? "border-amber-500/40 hover:border-amber-400/60 badge-shimmer badge-glow"
                         : "border-[#3b2d71]/60 opacity-60 grayscale hover:opacity-70"
                     )}
                     style={{
