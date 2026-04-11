@@ -131,7 +131,8 @@ export function BadgeDetail() {
           <div
             className={cn(
               "relative w-56 h-56 md:w-72 md:h-72 rounded-full flex items-center justify-center shadow-[0_20px_60px_rgba(0,0,0,0.4)] border-[6px] border-[#3b2d71]",
-              !badge.isUnlocked && "grayscale opacity-50"
+              !badge.isUnlocked && "grayscale opacity-50",
+              badge.isUnlocked && "badge-shimmer badge-glow"
             )}
             style={{
               background: badge.isUnlocked
