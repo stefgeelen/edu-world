@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-import { useGame } from '@/context/GameContext';
+// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
@@ -117,7 +117,6 @@ function SymBadge({ sym }: { sym: CompSymbol }) {
 // ── Main Component ─────────────────────────────────────────────────────────
 export function ExerciseComparison() {
   const navigate = useNavigate();
-  const { addXp } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
@@ -146,7 +145,7 @@ export function ExerciseComparison() {
     if (correct) {
       setStatus('correct');
       correctCount.current += 1;
-      addXp(10);
+      // XP handled by complete_exercise RPC
       triggerConfetti('medium', { colors: ['#f97316', '#fb923c', '#fcd34d', '#34d399', '#60a5fa'] });
       const nextProgress = Math.min(progress + 25, 100);
       setProgress(nextProgress);
@@ -173,7 +172,7 @@ export function ExerciseComparison() {
         } else generateNext();
       }, 1600);
     }
-  }, [progress, lives, addXp, navigate, generateNext, exerciseId, completeExercise]);
+  }, [progress, lives, navigate, generateNext, exerciseId, completeExercise]);
 
   const handleSymbolSelect = (sym: CompSymbol) => {
     if (status !== 'idle') return;

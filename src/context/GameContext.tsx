@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import type { Avatar, Badge } from '@/types/game';
 import { avatars } from '@/data/avatars';
 import { badgesData } from '@/data/badges';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
 
 // Re-export for backwards compatibility
 export type { Avatar, Badge };
@@ -14,7 +15,6 @@ type GameContextType = {
   selectedAvatar: Avatar | null;
   setSelectedAvatar: (avatar: Avatar) => void;
   xp: number;
-  addXp: (amount: number) => void;
   streak: number;
   level: number;
   unlockedLevels: number[];
@@ -31,40 +31,21 @@ function hexToColorClass(hex: string): string {
 }
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { data: child } = useCurrentChild();
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
-  const [xp, setXp] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [level, setLevel] = useState(1);
   const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]);
   const [badges, setBadges] = useState<Badge[]>(badgesData);
 
-  // Fetch the active child for this parent
-  const { data: child } = useQuery({
-    queryKey: ['game-child', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('children')
-        .select('id, xp, level, streak, avatar_id')
-        .eq('parent_id', user!.id)
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  // Derive xp/level/streak from child data (single source of truth from DB)
+  const xp = child?.xp ?? 0;
+  const level = child?.level ?? 1;
+  const streak = 0; // streak not yet tracked in child query fields
 
-  // Sync child data to local state
+  // Sync avatar from child data
   useEffect(() => {
     if (child) {
-      setXp(child.xp ?? 0);
-      setLevel(child.level ?? 1);
-      setStreak(child.streak ?? 0);
-      if (child.avatar_id) {
-        const found = avatars.find(a => a.id === child.avatar_id);
-        if (found) setSelectedAvatar(found);
-      }
+      const found = avatars.find(a => a.id === (child as any).avatar_id);
+      if (found) setSelectedAvatar(found);
     }
   }, [child]);
 
@@ -72,13 +53,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const { data: dbBadges } = useQuery({
     queryKey: ['game-badges', child?.id],
     queryFn: async () => {
-      // Fetch badge definitions
       const { data: badgeDefs, error: bErr } = await supabase
         .from('badges')
         .select('*');
       if (bErr) throw bErr;
 
-      // Fetch child badge progress
       const { data: childBadges, error: cbErr } = await supabase
         .from('child_badges')
         .select('*')
@@ -116,7 +95,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [dbBadges]);
 
-  const addXp = (amount: number) => setXp((prev) => prev + amount);
   const completeLevel = (lvl: number) => {
     if (!unlockedLevels.includes(lvl + 1)) {
       setUnlockedLevels([...unlockedLevels, lvl + 1]);
@@ -134,7 +112,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <GameContext.Provider value={{ selectedAvatar, setSelectedAvatar, xp, addXp, streak, level, unlockedLevels, completeLevel, badges, updateBadgeProgress }}>
+    <GameContext.Provider value={{ selectedAvatar, setSelectedAvatar, xp, streak, level, unlockedLevels, completeLevel, badges, updateBadgeProgress }}>
       {children}
     </GameContext.Provider>
   );

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Trash2, Sparkles, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-import { useGame } from '@/context/GameContext';
+// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
@@ -51,7 +51,6 @@ function TenFrameDots({ count }: { count: number }) {
 
 export function ExerciseWriteNumber() {
   const navigate = useNavigate();
-  const { addXp } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);

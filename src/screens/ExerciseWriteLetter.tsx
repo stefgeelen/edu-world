@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, RotateCcw, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-import { useGame } from '@/context/GameContext';
+// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
@@ -178,7 +178,6 @@ function getTransform(cw: number, ch: number) {
 
 export function ExerciseWriteLetter() {
   const navigate = useNavigate();
-  const { addXp } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCountRef = useRef(0);
@@ -375,7 +374,7 @@ export function ExerciseWriteLetter() {
     const isCorrect = drawn >= minPixels && inZone >= THRESHOLD;
 
     if (isCorrect) {
-      setStatus('correct'); correctCountRef.current += 1; addXp(15);
+      setStatus('correct'); correctCountRef.current += 1;
       triggerConfetti('large', { colors: ['#f97316', '#fcd34d', '#34d399', '#60a5fa', '#c084fc'], originY: 0.45 });
       setTimeout(() => {
         const next = iteration + 1;
@@ -396,7 +395,7 @@ export function ExerciseWriteLetter() {
       const nextLives = lives - 1; setLives(nextLives);
       setTimeout(() => { if (nextLives <= 0) navigate('/app/stage/fluisterbos'); else clearDrawing(); }, 1800);
     }
-  }, [cSize, pathStr, hasDrawn, status, iteration, lives, addXp, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
+  }, [cSize, pathStr, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
 
   return (
     <ExerciseShell

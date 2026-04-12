@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-import { useGame } from '@/context/GameContext';
+// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
@@ -12,7 +12,6 @@ import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 
 export function ExerciseNumberBond() {
   const navigate = useNavigate();
-  const { addXp } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
@@ -56,7 +55,7 @@ export function ExerciseNumberBond() {
       setIsNumpadOpen(false);
       setProgress(p => p + 20);
       correctCount.current += 1;
-      addXp(10);
+      // XP handled by complete_exercise RPC
       
       triggerConfetti('large', { colors: ['#10b981', '#34d399', '#fcd34d'], originY: 0.6 });
       
