@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
 
 export interface ChildProgressData {
   subject: string;
@@ -24,24 +24,7 @@ export interface RecentAttempt {
 }
 
 export function useChildProgress() {
-  const { user } = useAuth();
-
-  const childQuery = useQuery({
-    queryKey: ['my-children', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('children')
-        .select('id, name, xp, level, streak')
-        .eq('parent_id', user!.id)
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const child = childQuery.data;
+  const { data: child, isLoading: childLoading } = useCurrentChild();
 
   const progressQuery = useQuery({
     queryKey: ['child-progress', child?.id],
@@ -73,7 +56,7 @@ export function useChildProgress() {
 
   return {
     child,
-    isLoading: childQuery.isLoading || progressQuery.isLoading,
+    isLoading: childLoading || progressQuery.isLoading,
     progressData: progressQuery.data ?? [],
     recentAttempts: attemptsQuery.data ?? [],
   };

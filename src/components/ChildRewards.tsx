@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
 
 const SUBJECT_LABELS: Record<string, string> = {
   math: '🔢 Rekenen',
@@ -12,23 +12,7 @@ const SUBJECT_LABELS: Record<string, string> = {
 };
 
 export function ChildRewards({ childId }: { childId?: string }) {
-  const { user } = useAuth();
-
-  const { data: child } = useQuery({
-    queryKey: ['my-child-for-rewards', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('children')
-        .select('id')
-        .eq('parent_id', user!.id)
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user && !childId,
-  });
-
+  const { data: child } = useCurrentChild();
   const cId = childId ?? child?.id;
 
   const { data: rewards = [] } = useQuery({

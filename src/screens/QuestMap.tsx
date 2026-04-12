@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, Star, Check, ChevronLeft } from "lucide-react";
@@ -72,22 +72,20 @@ export function QuestMap() {
 
   return (
     <div className="h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] flex flex-col relative overflow-hidden font-sans">
-      {/* Starry Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        {[...Array(60)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-white opacity-20"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              width: `${Math.random() * 4 + 1}px`,
-              height: `${Math.random() * 4 + 1}px`,
-              animation: `pulse ${Math.random() * 2 + 2}s infinite ${Math.random() * 3}s`,
-            }}
-          />
-        ))}
-      </div>
+      {/* Starry Background (memoized) */}
+      {useMemo(() => (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          {[...Array(60)].map((_, i) => {
+            const top = `${Math.random() * 100}%`;
+            const left = `${Math.random() * 100}%`;
+            const size = `${Math.random() * 4 + 1}px`;
+            const anim = `pulse ${Math.random() * 2 + 2}s infinite ${Math.random() * 3}s`;
+            return (
+              <div key={i} className="absolute rounded-full bg-white opacity-20" style={{ top, left, width: size, height: size, animation: anim }} />
+            );
+          })}
+        </div>
+      ), [])}
 
       {/* Decorations */}
       {DECORATIVE_ELEMENTS.map((el, i) => (

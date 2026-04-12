@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift } from 'lucide-react';
@@ -8,6 +8,7 @@ import { useAdminRole } from '@/hooks/useAdminRole';
 import { cn } from '@/lib/utils';
 import { ChildRewards } from '@/components/ChildRewards';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
+import { useChildProgress } from '@/hooks/useChildProgress';
 
 /* ── Decorative forest elements ─────────────────────── */
 const FOREST_DECORATIONS = [
@@ -23,20 +24,20 @@ const FOREST_DECORATIONS = [
 
 /* ── Starry sky background ──────────────────────────── */
 function StarryBackground() {
+  const stars = useMemo(() =>
+    [...Array(50)].map((_, i) => ({
+      key: i,
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      width: `${Math.random() * 3 + 1}px`,
+      height: `${Math.random() * 3 + 1}px`,
+      animation: `pulse ${Math.random() * 2 + 2}s infinite ${Math.random() * 3}s`,
+    })),
+  []);
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {[...Array(50)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full bg-white opacity-20"
-          style={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            width: `${Math.random() * 3 + 1}px`,
-            height: `${Math.random() * 3 + 1}px`,
-            animation: `pulse ${Math.random() * 2 + 2}s infinite ${Math.random() * 3}s`,
-          }}
-        />
+      {stars.map(s => (
+        <div key={s.key} className="absolute rounded-full bg-white opacity-20" style={s} />
       ))}
     </div>
   );
@@ -53,6 +54,17 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { selectedAvatar, xp, streak, level } = useGame();
   const { isAdmin } = useAdminRole();
+  const { progressData } = useChildProgress();
+
+  // Dynamic stats from child_progress
+  const totalExercises = progressData.reduce((s, p) => s + p.exercises_completed, 0);
+  const avgScore = progressData.length > 0
+    ? Math.round(progressData.reduce((s, p) => s + (p.average_score ?? 0), 0) / progressData.length * 100)
+    : 0;
+  const totalTimeSecs = progressData.reduce((s, p) => s + p.total_time_seconds, 0);
+  const totalTimeLabel = totalTimeSecs >= 3600
+    ? `${Math.round(totalTimeSecs / 3600)}u`
+    : `${Math.round(totalTimeSecs / 60)}m`;
 
   const xpRequired = level * 1000;
   const progress = Math.min((xp / xpRequired) * 100, 100);
@@ -260,15 +272,15 @@ export function Dashboard() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Score</span>
-                <span className="text-lg font-black text-white">92%</span>
+                <span className="text-lg font-black text-white">{avgScore}%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Lessen</span>
-                <span className="text-lg font-black text-white">45</span>
+                <span className="text-lg font-black text-white">{totalExercises}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Tijd</span>
-                <span className="text-lg font-black text-white">3u</span>
+                <span className="text-lg font-black text-white">{totalTimeLabel}</span>
               </div>
             </div>
             <p className="text-[10px] font-bold text-indigo-300 mt-2 flex items-center gap-1">

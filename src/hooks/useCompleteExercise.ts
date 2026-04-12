@@ -15,7 +15,7 @@ export function useCurrentChild() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
-        .select('id, grade, xp, level, pending_promotion')
+        .select('id, grade, xp, level, pending_promotion, avatar_id, streak')
         .eq('parent_id', user!.id)
         .limit(1)
         .maybeSingle();

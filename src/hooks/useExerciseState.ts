@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGame } from '@/context/GameContext';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 
@@ -36,7 +35,6 @@ export function useExerciseState(options: UseExerciseStateOptions = {}) {
   } = options;
 
   const navigate = useNavigate();
-  const { addXp } = useGame();
   const completeExercise = useCompleteExercise();
 
   const progressStep = 100 / totalQuestions;
@@ -49,7 +47,6 @@ export function useExerciseState(options: UseExerciseStateOptions = {}) {
 
   const handleCorrect = useCallback(() => {
     setStatus('correct');
-    addXp(xpReward);
     correctCount.current += 1;
     triggerConfetti(confettiIntensity, { colors: confettiColors });
     onCorrect?.();
@@ -78,7 +75,7 @@ export function useExerciseState(options: UseExerciseStateOptions = {}) {
         onNextQuestion?.();
       }
     }, 1800);
-  }, [progress, progressStep, xpReward, returnPath, confettiIntensity, confettiColors, addXp, navigate, onCorrect, onNextQuestion, exerciseId, lives, totalQuestions, completeExercise]);
+  }, [progress, progressStep, returnPath, confettiIntensity, confettiColors, navigate, onCorrect, onNextQuestion, exerciseId, lives, totalQuestions, completeExercise]);
 
   const handleIncorrect = useCallback(() => {
     setStatus('incorrect');

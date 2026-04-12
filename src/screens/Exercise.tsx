@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Loader2 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
+// addXp removed — XP is handled by complete_exercise RPC
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
@@ -12,7 +13,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 export function Exercise() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { selectedAvatar, addXp } = useGame();
+  const { selectedAvatar } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
@@ -62,7 +63,7 @@ export function Exercise() {
       setProgress(p => p + 20);
       correctCount.current += 1;
       triggerConfetti('small', { colors: ['#3b82f6', '#14b8a6', '#f59e0b'], originY: 0.6 });
-      addXp(10);
+      // XP handled by complete_exercise RPC
       
       setTimeout(() => {
         if (progress + 20 >= 100) {

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Undo2, Trash2, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-import { useGame } from '@/context/GameContext';
+// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
@@ -21,7 +21,6 @@ function getRandomTarget() {
 
 export function ExerciseDotCount() {
   const navigate = useNavigate();
-  const { addXp } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
@@ -72,7 +71,7 @@ export function ExerciseDotCount() {
     if (dots.length === target) {
       setStatus('correct');
       correctCount.current += 1;
-      addXp(15);
+      // XP handled by complete_exercise RPC
       triggerConfetti('medium');
       const nextProgress = progress + 20;
       setProgress(nextProgress);
