@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import type { StageExercise } from '@/types/stage';
 
 export const REQUIRED_COMPLETIONS = 5;
@@ -10,24 +10,8 @@ export const REQUIRED_COMPLETIONS = 5;
  * Returns a flat list of StageExercise objects with completions & bestStars.
  */
 export function useStageExercises() {
-  const { user } = useAuth();
-
-  const childQuery = useQuery({
-    queryKey: ['my-child', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('children')
-        .select('id')
-        .eq('parent_id', user!.id)
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const childId = childQuery.data?.id;
+  const { data: child, isFetched } = useCurrentChild();
+  const childId = child?.id;
 
   return useQuery({
     queryKey: ['stage-exercises-progress', childId],
@@ -73,6 +57,6 @@ export function useStageExercises() {
         bestStars: attemptsByExercise[ex.id]?.bestStars ?? 0,
       }));
     },
-    enabled: childQuery.isFetched,
+    enabled: isFetched,
   });
 }
