@@ -202,7 +202,7 @@ export function ExerciseWriteNumber() {
       if (data.isCorrect) {
         setStatus('correct');
         correctCount.current += 1;
-        addXp(15);
+        // XP handled by complete_exercise RPC
         triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
         const nextProgress = progress + 20;
         setProgress(nextProgress);
