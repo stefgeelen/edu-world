@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Undo2, Trash2, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { DOT_COUNT_CONFIG, DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
 
 interface Dot {
   id: string;
@@ -15,17 +16,19 @@ interface Dot {
   y: number;
 }
 
-function getRandomTarget() {
-  return Math.floor(Math.random() * 10) + 1;
-}
-
 export function ExerciseDotCount() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
+  const { key: difficultyKey } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const areaRef = useRef<HTMLDivElement>(null);
+
+  const dotConfig = DOT_COUNT_CONFIG[difficultyKey] ?? DEFAULT_DOT_COUNT;
+
+  const getRandomTarget = () =>
+    Math.floor(Math.random() * (dotConfig.maxDots - dotConfig.minDots + 1)) + dotConfig.minDots;
 
   const [target, setTarget] = useState(getRandomTarget);
   const [dots, setDots] = useState<Dot[]>([]);
