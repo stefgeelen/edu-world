@@ -1,94 +1,96 @@
 
 
-# Codebase Architecture Review — Findings & Recommendations
+# Plan: Difficulty Scaling per Grade & Trimester
 
-## Overall Assessment
-The codebase is well-structured with good use of TypeScript, TanStack Query, and a clear separation of concerns. However, there are several scalability and correctness issues that should be addressed.
+## Concept
 
----
+Create a **difficulty configuration system** that each exercise reads to determine its parameters. The child's `grade` (leerjaar) and current `stage` (trimester) — both already available from the database — drive which difficulty preset is used.
 
-## Critical Issues
+No database changes are needed. This is purely frontend logic.
 
-### 1. Double XP — `addXp()` and `complete_exercise` both add XP
-Every exercise screen calls `addXp()` from GameContext (which updates local state) **and** calls `completeExercise.mutate()` (which updates the database via the `complete_exercise` RPC, which also adds XP to the `children` table). This means:
-- XP is added to the database correctly via the RPC
-- XP is also inflated in local state via `addXp()`, causing the UI to show more XP than actually earned until the next page load
+## Architecture
 
-**Fix:** Remove all `addXp()` calls from exercise screens. The `complete_exercise` RPC already handles XP. After mutation succeeds, query invalidation will sync the UI. Remove `addXp` from GameContext entirely (as planned in `.lovable/plan.md` Step 5).
+```text
+src/
+  data/
+    difficultyConfig.ts      ← NEW: central config per exercise type
+  hooks/
+    useDifficultyLevel.ts     ← NEW: returns config for current child
+  screens/
+    Exercise.tsx              ← reads config instead of hardcoded ranges
+    ExerciseNumberBond.tsx    ← reads config for target range
+    ExerciseComparison.tsx    ← reads config for number range
+    ... (other exercises as needed)
+```
 
-**Affected files:** `Exercise.tsx`, `ExerciseComparison.tsx`, `ExerciseNumberBond.tsx`, `ExerciseNumberLine.tsx`, `ExerciseDotCount.tsx`, `ExerciseWriteNumber.tsx`, `ExerciseWriteDigit.tsx`, `ExerciseWriteLetter.tsx`, and `useExerciseState.ts` — approximately 10 files.
+### 1. Create `src/data/difficultyConfig.ts`
 
-### 2. Duplicate child queries — Same data fetched 4+ times
-The current child is fetched independently in:
-- `GameContext` (`queryKey: ['game-child']`)
-- `useCurrentChild` (`queryKey: ['my-child']`)
-- `useChildProgress` (`queryKey: ['my-children']`)
-- `ChildRewards` (`queryKey: ['my-child-for-rewards']`)
+A typed configuration file that defines per exercise type what changes per grade+trimester:
 
-Each uses a different query key, so TanStack Query treats them as separate queries. This means 4 parallel requests to the same table on every page load.
+```typescript
+// Each exercise type has a config keyed by "grade-trimester"
+// e.g. "1-1" = Grade 1, Trimester 1
 
-**Fix:** Standardize on one query key (e.g. `['my-child', user?.id]`) and one shared hook (`useCurrentChild`). All components should import from that single hook. GameContext should consume `useCurrentChild` instead of running its own query.
+interface MathSumsConfig {
+  operators: string[];        // ['+', '-'] or ['+', '-', '×', '÷']
+  maxNumber: number;          // highest number in sums
+  allowNegative: boolean;     // can answers go below 0?
+}
 
-### 3. `StarryBackground` re-randomizes on every render
-In `Dashboard.tsx` and `QuestMap.tsx`, `StarryBackground` uses `Math.random()` inline in JSX without memoization. Every re-render generates new random positions, causing layout thrashing and unnecessary DOM updates. `BadgeOverview.tsx` already has the fix using `useMemo`.
+const MATH_SUMS: Record<string, MathSumsConfig> = {
+  "1-1": { operators: ['+', '-'], maxNumber: 10, allowNegative: false },
+  "1-2": { operators: ['+', '-'], maxNumber: 10, allowNegative: false },
+  "1-3": { operators: ['+', '-'], maxNumber: 15, allowNegative: false },
+  "1-4": { operators: ['+', '-'], maxNumber: 20, allowNegative: false },
+  "2-1": { operators: ['+', '-'], maxNumber: 20, allowNegative: false },
+  "2-2": { operators: ['+', '-', '×'], maxNumber: 20, allowNegative: false },
+  "2-3": { operators: ['+', '-', '×', '÷'], maxNumber: 50, allowNegative: false },
+  "2-4": { operators: ['+', '-', '×', '÷'], maxNumber: 100, allowNegative: false },
+};
+// Similar configs for bonds, comparison, dots, number-line, etc.
+// Exercises that stay the same simply have no config or a single default.
+```
 
-**Fix:** Apply the same `useMemo` pattern from `BadgeOverview.tsx` to `Dashboard.tsx` and `QuestMap.tsx`.
+### 2. Create `src/hooks/useDifficultyLevel.ts`
 
----
+A small hook that reads the child's grade and derives the current trimester from the route's stage parameter (already in the exercise route as the `:id` param / stage field):
 
-## Moderate Issues
+```typescript
+export function useDifficultyLevel() {
+  const { data: child } = useCurrentChild();
+  const location = useLocation();
+  // Extract trimester from route param (e.g. /exercises/math/1 → stage-1 → trimester 1)
+  const trimester = /* derive from route or exercise DB record */;
+  const grade = child?.grade ?? 1;
+  return { grade, trimester, key: `${grade}-${trimester}` };
+}
+```
 
-### 4. Hardcoded stats on Dashboard
-The "Statistieken" card shows hardcoded values (`92%`, `45`, `3u`). This should pull from `child_progress` data, which already exists in the database.
+### 3. Update `Exercise.tsx` (Sommen maken)
 
-### 5. Hardcoded daily quests
-`DAILY_QUESTS` in `Dashboard.tsx` is a static array. These should be dynamic — either derived from real exercise data or stored in the database.
+Replace the hardcoded `generateQuestion` with one that reads the config:
 
-### 6. Exercise.tsx duplicates `useExerciseState` logic
-`Exercise.tsx` manually reimplements the same state management (lives, progress, correctCount, startTime, completeExercise) that `useExerciseState.ts` already provides. This creates maintenance risk and inconsistency.
+- Grade 1: only `+` and `-`, numbers up to 10-20, no negative answers
+- Grade 2: adds `×` and `÷`, larger numbers
+- Ensure subtraction never goes below 0 when `allowNegative: false` (swap num1/num2 if needed)
+- For division: ensure clean division (no remainders)
 
-**Fix:** Refactor `Exercise.tsx` to use `useExerciseState` like the other exercise screens.
+### 4. Update other exercises as needed
 
-### 7. Missing `StrictMode` in main.tsx
-React `StrictMode` is not used, which means double-render issues in development won't be caught early.
+Most exercises can remain unchanged initially. The system is opt-in: if an exercise has no config entry, it uses a sensible default. Priority exercises to configure:
 
-### 8. Stale closure in Exercise.tsx
-`generateQuestion` is not wrapped in `useCallback` and is called from a `useEffect` with `[id]` deps, but also called from `handleSelect` which closes over stale `progress` state. The `progress + 20 >= 100` check uses the stale value from the closure.
+- **ExerciseNumberBond**: target range scales (5-10 in T1 → 10-20 in T4)
+- **ExerciseComparison**: number range scales
+- **ExerciseDotCount**: dot count scales
+- **ExerciseNumberLine**: line range scales
 
-### 9. `useStageExercises` fetches ALL attempts without pagination
-The query `exercise_attempts.select('exercise_id, stars').eq('child_id', childId)` fetches every attempt ever made. As usage grows, this will become slow. Should be bounded or aggregated server-side.
+## What stays the same
 
----
+Exercises like **Klokkijken**, **Geld rekenen**, **Letters schrijven**, **Zinnendokter** keep their current behavior — the config system simply doesn't define overrides for them.
 
-## Minor / Cosmetic Issues
+## Technical details
 
-### 10. Dashboard "Statistieken" links to `/app/progress` but Progress was removed from tab bar
-The route still exists but is no longer discoverable via navigation. Either remove the route or restore access.
-
-### 11. Fluisterbos uses light theme while rest of app uses dark Fluisterbos theme
-The stage detail page (`Fluisterbos.tsx`) still uses a white/light design (`bg-slate-50`, `bg-white`). This is visually inconsistent with Dashboard, QuestMap, and BadgeOverview.
-
-### 12. No error boundaries
-No React error boundaries exist. A crash in one exercise screen will crash the entire app.
-
----
-
-## Proposed Implementation Plan
-
-### Phase 1 — Critical fixes (data integrity)
-1. **Remove `addXp()` from all exercise screens and `useExerciseState`** — prevent double XP
-2. **Remove `addXp` from GameContext** — XP comes from database only
-3. **Unify child query** — single `useCurrentChild` hook with consistent query key `['my-child', userId]`, used everywhere
-
-### Phase 2 — Performance
-4. **Memoize `StarryBackground`** in Dashboard and QuestMap
-5. **Add server-side aggregation** for exercise attempts (database function returning counts + best stars per exercise, replacing client-side aggregation in `useStageExercises`)
-
-### Phase 3 — Consistency & correctness
-6. **Refactor `Exercise.tsx`** to use `useExerciseState` hook
-7. **Make Dashboard stats dynamic** from `child_progress`
-8. **Restyle Fluisterbos** to match dark theme (or keep as deliberate contrast)
-9. **Add a top-level `ErrorBoundary`** component
-
-This plan addresses data integrity first (double XP is actively causing incorrect data), then performance, then consistency.
+- The `:id` in the route (e.g. `/exercises/math/1`) currently corresponds to the stage number. The `exercises` table also has a `stage` column (`stage-1` through `stage-4`). We use the child's `grade` from `useCurrentChild()` combined with the stage from the route to build the difficulty key.
+- No DB migration needed — all config is frontend.
+- The `useDifficultyLevel` hook is memoized and lightweight (reuses the existing `useCurrentChild` query).
 
