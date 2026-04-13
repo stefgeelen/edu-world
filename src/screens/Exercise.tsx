@@ -1,14 +1,65 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Loader2 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
-// addXp removed — XP is handled by complete_exercise RPC
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { MATH_SUMS_CONFIG, DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
+
+function generateMathQuestion(config: MathSumsConfig) {
+  const { operators, maxNumber, allowNegative, maxDivisor } = config;
+  const op = operators[Math.floor(Math.random() * operators.length)];
+
+  let num1: number, num2: number, ans: number;
+
+  if (op === '÷') {
+    // Generate clean division: num2 * quotient = num1
+    const divisor = Math.floor(Math.random() * (maxDivisor || 10)) + 1;
+    const quotient = Math.floor(Math.random() * 10) + 1;
+    num1 = divisor * quotient;
+    num2 = divisor;
+    ans = quotient;
+  } else if (op === '×') {
+    num1 = Math.floor(Math.random() * Math.min(maxNumber, 12)) + 1;
+    num2 = Math.floor(Math.random() * 10) + 1;
+    ans = num1 * num2;
+  } else if (op === '-') {
+    if (!allowNegative) {
+      // Ensure num1 >= num2 so answer >= 0
+      num1 = Math.floor(Math.random() * maxNumber) + 1;
+      num2 = Math.floor(Math.random() * num1) + 1;
+    } else {
+      num1 = Math.floor(Math.random() * maxNumber) + 1;
+      num2 = Math.floor(Math.random() * maxNumber) + 1;
+    }
+    ans = num1 - num2;
+  } else {
+    // Addition
+    num1 = Math.floor(Math.random() * maxNumber) + 1;
+    num2 = Math.floor(Math.random() * (maxNumber - num1)) + 1;
+    ans = num1 + num2;
+  }
+
+  // Generate 4 unique options including the answer
+  const options = new Set([ans]);
+  while (options.size < 4) {
+    const offset = Math.floor(Math.random() * 10) - 5;
+    const candidate = ans + offset;
+    if (candidate !== ans && (!allowNegative ? candidate >= 0 : true)) {
+      options.add(candidate);
+    }
+  }
+
+  return {
+    question: { num1, num2, operator: op, answer: ans },
+    options: Array.from(options).sort(() => Math.random() - 0.5),
+  };
+}
 
 export function Exercise() {
   const navigate = useNavigate();
@@ -16,43 +67,30 @@ export function Exercise() {
   const { selectedAvatar } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
+  const { key: difficultyKey } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  
-  const [question, setQuestion] = useState({ num1: 5, num2: 4, operator: '×', answer: 20 });
-  const [options, setOptions] = useState([18, 20, 24, 15]);
+
+  const config = MATH_SUMS_CONFIG[difficultyKey] ?? DEFAULT_MATH_SUMS;
+
+  const [question, setQuestion] = useState({ num1: 5, num2: 4, operator: '+', answer: 9 });
+  const [options, setOptions] = useState([7, 9, 11, 8]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect'>('idle');
   const [lives, setLives] = useState(3);
   const [progress, setProgress] = useState(0);
 
-  const generateQuestion = () => {
-    const levelMultipler = Number(id) || 1;
-    const max = 10 + (levelMultipler * 5);
-    const num1 = Math.floor(Math.random() * max) + 1;
-    const num2 = Math.floor(Math.random() * 10) + 1;
-    const ops = ['+', '-', '×'];
-    const op = ops[Math.floor(Math.random() * ops.length)];
-    
-    let ans = 0;
-    if (op === '+') ans = num1 + num2;
-    if (op === '-') ans = num1 - num2;
-    if (op === '×') ans = num1 * num2;
-
-    const newOptions = new Set([ans]);
-    while (newOptions.size < 4) {
-      newOptions.add(ans + Math.floor(Math.random() * 10) - 5);
-    }
-
-    setQuestion({ num1, num2, operator: op, answer: ans });
-    setOptions(Array.from(newOptions).sort(() => Math.random() - 0.5));
+  const regenerate = useCallback(() => {
+    const { question: q, options: o } = generateMathQuestion(config);
+    setQuestion(q);
+    setOptions(o);
     setSelectedOption(null);
     setStatus('idle');
-  };
+  }, [config]);
 
   useEffect(() => {
-    generateQuestion();
-  }, [id]);
+    regenerate();
+  }, [regenerate]);
 
   const handleSelect = (option: number) => {
     if (status !== 'idle') return;
@@ -63,7 +101,6 @@ export function Exercise() {
       setProgress(p => p + 20);
       correctCount.current += 1;
       triggerConfetti('small', { colors: ['#3b82f6', '#14b8a6', '#f59e0b'], originY: 0.6 });
-      // XP handled by complete_exercise RPC
       
       setTimeout(() => {
         if (progress + 20 >= 100) {
@@ -73,7 +110,7 @@ export function Exercise() {
           }
           navigate('/app/dashboard');
         } else {
-          generateQuestion();
+          regenerate();
         }
       }, 1500);
       

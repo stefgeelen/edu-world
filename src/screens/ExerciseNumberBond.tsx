@@ -4,18 +4,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { NUMBER_BOND_CONFIG, DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
 
 export function ExerciseNumberBond() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
+  const { key: difficultyKey } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
+
+  const bondConfig = NUMBER_BOND_CONFIG[difficultyKey] ?? DEFAULT_NUMBER_BOND;
   
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
@@ -26,7 +30,8 @@ export function ExerciseNumberBond() {
   const [status, setStatus] = useState<'idle' | 'incorrect' | 'correct'>('idle');
 
   const generateQuestion = () => {
-    const target = Math.floor(Math.random() * 6) + 5; 
+    const { minTarget, maxTarget } = bondConfig;
+    const target = Math.floor(Math.random() * (maxTarget - minTarget + 1)) + minTarget;
     const known = Math.floor(Math.random() * (target - 1)) + 1; 
     setQuestion({ target, known, answer: target - known });
     setInputValue("");

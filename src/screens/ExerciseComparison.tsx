@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { COMPARISON_CONFIG, DEFAULT_COMPARISON } from '@/data/difficultyConfig';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type VariationType = 1 | 2 | 3 | 4;
@@ -24,17 +25,17 @@ interface Question {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function generateQuestion(): Question {
+function generateQuestion(maxNum: number): Question {
   const variation = randomInt(1, 4) as VariationType;
   let leftValue: number, rightValue: number, symbol: CompSymbol;
 
   if (variation === 3 || variation === 4) {
     const pick = randomInt(0, 2);
-    if (pick === 0) { leftValue = randomInt(0, 9); rightValue = randomInt(leftValue + 1, 10); symbol = '<'; }
-    else if (pick === 1) { leftValue = randomInt(1, 10); rightValue = randomInt(0, leftValue - 1); symbol = '>'; }
-    else { leftValue = randomInt(1, 10); rightValue = leftValue; symbol = '='; }
+    if (pick === 0) { leftValue = randomInt(0, maxNum - 1); rightValue = randomInt(leftValue + 1, maxNum); symbol = '<'; }
+    else if (pick === 1) { leftValue = randomInt(1, maxNum); rightValue = randomInt(0, leftValue - 1); symbol = '>'; }
+    else { leftValue = randomInt(1, maxNum); rightValue = leftValue; symbol = '='; }
   } else {
-    leftValue = randomInt(1, 10); rightValue = randomInt(1, 10);
+    leftValue = randomInt(1, maxNum); rightValue = randomInt(1, maxNum);
     symbol = leftValue > rightValue ? '>' : leftValue < rightValue ? '<' : '=';
   }
   return { variation, leftValue, rightValue, symbol };
@@ -119,10 +120,13 @@ export function ExerciseComparison() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
+  const { key: difficultyKey } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
-  const [question, setQuestion] = useState<Question>(generateQuestion);
+  const compConfig = COMPARISON_CONFIG[difficultyKey] ?? DEFAULT_COMPARISON;
+
+  const [question, setQuestion] = useState<Question>(() => generateQuestion(compConfig.maxNumber));
   const [selectedSymbol, setSelectedSymbol] = useState<CompSymbol | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
@@ -134,12 +138,12 @@ export function ExerciseComparison() {
   const needsNumber = question.variation === 3 || question.variation === 4;
 
   const generateNext = useCallback(() => {
-    setQuestion(generateQuestion());
+    setQuestion(generateQuestion(compConfig.maxNumber));
     setSelectedSymbol(null);
     setInputValue('');
     setStatus('idle');
     setIsNumpadOpen(false);
-  }, []);
+  }, [compConfig.maxNumber]);
 
   const handleResult = useCallback((correct: boolean) => {
     if (correct) {
