@@ -1,96 +1,73 @@
 
 
-# Plan: Difficulty Scaling per Grade & Trimester
+# Plan: Study Buddy Integratie (met Animaties)
 
 ## Concept
 
-Create a **difficulty configuration system** that each exercise reads to determine its parameters. The child's `grade` (leerjaar) and current `stage` (trimester) — both already available from the database — drive which difficulty preset is used.
+De gekozen avatar wordt een actieve metgezel die het kind motiveert met gepersonaliseerde berichten, visuele aanwezigheid en expressieve animaties op sleutelmomenten in de app.
 
-No database changes are needed. This is purely frontend logic.
+## Nieuwe bestanden
 
-## Architecture
+| Bestand | Doel |
+|---|---|
+| `src/data/buddyMessages.ts` | Berichten per avatar per situatie |
+| `src/components/BuddyBubble.tsx` | Avatar + tekstballon + animaties |
+| `src/hooks/useBuddyMessage.ts` | Kiest bericht op basis van avatar + situatie |
+
+## Aangepaste bestanden
+
+| Bestand | Wijziging |
+|---|---|
+| `tailwind.config.ts` | Buddy-specifieke keyframes toevoegen |
+| `src/components/exercise/ExerciseShell.tsx` | BuddyBubble integreren bij correct/fout/klaar |
+| `src/screens/Dashboard.tsx` | Begroeting bij laden |
+| `src/screens/QuestMap.tsx` | Motivatie bij laden |
+
+## Animaties
+
+Vijf buddy-animaties worden toegevoegd aan de Tailwind config en gebruikt door BuddyBubble:
+
+| Animatie | Wanneer | Gedrag |
+|---|---|---|
+| `buddy-bounce-in` | Buddy verschijnt | Schaalt van 0 → 1.1 → 1 met bounce-easing, fade-in |
+| `buddy-celebrate` | Goed antwoord | Kleine jump + wiggle (translateY -8px + rotate ±5deg) |
+| `buddy-sad-shake` | Fout antwoord | Horizontale shake (translateX ±4px, 3 keer) |
+| `buddy-idle-float` | Wachtend/idle | Zacht op-en-neer zweven (translateY ±4px, 3s loop) |
+| `buddy-exit` | Bubble verdwijnt | Schaalt naar 0.9, fade-out, schuift 10px omlaag |
+
+De tekstballon krijgt een aparte `bubble-pop` animatie: scale 0.8 → 1.05 → 1 met een lichte vertraging t.o.v. de avatar.
+
+### Tailwind keyframes (toe te voegen)
 
 ```text
-src/
-  data/
-    difficultyConfig.ts      ← NEW: central config per exercise type
-  hooks/
-    useDifficultyLevel.ts     ← NEW: returns config for current child
-  screens/
-    Exercise.tsx              ← reads config instead of hardcoded ranges
-    ExerciseNumberBond.tsx    ← reads config for target range
-    ExerciseComparison.tsx    ← reads config for number range
-    ... (other exercises as needed)
+buddy-bounce-in:   0% scale(0) opacity(0) → 60% scale(1.1) → 100% scale(1) opacity(1)
+buddy-celebrate:   0% ty(0) → 30% ty(-8px) rotate(5deg) → 60% ty(0) rotate(-5deg) → 100% ty(0) rotate(0)
+buddy-sad-shake:   0%,100% tx(0) → 15%,45%,75% tx(-4px) → 30%,60% tx(4px)
+buddy-idle-float:  0%,100% ty(0) → 50% ty(-4px)
+buddy-exit:        0% scale(1) opacity(1) → 100% scale(0.9) ty(10px) opacity(0)
+bubble-pop:        0% scale(0.8) opacity(0) → 70% scale(1.05) → 100% scale(1) opacity(1)
 ```
 
-### 1. Create `src/data/difficultyConfig.ts`
+## BuddyBubble Component
 
-A typed configuration file that defines per exercise type what changes per grade+trimester:
+- Toont avatar-afbeelding (48px cirkel) + tekstballon
+- Ontvangt `mood` prop: `'greeting' | 'correct' | 'wrong' | 'complete' | 'idle'`
+- Mood bepaalt welke animatie-class op de avatar wordt gezet
+- Tekstballon verschijnt met `bubble-pop` animatie (200ms delay)
+- Auto-dismiss na 4 seconden via interne timer, of bij tap
+- Positioned als overlay in de linkeronderhoek (of rechtsboven op mobiel)
 
-```typescript
-// Each exercise type has a config keyed by "grade-trimester"
-// e.g. "1-1" = Grade 1, Trimester 1
+## Berichtensysteem
 
-interface MathSumsConfig {
-  operators: string[];        // ['+', '-'] or ['+', '-', '×', '÷']
-  maxNumber: number;          // highest number in sums
-  allowNegative: boolean;     // can answers go below 0?
-}
+Elke avatar (pixel, zaza, riff, rocco, sparky) krijgt 3-5 unieke berichten per situatie. De hook houdt bij welke berichten al getoond zijn in de sessie om herhaling te voorkomen.
 
-const MATH_SUMS: Record<string, MathSumsConfig> = {
-  "1-1": { operators: ['+', '-'], maxNumber: 10, allowNegative: false },
-  "1-2": { operators: ['+', '-'], maxNumber: 10, allowNegative: false },
-  "1-3": { operators: ['+', '-'], maxNumber: 15, allowNegative: false },
-  "1-4": { operators: ['+', '-'], maxNumber: 20, allowNegative: false },
-  "2-1": { operators: ['+', '-'], maxNumber: 20, allowNegative: false },
-  "2-2": { operators: ['+', '-', '×'], maxNumber: 20, allowNegative: false },
-  "2-3": { operators: ['+', '-', '×', '÷'], maxNumber: 50, allowNegative: false },
-  "2-4": { operators: ['+', '-', '×', '÷'], maxNumber: 100, allowNegative: false },
-};
-// Similar configs for bonds, comparison, dots, number-line, etc.
-// Exercises that stay the same simply have no config or a single default.
-```
+Situaties: `dashboard_greeting`, `exercise_start`, `correct_answer`, `wrong_answer`, `exercise_complete`, `map_encourage`, `badge_unlocked`
 
-### 2. Create `src/hooks/useDifficultyLevel.ts`
+## ExerciseShell integratie
 
-A small hook that reads the child's grade and derives the current trimester from the route's stage parameter (already in the exercise route as the `:id` param / stage field):
+ExerciseShell krijgt een optionele `buddyMood` prop. Wanneer gezet, toont het een BuddyBubble met de juiste animatie. Oefenschermen hoeven alleen de mood door te geven na een antwoord — de shell handelt de rest af.
 
-```typescript
-export function useDifficultyLevel() {
-  const { data: child } = useCurrentChild();
-  const location = useLocation();
-  // Extract trimester from route param (e.g. /exercises/math/1 → stage-1 → trimester 1)
-  const trimester = /* derive from route or exercise DB record */;
-  const grade = child?.grade ?? 1;
-  return { grade, trimester, key: `${grade}-${trimester}` };
-}
-```
+## Geen database-wijzigingen
 
-### 3. Update `Exercise.tsx` (Sommen maken)
-
-Replace the hardcoded `generateQuestion` with one that reads the config:
-
-- Grade 1: only `+` and `-`, numbers up to 10-20, no negative answers
-- Grade 2: adds `×` and `÷`, larger numbers
-- Ensure subtraction never goes below 0 when `allowNegative: false` (swap num1/num2 if needed)
-- For division: ensure clean division (no remainders)
-
-### 4. Update other exercises as needed
-
-Most exercises can remain unchanged initially. The system is opt-in: if an exercise has no config entry, it uses a sensible default. Priority exercises to configure:
-
-- **ExerciseNumberBond**: target range scales (5-10 in T1 → 10-20 in T4)
-- **ExerciseComparison**: number range scales
-- **ExerciseDotCount**: dot count scales
-- **ExerciseNumberLine**: line range scales
-
-## What stays the same
-
-Exercises like **Klokkijken**, **Geld rekenen**, **Letters schrijven**, **Zinnendokter** keep their current behavior — the config system simply doesn't define overrides for them.
-
-## Technical details
-
-- The `:id` in the route (e.g. `/exercises/math/1`) currently corresponds to the stage number. The `exercises` table also has a `stage` column (`stage-1` through `stage-4`). We use the child's `grade` from `useCurrentChild()` combined with the stage from the route to build the difficulty key.
-- No DB migration needed — all config is frontend.
-- The `useDifficultyLevel` hook is memoized and lightweight (reuses the existing `useCurrentChild` query).
+Alle berichten zijn statische data. Avatar-keuze wordt al opgeslagen in de `children` tabel.
 
