@@ -160,50 +160,33 @@ export function Exercise() {
         <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8">
           {options.map((option, i) => {
             const isSelected = selectedOption === option;
-            const isCorrect = status === 'correct' && option === question.answer;
+            const isCorrect = status === 'correct' && isSelected;
             const isWrong = status === 'incorrect' && isSelected;
             const COLORS = [
-              'from-blue-500 to-blue-600 border-blue-700 hover:from-blue-600 hover:to-blue-700',
-              'from-violet-500 to-violet-600 border-violet-700 hover:from-violet-600 hover:to-violet-700',
-              'from-teal-500 to-teal-600 border-teal-700 hover:from-teal-600 hover:to-teal-700',
-              'from-rose-500 to-rose-600 border-rose-700 hover:from-rose-600 hover:to-rose-700',
+              'from-blue-500 to-blue-600 border-blue-700',
+              'from-violet-500 to-violet-600 border-violet-700',
+              'from-teal-500 to-teal-600 border-teal-700',
+              'from-rose-500 to-rose-600 border-rose-700',
             ];
             return (
               <motion.button
                 key={i}
-                whileHover={{ scale: status === 'idle' ? 1.04 : 1 }}
-                whileTap={{ scale: status === 'idle' ? 0.96 : 1 }}
+                whileHover={{ scale: status === 'idle' ? 1.06 : 1 }}
+                whileTap={{ scale: status === 'idle' ? 0.95 : 1 }}
                 onClick={() => handleSelect(option)}
                 disabled={status !== 'idle'}
                 className={cn(
                   "relative h-24 md:h-28 lg:h-32 rounded-3xl text-4xl md:text-5xl lg:text-6xl font-black transition-all duration-200 flex items-center justify-center overflow-hidden shadow-lg border-b-[6px]",
-                  !isSelected && status === 'idle'
-                    ? `bg-gradient-to-br ${COLORS[i]} text-white hover:-translate-y-1 hover:border-b-[8px] hover:shadow-xl`
-                    : '',
-                  isCorrect ? "bg-gradient-to-br from-emerald-400 to-emerald-500 border-emerald-600 border-b-[6px] text-white scale-105 shadow-xl" : '',
-                  isWrong   ? "bg-gradient-to-br from-red-400 to-rose-500 border-red-600 border-b-[6px] text-white" : '',
+                  isCorrect
+                    ? "bg-gradient-to-br from-emerald-400 to-emerald-500 border-emerald-600 text-white scale-105 shadow-[0_0_24px_rgba(16,185,129,0.4)]"
+                    : isWrong
+                    ? "bg-gradient-to-br from-red-400 to-rose-500 border-red-600 text-white shadow-[0_0_24px_rgba(239,68,68,0.4)]"
+                    : `bg-gradient-to-br ${COLORS[i]} text-white`,
+                  status === 'idle' && "hover:-translate-y-1 hover:border-b-[8px] hover:shadow-xl active:translate-y-0 active:border-b-[4px]",
                 )}
               >
                 <div className="absolute inset-x-0 top-0 h-1/3 bg-white/20 rounded-t-3xl pointer-events-none" />
                 <span className="relative z-10 drop-shadow-sm">{option}</span>
-                {isCorrect && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute inset-0 flex items-center justify-center bg-emerald-400/80 rounded-3xl"
-                  >
-                    <Check className="w-12 h-12 md:w-14 md:h-14 text-white drop-shadow" strokeWidth={4} />
-                  </motion.div>
-                )}
-                {isWrong && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute inset-0 flex items-center justify-center bg-red-500/80 rounded-3xl"
-                  >
-                    <X className="w-12 h-12 md:w-14 md:h-14 text-white drop-shadow" strokeWidth={4} />
-                  </motion.div>
-                )}
               </motion.button>
             );
           })}
