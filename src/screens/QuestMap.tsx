@@ -219,6 +219,18 @@ export function QuestMap() {
           ))}
         </div>
       </div>
+      </div>
+
+      {/* Buddy Encouragement */}
+      {buddyData && (
+        <BuddyBubble
+          message={buddyData.message}
+          mood={buddyData.mood}
+          avatarUrl={buddyData.avatarUrl}
+          avatarName={buddyData.avatarName}
+          onDismiss={() => setBuddyData(null)}
+        />
+      )}
     </div>
   );
 }
