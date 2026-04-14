@@ -52,9 +52,21 @@ export function QuestMap() {
   const { selectedAvatar } = useGame();
   const containerRef = useRef<HTMLDivElement>(null);
   const { trimesters, child } = useTrimesterProgress();
+  const { getMessage, hasAvatar } = useBuddyMessage();
 
   const completedCount = trimesters.filter((t) => t.is_completed).length;
   const overallPct = trimesters.length > 0 ? Math.round((completedCount / trimesters.length) * 100) : 0;
+
+  // Buddy encouragement on mount
+  const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
+  useEffect(() => {
+    if (hasAvatar) {
+      const result = getMessage('map_encourage');
+      if (result) {
+        setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
+      }
+    }
+  }, [hasAvatar]);
 
   useEffect(() => {
     if (containerRef.current) {
