@@ -219,7 +219,6 @@ export function QuestMap() {
           ))}
         </div>
       </div>
-      </div>
 
       {/* Buddy Encouragement */}
       {buddyData && (
