@@ -178,9 +178,9 @@ export function Exercise() {
                 className={cn(
                   "relative h-24 md:h-28 lg:h-32 rounded-3xl text-4xl md:text-5xl lg:text-6xl font-black transition-all duration-200 flex items-center justify-center overflow-hidden shadow-lg border-b-[6px]",
                   isCorrect
-                    ? "bg-gradient-to-br from-emerald-400 to-emerald-500 border-emerald-600 text-white scale-105 shadow-[0_0_24px_rgba(16,185,129,0.4)]"
+                    ? "bg-gradient-to-br from-green-400 to-emerald-600 border-green-700 text-white scale-105 shadow-[0_0_30px_rgba(34,197,94,0.5)]"
                     : isWrong
-                    ? "bg-gradient-to-br from-red-400 to-rose-500 border-red-600 text-white shadow-[0_0_24px_rgba(239,68,68,0.4)]"
+                    ? "bg-gradient-to-br from-rose-500 to-red-700 border-red-800 text-white shadow-[0_0_30px_rgba(225,29,72,0.5)]"
                     : `bg-gradient-to-br ${COLORS[i]} text-white`,
                   status === 'idle' && "hover:-translate-y-1 hover:border-b-[8px] hover:shadow-xl active:translate-y-0 active:border-b-[4px]",
                 )}
