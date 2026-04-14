@@ -313,6 +313,17 @@ export function Dashboard() {
           <ChildRewards />
         </motion.div>
       </div>
+
+      {/* Buddy Greeting */}
+      {buddyData && (
+        <BuddyBubble
+          message={buddyData.message}
+          mood={buddyData.mood}
+          avatarUrl={buddyData.avatarUrl}
+          avatarName={buddyData.avatarName}
+          onDismiss={() => setBuddyData(null)}
+        />
+      )}
     </div>
   );
 }
