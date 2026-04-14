@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Heart, HeartCrack } from 'lucide-react';
+import { BuddyBubble } from '@/components/BuddyBubble';
+import { useBuddyMessage } from '@/hooks/useBuddyMessage';
+import type { BuddyMood } from '@/data/buddyMessages';
 
 interface ExerciseShellProps {
   children: React.ReactNode;
@@ -9,13 +12,37 @@ interface ExerciseShellProps {
   onClose: () => void;
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
+  /** Set to trigger buddy feedback (correct/wrong/complete). Resets on change. */
+  buddyMood?: BuddyMood | null;
 }
 
 /**
  * Shared exercise layout: dark space-themed background with stars,
- * unified header (close button + progress bar + lives).
+ * unified header (close button + progress bar + lives), and buddy integration.
  */
-export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '' }: ExerciseShellProps) {
+export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood }: ExerciseShellProps) {
+  const { getMessage } = useBuddyMessage();
+  const [buddyData, setBuddyData] = useState<{ message: string; mood: BuddyMood; avatarUrl: string; avatarName: string } | null>(null);
+
+  // Show buddy on mood change
+  useEffect(() => {
+    if (!buddyMood) {
+      setBuddyData(null);
+      return;
+    }
+    const situationMap: Record<BuddyMood, 'correct_answer' | 'wrong_answer' | 'exercise_complete' | 'exercise_start' | 'dashboard_greeting'> = {
+      correct: 'correct_answer',
+      wrong: 'wrong_answer',
+      complete: 'exercise_complete',
+      greeting: 'exercise_start',
+      idle: 'exercise_start',
+    };
+    const result = getMessage(situationMap[buddyMood]);
+    if (result) {
+      setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
+    }
+  }, [buddyMood, getMessage]);
+
   return (
     <div
       className={`h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] flex flex-col relative overflow-hidden font-sans ${className}`}
@@ -72,6 +99,18 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
 
       {/* Content */}
       {children}
+
+      {/* Buddy Bubble */}
+      {buddyData && (
+        <BuddyBubble
+          key={`${buddyData.mood}-${buddyData.message}`}
+          message={buddyData.message}
+          mood={buddyData.mood}
+          avatarUrl={buddyData.avatarUrl}
+          avatarName={buddyData.avatarName}
+          onDismiss={() => setBuddyData(null)}
+        />
+      )}
     </div>
   );
 }

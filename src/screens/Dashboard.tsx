@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift } from 'lucide-react';
@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { ChildRewards } from '@/components/ChildRewards';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { useChildProgress } from '@/hooks/useChildProgress';
+import { BuddyBubble } from '@/components/BuddyBubble';
+import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 
 /* ── Decorative forest elements ─────────────────────── */
 const FOREST_DECORATIONS = [
@@ -55,6 +57,18 @@ export function Dashboard() {
   const { selectedAvatar, xp, streak, level } = useGame();
   const { isAdmin } = useAdminRole();
   const { progressData } = useChildProgress();
+  const { getMessage, hasAvatar } = useBuddyMessage();
+
+  // Buddy greeting on mount
+  const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
+  useEffect(() => {
+    if (hasAvatar) {
+      const result = getMessage('dashboard_greeting');
+      if (result) {
+        setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
+      }
+    }
+  }, [hasAvatar]);
 
   // Dynamic stats from child_progress
   const totalExercises = progressData.reduce((s, p) => s + p.exercises_completed, 0);
@@ -299,6 +313,17 @@ export function Dashboard() {
           <ChildRewards />
         </motion.div>
       </div>
+
+      {/* Buddy Greeting */}
+      {buddyData && (
+        <BuddyBubble
+          message={buddyData.message}
+          mood={buddyData.mood}
+          avatarUrl={buddyData.avatarUrl}
+          avatarName={buddyData.avatarName}
+          onDismiss={() => setBuddyData(null)}
+        />
+      )}
     </div>
   );
 }

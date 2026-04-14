@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, Star, Check, ChevronLeft } from "lucide-react";
@@ -6,7 +6,8 @@ import { useGame } from "@/context/GameContext";
 import { cn } from "@/lib/utils";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { useTrimesterProgress } from "@/hooks/useTrimesterProgress";
-
+import { BuddyBubble } from "@/components/BuddyBubble";
+import { useBuddyMessage } from "@/hooks/useBuddyMessage";
 const TRIMESTER_CONFIG = [
   { id: 1, name: "Fluisterbomen", icon: "🌳", yPos: 82, xPos: 40, stagePath: "/app/stage/fluisterbos" },
   { id: 2, name: "Borrelende Beek", icon: "🌊", yPos: 58, xPos: 65, stagePath: "/app/exercises/bonds/2" },
@@ -51,9 +52,21 @@ export function QuestMap() {
   const { selectedAvatar } = useGame();
   const containerRef = useRef<HTMLDivElement>(null);
   const { trimesters, child } = useTrimesterProgress();
+  const { getMessage, hasAvatar } = useBuddyMessage();
 
   const completedCount = trimesters.filter((t) => t.is_completed).length;
   const overallPct = trimesters.length > 0 ? Math.round((completedCount / trimesters.length) * 100) : 0;
+
+  // Buddy encouragement on mount
+  const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
+  useEffect(() => {
+    if (hasAvatar) {
+      const result = getMessage('map_encourage');
+      if (result) {
+        setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
+      }
+    }
+  }, [hasAvatar]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -206,6 +219,17 @@ export function QuestMap() {
           ))}
         </div>
       </div>
+
+      {/* Buddy Encouragement */}
+      {buddyData && (
+        <BuddyBubble
+          message={buddyData.message}
+          mood={buddyData.mood}
+          avatarUrl={buddyData.avatarUrl}
+          avatarName={buddyData.avatarName}
+          onDismiss={() => setBuddyData(null)}
+        />
+      )}
     </div>
   );
 }
