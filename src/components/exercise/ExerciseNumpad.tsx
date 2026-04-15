@@ -44,10 +44,10 @@ export function ExerciseNumpad({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="absolute bottom-0 left-0 right-0 w-full bg-[#1a103c]/95 backdrop-blur-xl p-4 md:p-6 rounded-t-[3rem] border-t-4 border-[#3b2d71] shadow-[0_-15px_50px_rgba(0,0,0,0.6)] z-50"
+          className="absolute bottom-0 left-0 right-0 w-full bg-[#1a103c]/95 backdrop-blur-xl px-3 pt-3 pb-4 md:p-6 rounded-t-[2rem] md:rounded-t-[3rem] border-t-4 border-[#3b2d71] shadow-[0_-15px_50px_rgba(0,0,0,0.6)] z-50"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="w-full flex justify-center mb-4">
+          <div className="w-full flex justify-center mb-2 md:mb-4">
             <button
               onClick={onClose}
               className="w-16 h-2 bg-[#3b2d71] rounded-full hover:bg-[#4c3b82] transition-colors"
@@ -55,17 +55,17 @@ export function ExerciseNumpad({
           </div>
 
           <div className="max-w-sm mx-auto">
-            <div className="grid grid-cols-3 gap-3 md:gap-4 mb-3 md:mb-4">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-2 md:mb-4">
               {KEYS.map((row, rowIndex) => (
                 <React.Fragment key={rowIndex}>
                   {row.map((num) => (
                     <button
                       key={num}
                       onClick={() => onNumberClick(num)}
-                      className="relative aspect-square rounded-2xl bg-[#2d1b54] border-b-[6px] border-[#1c1134] shadow-[0_5px_15px_rgba(0,0,0,0.3)] hover:bg-[#3b2d71] active:border-b-0 active:translate-y-[6px] transition-all flex items-center justify-center group overflow-hidden"
+                      className="relative h-12 md:aspect-square md:h-auto rounded-xl md:rounded-2xl bg-[#2d1b54] border-b-[4px] md:border-b-[6px] border-[#1c1134] shadow-[0_5px_15px_rgba(0,0,0,0.3)] hover:bg-[#3b2d71] active:border-b-0 active:translate-y-[4px] md:active:translate-y-[6px] transition-all flex items-center justify-center group overflow-hidden"
                     >
-                      <div className="absolute top-0 inset-x-0 h-1/3 bg-gradient-to-b from-white/10 to-transparent rounded-t-2xl pointer-events-none" />
-                      <span className="text-3xl md:text-4xl font-black text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-active:scale-95 transition-transform">
+                      <div className="absolute top-0 inset-x-0 h-1/3 bg-gradient-to-b from-white/10 to-transparent rounded-t-xl md:rounded-t-2xl pointer-events-none" />
+                      <span className="text-2xl md:text-4xl font-black text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-active:scale-95 transition-transform">
                         {num}
                       </span>
                     </button>
