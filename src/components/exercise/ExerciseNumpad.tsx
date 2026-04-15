@@ -44,7 +44,7 @@ export function ExerciseNumpad({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="absolute bottom-0 left-0 right-0 w-full h-[30vh] bg-[#1a103c]/95 backdrop-blur-xl px-3 pt-2 pb-3 md:p-6 rounded-t-[2rem] md:rounded-t-[3rem] border-t-4 border-[#3b2d71] shadow-[0_-15px_50px_rgba(0,0,0,0.6)] z-50 flex flex-col"
+          className="absolute bottom-0 left-0 right-0 w-full h-[45vh] bg-[#1a103c]/95 backdrop-blur-xl px-3 pt-2 pb-3 md:p-6 rounded-t-[2rem] md:rounded-t-[3rem] border-t-4 border-[#3b2d71] shadow-[0_-15px_50px_rgba(0,0,0,0.6)] z-50 flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="w-full flex justify-center mb-1">
@@ -54,7 +54,7 @@ export function ExerciseNumpad({
             />
           </div>
 
-          <div className="max-w-sm mx-auto flex-1 flex flex-col gap-1.5 md:gap-4 min-h-0">
+          <div className="max-w-md w-full mx-auto flex-1 flex flex-col gap-2 md:gap-4 min-h-0">
             <div className="grid grid-cols-3 grid-rows-3 gap-1.5 md:gap-4 flex-[3] min-h-0">
               {KEYS.map((row, rowIndex) => (
                 <React.Fragment key={rowIndex}>
