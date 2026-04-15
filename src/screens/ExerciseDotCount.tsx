@@ -195,9 +195,7 @@ export function ExerciseDotCount() {
                   className={cn(
                     'absolute w-11 h-11 rounded-full flex items-center justify-center shadow-lg pointer-events-none',
                     '-translate-x-1/2 -translate-y-1/2',
-                    idx >= target
-                      ? 'bg-gradient-to-br from-orange-400 to-red-400 ring-2 ring-orange-600'
-                      : 'bg-gradient-to-br from-teal-400 to-emerald-500 ring-2 ring-teal-600',
+                    'bg-gradient-to-br from-teal-400 to-emerald-500 ring-2 ring-teal-600',
                   )}
                   style={{ left: `${dot.x}%`, top: `${dot.y}%` }}
                 >
@@ -273,35 +271,20 @@ export function ExerciseDotCount() {
 
       {/* ── Sticky action bar ── */}
       <div className="flex-shrink-0 bg-[#1a103c]/90 backdrop-blur-sm border-t-2 border-[#3b2d71] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] relative z-10">
-        <div className="max-w-md mx-auto w-full flex items-center gap-2">
-
-          {/* Counter badge */}
-          <div className={cn(
-            'flex items-center gap-1 px-3 py-2.5 rounded-2xl border-2 font-black text-sm transition-colors flex-shrink-0 shadow-sm',
-            isOver
-              ? 'bg-orange-500/20 border-orange-400/40 text-orange-400'
-              : isExact
-                ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-400'
-                : 'bg-[#1c1134] border-[#3b2d71] text-white/80'
-          )}>
-            <span className="text-base leading-none">{dotCount}</span>
-            <span className="text-[#4c3b82] text-xs">/</span>
-            <span className="text-base leading-none">{target}</span>
-          </div>
+        <div className="max-w-md mx-auto w-full flex items-center gap-3">
 
           {/* Delete last dot */}
           <button
             onClick={handleDeleteLast}
             disabled={dotCount === 0 || status !== 'idle'}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-bold text-sm transition-all flex-shrink-0',
+              'flex items-center justify-center w-12 h-12 rounded-2xl border-2 transition-all flex-shrink-0',
               dotCount > 0 && status === 'idle'
                 ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-amber-500/20 hover:border-amber-400/40 hover:text-amber-400 active:scale-95'
                 : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
             )}
           >
-            <Undo2 className="w-4 h-4" strokeWidth={2.5} />
-            <span className="hidden sm:inline">Ongedaan</span>
+            <Undo2 className="w-5 h-5" strokeWidth={2.5} />
           </button>
 
           {/* Clear all */}
@@ -309,14 +292,13 @@ export function ExerciseDotCount() {
             onClick={clearAllDots}
             disabled={dotCount === 0 || status !== 'idle'}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-bold text-sm transition-all flex-shrink-0',
+              'flex items-center justify-center w-12 h-12 rounded-2xl border-2 transition-all flex-shrink-0',
               dotCount > 0 && status === 'idle'
                 ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-400 active:scale-95'
                 : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
             )}
           >
-            <Trash2 className="w-4 h-4" strokeWidth={2.5} />
-            Wis alles
+            <Trash2 className="w-5 h-5" strokeWidth={2.5} />
           </button>
 
           {/* Check / Confirm */}
@@ -325,13 +307,13 @@ export function ExerciseDotCount() {
             onClick={handleConfirm}
             disabled={dotCount === 0 || status !== 'idle'}
             className={cn(
-              'ml-auto flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all flex-shrink-0 shadow-md',
+              'ml-auto flex items-center justify-center gap-2 flex-1 h-12 rounded-2xl font-black text-base transition-all shadow-md',
               dotCount > 0 && status === 'idle'
                 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
                 : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
             )}
           >
-            <Check className="w-4 h-4" strokeWidth={3} />
+            <Check className="w-5 h-5" strokeWidth={3} />
             Controleer
           </motion.button>
         </div>
