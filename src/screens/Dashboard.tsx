@@ -232,7 +232,7 @@ export function Dashboard() {
               Dagelijkse Quests
             </h3>
             <span className="text-[10px] font-black text-[#a78bfa] bg-[#2d1b54] px-3 py-1 rounded-full uppercase tracking-widest border border-[#3b2d71]">
-              {completedQuests}/{DAILY_QUESTS.length} klaar
+              {completedQuests}/{dailyQuests.length} klaar
             </span>
           </div>
 
