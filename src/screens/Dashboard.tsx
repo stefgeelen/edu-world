@@ -185,24 +185,37 @@ export function Dashboard() {
       {/* ── Content ─────────────────────────────────── */}
       <div className="relative z-10 px-5 max-w-2xl mx-auto w-full space-y-5 flex-1">
 
-        {/* XP Progress */}
+        {/* ── XP Vitrine ─────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-[#3b2d71] shadow-xl"
+          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-violet-500/30 shadow-[0_8px_32px_rgba(167,139,250,0.12)]"
         >
-          <div className="flex justify-between items-end mb-4">
-            <div>
-              <p className="text-[10px] font-black text-[#a78bfa] uppercase tracking-[0.2em] mb-1">Huidig Niveau</p>
-              <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200">{level}</span>
+          {/* Ornament corners */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-violet-400/40 rounded-tl-md pointer-events-none" />
+          <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-violet-400/40 rounded-tr-md pointer-events-none" />
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-violet-400/40 rounded-bl-md pointer-events-none" />
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-violet-400/40 rounded-br-md pointer-events-none" />
+
+          <div className="flex justify-between items-center mb-4 relative z-10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-[0_0_16px_rgba(167,139,250,0.4)]">
+                <Zap className="w-5 h-5 text-[#1a103c] fill-[#1a103c]" strokeWidth={2.5} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-violet-300/60 uppercase tracking-widest leading-none mb-1">Huidig Niveau</p>
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-none">{level}</span>
+              </div>
             </div>
             <div className="text-right">
               <span className="text-2xl font-black text-cyan-300">{xp}</span>
-              <span className="text-xs font-bold text-[#7c6bae] ml-1">/ {xpRequired} XP</span>
+              <span className="text-xs font-bold text-[#7c6bae] ml-1">/ {xpRequired}</span>
+              <p className="text-[10px] font-bold text-violet-300/60 uppercase tracking-widest mt-0.5">XP</p>
             </div>
           </div>
-          <div className="h-4 w-full bg-[#2d1b54] rounded-full overflow-hidden border-2 border-[#3b2d71]">
+
+          <div className="h-4 w-full bg-[#0f0828] rounded-full overflow-hidden border-2 border-[#3b2d71] relative z-10">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
