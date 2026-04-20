@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Plus, Trash2, Loader2, X, BookOpen, Calculator, PenTool, CheckCircle2 } from 'lucide-react';
+import { Gift, Plus, Trash2, Pencil, Loader2, X, BookOpen, Calculator, PenTool, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const SUBJECT_OPTIONS = [
   { value: 'reading' as const, label: 'Lezen', icon: BookOpen, color: 'text-violet-600 bg-violet-50' },
@@ -16,6 +20,8 @@ export function ParentRewards() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: children = [] } = useQuery({
     queryKey: ['parent-children', user?.id],
@@ -63,13 +69,20 @@ export function ParentRewards() {
           <p className="text-sm text-slate-500 font-medium">Motiveer je kinderen met beloningen</p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition-colors"
+          onClick={() => { setEditing(null); setShowForm(true); }}
+          disabled={children.length === 0}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-blue-500 hover:bg-blue-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white shadow-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
           Nieuwe beloning
         </button>
       </div>
+
+      {children.length === 0 && !isLoading && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800 font-medium">
+          Voeg eerst een kind toe voordat je beloningen kunt aanmaken.
+        </div>
+      )}
 
       {/* Form Modal */}
       <AnimatePresence>
@@ -77,10 +90,12 @@ export function ParentRewards() {
           <RewardForm
             children={children}
             parentId={user!.id}
-            onClose={() => setShowForm(false)}
+            existing={editing}
+            onClose={() => { setShowForm(false); setEditing(null); }}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['parent-rewards'] });
               setShowForm(false);
+              setEditing(null);
             }}
           />
         )}
@@ -136,16 +151,22 @@ export function ParentRewards() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    if (confirm('Weet je zeker dat je deze beloning wilt verwijderen?')) {
-                      deleteMutation.mutate(reward.id);
-                    }
-                  }}
-                  className="p-2 hover:bg-red-50 rounded-xl transition-colors text-slate-400 hover:text-red-500"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { setEditing(reward); setShowForm(true); }}
+                    className="p-2 hover:bg-blue-50 rounded-xl transition-colors text-slate-400 hover:text-blue-500"
+                    aria-label="Bewerken"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteId(reward.id)}
+                    className="p-2 hover:bg-red-50 rounded-xl transition-colors text-slate-400 hover:text-red-500"
+                    aria-label="Verwijderen"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold text-slate-500">
@@ -163,41 +184,80 @@ export function ParentRewards() {
           );
         })}
       </div>
+
+      {/* Delete confirm dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Beloning verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Weet je zeker dat je deze beloning wilt verwijderen? Dit kan niet ongedaan gemaakt worden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId);
+                setDeleteId(null);
+              }}
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-/* ── Reward Creation Form ───────────────────── */
+/* ── Reward Creation / Edit Form ───────────────────── */
 function RewardForm({
   children,
   parentId,
+  existing,
   onClose,
   onSuccess,
 }: {
   children: { id: string; name: string }[];
   parentId: string;
+  existing?: { id: string; title: string; subject: 'math' | 'reading' | 'writing'; required_exercises: number; child_id: string } | null;
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [title, setTitle] = useState('');
-  const [subject, setSubject] = useState<'math' | 'reading' | 'writing'>('math');
-  const [requiredExercises, setRequiredExercises] = useState(5);
-  const [childId, setChildId] = useState(children[0]?.id ?? '');
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [subject, setSubject] = useState<'math' | 'reading' | 'writing'>(existing?.subject ?? 'math');
+  const [requiredExercises, setRequiredExercises] = useState(existing?.required_exercises ?? 5);
+  const [childId, setChildId] = useState(existing?.child_id ?? children[0]?.id ?? '');
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (!title.trim() || !childId) return;
+    if (requiredExercises < 1 || requiredExercises > 100) {
+      toast.error('Aantal oefeningen moet tussen 1 en 100 zijn.');
+      return;
+    }
     setSaving(true);
     try {
-      const { error } = await supabase.from('rewards').insert({
-        parent_id: parentId,
-        child_id: childId,
-        title: title.trim(),
-        subject,
-        required_exercises: requiredExercises,
-      });
-      if (error) throw error;
-      toast.success('Beloning aangemaakt!');
+      if (existing?.id) {
+        const { error } = await supabase
+          .from('rewards')
+          .update({ title: title.trim(), subject, required_exercises: requiredExercises, child_id: childId })
+          .eq('id', existing.id);
+        if (error) throw error;
+        toast.success('Beloning bijgewerkt!');
+      } else {
+        const { error } = await supabase.from('rewards').insert({
+          parent_id: parentId,
+          child_id: childId,
+          title: title.trim(),
+          subject,
+          required_exercises: requiredExercises,
+        });
+        if (error) throw error;
+        toast.success('Beloning aangemaakt!');
+      }
       onSuccess();
     } catch {
       toast.error('Er ging iets mis.');
@@ -222,7 +282,7 @@ function RewardForm({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-black text-slate-900">Nieuwe beloning</h3>
+          <h3 className="text-xl font-black text-slate-900">{existing ? 'Beloning bewerken' : 'Nieuwe beloning'}</h3>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -303,7 +363,7 @@ function RewardForm({
             disabled={!title.trim() || !childId || saving}
             className="w-full py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
-            {saving ? 'Opslaan...' : 'Beloning opslaan'}
+            {saving ? 'Opslaan...' : existing ? 'Wijzigingen opslaan' : 'Beloning opslaan'}
           </button>
         </div>
       </motion.div>

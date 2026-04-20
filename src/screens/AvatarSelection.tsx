@@ -1,20 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, UserPlus, BookOpen, GraduationCap, Globe, Map, Code } from 'lucide-react';
+import { Sparkles, ArrowRight, UserPlus, BookOpen, GraduationCap, Globe, Map, Code, Loader2 } from 'lucide-react';
 import { Drawer } from 'vaul';
 import { useGame, avatars } from '@/context/GameContext';
 import type { Avatar } from '@/context/GameContext';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export function AvatarSelection() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { setSelectedAvatar, selectedAvatar } = useGame();
+  const { data: child, isLoading: childLoading } = useCurrentChild();
   const [selectedForDetails, setSelectedForDetails] = useState<Avatar | null>(null);
 
+  // Auto-redirect to dashboard if child already has avatar
+  useEffect(() => {
+    if (!childLoading && child?.avatar_id) {
+      navigate('/app/dashboard', { replace: true });
+    }
+    // No child at all → send to add-child
+    if (!childLoading && !child) {
+      navigate('/app/add-child', { replace: true });
+    }
+  }, [child, childLoading, navigate]);
+
+  const saveAvatarMutation = useMutation({
+    mutationFn: async (avatar: Avatar) => {
+      if (!child?.id) throw new Error('No child');
+      const { error } = await supabase
+        .from('children')
+        .update({ avatar_id: avatar.id, avatar_url: avatar.imageUrl })
+        .eq('id', child.id);
+      if (error) throw error;
+      return avatar;
+    },
+    onSuccess: (avatar) => {
+      setSelectedAvatar(avatar);
+      queryClient.invalidateQueries({ queryKey: ['my-child'] });
+      queryClient.invalidateQueries({ queryKey: ['parent-children'] });
+      navigate('/app/dashboard');
+    },
+    onError: () => toast.error('Kon studiemaatje niet opslaan.'),
+  });
+
   const handleSelect = (avatar: Avatar) => {
-    setSelectedAvatar(avatar);
-    navigate('/app/dashboard');
+    saveAvatarMutation.mutate(avatar);
   };
 
   const getSubjectIcon = (subject: string) => {
@@ -219,8 +254,9 @@ export function AvatarSelection() {
                   {/* Action Button */}
                   <button
                     onClick={() => handleSelect(selectedForDetails)}
+                    disabled={saveAvatarMutation.isPending}
                     className={cn(
-                      "w-full h-[4.5rem] rounded-[2rem] font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 text-white shadow-lg active:scale-95 border-b-[6px] active:border-b-0 active:translate-y-[6px]",
+                      "w-full h-[4.5rem] rounded-[2rem] font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 text-white shadow-lg active:scale-95 border-b-[6px] active:border-b-0 active:translate-y-[6px] disabled:opacity-60 disabled:cursor-wait",
                       selectedForDetails.id === 'pixel' && "bg-blue-600 hover:bg-blue-500 border-blue-800 shadow-blue-500/40",
                       selectedForDetails.id === 'zaza' && "bg-purple-600 hover:bg-purple-500 border-purple-800 shadow-purple-500/40",
                       selectedForDetails.id === 'riff' && "bg-orange-600 hover:bg-orange-500 border-orange-800 shadow-orange-500/40",
@@ -228,8 +264,14 @@ export function AvatarSelection() {
                       selectedForDetails.id === 'sparky' && "bg-teal-600 hover:bg-teal-500 border-teal-800 shadow-teal-500/40",
                     )}
                   >
-                    Kies {selectedForDetails.name}
-                    <ArrowRight className="w-6 h-6" strokeWidth={3} />
+                    {saveAvatarMutation.isPending ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <>
+                        Kies {selectedForDetails.name}
+                        <ArrowRight className="w-6 h-6" strokeWidth={3} />
+                      </>
+                    )}
                   </button>
                   <button 
                     onClick={() => setSelectedForDetails(null)}

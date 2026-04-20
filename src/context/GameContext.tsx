@@ -39,7 +39,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   // Derive xp/level/streak from child data (single source of truth from DB)
   const xp = child?.xp ?? 0;
   const level = child?.level ?? 1;
-  const streak = 0; // streak not yet tracked in child query fields
+  const streak = child?.streak ?? 0;
 
   // Sync avatar from child data
   useEffect(() => {

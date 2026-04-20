@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import { useCelebration } from '@/context/CelebrationContext';
 
 /**
  * Returns the current child's ID for the logged-in parent.
@@ -35,13 +36,25 @@ interface CompleteExerciseParams {
   answers?: unknown[];
 }
 
+interface CompleteExerciseResult {
+  attempt_id: string;
+  xp_earned: number;
+  all_trimesters_completed: boolean;
+  completed_rewards: { id: string; title: string }[];
+  leveled_up?: boolean;
+  new_level?: number;
+  streak?: number;
+}
+
 /**
  * Mutation that calls the complete_exercise database function.
- * Automatically invalidates all progress-related queries.
+ * Automatically invalidates all progress-related queries and triggers celebrations.
  */
 export function useCompleteExercise() {
   const queryClient = useQueryClient();
   const { data: child } = useCurrentChild();
+  const { user } = useAuth();
+  const { celebrateRewards, celebratePromotion } = useCelebration();
 
   return useMutation({
     mutationFn: async (params: CompleteExerciseParams) => {
@@ -58,9 +71,9 @@ export function useCompleteExercise() {
       });
 
       if (error) throw error;
-      return data as { attempt_id: string; xp_earned: number; all_trimesters_completed: boolean; completed_rewards: { id: string; title: string }[] };
+      return data as unknown as CompleteExerciseResult;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['stage-exercises-progress'] });
       queryClient.invalidateQueries({ queryKey: ['child-progress'] });
       queryClient.invalidateQueries({ queryKey: ['trimester-progress'] });
@@ -69,6 +82,19 @@ export function useCompleteExercise() {
       queryClient.invalidateQueries({ queryKey: ['recent-attempts'] });
       queryClient.invalidateQueries({ queryKey: ['child-rewards'] });
       queryClient.invalidateQueries({ queryKey: ['parent-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['parent-rewards', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['parent-children'] });
+      queryClient.invalidateQueries({ queryKey: ['parent-children', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['game-badges'] });
+
+      // Trigger celebrations
+      if (data?.completed_rewards && data.completed_rewards.length > 0) {
+        celebrateRewards(data.completed_rewards);
+      }
+      if (data?.all_trimesters_completed) {
+        celebratePromotion();
+      }
     },
   });
 }
+
