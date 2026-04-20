@@ -254,8 +254,9 @@ export function AvatarSelection() {
                   {/* Action Button */}
                   <button
                     onClick={() => handleSelect(selectedForDetails)}
+                    disabled={saveAvatarMutation.isPending}
                     className={cn(
-                      "w-full h-[4.5rem] rounded-[2rem] font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 text-white shadow-lg active:scale-95 border-b-[6px] active:border-b-0 active:translate-y-[6px]",
+                      "w-full h-[4.5rem] rounded-[2rem] font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 text-white shadow-lg active:scale-95 border-b-[6px] active:border-b-0 active:translate-y-[6px] disabled:opacity-60 disabled:cursor-wait",
                       selectedForDetails.id === 'pixel' && "bg-blue-600 hover:bg-blue-500 border-blue-800 shadow-blue-500/40",
                       selectedForDetails.id === 'zaza' && "bg-purple-600 hover:bg-purple-500 border-purple-800 shadow-purple-500/40",
                       selectedForDetails.id === 'riff' && "bg-orange-600 hover:bg-orange-500 border-orange-800 shadow-orange-500/40",
@@ -263,8 +264,14 @@ export function AvatarSelection() {
                       selectedForDetails.id === 'sparky' && "bg-teal-600 hover:bg-teal-500 border-teal-800 shadow-teal-500/40",
                     )}
                   >
-                    Kies {selectedForDetails.name}
-                    <ArrowRight className="w-6 h-6" strokeWidth={3} />
+                    {saveAvatarMutation.isPending ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <>
+                        Kies {selectedForDetails.name}
+                        <ArrowRight className="w-6 h-6" strokeWidth={3} />
+                      </>
+                    )}
                   </button>
                   <button 
                     onClick={() => setSelectedForDetails(null)}
