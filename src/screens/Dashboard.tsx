@@ -260,7 +260,7 @@ export function Dashboard() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
           onClick={() => navigate('/app/map')}
-          className="relative overflow-hidden w-full p-5 rounded-3xl flex items-center justify-between bg-gradient-to-br from-emerald-500/95 via-teal-500/90 to-cyan-500/95 border-[3px] border-emerald-300/40 shadow-[0_8px_32px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.4)] transition-all group outline-none active:scale-[0.98]"
+          className="lg:col-span-2 lg:order-first relative overflow-hidden w-full p-5 rounded-3xl flex items-center justify-between bg-gradient-to-br from-emerald-500/95 via-teal-500/90 to-cyan-500/95 border-[3px] border-emerald-300/40 shadow-[0_8px_32px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.4)] transition-all group outline-none active:scale-[0.98]"
         >
           {/* Ornament corners */}
           <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-white/60 rounded-tl-md pointer-events-none" />
