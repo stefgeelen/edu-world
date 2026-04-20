@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift } from 'lucide-react';
+import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift, Award, BookOpen, Target, Crown, Heart, Lock, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGame } from '@/context/GameContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
@@ -13,6 +13,11 @@ import { useChildProgress } from '@/hooks/useChildProgress';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+
+/* ── Icon registry for db-driven badges ──────────────── */
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Sparkles, Flame, Star, Target, Trophy, BookOpen, Zap, Award, Heart, Crown,
+};
 
 /* ── Decorative forest elements ─────────────────────── */
 const FOREST_DECORATIONS = [
@@ -54,7 +59,7 @@ function StarryBackground() {
 export function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { selectedAvatar, xp, streak, level } = useGame();
+  const { selectedAvatar, xp, streak, level, badges } = useGame();
   const { isAdmin } = useAdminRole();
   const { progressData } = useChildProgress();
   const { getMessage, hasAvatar } = useBuddyMessage();
@@ -108,6 +113,16 @@ export function Dashboard() {
   const xpRequired = level * 1000;
   const progress = Math.min((xp / xpRequired) * 100, 100);
   const completedQuests = dailyQuests.filter(q => q.done).length;
+
+  // Trophy room: real badges from DB
+  const unlockedBadges = useMemo(() => badges.filter(b => b.isUnlocked), [badges]);
+  const showcaseBadges = useMemo(() => unlockedBadges.slice(0, 3), [unlockedBadges]);
+  const nextBadge = useMemo(() => {
+    const inProgress = badges
+      .filter(b => !b.isUnlocked && b.progress > 0)
+      .sort((a, b) => (b.progress / b.maxProgress) - (a.progress / a.maxProgress));
+    return inProgress[0] ?? badges.find(b => !b.isUnlocked) ?? null;
+  }, [badges]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -272,32 +287,106 @@ export function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Badges */}
+        {/* ── Trofeeënkamer ────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
           onClick={() => navigate('/app/badges')}
-          className="bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-[#3b2d71] shadow-xl cursor-pointer hover:border-amber-500/40 transition-all active:scale-[0.98]"
+          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-amber-500/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)] cursor-pointer hover:border-amber-400/60 hover:shadow-[0_8px_40px_rgba(251,191,36,0.25)] transition-all active:scale-[0.99] group"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <Trophy className="w-5 h-5 text-amber-400" />
-            <h3 className="text-sm font-black text-amber-200">Trofeeën</h3>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { icon: '⭐', bg: 'bg-amber-500/20 border-amber-500/30' },
-              { icon: '🏅', bg: 'bg-purple-500/20 border-purple-500/30' },
-              { icon: '🔒', bg: 'bg-[#2d1b54] border-[#3b2d71] opacity-50' },
-            ].map((b, i) => (
-              <div key={i} className={cn("aspect-square rounded-xl flex items-center justify-center text-lg border-2", b.bg)}>
-                {b.icon}
+          {/* Ornament corners */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400/40 rounded-tl-md pointer-events-none" />
+          <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400/40 rounded-tr-md pointer-events-none" />
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-amber-400/40 rounded-bl-md pointer-events-none" />
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-amber-400/40 rounded-br-md pointer-events-none" />
+
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_16px_rgba(251,191,36,0.4)]">
+                <Trophy className="w-5 h-5 text-[#1a103c]" strokeWidth={2.5} />
               </div>
-            ))}
+              <div>
+                <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-none">
+                  Trofeeënkamer
+                </h3>
+                <p className="text-[10px] font-bold text-amber-300/60 uppercase tracking-widest mt-0.5">
+                  {unlockedBadges.length} / {badges.length} verdiend
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-amber-400/60 group-hover:translate-x-0.5 group-hover:text-amber-300 transition-all" strokeWidth={3} />
           </div>
-          <p className="text-[10px] font-bold text-[#7c6bae] mt-2 flex items-center gap-1">
-            Bekijk alles <ChevronRight className="w-3 h-3" />
-          </p>
+
+          {/* Showcase: 3 slots */}
+          <div className="grid grid-cols-3 gap-2.5 mb-4 relative z-10">
+            {[0, 1, 2].map(i => {
+              const badge = showcaseBadges[i];
+              if (!badge) {
+                return (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-2xl bg-[#0f0828]/60 border-2 border-dashed border-[#3b2d71] flex items-center justify-center"
+                  >
+                    <Lock className="w-4 h-4 text-[#5b4d8a]" />
+                  </div>
+                );
+              }
+              const Icon = BADGE_ICONS[badge.icon] ?? Trophy;
+              return (
+                <div
+                  key={badge.id}
+                  className="relative aspect-square rounded-2xl flex items-center justify-center border-2 border-white/10 shadow-lg overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${badge.gradientFrom}, ${badge.gradientTo})`,
+                    boxShadow: `0 4px 20px ${badge.gradientFrom}55`,
+                  }}
+                  title={badge.name}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+                  <Icon className="w-7 h-7 text-white drop-shadow-md relative z-10" strokeWidth={2.2} />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-300 border-2 border-[#1a103c] flex items-center justify-center">
+                    <Sparkles className="w-2 h-2 text-[#1a103c]" strokeWidth={3} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Next badge progress */}
+          {nextBadge && (() => {
+            const Icon = BADGE_ICONS[nextBadge.icon] ?? Trophy;
+            const pct = Math.min((nextBadge.progress / nextBadge.maxProgress) * 100, 100);
+            return (
+              <div className="relative z-10 bg-[#0f0828]/60 rounded-2xl p-3 border border-[#3b2d71]">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 opacity-60"
+                    style={{ background: `linear-gradient(135deg, ${nextBadge.gradientFrom}, ${nextBadge.gradientTo})` }}
+                  >
+                    <Icon className="w-4 h-4 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-black text-amber-300/70 uppercase tracking-wider">Volgende trofee</p>
+                    <p className="text-xs font-bold text-white/90 truncate">{nextBadge.name}</p>
+                  </div>
+                  <span className="text-[11px] font-black text-amber-200 whitespace-nowrap">
+                    {nextBadge.progress}/{nextBadge.maxProgress}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-[#2d1b54] rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                    className="h-full rounded-full"
+                    style={{ background: `linear-gradient(90deg, ${nextBadge.gradientFrom}, ${nextBadge.gradientTo})` }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </motion.div>
 
         {/* Rewards */}
