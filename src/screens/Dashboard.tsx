@@ -141,45 +141,76 @@ export function Dashboard() {
         </div>
       ))}
 
-      {/* ── Header ──────────────────────────────────── */}
+      {/* ── Header Vitrine ──────────────────────────── */}
       <div className="relative z-10 px-5 pt-6 pb-4 max-w-2xl mx-auto w-full">
-        <div className="flex items-center justify-between">
-          {/* Avatar + greeting */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/20 bg-[#2d1b54] flex-shrink-0">
-              {selectedAvatar ? (
-                <ImageWithFallback src={selectedAvatar.imageUrl} alt="avatar" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-[#3b2d71] animate-pulse" />
-              )}
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200">
-                Hoi, {selectedAvatar?.name || 'Vriend'}!
-              </h2>
-              <p className="text-xs font-bold text-[#a78bfa] uppercase tracking-widest">Groep {level}</p>
-            </div>
-          </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-amber-400/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)]"
+        >
+          {/* Ornament corners */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400/40 rounded-tl-md pointer-events-none" />
+          <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400/40 rounded-tr-md pointer-events-none" />
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-amber-400/40 rounded-bl-md pointer-events-none" />
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-amber-400/40 rounded-br-md pointer-events-none" />
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-[#2d1b54]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border-2 border-orange-500/40">
-              <Flame className="w-4 h-4 text-orange-400 fill-orange-400" />
-              <span className="text-orange-300 font-black text-sm">{streak}</span>
-            </div>
-            {isAdmin && (
-              <button onClick={() => navigate('/admin')} className="w-10 h-10 bg-[#2d1b54] rounded-full flex items-center justify-center border-b-[3px] border-[#1c1134] active:border-b-0 active:translate-y-0.5 transition-all" title="Admin">
-                <Shield className="w-4 h-4 text-[#9d8bce]" />
+          <div className="flex items-center justify-between relative z-10">
+            {/* Avatar + greeting — interactive buddy */}
+            <button
+              onClick={() => {
+                if (!hasAvatar) return;
+                const result = getMessage('dashboard_greeting');
+                if (result) setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
+              }}
+              className="flex items-center gap-3 group outline-none active:scale-[0.98] transition-transform"
+              aria-label="Praat met je studiemaatje"
+            >
+              <div className="relative">
+                {/* Glow halo */}
+                <div className="absolute inset-0 rounded-full bg-amber-400/30 blur-md animate-pulse" />
+                <div className="relative w-14 h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/30 bg-[#2d1b54] flex-shrink-0 group-hover:border-amber-300 transition-colors animate-buddy-idle-float">
+                  {selectedAvatar ? (
+                    <ImageWithFallback src={selectedAvatar.imageUrl} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#3b2d71] animate-pulse" />
+                  )}
+                </div>
+                {/* Live indicator */}
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-400 border-2 border-[#1a103c] flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                </div>
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-1">Studiemaatje</p>
+                <h2 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight">
+                  Hoi, {selectedAvatar?.name || 'Vriend'}!
+                </h2>
+                <p className="text-[10px] font-bold text-[#a78bfa] flex items-center gap-1 mt-0.5">
+                  <Sparkles className="w-2.5 h-2.5" /> Tik om te praten
+                </p>
+              </div>
+            </button>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-[#0f0828]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border-2 border-orange-500/40 shadow-[0_0_12px_rgba(249,115,22,0.25)]">
+                <Flame className="w-4 h-4 text-orange-400 fill-orange-400" />
+                <span className="text-orange-300 font-black text-sm">{streak}</span>
+              </div>
+              {isAdmin && (
+                <button onClick={() => navigate('/admin')} className="w-10 h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Admin">
+                  <Shield className="w-4 h-4 text-[#9d8bce]" />
+                </button>
+              )}
+              <button onClick={() => navigate('/app/parent')} className="w-10 h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Ouderportaal">
+                <Users className="w-4 h-4 text-[#9d8bce]" />
               </button>
-            )}
-            <button onClick={() => navigate('/app/parent')} className="w-10 h-10 bg-[#2d1b54] rounded-full flex items-center justify-center border-b-[3px] border-[#1c1134] active:border-b-0 active:translate-y-0.5 transition-all" title="Ouderportaal">
-              <Users className="w-4 h-4 text-[#9d8bce]" />
-            </button>
-            <button onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }} className="w-10 h-10 bg-[#2d1b54] rounded-full flex items-center justify-center border-b-[3px] border-[#1c1134] active:border-b-0 active:translate-y-0.5 transition-all" title="Uitloggen">
-              <LogOut className="w-4 h-4 text-[#9d8bce]" />
-            </button>
+              <button onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }} className="w-10 h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Uitloggen">
+                <LogOut className="w-4 h-4 text-[#9d8bce]" />
+              </button>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* ── Content ─────────────────────────────────── */}
