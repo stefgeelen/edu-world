@@ -47,7 +47,26 @@ export function ParentLayout() {
                 </button>
               )}
               <button
+                onClick={() => navigate('/auth/setup-pin?redirect=/app/parent')}
+                className="p-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors border border-blue-200"
+                title="Toegangscode wijzigen"
+              >
+                <KeyRound className="w-5 h-5 text-blue-600" />
+              </button>
+              <button
+                onClick={() => {
+                  parentPinSession.lock();
+                  toast.success('Ouderportaal vergrendeld');
+                  navigate('/app/dashboard');
+                }}
+                className="p-2.5 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200"
+                title="Vergrendelen"
+              >
+                <Lock className="w-5 h-5 text-amber-600" />
+              </button>
+              <button
                 onClick={async () => {
+                  parentPinSession.lock();
                   await supabase.auth.signOut();
                   navigate('/auth');
                 }}
