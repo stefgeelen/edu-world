@@ -142,11 +142,11 @@ export function Dashboard() {
       ))}
 
       {/* ── Header Vitrine ──────────────────────────── */}
-      <div className="relative z-10 px-5 pt-6 pb-4 max-w-2xl mx-auto w-full">
+      <div className="relative z-10 px-4 sm:px-5 pt-4 sm:pt-6 pb-4 max-w-2xl lg:max-w-5xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-amber-400/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)]"
+          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-3 sm:p-4 border-[3px] border-amber-400/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)]"
         >
           {/* Ornament corners */}
           <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400/40 rounded-tl-md pointer-events-none" />
@@ -154,7 +154,7 @@ export function Dashboard() {
           <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-amber-400/40 rounded-bl-md pointer-events-none" />
           <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-amber-400/40 rounded-br-md pointer-events-none" />
 
-          <div className="flex items-center justify-between relative z-10">
+          <div className="flex items-center justify-between gap-3 relative z-10 min-w-0">
             {/* Avatar + greeting — interactive buddy */}
             <button
               onClick={() => {
@@ -162,50 +162,48 @@ export function Dashboard() {
                 const result = getMessage('dashboard_greeting');
                 if (result) setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
               }}
-              className="flex items-center gap-3 group outline-none active:scale-[0.98] transition-transform"
+              className="flex items-center gap-2.5 sm:gap-3 group outline-none active:scale-[0.98] transition-transform min-w-0 flex-1"
               aria-label="Praat met je studiemaatje"
             >
-              <div className="relative">
-                {/* Glow halo */}
+              <div className="relative shrink-0">
                 <div className="absolute inset-0 rounded-full bg-amber-400/30 blur-md animate-pulse" />
-                <div className="relative w-14 h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/30 bg-[#2d1b54] flex-shrink-0 group-hover:border-amber-300 transition-colors animate-buddy-idle-float">
+                <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/30 bg-[#2d1b54] group-hover:border-amber-300 transition-colors animate-buddy-idle-float">
                   {selectedAvatar ? (
                     <ImageWithFallback src={selectedAvatar.imageUrl} alt="avatar" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-[#3b2d71] animate-pulse" />
                   )}
                 </div>
-                {/* Live indicator */}
                 <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-400 border-2 border-[#1a103c] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 </div>
               </div>
-              <div className="text-left">
-                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-1">Studiemaatje</p>
-                <h2 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight">
+              <div className="text-left min-w-0 flex-1">
+                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">Studiemaatje</p>
+                <h2 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight truncate">
                   Hoi, {selectedAvatar?.name || 'Vriend'}!
                 </h2>
-                <p className="text-[10px] font-bold text-[#a78bfa] flex items-center gap-1 mt-0.5">
-                  <Sparkles className="w-2.5 h-2.5" /> Tik om te praten
+                <p className="text-[10px] font-bold text-[#a78bfa] flex items-center gap-1 mt-0.5 truncate">
+                  <Sparkles className="w-2.5 h-2.5 shrink-0" /> Tik om te praten
                 </p>
               </div>
             </button>
 
             {/* Action buttons */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-[#0f0828]/80 backdrop-blur-sm px-3 py-1.5 rounded-full border-2 border-orange-500/40 shadow-[0_0_12px_rgba(249,115,22,0.25)]">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-[#0f0828]/80 backdrop-blur-sm px-2 sm:px-3 py-1.5 rounded-full border-2 border-orange-500/40 shadow-[0_0_12px_rgba(249,115,22,0.25)]">
                 <Flame className="w-4 h-4 text-orange-400 fill-orange-400" />
                 <span className="text-orange-300 font-black text-sm">{streak}</span>
               </div>
               {isAdmin && (
-                <button onClick={() => navigate('/admin')} className="w-10 h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Admin">
+                <button onClick={() => navigate('/admin')} className="hidden sm:flex w-10 h-10 bg-[#0f0828]/80 rounded-full items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Admin">
                   <Shield className="w-4 h-4 text-[#9d8bce]" />
                 </button>
               )}
-              <button onClick={() => navigate('/app/parent')} className="w-10 h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Ouderportaal">
+              <button onClick={() => navigate('/app/parent')} className="w-9 h-9 sm:w-10 sm:h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Ouderportaal">
                 <Users className="w-4 h-4 text-[#9d8bce]" />
               </button>
-              <button onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }} className="w-10 h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Uitloggen">
+              <button onClick={handleSignOut} className="w-9 h-9 sm:w-10 sm:h-10 bg-[#0f0828]/80 rounded-full flex items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Uitloggen">
                 <LogOut className="w-4 h-4 text-[#9d8bce]" />
               </button>
             </div>
