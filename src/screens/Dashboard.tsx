@@ -59,7 +59,7 @@ function StarryBackground() {
 export function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { selectedAvatar, xp, streak, level } = useGame();
+  const { selectedAvatar, xp, streak, level, badges } = useGame();
   const { isAdmin } = useAdminRole();
   const { progressData } = useChildProgress();
   const { getMessage, hasAvatar } = useBuddyMessage();
