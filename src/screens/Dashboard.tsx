@@ -272,67 +272,33 @@ export function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Two-column: Badges + Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            onClick={() => navigate('/app/badges')}
-            className="bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-[#3b2d71] shadow-xl cursor-pointer hover:border-amber-500/40 transition-all active:scale-[0.98]"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Trophy className="w-5 h-5 text-amber-400" />
-              <h3 className="text-sm font-black text-amber-200">Trofeeën</h3>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { icon: '⭐', bg: 'bg-amber-500/20 border-amber-500/30' },
-                { icon: '🏅', bg: 'bg-purple-500/20 border-purple-500/30' },
-                { icon: '🔒', bg: 'bg-[#2d1b54] border-[#3b2d71] opacity-50' },
-              ].map((b, i) => (
-                <div key={i} className={cn("aspect-square rounded-xl flex items-center justify-center text-lg border-2", b.bg)}>
-                  {b.icon}
-                </div>
-              ))}
-            </div>
-            <p className="text-[10px] font-bold text-[#7c6bae] mt-2 flex items-center gap-1">
-              Bekijk alles <ChevronRight className="w-3 h-3" />
-            </p>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            onClick={() => navigate('/app/progress')}
-            className="bg-gradient-to-br from-indigo-600/80 to-purple-700/80 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-indigo-400/30 shadow-xl cursor-pointer hover:border-indigo-400/50 transition-all active:scale-[0.98]"
-          >
-            <h3 className="text-sm font-black text-white mb-3 flex items-center gap-2">
-              <Star className="w-5 h-5 text-indigo-200" />
-              Statistieken
-            </h3>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Score</span>
-                <span className="text-lg font-black text-white">{avgScore}%</span>
+        {/* Badges */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          onClick={() => navigate('/app/badges')}
+          className="bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-[#3b2d71] shadow-xl cursor-pointer hover:border-amber-500/40 transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="w-5 h-5 text-amber-400" />
+            <h3 className="text-sm font-black text-amber-200">Trofeeën</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { icon: '⭐', bg: 'bg-amber-500/20 border-amber-500/30' },
+              { icon: '🏅', bg: 'bg-purple-500/20 border-purple-500/30' },
+              { icon: '🔒', bg: 'bg-[#2d1b54] border-[#3b2d71] opacity-50' },
+            ].map((b, i) => (
+              <div key={i} className={cn("aspect-square rounded-xl flex items-center justify-center text-lg border-2", b.bg)}>
+                {b.icon}
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Lessen</span>
-                <span className="text-lg font-black text-white">{totalExercises}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Tijd</span>
-                <span className="text-lg font-black text-white">{totalTimeLabel}</span>
-              </div>
-            </div>
-            <p className="text-[10px] font-bold text-indigo-300 mt-2 flex items-center gap-1">
-              Bekijk alles <ChevronRight className="w-3 h-3" />
-            </p>
-          </motion.div>
-        </div>
+            ))}
+          </div>
+          <p className="text-[10px] font-bold text-[#7c6bae] mt-2 flex items-center gap-1">
+            Bekijk alles <ChevronRight className="w-3 h-3" />
+          </p>
+        </motion.div>
 
         {/* Rewards */}
         <motion.div
