@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Plus, Trash2, Loader2, X, BookOpen, Calculator, PenTool, CheckCircle2 } from 'lucide-react';
+import { Gift, Plus, Trash2, Pencil, Loader2, X, BookOpen, Calculator, PenTool, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const SUBJECT_OPTIONS = [
   { value: 'reading' as const, label: 'Lezen', icon: BookOpen, color: 'text-violet-600 bg-violet-50' },
@@ -16,6 +20,8 @@ export function ParentRewards() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: children = [] } = useQuery({
     queryKey: ['parent-children', user?.id],
