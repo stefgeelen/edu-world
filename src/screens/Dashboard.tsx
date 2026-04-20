@@ -234,40 +234,76 @@ export function Dashboard() {
           </div>
         </motion.button>
 
-        {/* Daily Quests */}
+        {/* ── Quest Vitrine ────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-[#3b2d71] shadow-xl"
+          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-cyan-500/30 shadow-[0_8px_32px_rgba(34,211,238,0.12)]"
         >
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-black text-amber-200 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              Dagelijkse Quests
-            </h3>
-            <span className="text-[10px] font-black text-[#a78bfa] bg-[#2d1b54] px-3 py-1 rounded-full uppercase tracking-widest border border-[#3b2d71]">
-              {completedQuests}/{dailyQuests.length} klaar
-            </span>
+          {/* Ornament corners */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-cyan-400/40 rounded-tl-md pointer-events-none" />
+          <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-cyan-400/40 rounded-tr-md pointer-events-none" />
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-cyan-400/40 rounded-bl-md pointer-events-none" />
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-cyan-400/40 rounded-br-md pointer-events-none" />
+
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.4)]">
+                <Sparkles className="w-5 h-5 text-[#1a103c]" strokeWidth={2.5} />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-sky-300 to-cyan-200 leading-none">
+                  Dagelijkse Quests
+                </h3>
+                <p className="text-[10px] font-bold text-cyan-300/60 uppercase tracking-widest mt-0.5">
+                  {completedQuests} / {dailyQuests.length} voltooid
+                </p>
+              </div>
+            </div>
+            <div className="relative w-10 h-10 shrink-0">
+              <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15" fill="none" stroke="rgb(59,45,113)" strokeWidth="3" />
+                <circle
+                  cx="18" cy="18" r="15" fill="none"
+                  stroke="url(#questGrad)" strokeWidth="3" strokeLinecap="round"
+                  strokeDasharray={`${(completedQuests / dailyQuests.length) * 94.25} 94.25`}
+                />
+                <defs>
+                  <linearGradient id="questGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#22d3ee" />
+                    <stop offset="100%" stopColor="#0ea5e9" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-cyan-200">
+                {Math.round((completedQuests / dailyQuests.length) * 100)}%
+              </span>
+            </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5 relative z-10">
             {dailyQuests.map((quest, i) => (
               <div
                 key={i}
                 className={cn(
-                  "flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all",
+                  "flex items-center justify-between p-3 rounded-2xl border-2 transition-all",
                   quest.done
                     ? "bg-emerald-500/10 border-emerald-500/30"
-                    : "bg-[#2d1b54]/60 border-[#3b2d71] hover:border-cyan-500/40"
+                    : "bg-[#0f0828]/60 border-[#3b2d71] hover:border-cyan-500/40"
                 )}
               >
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center shrink-0",
-                    quest.done ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "border-2 border-[#5b4d8a]"
+                    "w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border-2",
+                    quest.done
+                      ? "bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-300/50 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                      : "bg-[#1a103c] border-[#5b4d8a]"
                   )}>
-                    {quest.done && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                    {quest.done
+                      ? <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                      : <span className="text-[11px] font-black text-cyan-300/70">{i + 1}</span>}
                   </div>
                   <span className={cn(
                     "font-bold text-sm",
@@ -277,8 +313,10 @@ export function Dashboard() {
                   </span>
                 </div>
                 <span className={cn(
-                  "font-black text-xs whitespace-nowrap",
-                  quest.done ? "text-emerald-400/50" : "text-cyan-300"
+                  "font-black text-xs whitespace-nowrap px-2 py-1 rounded-full",
+                  quest.done
+                    ? "text-emerald-400/60 bg-emerald-500/5"
+                    : "text-cyan-200 bg-cyan-500/10 border border-cyan-500/20"
                 )}>
                   {quest.xp}
                 </span>
