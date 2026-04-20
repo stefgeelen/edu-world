@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift } from 'lucide-react';
+import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift, Award, BookOpen, Target, Crown, Heart, Lock, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGame } from '@/context/GameContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
@@ -13,6 +13,11 @@ import { useChildProgress } from '@/hooks/useChildProgress';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+
+/* ── Icon registry for db-driven badges ──────────────── */
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Sparkles, Flame, Star, Target, Trophy, BookOpen, Zap, Award, Heart, Crown,
+};
 
 /* ── Decorative forest elements ─────────────────────── */
 const FOREST_DECORATIONS = [
