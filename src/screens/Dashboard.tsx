@@ -237,7 +237,7 @@ export function Dashboard() {
           </div>
 
           <div className="space-y-3">
-            {DAILY_QUESTS.map((quest, i) => (
+            {dailyQuests.map((quest, i) => (
               <div
                 key={i}
                 className={cn(
