@@ -410,14 +410,14 @@ export function Dashboard() {
           </div>
 
           {/* Showcase: 3 slots */}
-          <div className="grid grid-cols-3 gap-2.5 mb-4 relative z-10">
+          <div className="grid grid-cols-3 gap-2.5 mb-4 relative z-10 max-w-md mx-auto">
             {[0, 1, 2].map(i => {
               const badge = showcaseBadges[i];
               if (!badge) {
                 return (
                   <div
                     key={i}
-                    className="aspect-square rounded-2xl bg-[#0f0828]/60 border-2 border-dashed border-[#3b2d71] flex items-center justify-center"
+                    className="aspect-square max-h-32 rounded-2xl bg-[#0f0828]/60 border-2 border-dashed border-[#3b2d71] flex items-center justify-center"
                   >
                     <Lock className="w-4 h-4 text-[#5b4d8a]" />
                   </div>
@@ -427,7 +427,7 @@ export function Dashboard() {
               return (
                 <div
                   key={badge.id}
-                  className="relative aspect-square rounded-2xl flex items-center justify-center border-2 border-white/10 shadow-lg overflow-hidden"
+                  className="relative aspect-square max-h-32 rounded-2xl flex items-center justify-center border-2 border-white/10 shadow-lg overflow-hidden"
                   style={{
                     background: `linear-gradient(135deg, ${badge.gradientFrom}, ${badge.gradientTo})`,
                     boxShadow: `0 4px 20px ${badge.gradientFrom}55`,
