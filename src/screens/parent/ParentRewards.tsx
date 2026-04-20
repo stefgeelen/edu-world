@@ -69,13 +69,20 @@ export function ParentRewards() {
           <p className="text-sm text-slate-500 font-medium">Motiveer je kinderen met beloningen</p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition-colors"
+          onClick={() => { setEditing(null); setShowForm(true); }}
+          disabled={children.length === 0}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-blue-500 hover:bg-blue-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white shadow-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
           Nieuwe beloning
         </button>
       </div>
+
+      {children.length === 0 && !isLoading && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800 font-medium">
+          Voeg eerst een kind toe voordat je beloningen kunt aanmaken.
+        </div>
+      )}
 
       {/* Form Modal */}
       <AnimatePresence>
@@ -83,10 +90,12 @@ export function ParentRewards() {
           <RewardForm
             children={children}
             parentId={user!.id}
-            onClose={() => setShowForm(false)}
+            existing={editing}
+            onClose={() => { setShowForm(false); setEditing(null); }}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['parent-rewards'] });
               setShowForm(false);
+              setEditing(null);
             }}
           />
         )}
