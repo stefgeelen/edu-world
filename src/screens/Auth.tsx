@@ -30,8 +30,8 @@ export function Auth() {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Account aangemaakt! Welkom bij EduWorld.');
-        navigate('/app/add-child', { replace: true });
+        toast.success('Account aangemaakt! Stel nu je toegangscode in.');
+        navigate('/auth/setup-pin?redirect=/app/add-child', { replace: true });
       }
     } else {
       const { error } = await signIn(email, password);
