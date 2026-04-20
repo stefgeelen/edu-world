@@ -265,39 +265,6 @@ function RewardForm({
       setSaving(false);
     }
   };
-  onSuccess,
-}: {
-  children: { id: string; name: string }[];
-  parentId: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [title, setTitle] = useState('');
-  const [subject, setSubject] = useState<'math' | 'reading' | 'writing'>('math');
-  const [requiredExercises, setRequiredExercises] = useState(5);
-  const [childId, setChildId] = useState(children[0]?.id ?? '');
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    if (!title.trim() || !childId) return;
-    setSaving(true);
-    try {
-      const { error } = await supabase.from('rewards').insert({
-        parent_id: parentId,
-        child_id: childId,
-        title: title.trim(),
-        subject,
-        required_exercises: requiredExercises,
-      });
-      if (error) throw error;
-      toast.success('Beloning aangemaakt!');
-      onSuccess();
-    } catch {
-      toast.error('Er ging iets mis.');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <motion.div
