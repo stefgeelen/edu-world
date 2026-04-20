@@ -1,11 +1,13 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Gift, CreditCard, LogOut, ChevronRight, Shield } from 'lucide-react';
+import { Users, Gift, CreditCard, LogOut, ChevronRight, Shield, KeyRound, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { parentPinSession } from '@/hooks/useParentPin';
+import { toast } from 'sonner';
 
 const NAV_ITEMS = [
   { path: '/app/parent', label: 'Kinderen', icon: Users, exact: true },
@@ -45,7 +47,26 @@ export function ParentLayout() {
                 </button>
               )}
               <button
+                onClick={() => navigate('/auth/setup-pin?redirect=/app/parent')}
+                className="p-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors border border-blue-200"
+                title="Toegangscode wijzigen"
+              >
+                <KeyRound className="w-5 h-5 text-blue-600" />
+              </button>
+              <button
+                onClick={() => {
+                  parentPinSession.lock();
+                  toast.success('Ouderportaal vergrendeld');
+                  navigate('/app/dashboard');
+                }}
+                className="p-2.5 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200"
+                title="Vergrendelen"
+              >
+                <Lock className="w-5 h-5 text-amber-600" />
+              </button>
+              <button
                 onClick={async () => {
+                  parentPinSession.lock();
                   await supabase.auth.signOut();
                   navigate('/auth');
                 }}
