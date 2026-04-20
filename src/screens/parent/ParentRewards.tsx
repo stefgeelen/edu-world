@@ -184,11 +184,6 @@ export function ParentRewards() {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-      </div>
 
       {/* Delete confirm dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
