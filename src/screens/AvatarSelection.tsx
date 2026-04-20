@@ -1,20 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, UserPlus, BookOpen, GraduationCap, Globe, Map, Code } from 'lucide-react';
+import { Sparkles, ArrowRight, UserPlus, BookOpen, GraduationCap, Globe, Map, Code, Loader2 } from 'lucide-react';
 import { Drawer } from 'vaul';
 import { useGame, avatars } from '@/context/GameContext';
 import type { Avatar } from '@/context/GameContext';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export function AvatarSelection() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { setSelectedAvatar, selectedAvatar } = useGame();
+  const { data: child, isLoading: childLoading } = useCurrentChild();
   const [selectedForDetails, setSelectedForDetails] = useState<Avatar | null>(null);
 
+  // Auto-redirect to dashboard if child already has avatar
+  useEffect(() => {
+    if (!childLoading && child?.avatar_id) {
+      navigate('/app/dashboard', { replace: true });
+    }
+    // No child at all → send to add-child
+    if (!childLoading && !child) {
+      navigate('/app/add-child', { replace: true });
+    }
+  }, [child, childLoading, navigate]);
+
+  const saveAvatarMutation = useMutation({
+    mutationFn: async (avatar: Avatar) => {
+      if (!child?.id) throw new Error('No child');
+      const { error } = await supabase
+        .from('children')
+        .update({ avatar_id: avatar.id, avatar_url: avatar.imageUrl })
+        .eq('id', child.id);
+      if (error) throw error;
+      return avatar;
+    },
+    onSuccess: (avatar) => {
+      setSelectedAvatar(avatar);
+      queryClient.invalidateQueries({ queryKey: ['my-child'] });
+      queryClient.invalidateQueries({ queryKey: ['parent-children'] });
+      navigate('/app/dashboard');
+    },
+    onError: () => toast.error('Kon studiemaatje niet opslaan.'),
+  });
+
   const handleSelect = (avatar: Avatar) => {
-    setSelectedAvatar(avatar);
-    navigate('/app/dashboard');
+    saveAvatarMutation.mutate(avatar);
   };
 
   const getSubjectIcon = (subject: string) => {
