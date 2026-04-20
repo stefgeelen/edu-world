@@ -114,6 +114,16 @@ export function Dashboard() {
   const progress = Math.min((xp / xpRequired) * 100, 100);
   const completedQuests = dailyQuests.filter(q => q.done).length;
 
+  // Trophy room: real badges from DB
+  const unlockedBadges = useMemo(() => badges.filter(b => b.isUnlocked), [badges]);
+  const showcaseBadges = useMemo(() => unlockedBadges.slice(0, 3), [unlockedBadges]);
+  const nextBadge = useMemo(() => {
+    const inProgress = badges
+      .filter(b => !b.isUnlocked && b.progress > 0)
+      .sort((a, b) => (b.progress / b.maxProgress) - (a.progress / a.maxProgress));
+    return inProgress[0] ?? badges.find(b => !b.isUnlocked) ?? null;
+  }, [badges]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     queryClient.clear();
