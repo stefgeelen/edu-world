@@ -225,24 +225,34 @@ export function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Hero CTA: Start met Leren */}
+        {/* ── Hero Vitrine: Start met Leren ────────── */}
         <motion.button
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
           onClick={() => navigate('/app/map')}
-          className="w-full p-5 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-3xl flex items-center justify-between shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all group outline-none active:scale-[0.98] border-b-[5px] border-emerald-700 active:border-b-0 active:translate-y-1"
+          className="relative overflow-hidden w-full p-5 rounded-3xl flex items-center justify-between bg-gradient-to-br from-emerald-500/95 via-teal-500/90 to-cyan-500/95 border-[3px] border-emerald-300/40 shadow-[0_8px_32px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.4)] transition-all group outline-none active:scale-[0.98]"
         >
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-2xl">
-              <Zap className="w-7 h-7 text-white fill-white" />
+          {/* Ornament corners */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-white/60 rounded-tl-md pointer-events-none" />
+          <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-white/60 rounded-tr-md pointer-events-none" />
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-white/60 rounded-bl-md pointer-events-none" />
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-white/60 rounded-br-md pointer-events-none" />
+
+          {/* Shimmer overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.3)]">
+              <Zap className="w-6 h-6 text-white fill-white drop-shadow" strokeWidth={2.5} />
             </div>
             <div className="text-left">
-              <span className="block text-xl font-black text-white">Start met Leren</span>
-              <span className="block text-xs font-bold text-emerald-100">Ga verder met je quest! 🌟</span>
+              <p className="text-[10px] font-bold text-emerald-50/80 uppercase tracking-widest leading-none mb-1">Jouw Avontuur</p>
+              <span className="block text-xl font-black text-white leading-tight">Start met Leren</span>
+              <span className="block text-xs font-bold text-emerald-50/90 mt-0.5">Ga verder met je quest! 🌟</span>
             </div>
           </div>
-          <div className="bg-white/20 p-2.5 rounded-full group-hover:translate-x-1 transition-transform">
+          <div className="relative z-10 w-10 h-10 rounded-full bg-white/25 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center group-hover:translate-x-1 transition-transform">
             <ChevronRight className="w-5 h-5 text-white" strokeWidth={3} />
           </div>
         </motion.button>
