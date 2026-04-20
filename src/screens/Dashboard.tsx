@@ -484,7 +484,7 @@ export function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
-          className="bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-[#3b2d71] shadow-xl"
+          className="lg:col-span-2 bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-[#3b2d71] shadow-xl"
         >
           <ChildRewards />
         </motion.div>
