@@ -38,6 +38,7 @@ export function ParentChildDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [pendingGrade, setPendingGrade] = useState<number | null>(null);
 
   const { data: child, isLoading: childLoading } = useQuery({
     queryKey: ['parent-child', childId],
@@ -247,13 +248,7 @@ export function ParentChildDetail() {
 
           <div className="flex gap-3">
             <button
-              onClick={() => {
-                if (child.grade > 1) {
-                  if (confirm(`${child.name} terugzetten naar ${GRADE_LABELS[child.grade - 1]}?`)) {
-                    promoteMutation.mutate(child.grade - 1);
-                  }
-                }
-              }}
+              onClick={() => { if (child.grade > 1) setPendingGrade(child.grade - 1); }}
               disabled={child.grade <= 1 || promoteMutation.isPending}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
@@ -261,13 +256,7 @@ export function ParentChildDetail() {
               Vorig leerjaar
             </button>
             <button
-              onClick={() => {
-                if (child.grade < 6) {
-                  if (confirm(`${child.name} promoveren naar ${GRADE_LABELS[child.grade + 1]}?`)) {
-                    promoteMutation.mutate(child.grade + 1);
-                  }
-                }
-              }}
+              onClick={() => { if (child.grade < 6) setPendingGrade(child.grade + 1); }}
               disabled={child.grade >= 6 || promoteMutation.isPending}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
@@ -277,6 +266,32 @@ export function ParentChildDetail() {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={pendingGrade !== null} onOpenChange={(o) => !o && setPendingGrade(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leerjaar wijzigen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingGrade !== null && child && (
+                pendingGrade > child.grade
+                  ? `${child.name} promoveren naar ${GRADE_LABELS[pendingGrade] ?? `groep ${pendingGrade}`}?`
+                  : `${child.name} terugzetten naar ${GRADE_LABELS[pendingGrade] ?? `groep ${pendingGrade}`}?`
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingGrade !== null) promoteMutation.mutate(pendingGrade);
+                setPendingGrade(null);
+              }}
+            >
+              Bevestigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

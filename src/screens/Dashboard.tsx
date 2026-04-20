@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +12,7 @@ import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { useChildProgress } from '@/hooks/useChildProgress';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
 
 /* ── Decorative forest elements ─────────────────────── */
 const FOREST_DECORATIONS = [
@@ -46,18 +48,17 @@ function StarryBackground() {
 }
 
 /* ── Daily quest data ───────────────────────────────── */
-const DAILY_QUESTS = [
-  { title: 'Rond 1 Rekenles af', xp: '+50 XP', done: true },
-  { title: 'Behoud een reeks van 5 dagen', xp: '+100 XP', done: true },
-  { title: 'Lees een nieuw verhalenboek', xp: '+150 XP', done: false },
-];
+/* DAILY_QUESTS removed — now derived from real activity */
+
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { selectedAvatar, xp, streak, level } = useGame();
   const { isAdmin } = useAdminRole();
   const { progressData } = useChildProgress();
   const { getMessage, hasAvatar } = useBuddyMessage();
+  const { data: child } = useCurrentChild();
 
   // Buddy greeting on mount
   const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
@@ -80,9 +81,39 @@ export function Dashboard() {
     ? `${Math.round(totalTimeSecs / 3600)}u`
     : `${Math.round(totalTimeSecs / 60)}m`;
 
+  // Today's exercise count from exercise_attempts
+  const { data: todayAttempts = 0 } = useQuery({
+    queryKey: ['today-attempts', child?.id],
+    queryFn: async () => {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const { count, error } = await supabase
+        .from('exercise_attempts')
+        .select('id', { count: 'exact', head: true })
+        .eq('child_id', child!.id)
+        .gte('completed_at', start.toISOString());
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!child?.id,
+  });
+
+  // Dynamic daily quests based on real activity
+  const dailyQuests = [
+    { title: 'Rond 1 oefening af', xp: '+50 XP', done: todayAttempts >= 1 },
+    { title: 'Doe 3 oefeningen vandaag', xp: '+100 XP', done: todayAttempts >= 3 },
+    { title: 'Behoud een reeks van 5 dagen', xp: '+150 XP', done: streak >= 5 },
+  ];
+
   const xpRequired = level * 1000;
   const progress = Math.min((xp / xpRequired) * 100, 100);
-  const completedQuests = DAILY_QUESTS.filter(q => q.done).length;
+  const completedQuests = dailyQuests.filter(q => q.done).length;
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    queryClient.clear();
+    navigate('/auth');
+  };
 
   return (
     <div className="h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] overflow-y-auto pb-32 flex flex-col relative" style={{ fontFamily: "'Nunito', sans-serif" }}>
