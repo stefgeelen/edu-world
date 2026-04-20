@@ -341,6 +341,27 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_pins: {
+        Row: {
+          created_at: string
+          pin_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          pin_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          pin_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -559,6 +580,7 @@ export type Database = {
         }
         Returns: Json
       }
+      has_parent_pin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -566,6 +588,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_parent_pin: { Args: { p_pin: string }; Returns: undefined }
+      verify_parent_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
