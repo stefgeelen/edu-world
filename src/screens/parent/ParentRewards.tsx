@@ -151,16 +151,22 @@ export function ParentRewards() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    if (confirm('Weet je zeker dat je deze beloning wilt verwijderen?')) {
-                      deleteMutation.mutate(reward.id);
-                    }
-                  }}
-                  className="p-2 hover:bg-red-50 rounded-xl transition-colors text-slate-400 hover:text-red-500"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { setEditing(reward); setShowForm(true); }}
+                    className="p-2 hover:bg-blue-50 rounded-xl transition-colors text-slate-400 hover:text-blue-500"
+                    aria-label="Bewerken"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteId(reward.id)}
+                    className="p-2 hover:bg-red-50 rounded-xl transition-colors text-slate-400 hover:text-red-500"
+                    aria-label="Verwijderen"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold text-slate-500">
@@ -182,11 +188,88 @@ export function ParentRewards() {
   );
 }
 
-/* ── Reward Creation Form ───────────────────── */
+      </div>
+
+      {/* Delete confirm dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Beloning verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Weet je zeker dat je deze beloning wilt verwijderen? Dit kan niet ongedaan gemaakt worden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId);
+                setDeleteId(null);
+              }}
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+/* ── Reward Creation / Edit Form ───────────────────── */
 function RewardForm({
   children,
   parentId,
+  existing,
   onClose,
+  onSuccess,
+}: {
+  children: { id: string; name: string }[];
+  parentId: string;
+  existing?: { id: string; title: string; subject: 'math' | 'reading' | 'writing'; required_exercises: number; child_id: string } | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [subject, setSubject] = useState<'math' | 'reading' | 'writing'>(existing?.subject ?? 'math');
+  const [requiredExercises, setRequiredExercises] = useState(existing?.required_exercises ?? 5);
+  const [childId, setChildId] = useState(existing?.child_id ?? children[0]?.id ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!title.trim() || !childId) return;
+    if (requiredExercises < 1 || requiredExercises > 100) {
+      toast.error('Aantal oefeningen moet tussen 1 en 100 zijn.');
+      return;
+    }
+    setSaving(true);
+    try {
+      if (existing?.id) {
+        const { error } = await supabase
+          .from('rewards')
+          .update({ title: title.trim(), subject, required_exercises: requiredExercises, child_id: childId })
+          .eq('id', existing.id);
+        if (error) throw error;
+        toast.success('Beloning bijgewerkt!');
+      } else {
+        const { error } = await supabase.from('rewards').insert({
+          parent_id: parentId,
+          child_id: childId,
+          title: title.trim(),
+          subject,
+          required_exercises: requiredExercises,
+        });
+        if (error) throw error;
+        toast.success('Beloning aangemaakt!');
+      }
+      onSuccess();
+    } catch {
+      toast.error('Er ging iets mis.');
+    } finally {
+      setSaving(false);
+    }
+  };
   onSuccess,
 }: {
   children: { id: string; name: string }[];
