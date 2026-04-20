@@ -212,7 +212,7 @@ export function Dashboard() {
       </div>
 
       {/* ── Content ─────────────────────────────────── */}
-      <div className="relative z-10 px-5 max-w-2xl mx-auto w-full space-y-5 flex-1">
+      <div className="relative z-10 px-4 sm:px-5 max-w-2xl lg:max-w-5xl mx-auto w-full flex-1 grid gap-4 sm:gap-5 lg:grid-cols-2">
 
         {/* ── XP Vitrine ─────────────────────────────── */}
         <motion.div
