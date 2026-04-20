@@ -282,7 +282,7 @@ function RewardForm({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-black text-slate-900">Nieuwe beloning</h3>
+          <h3 className="text-xl font-black text-slate-900">{existing ? 'Beloning bewerken' : 'Nieuwe beloning'}</h3>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -363,7 +363,7 @@ function RewardForm({
             disabled={!title.trim() || !childId || saving}
             className="w-full py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
-            {saving ? 'Opslaan...' : 'Beloning opslaan'}
+            {saving ? 'Opslaan...' : existing ? 'Wijzigingen opslaan' : 'Beloning opslaan'}
           </button>
         </div>
       </motion.div>
