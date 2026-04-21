@@ -241,7 +241,7 @@ export function ExerciseWriteNumber() {
       }
     } catch (err) {
       console.error('Recognition error:', err);
-      setFeedbackText('Er ging iets mis. Probeer het nog eens!');
+      setFeedbackText('Mijn ogen werken even niet — teken het getal nog eens!');
       setStatus('drawn');
     }
   };

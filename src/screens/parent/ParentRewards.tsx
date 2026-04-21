@@ -5,6 +5,7 @@ import { Gift, Plus, Trash2, Pencil, Loader2, X, BookOpen, Calculator, PenTool, 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { mapDbError } from '@/lib/errorMessages';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -231,13 +232,22 @@ function RewardForm({
   const [requiredExercises, setRequiredExercises] = useState(existing?.required_exercises ?? 5);
   const [childId, setChildId] = useState(existing?.child_id ?? children[0]?.id ?? '');
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<{ title?: string; required?: string; child?: string }>({});
+
+  const validate = () => {
+    const next: typeof errors = {};
+    if (!title.trim()) next.title = 'Geef de beloning een naam.';
+    else if (title.trim().length > 80) next.title = 'Maximaal 80 tekens.';
+    if (!childId) next.child = 'Kies een kind.';
+    if (!Number.isFinite(requiredExercises) || requiredExercises < 1 || requiredExercises > 100) {
+      next.required = 'Kies een aantal tussen 1 en 100.';
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const handleSave = async () => {
-    if (!title.trim() || !childId) return;
-    if (requiredExercises < 1 || requiredExercises > 100) {
-      toast.error('Aantal oefeningen moet tussen 1 en 100 zijn.');
-      return;
-    }
+    if (!validate()) return;
     setSaving(true);
     try {
       if (existing?.id) {
@@ -259,8 +269,8 @@ function RewardForm({
         toast.success('Beloning aangemaakt!');
       }
       onSuccess();
-    } catch {
-      toast.error('Er ging iets mis.');
+    } catch (err) {
+      toast.error(mapDbError(err));
     } finally {
       setSaving(false);
     }
@@ -311,10 +321,16 @@ function RewardForm({
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => { setTitle(e.target.value); if (errors.title) setErrors({ ...errors, title: undefined }); }}
               placeholder="Bijv. Een extra half uurtje schermtijd"
-              className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              aria-invalid={!!errors.title}
+              className={`w-full bg-slate-50 border-2 rounded-xl px-4 py-3 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-4 transition-colors ${
+                errors.title
+                  ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                  : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100'
+              }`}
             />
+            {errors.title && <p className="mt-1.5 text-xs font-bold text-red-600">{errors.title}</p>}
           </div>
 
           {/* Subject */}
@@ -352,9 +368,15 @@ function RewardForm({
               min={1}
               max={100}
               value={requiredExercises}
-              onChange={(e) => setRequiredExercises(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              onChange={(e) => { setRequiredExercises(Math.max(1, parseInt(e.target.value) || 1)); if (errors.required) setErrors({ ...errors, required: undefined }); }}
+              aria-invalid={!!errors.required}
+              className={`w-full bg-slate-50 border-2 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-4 transition-colors ${
+                errors.required
+                  ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                  : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100'
+              }`}
             />
+            {errors.required && <p className="mt-1.5 text-xs font-bold text-red-600">{errors.required}</p>}
           </div>
 
           {/* Save */}

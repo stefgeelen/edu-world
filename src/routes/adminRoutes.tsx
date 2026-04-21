@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { Route, Navigate } from 'react-router-dom';
 import { AdminRoute } from '@/components/AdminRoute';
+import { ParentErrorBoundary } from '@/components/ParentErrorBoundary';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 const AdminDashboard = lazy(() => import('@/screens/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -13,7 +14,9 @@ export const adminRoutes = (
     path="/admin"
     element={
       <AdminRoute>
-        <Suspense fallback={<LoadingSpinner />}><AdminDashboard /></Suspense>
+        <ParentErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}><AdminDashboard /></Suspense>
+        </ParentErrorBoundary>
       </AdminRoute>
     }
   >

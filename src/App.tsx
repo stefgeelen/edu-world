@@ -8,6 +8,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 import { publicRoutes } from "@/routes/publicRoutes";
 import { adminRoutes } from "@/routes/adminRoutes";
@@ -26,6 +27,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <OfflineBanner />
             <Routes>
               {publicRoutes}
               {adminRoutes}

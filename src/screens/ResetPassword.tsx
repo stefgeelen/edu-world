@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Lock, ArrowRight, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { mapAuthError } from '@/lib/errorMessages';
 import { cn } from '@/lib/utils';
 
 export function ResetPassword() {
@@ -29,7 +30,7 @@ export function ResetPassword() {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      toast.error(error.message);
+      toast.error(mapAuthError(error));
     } else {
       setDone(true);
       toast.success('Wachtwoord succesvol gewijzigd!');

@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
+import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 
 export function AddChild() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ export function AddChild() {
   const [name, setName] = useState('');
   const [age, setAge] = useState<number | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [limitDialog, setLimitDialog] = useState<{ open: boolean; message?: string }>({ open: false });
 
   const getStudyYear = (ageValue: number | '') => {
     if (ageValue === '') return null;
@@ -51,13 +54,23 @@ export function AddChild() {
       toast.success(`${name.trim()} is toegevoegd!`);
       navigate('/app');
     } catch (err: any) {
-      toast.error(err.message || 'Er ging iets mis bij het opslaan.');
+      if (isSubscriptionLimitError(err)) {
+        setLimitDialog({ open: true, message: mapDbError(err) });
+      } else {
+        toast.error(mapDbError(err));
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
+    <>
+    <SubscriptionLimitDialog
+      open={limitDialog.open}
+      onOpenChange={(o) => setLimitDialog({ open: o, message: limitDialog.message })}
+      message={limitDialog.message}
+    />
     <div className="min-h-[100dvh] w-full bg-slate-50 flex flex-col relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[50%] bg-gradient-to-br from-blue-400 to-teal-300 rounded-[100%] blur-3xl opacity-20 pointer-events-none" />
@@ -193,5 +206,6 @@ export function AddChild() {
         </button>
       </motion.div>
     </div>
+    </>
   );
 }
