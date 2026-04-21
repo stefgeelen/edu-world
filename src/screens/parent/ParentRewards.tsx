@@ -5,6 +5,7 @@ import { Gift, Plus, Trash2, Pencil, Loader2, X, BookOpen, Calculator, PenTool, 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { mapDbError } from '@/lib/errorMessages';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -231,13 +232,22 @@ function RewardForm({
   const [requiredExercises, setRequiredExercises] = useState(existing?.required_exercises ?? 5);
   const [childId, setChildId] = useState(existing?.child_id ?? children[0]?.id ?? '');
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<{ title?: string; required?: string; child?: string }>({});
+
+  const validate = () => {
+    const next: typeof errors = {};
+    if (!title.trim()) next.title = 'Geef de beloning een naam.';
+    else if (title.trim().length > 80) next.title = 'Maximaal 80 tekens.';
+    if (!childId) next.child = 'Kies een kind.';
+    if (!Number.isFinite(requiredExercises) || requiredExercises < 1 || requiredExercises > 100) {
+      next.required = 'Kies een aantal tussen 1 en 100.';
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const handleSave = async () => {
-    if (!title.trim() || !childId) return;
-    if (requiredExercises < 1 || requiredExercises > 100) {
-      toast.error('Aantal oefeningen moet tussen 1 en 100 zijn.');
-      return;
-    }
+    if (!validate()) return;
     setSaving(true);
     try {
       if (existing?.id) {
@@ -259,8 +269,8 @@ function RewardForm({
         toast.success('Beloning aangemaakt!');
       }
       onSuccess();
-    } catch {
-      toast.error('Er ging iets mis.');
+    } catch (err) {
+      toast.error(mapDbError(err));
     } finally {
       setSaving(false);
     }
