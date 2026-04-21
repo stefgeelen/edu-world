@@ -7,6 +7,7 @@ import { useSetParentPin, useHasParentPin } from '@/hooks/useParentPin';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { mapDbError } from '@/lib/errorMessages';
 
 type Step = 'choose' | 'confirm';
 
@@ -59,7 +60,7 @@ export function SetupParentPin() {
         navigate(redirectTo, { replace: true });
       },
       onError: (e: any) => {
-        toast.error(e?.message ?? 'Kon code niet opslaan');
+        toast.error(mapDbError(e) || 'Kon code niet opslaan');
         setSecond('');
         setFirst('');
         setStep('choose');

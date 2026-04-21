@@ -10,6 +10,7 @@ import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { mapDbError } from '@/lib/errorMessages';
 
 export function AvatarSelection() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export function AvatarSelection() {
       queryClient.invalidateQueries({ queryKey: ['parent-children'] });
       navigate('/app/dashboard');
     },
-    onError: () => toast.error('Kon studiemaatje niet opslaan.'),
+    onError: (e) => toast.error(mapDbError(e) || 'Kon studiemaatje niet opslaan.'),
   });
 
   const handleSelect = (avatar: Avatar) => {
