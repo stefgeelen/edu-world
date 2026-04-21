@@ -55,7 +55,7 @@ export function SetupParentPin() {
 
     setPin.mutate(second, {
       onSuccess: () => {
-        toast.success('Toegangscode ingesteld');
+        toast.success(isChange ? 'Toegangscode gewijzigd' : 'Toegangscode ingesteld');
         navigate(redirectTo, { replace: true });
       },
       onError: (e: any) => {

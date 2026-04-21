@@ -47,7 +47,7 @@ export function ParentLayout() {
                 </button>
               )}
               <button
-                onClick={() => navigate('/auth/setup-pin?redirect=/app/parent')}
+                onClick={() => navigate('/auth/setup-pin?change=1&redirect=/app/parent')}
                 className="p-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors border border-blue-200"
                 title="Toegangscode wijzigen"
               >
