@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
+import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 import { useQuery } from '@tanstack/react-query';
 
 export function ParentAddChild() {
@@ -14,6 +16,7 @@ export function ParentAddChild() {
   const [name, setName] = React.useState('');
   const [age, setAge] = React.useState<number | ''>('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [limitDialog, setLimitDialog] = React.useState<{ open: boolean; message?: string }>({ open: false });
 
   const { data: subscription } = useQuery({
     queryKey: ['parent-subscription', user?.id],
@@ -81,7 +84,11 @@ export function ParentAddChild() {
       toast.success(`${name.trim()} is toegevoegd!`);
       navigate('/app/parent');
     } catch (err: any) {
-      toast.error(err.message || 'Er ging iets mis bij het opslaan.');
+      if (isSubscriptionLimitError(err)) {
+        setLimitDialog({ open: true, message: mapDbError(err) });
+      } else {
+        toast.error(mapDbError(err));
+      }
     } finally {
       setIsSubmitting(false);
     }

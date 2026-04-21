@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { ParentPinGate } from '@/components/ParentPinGate';
+import { ParentErrorBoundary } from '@/components/ParentErrorBoundary';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 const ParentLayout = lazy(() => import('@/screens/parent/ParentLayout').then(m => ({ default: m.ParentLayout })));
@@ -17,7 +18,9 @@ export const parentRoutes = (
     element={
       <ProtectedRoute>
         <ParentPinGate>
-          <Suspense fallback={<LoadingSpinner />}><ParentLayout /></Suspense>
+          <ParentErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}><ParentLayout /></Suspense>
+          </ParentErrorBoundary>
         </ParentPinGate>
       </ProtectedRoute>
     }

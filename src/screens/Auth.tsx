@@ -5,6 +5,7 @@ import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-reac
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { mapAuthError } from '@/lib/errorMessages';
 
 export function Auth() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export function Auth() {
     if (mode === 'signup') {
       const { error } = await signUp(email, password, fullName);
       if (error) {
-        toast.error(error.message);
+        toast.error(mapAuthError(error));
       } else {
         toast.success('Account aangemaakt! Stel nu je toegangscode in.');
         navigate('/auth/setup-pin?redirect=/app/add-child', { replace: true });
@@ -36,7 +37,7 @@ export function Auth() {
     } else {
       const { error } = await signIn(email, password);
       if (error) {
-        toast.error('Ongeldige inloggegevens. Probeer het opnieuw.');
+        toast.error(mapAuthError(error));
       } else {
         navigate('/app', { replace: true });
       }
