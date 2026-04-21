@@ -18,6 +18,7 @@ export function SetupParentPin() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirectTo = params.get('redirect') ?? '/app/add-child';
+  const isChange = params.get('change') === '1';
 
   const { data: hasPin, isLoading } = useHasParentPin();
   const setPin = useSetParentPin();
@@ -26,12 +27,12 @@ export function SetupParentPin() {
   const [first, setFirst] = useState('');
   const [second, setSecond] = useState('');
 
-  // If parent already has a PIN, skip the setup flow entirely
+  // If parent already has a PIN AND we're not explicitly changing it, skip setup
   useEffect(() => {
-    if (!isLoading && hasPin) {
+    if (!isLoading && hasPin && !isChange) {
       navigate(redirectTo, { replace: true });
     }
-  }, [hasPin, isLoading, navigate, redirectTo]);
+  }, [hasPin, isLoading, navigate, redirectTo, isChange]);
 
   // Move to confirm step automatically when first PIN is complete
   useEffect(() => {
