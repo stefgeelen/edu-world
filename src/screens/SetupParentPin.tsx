@@ -18,6 +18,7 @@ export function SetupParentPin() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirectTo = params.get('redirect') ?? '/app/add-child';
+  const isChange = params.get('change') === '1';
 
   const { data: hasPin, isLoading } = useHasParentPin();
   const setPin = useSetParentPin();
@@ -26,12 +27,12 @@ export function SetupParentPin() {
   const [first, setFirst] = useState('');
   const [second, setSecond] = useState('');
 
-  // If parent already has a PIN, skip the setup flow entirely
+  // If parent already has a PIN AND we're not explicitly changing it, skip setup
   useEffect(() => {
-    if (!isLoading && hasPin) {
+    if (!isLoading && hasPin && !isChange) {
       navigate(redirectTo, { replace: true });
     }
-  }, [hasPin, isLoading, navigate, redirectTo]);
+  }, [hasPin, isLoading, navigate, redirectTo, isChange]);
 
   // Move to confirm step automatically when first PIN is complete
   useEffect(() => {
@@ -54,7 +55,7 @@ export function SetupParentPin() {
 
     setPin.mutate(second, {
       onSuccess: () => {
-        toast.success('Toegangscode ingesteld');
+        toast.success(isChange ? 'Toegangscode gewijzigd' : 'Toegangscode ingesteld');
         navigate(redirectTo, { replace: true });
       },
       onError: (e: any) => {
@@ -93,7 +94,7 @@ export function SetupParentPin() {
         animate={{ y: 0, opacity: 1 }}
         className="text-2xl md:text-3xl font-black text-slate-900 mb-2 text-center"
       >
-        {isConfirm ? 'Bevestig je code' : 'Maak je toegangscode'}
+        {isConfirm ? 'Bevestig je nieuwe code' : (isChange ? 'Wijzig je toegangscode' : 'Maak je toegangscode')}
       </motion.h1>
       <motion.p
         initial={{ y: 10, opacity: 0 }}
@@ -103,7 +104,9 @@ export function SetupParentPin() {
       >
         {isConfirm
           ? 'Voer dezelfde 4 cijfers nogmaals in.'
-          : 'Kies een 4-cijferige code om het ouderportaal te beschermen tegen je kinderen.'}
+          : (isChange
+              ? 'Kies een nieuwe 4-cijferige code voor het ouderportaal.'
+              : 'Kies een 4-cijferige code om het ouderportaal te beschermen tegen je kinderen.')}
       </motion.p>
 
       <motion.div
