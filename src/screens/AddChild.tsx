@@ -65,6 +65,12 @@ export function AddChild() {
   };
 
   return (
+    <>
+    <SubscriptionLimitDialog
+      open={limitDialog.open}
+      onOpenChange={(o) => setLimitDialog({ open: o, message: limitDialog.message })}
+      message={limitDialog.message}
+    />
     <div className="min-h-[100dvh] w-full bg-slate-50 flex flex-col relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[50%] bg-gradient-to-br from-blue-400 to-teal-300 rounded-[100%] blur-3xl opacity-20 pointer-events-none" />
