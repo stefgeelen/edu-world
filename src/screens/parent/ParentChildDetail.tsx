@@ -9,6 +9,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { mapDbError } from '@/lib/errorMessages';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -98,7 +99,7 @@ export function ParentChildDetail() {
       queryClient.invalidateQueries({ queryKey: ['parent-child-trimesters', childId] });
       toast.success(`${child?.name} is nu in ${GRADE_LABELS[newGrade] ?? `groep ${newGrade}`}!`);
     },
-    onError: () => toast.error('Er ging iets mis.'),
+    onError: (e) => toast.error(mapDbError(e)),
   });
 
   if (childLoading) {
