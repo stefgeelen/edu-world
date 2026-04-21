@@ -113,6 +113,12 @@ export function ParentAddChild() {
   }
 
   return (
+    <>
+      <SubscriptionLimitDialog
+        open={limitDialog.open}
+        onOpenChange={(o) => setLimitDialog({ open: o, message: limitDialog.message })}
+        message={limitDialog.message}
+      />
     <div className="px-4 md:px-8 py-6 max-w-md mx-auto space-y-6 pb-20">
       <div className="text-center">
         <motion.div

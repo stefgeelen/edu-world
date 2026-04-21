@@ -206,5 +206,6 @@ export function AddChild() {
         </button>
       </motion.div>
     </div>
+    </>
   );
 }
