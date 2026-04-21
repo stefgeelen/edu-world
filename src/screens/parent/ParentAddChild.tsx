@@ -181,5 +181,6 @@ export function ParentAddChild() {
         </button>
       </form>
     </div>
+    </>
   );
 }
