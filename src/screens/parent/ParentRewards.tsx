@@ -321,10 +321,16 @@ function RewardForm({
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => { setTitle(e.target.value); if (errors.title) setErrors({ ...errors, title: undefined }); }}
               placeholder="Bijv. Een extra half uurtje schermtijd"
-              className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              aria-invalid={!!errors.title}
+              className={`w-full bg-slate-50 border-2 rounded-xl px-4 py-3 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-4 transition-colors ${
+                errors.title
+                  ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                  : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100'
+              }`}
             />
+            {errors.title && <p className="mt-1.5 text-xs font-bold text-red-600">{errors.title}</p>}
           </div>
 
           {/* Subject */}
@@ -362,9 +368,15 @@ function RewardForm({
               min={1}
               max={100}
               value={requiredExercises}
-              onChange={(e) => setRequiredExercises(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              onChange={(e) => { setRequiredExercises(Math.max(1, parseInt(e.target.value) || 1)); if (errors.required) setErrors({ ...errors, required: undefined }); }}
+              aria-invalid={!!errors.required}
+              className={`w-full bg-slate-50 border-2 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-4 transition-colors ${
+                errors.required
+                  ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                  : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100'
+              }`}
             />
+            {errors.required && <p className="mt-1.5 text-xs font-bold text-red-600">{errors.required}</p>}
           </div>
 
           {/* Save */}
