@@ -94,7 +94,7 @@ export function SetupParentPin() {
         animate={{ y: 0, opacity: 1 }}
         className="text-2xl md:text-3xl font-black text-slate-900 mb-2 text-center"
       >
-        {isConfirm ? 'Bevestig je code' : 'Maak je toegangscode'}
+        {isConfirm ? 'Bevestig je nieuwe code' : (isChange ? 'Wijzig je toegangscode' : 'Maak je toegangscode')}
       </motion.h1>
       <motion.p
         initial={{ y: 10, opacity: 0 }}
@@ -104,7 +104,9 @@ export function SetupParentPin() {
       >
         {isConfirm
           ? 'Voer dezelfde 4 cijfers nogmaals in.'
-          : 'Kies een 4-cijferige code om het ouderportaal te beschermen tegen je kinderen.'}
+          : (isChange
+              ? 'Kies een nieuwe 4-cijferige code voor het ouderportaal.'
+              : 'Kies een 4-cijferige code om het ouderportaal te beschermen tegen je kinderen.')}
       </motion.p>
 
       <motion.div
