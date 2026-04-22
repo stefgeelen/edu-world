@@ -66,17 +66,19 @@ export function Dashboard() {
   const { progressData } = useChildProgress();
   const { getMessage, hasAvatar } = useBuddyMessage();
   const { data: child } = useCurrentChild();
+  const { greeting, childName } = useChildGreeting();
 
   // Buddy greeting on mount
   const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
   useEffect(() => {
     if (hasAvatar) {
-      const result = getMessage('dashboard_greeting');
+      const result = getMessage('dashboard_welcome');
       if (result) {
         setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
       }
     }
-  }, [hasAvatar]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAvatar, childName]);
 
   // Dynamic stats from child_progress
   const totalExercises = progressData.reduce((s, p) => s + p.exercises_completed, 0);
