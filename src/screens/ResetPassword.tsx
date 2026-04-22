@@ -119,18 +119,3 @@ export function ResetPassword() {
     </div>
   );
 }
-          type="submit"
-          disabled={!password.trim() || loading || done}
-          className={cn(
-            'w-full h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all',
-            password.trim() && !loading && !done
-              ? 'bg-teal-500 text-white shadow-lg active:scale-[0.98]'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-          )}
-        >
-          Opslaan <ArrowRight className="w-5 h-5" />
-        </button>
-      </form>
-    </div>
-  );
-}
