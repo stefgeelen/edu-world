@@ -55,6 +55,7 @@ export function QuestMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { trimesters, child } = useTrimesterProgress();
   const { getMessage, hasAvatar } = useBuddyMessage();
+  const { childName } = useChildGreeting();
 
   const completedCount = trimesters.filter((t) => t.is_completed).length;
   const overallPct = trimesters.length > 0 ? Math.round((completedCount / trimesters.length) * 100) : 0;
