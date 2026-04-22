@@ -45,8 +45,10 @@ function StarryBackground() {
 export function BadgeOverview() {
   const navigate = useNavigate();
   const { badges } = useGame();
+  const { childName } = useChildGreeting();
   const unlockedCount = badges.filter((b) => b.isUnlocked).length;
   const progressPercent = badges.length > 0 ? Math.round((unlockedCount / badges.length) * 100) : 0;
+  const empty = unlockedCount === 0;
 
   return (
     <div className="h-full w-full overflow-y-auto pb-32 md:pb-40 relative" style={{ background: 'linear-gradient(to bottom, #2d1b54, #0a0618)' }}>
@@ -67,15 +69,20 @@ export function BadgeOverview() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/30 backdrop-blur-md mb-4">
               <Trophy className="w-5 h-5 text-amber-400" />
               <span className="text-sm font-bold text-amber-300 tracking-wide uppercase" style={{ fontFamily: "'Nunito', sans-serif" }}>
-                Mijn Prestaties
+                {childName}'s prestaties
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-2" style={{ fontFamily: "'Nunito', sans-serif" }}>
               🏆 Trofeeën Tuin
             </h1>
             <p className="text-lg text-purple-200/80 font-medium">
-              {unlockedCount} van {badges.length} badges ontgrendeld
+              {empty
+                ? `${childName}, hier komen jouw trofeeën te staan!`
+                : `${unlockedCount} van ${badges.length} badges ontgrendeld`}
             </p>
+            <div className="mt-4 inline-flex">
+              <BuddyCompanion situation="badges_overview" position="inline" size={48} />
+            </div>
           </motion.div>
         </div>
 
