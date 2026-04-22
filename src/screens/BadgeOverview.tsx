@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
+import { useChildGreeting } from '@/hooks/useChildGreeting';
+import { BuddyCompanion } from '@/components/BuddyCompanion';
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Sparkles, Flame, Star, Target, Trophy, BookOpen, Zap, Award, Heart, Crown,
