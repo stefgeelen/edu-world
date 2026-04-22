@@ -485,6 +485,9 @@ export function Dashboard() {
           })()}
         </motion.div>
 
+        {/* Persoonlijke reis */}
+        <JourneyCard />
+
         {/* Rewards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
