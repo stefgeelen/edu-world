@@ -183,12 +183,14 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="text-left min-w-0 flex-1">
-                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">Studiemaatje</p>
+                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">
+                  {selectedAvatar?.name ? `Met ${selectedAvatar.name}` : 'Studiemaatje'}
+                </p>
                 <h2 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight truncate">
-                  Hoi, {selectedAvatar?.name || 'Vriend'}!
+                  {greeting}
                 </h2>
                 <p className="text-[10px] font-bold text-[#a78bfa] flex items-center gap-1 mt-0.5 truncate">
-                  <Sparkles className="w-2.5 h-2.5 shrink-0" /> Tik om te praten
+                  <Sparkles className="w-2.5 h-2.5 shrink-0" /> Tik om met {selectedAvatar?.name || 'je buddy'} te praten
                 </p>
               </div>
             </button>
