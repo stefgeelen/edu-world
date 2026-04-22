@@ -82,13 +82,14 @@ export function AvatarSelection() {
         className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-500/20 rounded-full blur-[100px] pointer-events-none" 
       />
 
-      {/* Parent Area Button */}
+      {/* Parent Portal Button */}
       <button 
-        onClick={() => navigate('/app/add-child')}
+        onClick={() => navigate('/app/parent')}
         className="absolute top-6 right-6 md:top-8 md:right-8 z-50 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 text-white transition-all duration-300 flex items-center gap-2 group"
+        aria-label="Naar ouderportaal"
       >
         <UserPlus className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
-        <span className="text-sm font-bold hidden sm:inline-block">Ouders</span>
+        <span className="text-sm font-bold hidden sm:inline-block">Ouderportaal</span>
       </button>
 
       <motion.div 

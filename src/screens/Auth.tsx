@@ -22,12 +22,24 @@ export function Auth() {
     if (user) navigate('/app', { replace: true });
   }, [user, navigate]);
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailOk = emailRegex.test(email.trim());
+  const passwordOk = mode === 'login' ? password.length > 0 : password.length >= 6;
+  const nameOk = mode === 'login' ? true : fullName.trim().length >= 2;
+  const isValid = emailOk && passwordOk && nameOk;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValid) {
+      if (!emailOk) toast.error('Vul een geldig e-mailadres in.');
+      else if (!passwordOk) toast.error('Wachtwoord moet minstens 6 tekens zijn.');
+      else if (!nameOk) toast.error('Vul je volledige naam in.');
+      return;
+    }
     setLoading(true);
 
     if (mode === 'signup') {
-      const { error } = await signUp(email, password, fullName);
+      const { error } = await signUp(email.trim(), password, fullName.trim());
       if (error) {
         toast.error(mapAuthError(error));
       } else {
@@ -35,7 +47,7 @@ export function Auth() {
         navigate('/auth/setup-pin?redirect=/app/add-child', { replace: true });
       }
     } else {
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email.trim(), password);
       if (error) {
         toast.error(mapAuthError(error));
       } else {
@@ -45,10 +57,6 @@ export function Auth() {
 
     setLoading(false);
   };
-
-  const isValid = mode === 'login'
-    ? email.trim() && password.trim()
-    : email.trim() && password.trim() && fullName.trim();
 
   return (
     <div className="min-h-[100dvh] w-full bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden px-6 py-12">
