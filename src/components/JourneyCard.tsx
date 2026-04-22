@@ -21,7 +21,7 @@ export function JourneyCard() {
   const { childName, buddyName } = useChildGreeting();
 
   const totalStars = useMemo(
-    () => recentAttempts.reduce((s, a) => s + (a as any).stars ?? 0, 0),
+    () => recentAttempts.reduce((s, a) => s + ((a as any).stars ?? 0), 0),
     [recentAttempts]
   );
 

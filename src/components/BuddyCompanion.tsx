@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
+import { useGame } from '@/context/GameContext';
 import type { BuddySituation } from '@/data/buddyMessages';
 import { cn } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
@@ -33,6 +34,7 @@ export function BuddyCompanion({
   className,
 }: BuddyCompanionProps) {
   const { getMessage, hasAvatar } = useBuddyMessage();
+  const { selectedAvatar } = useGame();
   const [bubble, setBubble] = useState<{
     message: string;
     mood: any;
@@ -40,7 +42,7 @@ export function BuddyCompanion({
     avatarName: string;
   } | null>(null);
 
-  if (!hasAvatar) return null;
+  if (!hasAvatar || !selectedAvatar) return null;
 
   const handleTap = () => {
     if (bubble) return;
@@ -73,8 +75,11 @@ export function BuddyCompanion({
             className="relative rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/30 bg-[#2d1b54] animate-buddy-idle-float"
             style={{ width: size, height: size }}
           >
-            {/* Avatar image is set via the bubble fetch; we pre-fetch once */}
-            <BuddyAvatar size={size} />
+            <ImageWithFallback
+              src={selectedAvatar.imageUrl}
+              alt={selectedAvatar.name}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-400 border-2 border-[#1a103c] flex items-center justify-center">
             <Sparkles className="w-2 h-2 text-[#1a103c]" strokeWidth={3} />
@@ -92,24 +97,5 @@ export function BuddyCompanion({
         />
       )}
     </>
-  );
-}
-
-/** Internal: renders the selected avatar image. */
-function BuddyAvatar({ size }: { size: number }) {
-  // Lightweight: pull avatar from useBuddyMessage by triggering nothing — instead use GameContext
-  // To avoid an extra re-render path, we read directly here.
-  const { selectedAvatar } = require('@/context/GameContext').useGame() as {
-    selectedAvatar: { imageUrl: string; name: string } | null;
-  };
-  if (!selectedAvatar) {
-    return <div className="w-full h-full bg-[#3b2d71] animate-pulse" />;
-  }
-  return (
-    <ImageWithFallback
-      src={selectedAvatar.imageUrl}
-      alt={selectedAvatar.name}
-      className="w-full h-full object-cover"
-    />
   );
 }
