@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { useCelebration } from '@/context/CelebrationContext';
+import { useBuddyMessage } from '@/hooks/useBuddyMessage';
+import { buddyToast } from '@/components/feedback/BuddyToast';
+
+const STREAK_MILESTONES = new Set([3, 5, 7, 10, 14, 30]);
 
 /**
  * Returns the current child's ID for the logged-in parent.
