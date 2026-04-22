@@ -57,9 +57,6 @@ function StarryBackground() {
 /* ── Daily quest data ───────────────────────────────── */
 /* DAILY_QUESTS removed — now derived from real activity */
 
-        {/* Persoonlijke reis */}
-        <JourneyCard />
-
 
 export function Dashboard() {
   const navigate = useNavigate();
