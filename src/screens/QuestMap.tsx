@@ -8,6 +8,8 @@ import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { useTrimesterProgress } from "@/hooks/useTrimesterProgress";
 import { BuddyBubble } from "@/components/BuddyBubble";
 import { useBuddyMessage } from "@/hooks/useBuddyMessage";
+import { BuddyCompanion } from "@/components/BuddyCompanion";
+import { useChildGreeting } from "@/hooks/useChildGreeting";
 const TRIMESTER_CONFIG = [
   { id: 1, name: "Fluisterbomen", icon: "🌳", yPos: 82, xPos: 40, stagePath: "/app/stage/fluisterbos" },
   { id: 2, name: "Borrelende Beek", icon: "🌊", yPos: 58, xPos: 65, stagePath: "/app/stage/fluisterbos" },
