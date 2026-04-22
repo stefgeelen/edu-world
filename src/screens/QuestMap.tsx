@@ -8,6 +8,8 @@ import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { useTrimesterProgress } from "@/hooks/useTrimesterProgress";
 import { BuddyBubble } from "@/components/BuddyBubble";
 import { useBuddyMessage } from "@/hooks/useBuddyMessage";
+import { BuddyCompanion } from "@/components/BuddyCompanion";
+import { useChildGreeting } from "@/hooks/useChildGreeting";
 const TRIMESTER_CONFIG = [
   { id: 1, name: "Fluisterbomen", icon: "🌳", yPos: 82, xPos: 40, stagePath: "/app/stage/fluisterbos" },
   { id: 2, name: "Borrelende Beek", icon: "🌊", yPos: 58, xPos: 65, stagePath: "/app/stage/fluisterbos" },
@@ -53,6 +55,7 @@ export function QuestMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { trimesters, child } = useTrimesterProgress();
   const { getMessage, hasAvatar } = useBuddyMessage();
+  const { childName } = useChildGreeting();
 
   const completedCount = trimesters.filter((t) => t.is_completed).length;
   const overallPct = trimesters.length > 0 ? Math.round((completedCount / trimesters.length) * 100) : 0;
@@ -230,6 +233,9 @@ export function QuestMap() {
           onDismiss={() => setBuddyData(null)}
         />
       )}
+
+      {/* Persistent buddy companion */}
+      <BuddyCompanion situation="quest_map_idle" position="floating-br" size={56} />
     </div>
   );
 }

@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { useCelebration } from '@/context/CelebrationContext';
+import { useBuddyMessage } from '@/hooks/useBuddyMessage';
+import { buddyToast } from '@/components/feedback/BuddyToast';
+
+const STREAK_MILESTONES = new Set([3, 5, 7, 10, 14, 30]);
 
 /**
  * Returns the current child's ID for the logged-in parent.
@@ -16,7 +20,7 @@ export function useCurrentChild() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
-        .select('id, grade, xp, level, pending_promotion, avatar_id, streak')
+        .select('id, name, grade, xp, level, pending_promotion, avatar_id, streak')
         .eq('parent_id', user!.id)
         .limit(1)
         .maybeSingle();
@@ -55,6 +59,7 @@ export function useCompleteExercise() {
   const { data: child } = useCurrentChild();
   const { user } = useAuth();
   const { celebrateRewards, celebratePromotion } = useCelebration();
+  const { getMessage } = useBuddyMessage();
 
   return useMutation({
     mutationFn: async (params: CompleteExerciseParams) => {
@@ -93,6 +98,18 @@ export function useCompleteExercise() {
       }
       if (data?.all_trimesters_completed) {
         celebratePromotion();
+      }
+
+      // Buddy reactions to milestones
+      if (data?.leveled_up) {
+        const msg = getMessage('level_up');
+        if (msg) buddyToast.cheer(msg.message, { duration: 5000 });
+      }
+      if (data?.streak && STREAK_MILESTONES.has(data.streak)) {
+        const msg = getMessage('streak_milestone');
+        if (msg) {
+          buddyToast.cheer(`🔥 ${data.streak} dagen op rij! ${msg.message}`, { duration: 5500 });
+        }
       }
     },
   });

@@ -13,6 +13,8 @@ import { useChildProgress } from '@/hooks/useChildProgress';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { useChildGreeting } from '@/hooks/useChildGreeting';
+import { JourneyCard } from '@/components/JourneyCard';
 
 /* ── Icon registry for db-driven badges ──────────────── */
 const BADGE_ICONS: Record<string, LucideIcon> = {
@@ -64,17 +66,19 @@ export function Dashboard() {
   const { progressData } = useChildProgress();
   const { getMessage, hasAvatar } = useBuddyMessage();
   const { data: child } = useCurrentChild();
+  const { greeting, childName } = useChildGreeting();
 
   // Buddy greeting on mount
   const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
   useEffect(() => {
     if (hasAvatar) {
-      const result = getMessage('dashboard_greeting');
+      const result = getMessage('dashboard_welcome');
       if (result) {
         setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
       }
     }
-  }, [hasAvatar]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAvatar, childName]);
 
   // Dynamic stats from child_progress
   const totalExercises = progressData.reduce((s, p) => s + p.exercises_completed, 0);
@@ -179,12 +183,14 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="text-left min-w-0 flex-1">
-                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">Studiemaatje</p>
+                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">
+                  {selectedAvatar?.name ? `Met ${selectedAvatar.name}` : 'Studiemaatje'}
+                </p>
                 <h2 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight truncate">
-                  Hoi, {selectedAvatar?.name || 'Vriend'}!
+                  {greeting}
                 </h2>
                 <p className="text-[10px] font-bold text-[#a78bfa] flex items-center gap-1 mt-0.5 truncate">
-                  <Sparkles className="w-2.5 h-2.5 shrink-0" /> Tik om te praten
+                  <Sparkles className="w-2.5 h-2.5 shrink-0" /> Tik om met {selectedAvatar?.name || 'je buddy'} te praten
                 </p>
               </div>
             </button>
@@ -277,7 +283,7 @@ export function Dashboard() {
             </div>
             <div className="text-left">
               <p className="text-[10px] font-bold text-emerald-50/80 uppercase tracking-widest leading-none mb-1">Jouw Avontuur</p>
-              <span className="block text-xl font-black text-white leading-tight">Start met Leren</span>
+              <span className="block text-xl font-black text-white leading-tight">Start {childName}'s avontuur</span>
               <span className="block text-xs font-bold text-emerald-50/90 mt-0.5">Ga verder met je quest! 🌟</span>
             </div>
           </div>
@@ -478,6 +484,9 @@ export function Dashboard() {
             );
           })()}
         </motion.div>
+
+        {/* Persoonlijke reis */}
+        <JourneyCard />
 
         {/* Rewards */}
         <motion.div
