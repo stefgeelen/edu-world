@@ -279,7 +279,7 @@ export function Dashboard() {
             </div>
             <div className="text-left">
               <p className="text-[10px] font-bold text-emerald-50/80 uppercase tracking-widest leading-none mb-1">Jouw Avontuur</p>
-              <span className="block text-xl font-black text-white leading-tight">Start met Leren</span>
+              <span className="block text-xl font-black text-white leading-tight">Start {childName}'s avontuur</span>
               <span className="block text-xs font-bold text-emerald-50/90 mt-0.5">Ga verder met je quest! 🌟</span>
             </div>
           </div>
