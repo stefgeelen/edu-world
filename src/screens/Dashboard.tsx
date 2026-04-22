@@ -13,6 +13,8 @@ import { useChildProgress } from '@/hooks/useChildProgress';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { useChildGreeting } from '@/hooks/useChildGreeting';
+import { JourneyCard } from '@/components/JourneyCard';
 
 /* ── Icon registry for db-driven badges ──────────────── */
 const BADGE_ICONS: Record<string, LucideIcon> = {
