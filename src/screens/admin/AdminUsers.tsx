@@ -169,13 +169,17 @@ export function AdminUsers() {
                   {sub ? `${sub.plan} · ${sub.status}` : 'Geen abonnement'}
                 </span>
                 <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
-                  {childCount} kind{childCount !== 1 ? 'eren' : ''}
+                  {childCount} {childCount === 1 ? 'kind' : 'kinderen'}
                 </span>
               </div>
 
               {/* Admin toggle */}
               <button
-                onClick={() => toggleAdmin.mutate({ userId: profile.id, makeAdmin: !isAdmin })}
+                onClick={() => {
+                  const action = isAdmin ? 'verwijderen als admin' : 'maken tot admin';
+                  if (!window.confirm(`Weet je zeker dat je ${profile.full_name || profile.email || 'deze gebruiker'} wilt ${action}?`)) return;
+                  toggleAdmin.mutate({ userId: profile.id, makeAdmin: !isAdmin });
+                }}
                 disabled={toggleAdmin.isPending}
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0 border',

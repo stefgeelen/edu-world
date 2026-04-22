@@ -31,10 +31,17 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
 
-  // Tick for lockout countdown
+  // Tick for lockout countdown + auto-clear when expired
   useEffect(() => {
     if (!lockedUntil) return;
-    const t = setInterval(() => setNow(Date.now()), 500);
+    const t = setInterval(() => {
+      const n = Date.now();
+      setNow(n);
+      if (n >= lockedUntil) {
+        setLockedUntil(null);
+        setAttempts(0);
+      }
+    }, 500);
     return () => clearInterval(t);
   }, [lockedUntil]);
 
@@ -80,11 +87,6 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
 
   const isLocked = lockedUntil !== null && now < lockedUntil;
   const secondsLeft = isLocked ? Math.ceil((lockedUntil! - now) / 1000) : 0;
-  if (lockedUntil && !isLocked) {
-    // expired
-    setLockedUntil(null);
-    setAttempts(0);
-  }
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex flex-col items-center justify-center px-6 py-10 relative">
