@@ -59,6 +59,7 @@ export function useCompleteExercise() {
   const { data: child } = useCurrentChild();
   const { user } = useAuth();
   const { celebrateRewards, celebratePromotion } = useCelebration();
+  const { getMessage } = useBuddyMessage();
 
   return useMutation({
     mutationFn: async (params: CompleteExerciseParams) => {
@@ -97,6 +98,18 @@ export function useCompleteExercise() {
       }
       if (data?.all_trimesters_completed) {
         celebratePromotion();
+      }
+
+      // Buddy reactions to milestones
+      if (data?.leveled_up) {
+        const msg = getMessage('level_up');
+        if (msg) buddyToast.cheer(msg.message, { duration: 5000 });
+      }
+      if (data?.streak && STREAK_MILESTONES.has(data.streak)) {
+        const msg = getMessage('streak_milestone');
+        if (msg) {
+          buddyToast.cheer(`🔥 ${data.streak} dagen op rij! ${msg.message}`, { duration: 5500 });
+        }
       }
     },
   });
