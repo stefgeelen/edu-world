@@ -233,6 +233,9 @@ export function QuestMap() {
           onDismiss={() => setBuddyData(null)}
         />
       )}
+
+      {/* Persistent buddy companion */}
+      <BuddyCompanion situation="quest_map_idle" position="floating-br" size={56} />
     </div>
   );
 }
