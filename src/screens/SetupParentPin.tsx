@@ -35,9 +35,21 @@ export function SetupParentPin() {
     }
   }, [hasPin, isLoading, navigate, redirectTo, isChange]);
 
+  // Helper: weak PIN detection (all same digits or simple sequence)
+  const isWeakPin = (pin: string) => {
+    if (/^(\d)\1{3}$/.test(pin)) return true; // 0000, 1111, ...
+    const seqs = ['0123', '1234', '2345', '3456', '4567', '5678', '6789', '9876', '8765', '7654', '6543', '5432', '4321', '3210'];
+    return seqs.includes(pin);
+  };
+
   // Move to confirm step automatically when first PIN is complete
   useEffect(() => {
     if (step === 'choose' && first.length === 4) {
+      if (isWeakPin(first)) {
+        toast.error('Kies een sterkere code (geen 1234, 0000, ...)');
+        setFirst('');
+        return;
+      }
       setStep('confirm');
     }
   }, [first, step]);

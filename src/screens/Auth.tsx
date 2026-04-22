@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { mapAuthError } from '@/lib/errorMessages';
