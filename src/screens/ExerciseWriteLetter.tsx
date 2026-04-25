@@ -263,32 +263,46 @@ export function ExerciseWriteLetter() {
     const p2d = new Path2D(pathStr);
     ctx.save();
     ctx.setTransform(scale, 0, 0, scale, ox, oy);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = guideCfg.lineW + 4;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.setLineDash(guideCfg.dash as unknown as number[]);
-    ctx.stroke(p2d);
-    ctx.strokeStyle = `rgba(251,146,60,${guideCfg.alpha})`;
-    ctx.lineWidth = guideCfg.lineW;
-    ctx.stroke(p2d);
-    ctx.setLineDash([]);
-    const starts = getSubpathStarts(pathStr);
-    starts.forEach(({ x, y, dx, dy }, idx) => {
-      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#22c55e'; ctx.fill();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.8; ctx.stroke();
-      if (isMultiStroke) {
-        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 5.5px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(String(idx + 1), x, y);
-      }
-      if (guideCfg.alpha > 0.45) {
-        const arrowDist = 12;
-        drawArrowHead(ctx, x + dx * arrowDist, y + dy * arrowDist, dx, dy, 4.5);
-      }
-    });
+
+    if (isFilledGlyph) {
+      // Filled vector-traced glyph: render as a solid orange shape with a
+      // soft white halo, plus a faint dashed outline that fades with iteration
+      // to mimic the "less help over time" progression of stroked letters.
+      ctx.fillStyle = `rgba(251,146,60,${guideCfg.alpha})`;
+      ctx.fill(p2d, 'evenodd');
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = `rgba(255,255,255,${Math.min(0.6, guideCfg.alpha + 0.1)})`;
+      ctx.setLineDash(guideCfg.dash as unknown as number[]);
+      ctx.stroke(p2d);
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = guideCfg.lineW + 4;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.setLineDash(guideCfg.dash as unknown as number[]);
+      ctx.stroke(p2d);
+      ctx.strokeStyle = `rgba(251,146,60,${guideCfg.alpha})`;
+      ctx.lineWidth = guideCfg.lineW;
+      ctx.stroke(p2d);
+      ctx.setLineDash([]);
+      const starts = getSubpathStarts(pathStr);
+      starts.forEach(({ x, y, dx, dy }, idx) => {
+        ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#22c55e'; ctx.fill();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.8; ctx.stroke();
+        if (isMultiStroke) {
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 5.5px sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(String(idx + 1), x, y);
+        }
+        if (guideCfg.alpha > 0.45) {
+          const arrowDist = 12;
+          drawArrowHead(ctx, x + dx * arrowDist, y + dy * arrowDist, dx, dy, 4.5);
+        }
+      });
+    }
     ctx.restore();
-  }, [cSize, pathStr, guideCfg, isMultiStroke]);
+  }, [cSize, pathStr, guideCfg, isMultiStroke, isFilledGlyph]);
 
   useEffect(() => { drawGuide(); }, [drawGuide]);
 
