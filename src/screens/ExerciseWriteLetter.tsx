@@ -9,6 +9,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
+import { LETTER_FILLED } from './letterFilledPaths';
 
 // ── Cursive-style letter SVG paths (100 × 130 normalized space) ────────────
 // Each path approximates a handwritten lowercase letter
@@ -220,8 +221,12 @@ export function ExerciseWriteLetter() {
 
   const progress = (iteration / TOTAL_ITERATIONS) * 100;
   const guideCfg = GUIDE_CONFIGS[Math.min(iteration, GUIDE_CONFIGS.length - 1)];
-  const pathStr = LETTER_PATHS[currentLetter] || LETTER_PATHS['a'];
-  const isMultiStroke = getSubpathStarts(pathStr).length > 1;
+  // Letters with a precise vector-traced filled glyph render as a fill (preferred).
+  // Other letters fall back to the legacy stroked outline path.
+  const filledPath = LETTER_FILLED[currentLetter];
+  const pathStr = filledPath ?? LETTER_PATHS[currentLetter] ?? LETTER_PATHS['a'];
+  const isFilledGlyph = !!filledPath;
+  const isMultiStroke = !isFilledGlyph && getSubpathStarts(pathStr).length > 1;
 
   // Speak the letter on load and when it changes
   useEffect(() => {
@@ -258,32 +263,46 @@ export function ExerciseWriteLetter() {
     const p2d = new Path2D(pathStr);
     ctx.save();
     ctx.setTransform(scale, 0, 0, scale, ox, oy);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = guideCfg.lineW + 4;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.setLineDash(guideCfg.dash as unknown as number[]);
-    ctx.stroke(p2d);
-    ctx.strokeStyle = `rgba(251,146,60,${guideCfg.alpha})`;
-    ctx.lineWidth = guideCfg.lineW;
-    ctx.stroke(p2d);
-    ctx.setLineDash([]);
-    const starts = getSubpathStarts(pathStr);
-    starts.forEach(({ x, y, dx, dy }, idx) => {
-      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#22c55e'; ctx.fill();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.8; ctx.stroke();
-      if (isMultiStroke) {
-        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 5.5px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(String(idx + 1), x, y);
-      }
-      if (guideCfg.alpha > 0.45) {
-        const arrowDist = 12;
-        drawArrowHead(ctx, x + dx * arrowDist, y + dy * arrowDist, dx, dy, 4.5);
-      }
-    });
+
+    if (isFilledGlyph) {
+      // Filled vector-traced glyph: render as a solid orange shape with a
+      // soft white halo, plus a faint dashed outline that fades with iteration
+      // to mimic the "less help over time" progression of stroked letters.
+      ctx.fillStyle = `rgba(251,146,60,${guideCfg.alpha})`;
+      ctx.fill(p2d, 'evenodd');
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = `rgba(255,255,255,${Math.min(0.6, guideCfg.alpha + 0.1)})`;
+      ctx.setLineDash(guideCfg.dash as unknown as number[]);
+      ctx.stroke(p2d);
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = guideCfg.lineW + 4;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.setLineDash(guideCfg.dash as unknown as number[]);
+      ctx.stroke(p2d);
+      ctx.strokeStyle = `rgba(251,146,60,${guideCfg.alpha})`;
+      ctx.lineWidth = guideCfg.lineW;
+      ctx.stroke(p2d);
+      ctx.setLineDash([]);
+      const starts = getSubpathStarts(pathStr);
+      starts.forEach(({ x, y, dx, dy }, idx) => {
+        ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#22c55e'; ctx.fill();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.8; ctx.stroke();
+        if (isMultiStroke) {
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 5.5px sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(String(idx + 1), x, y);
+        }
+        if (guideCfg.alpha > 0.45) {
+          const arrowDist = 12;
+          drawArrowHead(ctx, x + dx * arrowDist, y + dy * arrowDist, dx, dy, 4.5);
+        }
+      });
+    }
     ctx.restore();
-  }, [cSize, pathStr, guideCfg, isMultiStroke]);
+  }, [cSize, pathStr, guideCfg, isMultiStroke, isFilledGlyph]);
 
   useEffect(() => { drawGuide(); }, [drawGuide]);
 
@@ -369,8 +388,19 @@ export function ExerciseWriteLetter() {
     const rc = ref.getContext('2d')!;
     const { scale, ox, oy } = getTransform(cSize.w, cSize.h);
     rc.save(); rc.setTransform(scale, 0, 0, scale, ox, oy);
-    rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL; rc.lineCap = 'round'; rc.lineJoin = 'round'; rc.setLineDash([]);
-    rc.stroke(new Path2D(pathStr)); rc.restore();
+    const refPath = new Path2D(pathStr);
+    if (isFilledGlyph) {
+      // Filled glyph: validation = drawing falls inside the shape (with small tolerance halo)
+      rc.fillStyle = '#000';
+      rc.fill(refPath, 'evenodd');
+      // Slight stroke to add tolerance around thin parts
+      rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL * 0.6; rc.lineJoin = 'round'; rc.lineCap = 'round';
+      rc.stroke(refPath);
+    } else {
+      rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL; rc.lineCap = 'round'; rc.lineJoin = 'round'; rc.setLineDash([]);
+      rc.stroke(refPath);
+    }
+    rc.restore();
     const rData = rc.getImageData(0, 0, cSize.w, cSize.h).data;
     const dData = dc.getContext('2d')!.getImageData(0, 0, cSize.w, cSize.h).data;
     let refPx = 0, overlap = 0, drawn = 0;
@@ -405,7 +435,7 @@ export function ExerciseWriteLetter() {
       const nextLives = lives - 1; setLives(nextLives);
       setTimeout(() => { if (nextLives <= 0) navigate('/app/stage/fluisterbos'); else clearDrawing(); }, 1800);
     }
-  }, [cSize, pathStr, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
+  }, [cSize, pathStr, isFilledGlyph, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
 
   return (
     <ExerciseShell
