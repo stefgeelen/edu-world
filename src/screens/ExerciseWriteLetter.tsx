@@ -9,6 +9,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
+import { LETTER_FILLED } from './letterFilledPaths';
 
 // ── Cursive-style letter SVG paths (100 × 130 normalized space) ────────────
 // Each path approximates a handwritten lowercase letter
