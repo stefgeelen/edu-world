@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'; // letter exercise
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, RotateCcw, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -184,7 +184,17 @@ export function ExerciseWriteLetter() {
   const startTimeRef = useRef(Date.now());
   const { speak: speakWord } = useSpeech();
 
-  const pickRandomLetter = useCallback(() => ALPHABET[Math.floor(Math.random() * ALPHABET.length)], []);
+  const { id } = useParams<{ id?: string }>();
+  // Allow forcing a specific letter via URL (e.g. /exercises/write-letter/g) for testing.
+  // Numeric ids (real exercise ids) fall through to random selection used in the platform.
+  const forcedLetter = id && /^[a-z]$/i.test(id) && ALPHABET.includes(id.toLowerCase())
+    ? id.toLowerCase()
+    : null;
+
+  const pickRandomLetter = useCallback(
+    () => forcedLetter ?? ALPHABET[Math.floor(Math.random() * ALPHABET.length)],
+    [forcedLetter],
+  );
 
   const [currentLetter, setCurrentLetter] = useState(pickRandomLetter);
 
