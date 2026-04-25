@@ -435,7 +435,7 @@ export function ExerciseWriteLetter() {
       const nextLives = lives - 1; setLives(nextLives);
       setTimeout(() => { if (nextLives <= 0) navigate('/app/stage/fluisterbos'); else clearDrawing(); }, 1800);
     }
-  }, [cSize, pathStr, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
+  }, [cSize, pathStr, isFilledGlyph, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
 
   return (
     <ExerciseShell
