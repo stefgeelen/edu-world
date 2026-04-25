@@ -388,8 +388,19 @@ export function ExerciseWriteLetter() {
     const rc = ref.getContext('2d')!;
     const { scale, ox, oy } = getTransform(cSize.w, cSize.h);
     rc.save(); rc.setTransform(scale, 0, 0, scale, ox, oy);
-    rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL; rc.lineCap = 'round'; rc.lineJoin = 'round'; rc.setLineDash([]);
-    rc.stroke(new Path2D(pathStr)); rc.restore();
+    const refPath = new Path2D(pathStr);
+    if (isFilledGlyph) {
+      // Filled glyph: validation = drawing falls inside the shape (with small tolerance halo)
+      rc.fillStyle = '#000';
+      rc.fill(refPath, 'evenodd');
+      // Slight stroke to add tolerance around thin parts
+      rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL * 0.6; rc.lineJoin = 'round'; rc.lineCap = 'round';
+      rc.stroke(refPath);
+    } else {
+      rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL; rc.lineCap = 'round'; rc.lineJoin = 'round'; rc.setLineDash([]);
+      rc.stroke(refPath);
+    }
+    rc.restore();
     const rData = rc.getImageData(0, 0, cSize.w, cSize.h).data;
     const dData = dc.getContext('2d')!.getImageData(0, 0, cSize.w, cSize.h).data;
     let refPx = 0, overlap = 0, drawn = 0;
