@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'; // letter exercise
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, RotateCcw, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
