@@ -221,8 +221,12 @@ export function ExerciseWriteLetter() {
 
   const progress = (iteration / TOTAL_ITERATIONS) * 100;
   const guideCfg = GUIDE_CONFIGS[Math.min(iteration, GUIDE_CONFIGS.length - 1)];
-  const pathStr = LETTER_PATHS[currentLetter] || LETTER_PATHS['a'];
-  const isMultiStroke = getSubpathStarts(pathStr).length > 1;
+  // Letters with a precise vector-traced filled glyph render as a fill (preferred).
+  // Other letters fall back to the legacy stroked outline path.
+  const filledPath = LETTER_FILLED[currentLetter];
+  const pathStr = filledPath ?? LETTER_PATHS[currentLetter] ?? LETTER_PATHS['a'];
+  const isFilledGlyph = !!filledPath;
+  const isMultiStroke = !isFilledGlyph && getSubpathStarts(pathStr).length > 1;
 
   // Speak the letter on load and when it changes
   useEffect(() => {
