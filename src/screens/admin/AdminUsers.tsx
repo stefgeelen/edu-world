@@ -23,7 +23,10 @@ type UserRole = Tables<'user_roles'>;
 
 export function AdminUsers() {
   const [search, setSearch] = useState('');
+  const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
+  const [confirmText, setConfirmText] = useState('');
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
 
   const { data: profiles = [], isLoading: loadingProfiles } = useQuery({
     queryKey: ['admin-profiles'],
