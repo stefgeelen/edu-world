@@ -9,17 +9,18 @@ export const REQUIRED_COMPLETIONS = 5;
  * Fetches all exercises for stage-1 and merges per-child attempt data.
  * Returns a flat list of StageExercise objects with completions & bestStars.
  */
-export function useStageExercises() {
+export function useStageExercises(stage: number = 1) {
   const { data: child, isFetched } = useCurrentChild();
   const childId = child?.id;
+  const safeStage = Math.max(1, Math.min(4, stage || 1));
 
   return useQuery({
-    queryKey: ['stage-exercises-progress', childId],
+    queryKey: ['stage-exercises-progress', childId, safeStage],
     queryFn: async (): Promise<StageExercise[]> => {
       const { data: exercises, error } = await supabase
         .from('exercises')
         .select('*')
-        .eq('stage', 'stage-1')
+        .eq('stage', `stage-${safeStage}`)
         .order('subject')
         .order('display_order');
 
