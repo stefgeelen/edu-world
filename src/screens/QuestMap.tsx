@@ -48,11 +48,6 @@ function getButtonClass(status: "completed" | "current" | "locked") {
   return "bg-cyan-400 border-b-8 border-cyan-600 shadow-xl ring-4 ring-white";
 }
 
-function getButtonClass(status: "completed" | "current" | "locked") {
-  if (status === "locked") return "bg-slate-700 border-b-8 border-slate-900 shadow-xl ring-4 ring-slate-600 opacity-90";
-  if (status === "completed") return "bg-emerald-400 border-b-8 border-emerald-600 shadow-xl ring-4 ring-emerald-300";
-  return "bg-cyan-400 border-b-8 border-cyan-600 shadow-xl ring-4 ring-white";
-}
 
 export function QuestMap() {
   const navigate = useNavigate();
