@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ChevronLeft,
@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStageExercises, REQUIRED_COMPLETIONS } from '@/hooks/useStageExercises';
+import { useStageMastery, STAGE_NAMES } from '@/hooks/useStageMastery';
+import { toast } from '@/hooks/use-toast';
 import type { StageExercise, SubjectConfig } from '@/types/stage';
 
 /* ── Subject config ─────────────────────────────────── */
@@ -67,7 +69,23 @@ const SUBJECTS: SubjectConfig[] = [
 /* ── Main component ─────────────────────────────────── */
 export function Fluisterbos() {
   const navigate = useNavigate();
-  const { data: allExercises = [], isLoading } = useStageExercises();
+  const { stage: stageParam } = useParams<{ stage?: string }>();
+  const stage = Math.max(1, Math.min(4, Number(stageParam) || 1));
+  const { data: allExercises = [], isLoading } = useStageExercises(stage);
+  const { stages, isLoading: masteryLoading } = useStageMastery();
+
+  // Guard: redirect if locked
+  useEffect(() => {
+    if (masteryLoading) return;
+    const s = stages.find((x) => x.stage === stage);
+    if (s?.isLocked) {
+      toast({
+        title: 'Nog op slot 🔒',
+        description: `Voltooi eerst de vorige stage om "${STAGE_NAMES[stage]}" te openen.`,
+      });
+      navigate('/app/map', { replace: true });
+    }
+  }, [masteryLoading, stages, stage, navigate]);
 
   const mastered = allExercises.filter((e) => e.completions >= REQUIRED_COMPLETIONS);
   const totalXpEarned = mastered.reduce((s, e) => s + e.xpReward, 0);
@@ -97,7 +115,7 @@ export function Fluisterbos() {
             </button>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
-                <Leaf className="w-3 h-3 text-teal-500" /> Stage 1
+                <Leaf className="w-3 h-3 text-teal-500" /> Stage {stage} · {STAGE_NAMES[stage]}
               </p>
               <h1 className="font-black text-xl text-slate-900 truncate">Het Fluisterbos</h1>
             </div>
