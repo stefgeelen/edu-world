@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Plus, ChevronRight, GraduationCap, Zap, Flame, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
 
 const GRADE_LABELS: Record<number, string> = {
   1: '1ste leerjaar',
@@ -65,7 +66,7 @@ export function ParentChildren() {
         <div>
           <h2 className="text-2xl font-black text-slate-900">Mijn Kinderen</h2>
           <p className="text-sm text-slate-500 font-medium">
-            {children.length} van {maxChildren} kind{maxChildren !== 1 ? 'eren' : ''}
+            {children.length} van {maxChildren} {maxChildren === 1 ? 'kind' : 'kinderen'}
           </p>
         </div>
         <button
@@ -161,8 +162,4 @@ export function ParentChildren() {
       )}
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
 }

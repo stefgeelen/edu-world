@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'; // letter exercise
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, RotateCcw, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
+import { LETTER_FILLED } from './letterFilledPaths';
 
 // ── Cursive-style letter SVG paths (100 × 130 normalized space) ────────────
 // Each path approximates a handwritten lowercase letter
@@ -19,11 +20,11 @@ const LETTER_PATHS: Record<string, string> = {
   d: 'M 70 10 L 70 90 M 70 50 C 70 25 30 25 30 50 C 30 75 70 75 70 50',
   e: 'M 30 55 L 70 55 C 70 30 55 20 42 20 C 28 20 30 35 30 55 C 30 80 55 90 70 78',
   f: 'M 65 10 C 50 10 40 20 40 40 L 40 90 M 25 45 L 60 45',
-  g: 'M 70 40 C 70 20 30 20 30 50 C 30 75 70 75 70 50 L 70 40 L 70 110 C 70 125 45 125 30 115',
-  h: 'M 30 10 L 30 90 M 30 50 C 30 30 70 30 70 50 L 70 90',
+  g: 'M 70 40 C 70 20 30 20 30 50 C 30 75 70 75 70 50 L 70 40 L 70 105 C 70 122 50 128 32 120 C 22 116 25 108 35 110',
+  h: 'M 30 15 C 35 12 40 14 38 22 L 30 90 M 32 55 C 38 38 70 35 70 55 L 70 90',
   i: 'M 50 35 L 50 90 M 50 18 L 50 22',
   j: 'M 55 35 L 55 110 C 55 125 35 125 25 115 M 55 18 L 55 22',
-  k: 'M 30 10 L 30 90 M 65 35 L 30 60 L 65 90',
+  k: 'M 30 15 C 35 12 40 14 38 22 L 30 90 M 32 60 C 45 55 55 45 50 38 C 45 32 38 40 45 55 C 50 65 60 75 70 90',
   l: 'M 50 10 L 50 90',
   m: 'M 15 90 L 15 40 M 15 50 C 15 30 40 30 40 50 L 40 90 M 40 50 C 40 30 65 30 65 50 L 65 90',
   n: 'M 30 90 L 30 40 M 30 50 C 30 30 70 30 70 50 L 70 90',
@@ -184,7 +185,17 @@ export function ExerciseWriteLetter() {
   const startTimeRef = useRef(Date.now());
   const { speak: speakWord } = useSpeech();
 
-  const pickRandomLetter = useCallback(() => ALPHABET[Math.floor(Math.random() * ALPHABET.length)], []);
+  const { id } = useParams<{ id?: string }>();
+  // Allow forcing a specific letter via URL (e.g. /exercises/write-letter/g) for testing.
+  // Numeric ids (real exercise ids) fall through to random selection used in the platform.
+  const forcedLetter = id && /^[a-z]$/i.test(id) && ALPHABET.includes(id.toLowerCase())
+    ? id.toLowerCase()
+    : null;
+
+  const pickRandomLetter = useCallback(
+    () => forcedLetter ?? ALPHABET[Math.floor(Math.random() * ALPHABET.length)],
+    [forcedLetter],
+  );
 
   const [currentLetter, setCurrentLetter] = useState(pickRandomLetter);
 
@@ -210,8 +221,12 @@ export function ExerciseWriteLetter() {
 
   const progress = (iteration / TOTAL_ITERATIONS) * 100;
   const guideCfg = GUIDE_CONFIGS[Math.min(iteration, GUIDE_CONFIGS.length - 1)];
-  const pathStr = LETTER_PATHS[currentLetter] || LETTER_PATHS['a'];
-  const isMultiStroke = getSubpathStarts(pathStr).length > 1;
+  // Letters with a precise vector-traced filled glyph render as a fill (preferred).
+  // Other letters fall back to the legacy stroked outline path.
+  const filledPath = LETTER_FILLED[currentLetter];
+  const pathStr = filledPath ?? LETTER_PATHS[currentLetter] ?? LETTER_PATHS['a'];
+  const isFilledGlyph = !!filledPath;
+  const isMultiStroke = !isFilledGlyph && getSubpathStarts(pathStr).length > 1;
 
   // Speak the letter on load and when it changes
   useEffect(() => {
@@ -248,32 +263,46 @@ export function ExerciseWriteLetter() {
     const p2d = new Path2D(pathStr);
     ctx.save();
     ctx.setTransform(scale, 0, 0, scale, ox, oy);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = guideCfg.lineW + 4;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.setLineDash(guideCfg.dash as unknown as number[]);
-    ctx.stroke(p2d);
-    ctx.strokeStyle = `rgba(251,146,60,${guideCfg.alpha})`;
-    ctx.lineWidth = guideCfg.lineW;
-    ctx.stroke(p2d);
-    ctx.setLineDash([]);
-    const starts = getSubpathStarts(pathStr);
-    starts.forEach(({ x, y, dx, dy }, idx) => {
-      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#22c55e'; ctx.fill();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.8; ctx.stroke();
-      if (isMultiStroke) {
-        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 5.5px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(String(idx + 1), x, y);
-      }
-      if (guideCfg.alpha > 0.45) {
-        const arrowDist = 12;
-        drawArrowHead(ctx, x + dx * arrowDist, y + dy * arrowDist, dx, dy, 4.5);
-      }
-    });
+
+    if (isFilledGlyph) {
+      // Filled vector-traced glyph: render as a solid orange shape with a
+      // soft white halo, plus a faint dashed outline that fades with iteration
+      // to mimic the "less help over time" progression of stroked letters.
+      ctx.fillStyle = `rgba(251,146,60,${guideCfg.alpha})`;
+      ctx.fill(p2d, 'evenodd');
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = `rgba(255,255,255,${Math.min(0.6, guideCfg.alpha + 0.1)})`;
+      ctx.setLineDash(guideCfg.dash as unknown as number[]);
+      ctx.stroke(p2d);
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = guideCfg.lineW + 4;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.setLineDash(guideCfg.dash as unknown as number[]);
+      ctx.stroke(p2d);
+      ctx.strokeStyle = `rgba(251,146,60,${guideCfg.alpha})`;
+      ctx.lineWidth = guideCfg.lineW;
+      ctx.stroke(p2d);
+      ctx.setLineDash([]);
+      const starts = getSubpathStarts(pathStr);
+      starts.forEach(({ x, y, dx, dy }, idx) => {
+        ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#22c55e'; ctx.fill();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.8; ctx.stroke();
+        if (isMultiStroke) {
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 5.5px sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(String(idx + 1), x, y);
+        }
+        if (guideCfg.alpha > 0.45) {
+          const arrowDist = 12;
+          drawArrowHead(ctx, x + dx * arrowDist, y + dy * arrowDist, dx, dy, 4.5);
+        }
+      });
+    }
     ctx.restore();
-  }, [cSize, pathStr, guideCfg, isMultiStroke]);
+  }, [cSize, pathStr, guideCfg, isMultiStroke, isFilledGlyph]);
 
   useEffect(() => { drawGuide(); }, [drawGuide]);
 
@@ -359,8 +388,19 @@ export function ExerciseWriteLetter() {
     const rc = ref.getContext('2d')!;
     const { scale, ox, oy } = getTransform(cSize.w, cSize.h);
     rc.save(); rc.setTransform(scale, 0, 0, scale, ox, oy);
-    rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL; rc.lineCap = 'round'; rc.lineJoin = 'round'; rc.setLineDash([]);
-    rc.stroke(new Path2D(pathStr)); rc.restore();
+    const refPath = new Path2D(pathStr);
+    if (isFilledGlyph) {
+      // Filled glyph: validation = drawing falls inside the shape (with small tolerance halo)
+      rc.fillStyle = '#000';
+      rc.fill(refPath, 'evenodd');
+      // Slight stroke to add tolerance around thin parts
+      rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL * 0.6; rc.lineJoin = 'round'; rc.lineCap = 'round';
+      rc.stroke(refPath);
+    } else {
+      rc.strokeStyle = '#000'; rc.lineWidth = CHECK_TOL; rc.lineCap = 'round'; rc.lineJoin = 'round'; rc.setLineDash([]);
+      rc.stroke(refPath);
+    }
+    rc.restore();
     const rData = rc.getImageData(0, 0, cSize.w, cSize.h).data;
     const dData = dc.getContext('2d')!.getImageData(0, 0, cSize.w, cSize.h).data;
     let refPx = 0, overlap = 0, drawn = 0;
@@ -395,7 +435,7 @@ export function ExerciseWriteLetter() {
       const nextLives = lives - 1; setLives(nextLives);
       setTimeout(() => { if (nextLives <= 0) navigate('/app/stage/fluisterbos'); else clearDrawing(); }, 1800);
     }
-  }, [cSize, pathStr, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
+  }, [cSize, pathStr, isFilledGlyph, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
 
   return (
     <ExerciseShell

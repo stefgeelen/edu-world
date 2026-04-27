@@ -2,17 +2,31 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown } from 'lucide-react';
+import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown, Trash2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
+import { useAuth } from '@/context/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 
 type Profile = Tables<'profiles'>;
 type UserRole = Tables<'user_roles'>;
 
 export function AdminUsers() {
   const [search, setSearch] = useState('');
+  const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
+  const [confirmText, setConfirmText] = useState('');
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
 
   const { data: profiles = [], isLoading: loadingProfiles } = useQuery({
     queryKey: ['admin-profiles'],
@@ -68,6 +82,27 @@ export function AdminUsers() {
       toast.success('Rol bijgewerkt');
     },
     onError: () => toast.error('Fout bij bijwerken rol'),
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-children'] });
+      toast.success('Account permanent verwijderd');
+      setUserToDelete(null);
+      setConfirmText('');
+    },
+    onError: (e: Error) => toast.error(e.message || 'Verwijderen mislukt'),
   });
 
   const getUserRoles = (userId: string) => roles.filter(r => r.user_id === userId).map(r => r.role);
@@ -169,13 +204,17 @@ export function AdminUsers() {
                   {sub ? `${sub.plan} · ${sub.status}` : 'Geen abonnement'}
                 </span>
                 <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
-                  {childCount} kind{childCount !== 1 ? 'eren' : ''}
+                  {childCount} {childCount === 1 ? 'kind' : 'kinderen'}
                 </span>
               </div>
 
               {/* Admin toggle */}
               <button
-                onClick={() => toggleAdmin.mutate({ userId: profile.id, makeAdmin: !isAdmin })}
+                onClick={() => {
+                  const action = isAdmin ? 'verwijderen als admin' : 'maken tot admin';
+                  if (!window.confirm(`Weet je zeker dat je ${profile.full_name || profile.email || 'deze gebruiker'} wilt ${action}?`)) return;
+                  toggleAdmin.mutate({ userId: profile.id, makeAdmin: !isAdmin });
+                }}
                 disabled={toggleAdmin.isPending}
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0 border',
@@ -190,6 +229,24 @@ export function AdminUsers() {
                   <><ShieldCheck className="w-3.5 h-3.5" /> Maak admin</>
                 )}
               </button>
+
+              {/* Permanent delete */}
+              <button
+                onClick={() => {
+                  setConfirmText('');
+                  setUserToDelete(profile);
+                }}
+                disabled={profile.id === currentUser?.id || deleteUser.isPending}
+                title={profile.id === currentUser?.id ? 'Je kunt jezelf niet verwijderen' : 'Account permanent verwijderen'}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0 border',
+                  profile.id === currentUser?.id
+                    ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
+                    : 'bg-red-500 text-white border-red-600 hover:bg-red-600'
+                )}
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Verwijder
+              </button>
             </motion.div>
           );
         })}
@@ -200,6 +257,67 @@ export function AdminUsers() {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!userToDelete} onOpenChange={(open) => { if (!open) { setUserToDelete(null); setConfirmText(''); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Account permanent verwijderen
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-slate-600">
+                <p>
+                  Je staat op het punt om{' '}
+                  <span className="font-bold text-slate-900">
+                    {userToDelete?.full_name || userToDelete?.email || 'deze gebruiker'}
+                  </span>{' '}
+                  permanent te verwijderen. Deze actie kan <strong>niet</strong> ongedaan gemaakt worden.
+                </p>
+                <p className="font-semibold text-slate-700">Het volgende wordt verwijderd:</p>
+                <ul className="list-disc pl-5 space-y-0.5 text-xs">
+                  <li>Profiel & login (auth)</li>
+                  <li>Alle kinderen en hun voortgang</li>
+                  <li>Oefenpogingen, badges & trimester-voortgang</li>
+                  <li>Beloningen, abonnement & PIN</li>
+                  <li>Rollen & organisatie-lidmaatschappen</li>
+                </ul>
+                <div className="pt-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Typ <span className="text-red-600">VERWIJDER</span> om te bevestigen:
+                  </label>
+                  <input
+                    type="text"
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    autoFocus
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400"
+                    placeholder="VERWIJDER"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteUser.isPending}>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={confirmText !== 'VERWIJDER' || deleteUser.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (userToDelete) deleteUser.mutate(userToDelete.id);
+              }}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+            >
+              {deleteUser.isPending ? (
+                <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Verwijderen...</>
+              ) : (
+                <><Trash2 className="w-4 h-4 mr-1.5" /> Permanent verwijderen</>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

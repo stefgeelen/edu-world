@@ -31,10 +31,17 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
 
-  // Tick for lockout countdown
+  // Tick for lockout countdown + auto-clear when expired
   useEffect(() => {
     if (!lockedUntil) return;
-    const t = setInterval(() => setNow(Date.now()), 500);
+    const t = setInterval(() => {
+      const n = Date.now();
+      setNow(n);
+      if (n >= lockedUntil) {
+        setLockedUntil(null);
+        setAttempts(0);
+      }
+    }, 500);
     return () => clearInterval(t);
   }, [lockedUntil]);
 
@@ -65,9 +72,8 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
         if (next >= MAX_ATTEMPTS) {
           setLockedUntil(Date.now() + LOCK_MS);
           toast.error(`Te veel pogingen. Wacht ${Math.ceil(LOCK_MS / 1000)} seconden.`);
-        } else {
-          toast.error(`Verkeerde PIN (${next}/${MAX_ATTEMPTS})`);
         }
+        // Geen toast bij gewone foutpoging — inline banner toont dit al.
       }
     } catch (e: any) {
       setPin('');
@@ -81,11 +87,6 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
 
   const isLocked = lockedUntil !== null && now < lockedUntil;
   const secondsLeft = isLocked ? Math.ceil((lockedUntil! - now) / 1000) : 0;
-  if (lockedUntil && !isLocked) {
-    // expired
-    setLockedUntil(null);
-    setAttempts(0);
-  }
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex flex-col items-center justify-center px-6 py-10 relative">
@@ -128,30 +129,49 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
         transition={{ delay: 0.2 }}
         className="bg-white rounded-3xl border-2 border-slate-200 p-6 md:p-8 shadow-lg w-full max-w-sm flex flex-col items-center gap-5"
       >
-        <InputOTP
-          maxLength={4}
-          value={pin}
-          onChange={(v) => setPin(v.replace(/\D/g, ''))}
-          disabled={isLocked || verify.isPending}
-          autoFocus
-          inputMode="numeric"
+        <motion.div
+          key={attempts}
+          animate={attempts > 0 && !isLocked ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : {}}
+          transition={{ duration: 0.4 }}
         >
-          <InputOTPGroup>
-            <InputOTPSlot index={0} className="w-14 h-16 text-2xl font-black" />
-            <InputOTPSlot index={1} className="w-14 h-16 text-2xl font-black" />
-            <InputOTPSlot index={2} className="w-14 h-16 text-2xl font-black" />
-            <InputOTPSlot index={3} className="w-14 h-16 text-2xl font-black" />
-          </InputOTPGroup>
-        </InputOTP>
+          <InputOTP
+            maxLength={4}
+            value={pin}
+            onChange={(v) => setPin(v.replace(/\D/g, ''))}
+            disabled={isLocked || verify.isPending}
+            autoFocus
+            inputMode="numeric"
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} className={`w-14 h-16 text-2xl font-black ${attempts > 0 && !isLocked ? 'border-red-300' : ''}`} />
+              <InputOTPSlot index={1} className={`w-14 h-16 text-2xl font-black ${attempts > 0 && !isLocked ? 'border-red-300' : ''}`} />
+              <InputOTPSlot index={2} className={`w-14 h-16 text-2xl font-black ${attempts > 0 && !isLocked ? 'border-red-300' : ''}`} />
+              <InputOTPSlot index={3} className={`w-14 h-16 text-2xl font-black ${attempts > 0 && !isLocked ? 'border-red-300' : ''}`} />
+            </InputOTPGroup>
+          </InputOTP>
+        </motion.div>
 
         {verify.isPending && (
           <p className="text-xs font-bold text-slate-500">Controleren…</p>
         )}
 
+        {attempts > 0 && !isLocked && !verify.isPending && (
+          <div className="w-full bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-center">
+            <p className="text-xs font-bold text-red-700">
+              Verkeerde code ({attempts}/{MAX_ATTEMPTS})
+            </p>
+          </div>
+        )}
+
         {isLocked && (
-          <p className="text-sm font-bold text-red-600 text-center">
-            Geblokkeerd. Probeer opnieuw over {secondsLeft}s.
-          </p>
+          <div className="w-full bg-red-50 border-2 border-red-300 rounded-xl px-3 py-3 text-center">
+            <p className="text-sm font-black text-red-700">
+              Geblokkeerd
+            </p>
+            <p className="text-xs font-bold text-red-600 mt-0.5">
+              Probeer opnieuw over {secondsLeft}s
+            </p>
+          </div>
         )}
 
         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
