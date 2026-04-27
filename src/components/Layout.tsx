@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { TabBar } from './TabBar';
 import { GameProvider } from '@/context/GameContext';
 import { CelebrationProvider } from '@/context/CelebrationContext';
+import '@/lib/speechUnlock';
 
 export function Layout() {
   return (

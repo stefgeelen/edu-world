@@ -5,32 +5,10 @@ import { useEffect, useRef, useCallback } from 'react';
  * Handles iOS Safari quirks:
  * - cancel() immediately before speak() silently fails on WebKit
  * - Voices may load asynchronously
- * - speechSynthesis requires a prior user gesture on mobile; auto-unlocked
- *   by a silent utterance on the first click/touchstart anywhere in the app
+ * - User gesture requirement: handled by speechUnlock.ts, which is imported
+ *   from Layout.tsx (eagerly loaded) so the unlock fires before the user
+ *   ever reaches an exercise screen.
  */
-
-// ── Auto-unlock ─────────────────────────────────────────────────────────────
-// Mobile browsers (iOS Safari, Android Chrome) require speechSynthesis.speak()
-// to have been called at least once from a synchronous user-gesture handler
-// before it works from timers / effects. We prime it on the first tap/click.
-let speechUnlocked = false;
-
-if (typeof window !== 'undefined') {
-  const prime = () => {
-    if (speechUnlocked) return;
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    window.speechSynthesis.speak(u);
-    speechUnlocked = true;
-    document.removeEventListener('click', prime, true);
-    document.removeEventListener('touchstart', prime, true);
-  };
-  // Capture phase so we fire before any other handler (including React's)
-  document.addEventListener('click', prime, true);
-  document.addEventListener('touchstart', prime, true);
-}
-
-// ── Hook ─────────────────────────────────────────────────────────────────────
 export function useSpeech() {
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
 
