@@ -5,8 +5,32 @@ import { useEffect, useRef, useCallback } from 'react';
  * Handles iOS Safari quirks:
  * - cancel() immediately before speak() silently fails on WebKit
  * - Voices may load asynchronously
- * - User gesture requirement on first play
+ * - speechSynthesis requires a prior user gesture on mobile; auto-unlocked
+ *   by a silent utterance on the first click/touchstart anywhere in the app
  */
+
+// ── Auto-unlock ─────────────────────────────────────────────────────────────
+// Mobile browsers (iOS Safari, Android Chrome) require speechSynthesis.speak()
+// to have been called at least once from a synchronous user-gesture handler
+// before it works from timers / effects. We prime it on the first tap/click.
+let speechUnlocked = false;
+
+if (typeof window !== 'undefined') {
+  const prime = () => {
+    if (speechUnlocked) return;
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+    speechUnlocked = true;
+    document.removeEventListener('click', prime, true);
+    document.removeEventListener('touchstart', prime, true);
+  };
+  // Capture phase so we fire before any other handler (including React's)
+  document.addEventListener('click', prime, true);
+  document.addEventListener('touchstart', prime, true);
+}
+
+// ── Hook ─────────────────────────────────────────────────────────────────────
 export function useSpeech() {
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
 
@@ -52,7 +76,9 @@ export function useSpeech() {
     if (isWebKit) {
       setTimeout(() => {
         synth.speak(utterance);
-        // iOS Safari pauses speech when tab is backgrounded; resume trick
+        // iOS Safari pauses speech when tab is backgrounded; resume trick.
+        // Use addEventListener (not onend/onerror property assignment) so we
+        // don't overwrite the caller's own onend/onerror handlers.
         const keepAlive = setInterval(() => {
           if (!synth.speaking) {
             clearInterval(keepAlive);
@@ -61,8 +87,8 @@ export function useSpeech() {
             synth.resume();
           }
         }, 5000);
-        utterance.onend = () => clearInterval(keepAlive);
-        utterance.onerror = () => clearInterval(keepAlive);
+        utterance.addEventListener('end', () => clearInterval(keepAlive));
+        utterance.addEventListener('error', () => clearInterval(keepAlive));
       }, 100);
     } else {
       synth.speak(utterance);

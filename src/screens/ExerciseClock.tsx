@@ -70,15 +70,24 @@ function norm(angle: number): number {
 /* ── Speech ─────────────────────────────────────────────────── */
 function speak(text: string) {
   if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
+  const synth = window.speechSynthesis;
+  synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'nl-NL';
   u.rate = 0.75;
   // Try to pick a Dutch voice
-  const voices = window.speechSynthesis.getVoices();
+  const voices = synth.getVoices();
   const nlVoice = voices.find(v => v.lang.startsWith('nl'));
   if (nlVoice) u.voice = nlVoice;
-  window.speechSynthesis.speak(u);
+  // iOS Safari fix: cancel() + immediate speak() silently fails without a delay
+  const isWebKit =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+  if (isWebKit) {
+    setTimeout(() => synth.speak(u), 100);
+  } else {
+    synth.speak(u);
+  }
 }
 
 /* ── Clock Face component ───────────────────────────────────── */
