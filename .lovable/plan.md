@@ -1,62 +1,77 @@
-## Doel
+# Plan: Lees-oefening "Prent & Woord"
 
-Voeg een "Permanent verwijderen" knop toe in het Admin gebruikersoverzicht (`/admin/users`) waarmee een admin een volledig account inclusief alle gerelateerde data kan wissen — bedoeld om testaccounts op te ruimen.
+Een nieuwe lees-oefening voor leerjaar 1 waarbij het kind een woord naar de juiste prent sleept. De oefening krijgt categorieën per ronde (dieren, voertuigen, eten, natuur) en wordt toegevoegd aan alle 4 stages met oplopende moeilijkheid.
 
-## UX
+## Werking (kindperspectief)
 
-In `AdminUsers.tsx`, naast de huidige "Maak admin / Admin verwijderen" knop, een rode **"Verwijder account"** knop (Trash2 icon) per gebruikerrij.
+1. Een grote prent verschijnt centraal op het scherm (Unsplash foto, ronde kaart, glow-effect — Dark Space stijl).
+2. Onderaan staan 3 of 4 woordkaarten (afhankelijk van stage).
+3. Het kind sleept het juiste woord naar de prent.
+4. Bij een correct antwoord: groene glow + confetti + buddy "Super!" → volgende ronde.
+5. Bij een fout: rode glow + shake op het foute woord, levensaftrek, woord keert terug naar startpositie.
+6. 5 rondes = oefening voltooid → `complete_exercise` RPC + navigatie terug naar Fluisterbos van de juiste stage.
 
-Klikken opent een **bevestigingsdialoog** (AlertDialog) met:
-- Naam + e-mail van de gebruiker
-- Lijst van wat verwijderd wordt (kinderen, voortgang, badges, beloningen, abonnement, rol, profiel, auth-account)
-- Tekstveld waarin de admin "VERWIJDER" moet typen om te bevestigen
-- Definitieve "Permanent verwijderen" knop (disabled tot tekst klopt)
+## Moeilijkheidsschaling per stage
 
-Veiligheid:
-- Een admin kan zichzelf niet verwijderen (knop disabled op eigen rij).
-- Na succes: toast + lijst verversen via `queryClient.invalidateQueries`.
+| Stage | Aantal woordkaarten | Categorieën gemixt | Voorbeeld woorden |
+|-------|--------------------|--------------------|----------------------|
+| 1 | 3 | Eén categorie per ronde | kat, hond, vis |
+| 2 | 3 | Eén categorie per ronde | auto, bus, fiets |
+| 3 | 4 | Eén categorie per ronde | appel, brood, kaas, ei |
+| 4 | 4 | Categorieën gemixt per ronde | boom + auto + appel + kat |
 
-## Technisch
+Categorieën: **dieren**, **voertuigen**, **eten**, **natuur**. Per ronde wordt één categorie gekozen (stage 1-3) of vier woorden uit verschillende categorieën (stage 4).
 
-### 1. Edge Function: `supabase/functions/admin-delete-user/index.ts`
+## Woordenschat & afbeeldingen
 
-Reden: het verwijderen van een `auth.users` record vereist de **service role key** — kan niet vanaf de client. RLS ontbreekt op sommige cascade-stappen, dus we doen het server-side in één functie.
+Alle woorden + bijhorende Unsplash-URLs worden in `src/data/picturePool.ts` gedefinieerd (~6-8 woorden per categorie, ~28 in totaal). Bestaand `ImageWithFallback` component wordt hergebruikt. nl-NL audio via `useSpeech` zodat de prent ook hardop wordt benoemd voor extra leerwaarde (knop bovenaan).
 
-Werking:
-1. CORS handling.
-2. JWT van caller valideren via `supabase.auth.getUser(token)` met de anon client.
-3. Controleer dat caller `admin` rol heeft via `has_role` RPC.
-4. Body valideren met Zod: `{ userId: string (uuid) }`.
-5. Caller mag zichzelf niet verwijderen → 400.
-6. Met **service role client** in deze volgorde verwijderen (children-IDs eerst ophalen):
-   - `child_badges` waar child_id ∈ children van user
-   - `exercise_attempts` waar child_id ∈ children
-   - `child_progress` waar child_id ∈ children
-   - `trimester_progress` waar child_id ∈ children
-   - `rewards` waar parent_id = userId (en/of child_id ∈ children)
-   - `children` waar parent_id = userId
-   - `subscriptions` waar user_id = userId
-   - `parent_pins` waar user_id = userId
-   - `user_roles` waar user_id = userId
-   - `organization_members` waar user_id = userId
-   - `profiles` waar id = userId
-   - `supabase.auth.admin.deleteUser(userId)` als laatste
-7. Return `{ success: true }` of error met details.
+## Technische aanpak
 
-`config.toml` aanpassen: voeg `[functions.admin-delete-user]` met `verify_jwt = false` toe (we valideren JWT in code).
+### Bestanden — nieuw
 
-### 2. Frontend wijzigingen in `src/screens/admin/AdminUsers.tsx`
+- `src/screens/ExercisePictureWord.tsx` — hoofdscherm, gebouwd op `ExerciseShell`, hergebruikt patronen uit `ExerciseLanguage` (status state, lives, progress, completeExercise) en drag-drop logica uit `ExerciseMoney`/`ExerciseSentenceDoctor` (pointer events, hit-test op drop-zone).
+- `src/data/picturePool.ts` — woordpool per categorie met `{ word, imageUrl }` objecten.
 
-- Importeer `Trash2` icon, `AlertDialog`-componenten van `@/components/ui/alert-dialog`.
-- Nieuwe `useMutation` `deleteUser` die `supabase.functions.invoke('admin-delete-user', { body: { userId } })` aanroept.
-- Bij succes: invalidate queries `admin-profiles`, `admin-roles`, `admin-subscriptions`, `admin-children` en toon toast.
-- State voor dialoog: `userToDelete: Profile | null`, `confirmText: string`.
-- Huidige `useAuth`-import gebruiken om eigen userId te kennen → eigen rij krijgt disabled knop met tooltip "Je kunt jezelf niet verwijderen".
+### Bestanden — gewijzigd
 
-### Bestanden
+- `src/routes/appRoutes.tsx` — nieuwe lazy import + route `exercises/picture-word/:id`.
+- `src/hooks/useStageExercises.ts` — geen wijziging nodig, werkt automatisch zodra rij in DB staat.
+- `mem://content/curriculum-mapping` — bijwerken naar 13 oefeningen.
 
-- **Nieuw**: `supabase/functions/admin-delete-user/index.ts`
-- **Bewerkt**: `supabase/config.toml` (functieblok toevoegen)
-- **Bewerkt**: `src/screens/admin/AdminUsers.tsx` (knop + dialog + mutation)
+### Database — migratie
 
-Geen DB-schema-migratie nodig — alle deletes lopen via service role.
+INSERT 4 nieuwe rijen in `exercises`:
+
+```sql
+INSERT INTO exercises (title, subject, grade, stage, route, display_order, xp_reward) VALUES
+  ('Prent & Woord', 'reading', 1, 'stage-1', '/exercises/picture-word/1', 3, 25),
+  ('Prent & Woord', 'reading', 1, 'stage-2', '/exercises/picture-word/2', 3, 25),
+  ('Prent & Woord', 'reading', 1, 'stage-3', '/exercises/picture-word/3', 3, 30),
+  ('Prent & Woord', 'reading', 1, 'stage-4', '/exercises/picture-word/4', 3, 30);
+```
+
+`useExerciseId` haalt de juiste UUID op basis van het URL-pad, dus dezelfde React-component werkt voor alle 4 stages — `useDifficultyLevel` (al aanwezig) bepaalt het aantal kaarten en of de categorieën gemixt worden.
+
+### Drag-drop interactie
+
+- `onPointerDown` op een woordkaart start het slepen, kaart volgt cursor met `transform: translate(...)`.
+- `onPointerUp` controleert of het middelpunt binnen de hitbox van de prent valt (refs + `getBoundingClientRect`).
+- Touch + muis ondersteund via Pointer Events (zelfde patroon als ExerciseMoney).
+- Visuele feedback: prent krijgt amber glow ring tijdens hover, groene/rode glow bij drop.
+
+### Persistence
+
+Standaard flow via `useCompleteExercise.mutate({ exerciseId, score, maxScore: 5, stars, timeSpent })`. XP, mastery (5 voltooiingen), badges en trimester progress worden door de bestaande `complete_exercise` RPC afgehandeld — geen aparte logica nodig.
+
+## QuestMap & Fluisterbos
+
+Geen wijzigingen nodig. `useStageExercises` filtert op `stage-{n}` en de Fluisterbos-tegels renderen automatisch elke nieuwe oefening die aan die stage gekoppeld is.
+
+## Niet inbegrepen (om scope te beperken)
+
+- Geen audio-opname per woord; gebruik bestaande TTS via `useSpeech`.
+- Geen aparte afbeeldingen per stage — dezelfde Unsplash pool wordt hergebruikt, alleen aantal kaarten/mix verandert.
+- Geen nieuwe badge-definitie.
+
+Klaar om te bouwen — laat het me weten als je iets wil aanpassen.
