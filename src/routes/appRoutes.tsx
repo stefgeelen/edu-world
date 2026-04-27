@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Layout } from '@/components/Layout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -35,7 +35,8 @@ export const appRoutes = (
     <Route path="add-child" element={<S><AddChild /></S>} />
     <Route path="dashboard" element={<S><Dashboard /></S>} />
     <Route path="map" element={<S><QuestMap /></S>} />
-    <Route path="stage/fluisterbos" element={<S><Fluisterbos /></S>} />
+    <Route path="stage/fluisterbos" element={<Navigate to="/app/stage/fluisterbos/1" replace />} />
+    <Route path="stage/fluisterbos/:stage" element={<S><Fluisterbos /></S>} />
     <Route path="exercises/math/:id" element={<S><Exercise /></S>} />
     <Route path="exercises/bonds/:id" element={<S><ExerciseNumberBond /></S>} />
     <Route path="exercises/language/:id" element={<S><ExerciseLanguage /></S>} />
