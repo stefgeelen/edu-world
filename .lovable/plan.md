@@ -1,41 +1,53 @@
 
+# QuestMap & Fluisterbos: stage-bewust maken
 
-# Studiebuddy & kindbetrokkenheid — implementatie
+## Probleem
+- `QuestMap` markeert "current" via `trimester_progress.is_completed` (XP-drempel), niet via mastery.
+- Alle 4 checkpoints navigeren naar dezelfde `/app/stage/fluisterbos`, die altijd `stage-1` oefeningen toont.
+- `Fluisterbos` toont een hardcoded "Stage 1" label en filtert in de query op `eq('stage', 'stage-1')`.
 
-Ik implementeer voorstellen **1, 2, 3, 5 en 6** in één iteratie. #4 (buddy hernoemen) sla ik over.
+## Oplossing
 
-## Wat de gebruiker krijgt
+### 1. Mastery-gebaseerde stage-status (nieuwe hook)
+Nieuwe hook `useStageMastery()` die per stage (`stage-1` t/m `stage-4`) bepaalt:
+- totaal aantal oefeningen in die stage (voor het huidige `grade` van het kind)
+- aantal gemastered oefeningen (≥ 5 attempts) door het kind
+- `isCompleted` = alle oefeningen gemastered én er is minstens 1 oefening
+- `isCurrent` = eerste niet-completed stage (met fallback naar stage 1)
 
-1. **Persoonlijke begroeting** op Dashboard, QuestMap en Badges met naam van het kind + tijdsgebonden variant ("Goedemorgen Lotte!").
-2. **Persistente buddy-companion**: kleine avatar in een hoek van Dashboard, QuestMap en Badges. Tap → contextuele hint met idle-animatie.
-3. **Buddy reageert op mijlpalen**: streak (3, 5, 7, 10 dagen), level-up, en eerste oefening van de dag → buddy-toast.
-4. **"Mijn reis" kaartje** op Dashboard: aantal sterren, badges en favoriete vak met persoonlijke buddy-quote.
-5. **Taaldetails**: knoppen, lege staten en loading-teksten gepersonaliseerd ("Start Lotte's avontuur", "Lotte, hier komen jouw badges!").
+Gebruikt bestaande tabellen: `exercises` (stage, grade), `exercise_attempts` (count per exercise_id voor het kind). **Geen DB-wijzigingen nodig.**
 
-## Technische aanpak
+### 2. QuestMap navigeert per stage
+- `TRIMESTER_CONFIG` krijgt `stagePath: '/app/stage/fluisterbos/1'` ... `/4`.
+- Status per checkpoint komt uit `useStageMastery()` i.p.v. `useTrimesterProgress`.
+- "Locked" stages blijven niet-klikbaar; current/completed openen hun eigen pagina.
+- Voortgangsbalk bovenaan: percentage gemasterde oefeningen over alle 4 stages samen.
 
-**Nieuwe bestanden**
-- `src/hooks/useChildGreeting.ts` — geeft `{ greeting, childName, buddyName, timeOfDay }` op basis van `useCurrentChild()` + `useGame()`.
-- `src/components/BuddyCompanion.tsx` — kleine avatar (48–56px), props: `position` ('inline' | 'floating-tr' | 'floating-br')`, `situation`, `onTap?`. Hergebruikt `MOOD_AVATAR_ANIMATION` + idle-float. Tap toont `BuddyBubble` met bericht uit `useBuddyMessage`.
-- `src/components/JourneyCard.tsx` — Dashboard-kaartje met sterren-, badge- en favoriet-vak-stats (uit `useChildProgress`).
+### 3. Fluisterbos wordt stage-bewust
+- Route wordt `/app/stage/fluisterbos/:stage` (1–4). Blijft backwards-compatible: zonder param → stage 1 met redirect.
+- `useStageExercises(stage)` accepteert stage-nummer en filtert `eq('stage', 'stage-' + n)`.
+- Header toont dynamisch "Stage {n}" + naam per stage:
+  - 1 = Fluisterbomen, 2 = Borrelende Beek, 3 = Woordenwoud, 4 = Uilenkasteel
+- Guard: als de stage "locked" is (vorige nog niet voltooid via mastery) → redirect naar QuestMap met toast.
 
-**Uitbreidingen**
-- `src/data/buddyMessages.ts` — nieuwe situaties per avatar (3-4 varianten elk):
-  - `dashboard_welcome`, `quest_map_idle`, `badges_overview`
-  - `streak_milestone`, `level_up`, `first_exercise_of_day`
-  - Ondersteuning voor `{name}` placeholder.
-- `src/hooks/useBuddyMessage.ts` — placeholder-vervanging (`{name}` → kindnaam) bij het ophalen van een bericht.
-- `src/context/CelebrationContext.tsx` (of `useCompleteExercise`) — trigger buddy-toast bij level-up en streak-milestones (3/5/7/10/14/30).
-
-**Aangepaste schermen**
-- `src/screens/Dashboard.tsx` — header gebruikt `useChildGreeting`, voegt inline `BuddyCompanion` + `JourneyCard` toe; CTA-tekst "Start [naam]'s avontuur".
-- `src/screens/QuestMap.tsx` — floating `BuddyCompanion` (rechtsboven, onder safe area) met `quest_map_idle` situatie.
-- `src/screens/BadgeOverview.tsx` — gepersonaliseerde header + `BuddyCompanion` inline; lege state met naam.
-
-**Geen DB-wijzigingen.** Alle data (naam, avatar, streak, level, sterren, badges) is al beschikbaar via bestaande hooks.
+### 4. Routing
+- `src/routes/appRoutes.tsx`: route `stage/fluisterbos/:stage` toevoegen, oude `stage/fluisterbos` route blijft als redirect naar `/1`.
 
 ## Bestand-impact
 
-Nieuw (3): `useChildGreeting.ts`, `BuddyCompanion.tsx`, `JourneyCard.tsx`
-Aangepast (6): `buddyMessages.ts`, `useBuddyMessage.ts`, `CelebrationContext.tsx`, `Dashboard.tsx`, `QuestMap.tsx`, `BadgeOverview.tsx`
+**Nieuw (1)**: `src/hooks/useStageMastery.ts` — bepaalt per stage de mastery-status voor het huidige kind.
 
+**Aangepast (4)**:
+- `src/hooks/useStageExercises.ts` — accepteert `stage: number` parameter (default 1).
+- `src/screens/QuestMap.tsx` — gebruikt `useStageMastery`, navigeert naar `/app/stage/fluisterbos/{n}`, voortgangsbalk op basis van mastery.
+- `src/screens/Fluisterbos.tsx` — leest `:stage` uit URL, dynamische header & naam, guard tegen locked stages.
+- `src/routes/appRoutes.tsx` — nieuwe route met `:stage` param + redirect.
+
+**Geen DB-wijzigingen.** Alle data al beschikbaar via `exercises` + `exercise_attempts`.
+
+## Acceptatiecriteria
+- Nieuw kind: stage 1 = current, stages 2–4 = locked.
+- Als alle stage-1 oefeningen 5x voltooid zijn → stage 1 wordt completed (✓), stage 2 wordt current (★).
+- Klikken op stage 2 op de map opent Fluisterbos met stage-2 oefeningen en label "Stage 2 · Borrelende Beek".
+- Locked stage aanklikken doet niets (zoals nu).
+- Voortgangsbalk in QuestMap toont % gemasterde oefeningen over alle 4 stages.

@@ -5,16 +5,16 @@ import { Lock, Star, Check, ChevronLeft } from "lucide-react";
 import { useGame } from "@/context/GameContext";
 import { cn } from "@/lib/utils";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
-import { useTrimesterProgress } from "@/hooks/useTrimesterProgress";
+import { useStageMastery, STAGE_NAMES } from "@/hooks/useStageMastery";
 import { BuddyBubble } from "@/components/BuddyBubble";
 import { useBuddyMessage } from "@/hooks/useBuddyMessage";
 import { BuddyCompanion } from "@/components/BuddyCompanion";
 import { useChildGreeting } from "@/hooks/useChildGreeting";
 const TRIMESTER_CONFIG = [
-  { id: 1, name: "Fluisterbomen", icon: "🌳", yPos: 82, xPos: 40, stagePath: "/app/stage/fluisterbos" },
-  { id: 2, name: "Borrelende Beek", icon: "🌊", yPos: 58, xPos: 65, stagePath: "/app/stage/fluisterbos" },
-  { id: 3, name: "Woordenwoud", icon: "🦊", yPos: 35, xPos: 30, stagePath: "/app/stage/fluisterbos" },
-  { id: 4, name: "Uilenkasteel", icon: "🏰", yPos: 10, xPos: 60, stagePath: "/app/stage/fluisterbos" },
+  { id: 1, name: STAGE_NAMES[1], icon: "🌳", yPos: 82, xPos: 40 },
+  { id: 2, name: STAGE_NAMES[2], icon: "🌊", yPos: 58, xPos: 65 },
+  { id: 3, name: STAGE_NAMES[3], icon: "🦊", yPos: 35, xPos: 30 },
+  { id: 4, name: STAGE_NAMES[4], icon: "🏰", yPos: 10, xPos: 60 },
 ];
 
 const DECORATIVE_ELEMENTS = [
@@ -32,14 +32,13 @@ const DECORATIVE_ELEMENTS = [
 ];
 
 function getCheckpointStatus(
-  trimesterIndex: number,
-  trimesters: { is_completed: boolean }[]
+  stage: number,
+  stages: { stage: number; isCompleted: boolean; isCurrent: boolean; isLocked: boolean }[]
 ): "completed" | "current" | "locked" {
-  const t = trimesters[trimesterIndex];
-  if (t?.is_completed) return "completed";
-  // Current = first non-completed trimester
-  const firstIncomplete = trimesters.findIndex((tr) => !tr.is_completed);
-  if (firstIncomplete === trimesterIndex) return "current";
+  const s = stages.find((x) => x.stage === stage);
+  if (!s) return "locked";
+  if (s.isCompleted) return "completed";
+  if (s.isCurrent) return "current";
   return "locked";
 }
 
@@ -49,16 +48,14 @@ function getButtonClass(status: "completed" | "current" | "locked") {
   return "bg-cyan-400 border-b-8 border-cyan-600 shadow-xl ring-4 ring-white";
 }
 
+
 export function QuestMap() {
   const navigate = useNavigate();
   const { selectedAvatar } = useGame();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { trimesters, child } = useTrimesterProgress();
+  const { stages, overallPct, child } = useStageMastery();
   const { getMessage, hasAvatar } = useBuddyMessage();
   const { childName } = useChildGreeting();
-
-  const completedCount = trimesters.filter((t) => t.is_completed).length;
-  const overallPct = trimesters.length > 0 ? Math.round((completedCount / trimesters.length) * 100) : 0;
 
   // Buddy encouragement on mount
   const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
@@ -80,11 +77,11 @@ export function QuestMap() {
     }
   }, []);
 
-  // Build checkpoints from config + real trimester data
-  const checkpoints = TRIMESTER_CONFIG.map((cfg, i) => {
-    const status = getCheckpointStatus(i, trimesters);
-    return { ...cfg, status, btnClass: getButtonClass(status) };
-  }).reverse(); // Render top-to-bottom (highest trimester first)
+  // Build checkpoints from config + real stage mastery data
+  const checkpoints = TRIMESTER_CONFIG.map((cfg) => {
+    const status = getCheckpointStatus(cfg.id, stages);
+    return { ...cfg, status, btnClass: getButtonClass(status), stagePath: `/app/stage/fluisterbos/${cfg.id}` };
+  }).reverse(); // Render top-to-bottom (highest stage first)
 
   return (
     <div className="h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] flex flex-col relative overflow-hidden font-sans">
