@@ -2,10 +2,21 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown } from 'lucide-react';
+import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown, Trash2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
+import { useAuth } from '@/context/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 
 type Profile = Tables<'profiles'>;
 type UserRole = Tables<'user_roles'>;
