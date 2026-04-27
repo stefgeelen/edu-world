@@ -84,6 +84,27 @@ export function AdminUsers() {
     onError: () => toast.error('Fout bij bijwerken rol'),
   });
 
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-children'] });
+      toast.success('Account permanent verwijderd');
+      setUserToDelete(null);
+      setConfirmText('');
+    },
+    onError: (e: Error) => toast.error(e.message || 'Verwijderen mislukt'),
+  });
+
   const getUserRoles = (userId: string) => roles.filter(r => r.user_id === userId).map(r => r.role);
   const getUserSub = (userId: string) => subscriptions.find(s => s.user_id === userId);
   const getUserChildren = (userId: string) => children.filter(c => c.parent_id === userId);
