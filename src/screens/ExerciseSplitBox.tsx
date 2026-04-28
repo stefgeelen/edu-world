@@ -13,11 +13,22 @@ import { NUMBER_BOND_CONFIG, DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig
 
 type Status = 'idle' | 'incorrect' | 'correct';
 type Side = 'left' | 'right';
+/**
+ * Vraagvarianten:
+ * - 'target': klassieke splitsing — één kant getoond als bollen, andere kant invullen
+ * - 'left'  : beide kanten als bollen + uitkomst zichtbaar; kind vult linker getal in
+ * - 'right' : beide kanten als bollen + uitkomst zichtbaar; kind vult rechter getal in
+ * - 'sum'   : beide kanten als bollen + beide getallen zichtbaar; kind vult uitkomst in
+ */
+type Mode = 'target' | 'left' | 'right' | 'sum';
 
 interface Question {
+  mode: Mode;
   target: number;
+  leftCount: number;
+  rightCount: number;
+  /** Voor 'target' mode: welke kant is bekend (de andere is het antwoord). */
   knownSide: Side;
-  knownCount: number;
   answer: number;
 }
 
@@ -41,9 +52,11 @@ export function ExerciseSplitBox() {
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
   const [question, setQuestion] = useState<Question>({
+    mode: 'target',
     target: 8,
+    leftCount: 5,
+    rightCount: 3,
     knownSide: 'left',
-    knownCount: 5,
     answer: 3,
   });
 
@@ -54,9 +67,24 @@ export function ExerciseSplitBox() {
   const generateQuestion = useCallback(() => {
     const { minTarget, maxTarget } = cfg;
     const target = Math.floor(Math.random() * (maxTarget - minTarget + 1)) + minTarget;
-    const knownCount = Math.floor(Math.random() * (target - 1)) + 1; // 1..target-1
+    const leftCount = Math.floor(Math.random() * (target - 1)) + 1; // 1..target-1
+    const rightCount = target - leftCount;
+
+    const modes: Mode[] = ['target', 'left', 'right', 'sum'];
+    const mode = modes[Math.floor(Math.random() * modes.length)];
     const knownSide: Side = Math.random() < 0.5 ? 'left' : 'right';
-    setQuestion({ target, knownSide, knownCount, answer: target - knownCount });
+
+    let answer: number;
+    if (mode === 'target' || mode === 'sum') answer = target;
+    else if (mode === 'left') answer = leftCount;
+    else answer = rightCount;
+
+    // Voor 'target' mode bepaalt knownSide welke kant zichtbaar is; answer = andere kant.
+    if (mode === 'target') {
+      answer = knownSide === 'left' ? rightCount : leftCount;
+    }
+
+    setQuestion({ mode, target, leftCount, rightCount, knownSide, answer });
     setInputValue('');
     setStatus('idle');
     setIsNumpadOpen(false);
@@ -136,10 +164,24 @@ export function ExerciseSplitBox() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputValue, status, question]);
 
-  const leftCount = question.knownSide === 'left' ? question.knownCount : question.answer;
-  const rightCount = question.knownSide === 'right' ? question.knownCount : question.answer;
-  const inputIsLeft = question.knownSide === 'right';
-  const showAnswerTokens = status === 'correct';
+  const { mode, leftCount, rightCount, target } = question;
+  // In 'target' mode toont één kant bollen, andere kant '?'. In andere modes tonen beide bollen.
+  const showLeftTokens = mode !== 'target' || question.knownSide === 'left' || status === 'correct';
+  const showRightTokens = mode !== 'target' || question.knownSide === 'right' || status === 'correct';
+  const leftIsAnswerSide = mode === 'target' && question.knownSide === 'right';
+  const rightIsAnswerSide = mode === 'target' && question.knownSide === 'left';
+
+  const leftLabelIsInput = mode === 'left';
+  const rightLabelIsInput = mode === 'right';
+  const sumIsInput = mode === 'sum' || mode === 'target';
+
+  const openNumpad = () => {
+    setIsNumpadOpen(true);
+    if (status === 'incorrect') {
+      setStatus('idle');
+      setInputValue('');
+    }
+  };
 
   return (
     <ExerciseShell
@@ -155,11 +197,17 @@ export function ExerciseSplitBox() {
       >
         <div className="mb-6 md:mb-10 text-center">
           <h2 className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">
-            Maak samen{' '}
-            <span className="inline-block px-3 py-1 mx-1 rounded-2xl bg-emerald-400 text-white border-b-[4px] border-emerald-600 shadow-lg">
-              {question.target}
-            </span>
-            !
+            {mode === 'target' ? (
+              <>
+                Maak samen{' '}
+                <span className="inline-block px-3 py-1 mx-1 rounded-2xl bg-emerald-400 text-white border-b-[4px] border-emerald-600 shadow-lg">
+                  {target}
+                </span>
+                !
+              </>
+            ) : (
+              'Vul de som in!'
+            )}
           </h2>
         </div>
 
@@ -168,28 +216,23 @@ export function ExerciseSplitBox() {
           onClick={(e) => e.stopPropagation()}
           className="relative w-full max-w-[640px] aspect-[2/1] rounded-[28px] md:rounded-[36px] bg-gradient-to-b from-[#3b2d71] to-[#2d1b54] border-b-[8px] md:border-b-[10px] border-[#1c1134] shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_4px_12px_rgba(0,0,0,0.5)] overflow-hidden"
         >
-          {/* Top highlight */}
           <div className="absolute top-0 inset-x-0 h-1/4 bg-gradient-to-b from-white/15 to-transparent rounded-t-[28px] md:rounded-t-[36px] pointer-events-none" />
 
-          {/* Inner tray (recessed) */}
           <div className="absolute inset-3 md:inset-5 rounded-2xl md:rounded-3xl bg-[#1a103c]/70 shadow-[inset_0_6px_18px_rgba(0,0,0,0.6)] flex">
-            {/* Left half */}
             <SplitHalf
               count={leftCount}
-              showQuestion={inputIsLeft && !showAnswerTokens}
+              showQuestion={!showLeftTokens}
               status={status}
-              isAnswerSide={inputIsLeft}
+              isAnswerSide={leftIsAnswerSide}
             />
-            {/* Right half */}
             <SplitHalf
               count={rightCount}
-              showQuestion={!inputIsLeft && !showAnswerTokens}
+              showQuestion={!showRightTokens}
               status={status}
-              isAnswerSide={!inputIsLeft}
+              isAnswerSide={rightIsAnswerSide}
             />
           </div>
 
-          {/* Divider */}
           <motion.div
             initial={{ scaleY: 0 }}
             animate={{ scaleY: 1 }}
@@ -205,36 +248,34 @@ export function ExerciseSplitBox() {
           />
         </div>
 
-        {/* Labels under tray */}
-        <div className="mt-6 md:mt-8 w-full max-w-[640px] flex justify-around items-center gap-4">
+        {/* Equation: left + right = sum */}
+        <div className="mt-6 md:mt-8 w-full max-w-[640px] flex justify-center items-center gap-2 md:gap-4 flex-wrap">
           <NumberLabel
-            value={inputIsLeft ? null : leftCount}
-            isInput={inputIsLeft}
+            value={leftLabelIsInput ? null : leftCount}
+            isInput={leftLabelIsInput}
             inputValue={inputValue}
             status={status}
             isNumpadOpen={isNumpadOpen}
-            onTap={() => {
-              setIsNumpadOpen(true);
-              if (status === 'incorrect') {
-                setStatus('idle');
-                setInputValue('');
-              }
-            }}
+            onTap={openNumpad}
           />
           <div className="text-3xl md:text-4xl font-black text-[#a78bfa]/70 select-none">+</div>
           <NumberLabel
-            value={inputIsLeft ? rightCount : null}
-            isInput={!inputIsLeft}
+            value={rightLabelIsInput ? null : rightCount}
+            isInput={rightLabelIsInput}
             inputValue={inputValue}
             status={status}
             isNumpadOpen={isNumpadOpen}
-            onTap={() => {
-              setIsNumpadOpen(true);
-              if (status === 'incorrect') {
-                setStatus('idle');
-                setInputValue('');
-              }
-            }}
+            onTap={openNumpad}
+          />
+          <div className="text-3xl md:text-4xl font-black text-[#a78bfa]/70 select-none">=</div>
+          <NumberLabel
+            value={sumIsInput ? null : target}
+            isInput={sumIsInput}
+            inputValue={inputValue}
+            status={status}
+            isNumpadOpen={isNumpadOpen}
+            onTap={openNumpad}
+            tone="emerald"
           />
         </div>
       </motion.div>
@@ -329,12 +370,20 @@ interface NumberLabelProps {
   status: Status;
   isNumpadOpen: boolean;
   onTap: () => void;
+  tone?: 'cyan' | 'emerald';
 }
 
-function NumberLabel({ value, isInput, inputValue, status, isNumpadOpen, onTap }: NumberLabelProps) {
+function NumberLabel({ value, isInput, inputValue, status, isNumpadOpen, onTap, tone = 'cyan' }: NumberLabelProps) {
   if (!isInput) {
+    const toneClasses =
+      tone === 'emerald'
+        ? 'bg-emerald-400 border-emerald-600 ring-emerald-200/50'
+        : 'bg-cyan-400 border-cyan-600 ring-cyan-200/50';
     return (
-      <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-cyan-400 border-b-[6px] border-cyan-600 ring-4 ring-cyan-200/50 shadow-[0_10px_25px_rgba(0,0,0,0.4)] flex items-center justify-center">
+      <div className={cn(
+        'relative w-20 h-20 md:w-24 md:h-24 rounded-2xl border-b-[6px] ring-4 shadow-[0_10px_25px_rgba(0,0,0,0.4)] flex items-center justify-center',
+        toneClasses,
+      )}>
         <div className="absolute top-0 inset-x-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-2xl pointer-events-none" />
         <span className="text-4xl md:text-5xl font-black text-white drop-shadow-[0_3px_3px_rgba(0,0,0,0.4)]">
           {value}
