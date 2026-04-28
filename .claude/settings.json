@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/stefgeelen/Documents/Projects/EduWorld/Codebase/edu-world && git diff --name-only HEAD 2>/dev/null | grep -q '^src/' && claude --dangerously-skip-permissions -p \"You are a senior technical architect maintaining the EduWorld technical specification. The project is at /Users/stefgeelen/Documents/Projects/EduWorld/Codebase/edu-world. Run 'git diff HEAD -- src/' to see what src/ files changed this session. If any changes affect the architecture documented in docs/technical-spec.md — such as new or removed screens, hooks, routes, Supabase tables/RPCs, auth patterns, data flows, error handling patterns, new dependencies, or changes to known risks — update docs/technical-spec.md precisely and minimally to reflect those changes. Also update the 'Last reviewed' date at the top to today's date. If nothing architectural changed, do not touch the file. Be a strict editor: only change what actually changed, do not rewrite sections that are still accurate.\" --output-format text 2>/dev/null || true",
+            "timeout": 120,
+            "async": true,
+            "statusMessage": "Technical architect reviewing changes..."
+          }
+        ]
+      }
+    ]
+  }
+}
