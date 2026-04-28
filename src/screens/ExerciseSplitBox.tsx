@@ -13,11 +13,22 @@ import { NUMBER_BOND_CONFIG, DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig
 
 type Status = 'idle' | 'incorrect' | 'correct';
 type Side = 'left' | 'right';
+/**
+ * Vraagvarianten:
+ * - 'target': klassieke splitsing — één kant getoond als bollen, andere kant invullen
+ * - 'left'  : beide kanten als bollen + uitkomst zichtbaar; kind vult linker getal in
+ * - 'right' : beide kanten als bollen + uitkomst zichtbaar; kind vult rechter getal in
+ * - 'sum'   : beide kanten als bollen + beide getallen zichtbaar; kind vult uitkomst in
+ */
+type Mode = 'target' | 'left' | 'right' | 'sum';
 
 interface Question {
+  mode: Mode;
   target: number;
+  leftCount: number;
+  rightCount: number;
+  /** Voor 'target' mode: welke kant is bekend (de andere is het antwoord). */
   knownSide: Side;
-  knownCount: number;
   answer: number;
 }
 
