@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import type { BuddyMood } from '@/data/buddyMessages';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -69,7 +70,7 @@ export function Dashboard() {
   const { greeting, childName } = useChildGreeting();
 
   // Buddy greeting on mount
-  const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
+  const [buddyData, setBuddyData] = useState<{ message: string; mood: BuddyMood; avatarUrl: string; avatarName: string } | null>(null);
   useEffect(() => {
     if (hasAvatar) {
       const result = getMessage('dashboard_welcome');
@@ -77,6 +78,7 @@ export function Dashboard() {
         setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
       }
     }
+    // getMessage identity is stable; hasAvatar + childName already capture all meaningful re-trigger conditions
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasAvatar, childName]);
 
@@ -129,9 +131,12 @@ export function Dashboard() {
   }, [badges]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    queryClient.clear();
-    navigate('/auth');
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      queryClient.clear();
+      navigate('/auth');
+    }
   };
 
   return (
