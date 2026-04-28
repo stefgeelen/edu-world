@@ -95,3 +95,27 @@ export const DOT_COUNT_CONFIG: Record<string, DotCountConfig> = {
 export const DEFAULT_DOT_COUNT: DotCountConfig = {
   minDots: 1, maxDots: 10,
 };
+
+// ── Compare Objects (ExerciseCompareObjects.tsx) ───────────────────────────
+
+export interface CompareObjectsConfig {
+  minObjects: number;
+  maxObjects: number;
+}
+
+export const COMPARE_OBJECTS_CONFIG: Record<string, CompareObjectsConfig> = {
+  // Grade 1
+  "1-1": { minObjects: 1, maxObjects: 4 },
+  "1-2": { minObjects: 1, maxObjects: 6 },
+  "1-3": { minObjects: 2, maxObjects: 6 },
+  "1-4": { minObjects: 2, maxObjects: 8 },
+  // Grade 2
+  "2-1": { minObjects: 3, maxObjects: 10 },
+  "2-2": { minObjects: 5, maxObjects: 15 },
+  "2-3": { minObjects: 5, maxObjects: 20 },
+  "2-4": { minObjects: 5, maxObjects: 25 },
+};
+
+export const DEFAULT_COMPARE_OBJECTS: CompareObjectsConfig = {
+  minObjects: 1, maxObjects: 6,
+};

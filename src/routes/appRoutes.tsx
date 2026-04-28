@@ -16,6 +16,7 @@ const ExerciseDotCount = lazy(() => import('@/screens/ExerciseDotCount').then(m 
 const ExerciseWriteNumber = lazy(() => import('@/screens/ExerciseWriteNumber').then(m => ({ default: m.ExerciseWriteNumber })));
 const ExerciseNumberLine = lazy(() => import('@/screens/ExerciseNumberLine').then(m => ({ default: m.ExerciseNumberLine })));
 const ExerciseComparison = lazy(() => import('@/screens/ExerciseComparison').then(m => ({ default: m.ExerciseComparison })));
+const ExerciseCompareObjects = lazy(() => import('@/screens/ExerciseCompareObjects').then(m => ({ default: m.ExerciseCompareObjects })));
 const ExerciseWriteDigit = lazy(() => import('@/screens/ExerciseWriteDigit').then(m => ({ default: m.ExerciseWriteDigit })));
 const ExerciseMoney = lazy(() => import('@/screens/ExerciseMoney').then(m => ({ default: m.ExerciseMoney })));
 const ExerciseClock = lazy(() => import('@/screens/ExerciseClock').then(m => ({ default: m.ExerciseClock })));
@@ -46,6 +47,7 @@ export const appRoutes = (
     <Route path="exercises/write-number/:id" element={<S><ExerciseWriteNumber /></S>} />
     <Route path="exercises/number-line/:id" element={<S><ExerciseNumberLine /></S>} />
     <Route path="exercises/comparison/:id" element={<S><ExerciseComparison /></S>} />
+    <Route path="exercises/compare-objects/:id" element={<S><ExerciseCompareObjects /></S>} />
     <Route path="exercises/write-digit/:id" element={<S><ExerciseWriteDigit /></S>} />
     <Route path="exercises/money/:id" element={<S><ExerciseMoney /></S>} />
     <Route path="exercises/clock/:id" element={<S><ExerciseClock /></S>} />

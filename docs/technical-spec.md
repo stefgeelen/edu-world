@@ -138,6 +138,7 @@ Protected by `<ProtectedRoute>`. All lazy-loaded, shared `<Suspense>` fallback.
 | `/app/exercises/write-number/:id` | `ExerciseWriteNumber` | Canvas handwriting + ML recognition |
 | `/app/exercises/number-line/:id` | `ExerciseNumberLine` | Drag onto number line (618 lines) |
 | `/app/exercises/comparison/:id` | `ExerciseComparison` | Pick `>` / `<` |
+| `/app/exercises/compare-objects/:id` | `ExerciseCompareObjects` | Compare two groups of emoji objects (more / equal / fewer) |
 | `/app/exercises/write-digit/:id` | `ExerciseWriteDigit` | Canvas digit drawing |
 | `/app/exercises/money/:id` | `ExerciseMoney` | Coin/bill arithmetic |
 | `/app/exercises/clock/:id` | `ExerciseClock` | Drag clock hands (387 lines) |
@@ -310,7 +311,7 @@ Math sums example (grade-stage keyed):
 | `2-3` | `+`, `-`, `×`, `÷` | 50 |
 | `2-4` | `+`, `-`, `×`, `÷` | 100 |
 
-Similar configs exist for: `NUMBER_BOND_CONFIG`, `COMPARISON_CONFIG`, `DOT_COUNT_CONFIG`, `CLOCK_CONFIG`.
+Similar configs exist for: `NUMBER_BOND_CONFIG`, `COMPARISON_CONFIG`, `DOT_COUNT_CONFIG`, `CLOCK_CONFIG`, `COMPARE_OBJECTS_CONFIG`.
 
 ### 8.3 Exercise Types
 
