@@ -173,7 +173,7 @@ export function Dashboard() {
                 <div className="absolute inset-0 rounded-full bg-amber-400/30 blur-md animate-pulse" />
                 <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/30 bg-[#2d1b54] group-hover:border-amber-300 transition-colors animate-buddy-idle-float">
                   {selectedAvatar ? (
-                    <ImageWithFallback src={selectedAvatar.imageUrl} alt="avatar" className="w-full h-full object-cover" />
+                    <ImageWithFallback src={selectedAvatar.imageUrlHead} alt="avatar" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-[#3b2d71] animate-pulse" />
                   )}

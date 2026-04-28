@@ -35,7 +35,7 @@ export function AvatarSelection() {
       if (!child?.id) throw new Error('No child');
       const { error } = await supabase
         .from('children')
-        .update({ avatar_id: avatar.id, avatar_url: avatar.imageUrl })
+        .update({ avatar_id: avatar.id, avatar_url: avatar.imageUrlHead })
         .eq('id', child.id);
       if (error) throw error;
       return avatar;
@@ -136,7 +136,7 @@ export function AvatarSelection() {
                   <div className="absolute inset-0 bg-black/20 mix-blend-overlay z-10" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent z-20" />
                   <img 
-                    src={avatar.imageUrl} 
+                    src={avatar.imageUrlFull}
                     alt={avatar.name} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
@@ -181,7 +181,7 @@ export function AvatarSelection() {
                   <div className="absolute inset-0 bg-black/20 mix-blend-overlay z-10" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent z-20" />
                   <img 
-                    src={avatar.imageUrl} 
+                    src={avatar.imageUrlFull}
                     alt={avatar.name} 
                     className="w-full h-full object-cover transition-transform duration-700"
                   />
@@ -218,7 +218,7 @@ export function AvatarSelection() {
                   )}>
                     <div className="absolute inset-0 bg-black/20 mix-blend-overlay z-10" />
                     <img 
-                      src={selectedForDetails.imageUrl} 
+                      src={selectedForDetails.imageUrlFull}
                       alt={selectedForDetails.name}
                       className="w-full h-full object-cover relative z-20"
                     />

@@ -218,8 +218,8 @@ export function Exercise() {
             <div className="w-48 h-48 md:w-56 md:h-56 rounded-full border-8 border-[#3b2d71] shadow-2xl overflow-hidden bg-[#1c1134]/50 backdrop-blur-md">
               {selectedAvatar ? (
                 <img 
-                  src={selectedAvatar.imageUrl} 
-                  alt="avatar" 
+                  src={selectedAvatar.imageUrlHead}
+                  alt="avatar"
                   className={cn(
                     "w-full h-full object-cover transition-transform duration-500",
                     status === 'correct' && "scale-110",

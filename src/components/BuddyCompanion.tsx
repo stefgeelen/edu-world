@@ -76,7 +76,7 @@ export function BuddyCompanion({
             style={{ width: size, height: size }}
           >
             <ImageWithFallback
-              src={selectedAvatar.imageUrl}
+              src={selectedAvatar.imageUrlHead}
               alt={selectedAvatar.name}
               className="w-full h-full object-cover"
             />

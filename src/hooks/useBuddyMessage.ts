@@ -40,7 +40,7 @@ export function useBuddyMessage() {
     return {
       message,
       mood: getMoodForSituation(situation),
-      avatarUrl: selectedAvatar.imageUrl,
+      avatarUrl: selectedAvatar.imageUrlHead,
       avatarName: selectedAvatar.name,
     };
   }, [selectedAvatar, child]);

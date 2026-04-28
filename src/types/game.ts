@@ -2,6 +2,8 @@ export type Avatar = {
   id: string;
   name: string;
   imageUrl: string;
+  imageUrlFull: string;
+  imageUrlHead: string;
   color: string;
   subject: string;
   description: string;

@@ -122,7 +122,7 @@ export function QuestMap() {
             </div>
             <div className="w-14 h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg bg-[#2d1b54] flex-shrink-0 relative">
               <ImageWithFallback
-                src={selectedAvatar?.imageUrl || "https://images.unsplash.com/photo-1561229474-1f22e022dfd4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwY2FydG9vbiUyMGF2YXRhciUyMGtpZCUyMDNkfGVufDF8fHx8MTc3NDE4OTA4MHww&ixlib=rb-4.1.0&q=80&w=1080"}
+                src={selectedAvatar?.imageUrlHead || "/avatars/fia_head.png"}
                 alt="Avatar"
                 className="w-full h-full object-cover"
               />
