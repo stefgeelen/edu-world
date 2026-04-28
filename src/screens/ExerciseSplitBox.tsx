@@ -52,9 +52,11 @@ export function ExerciseSplitBox() {
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
   const [question, setQuestion] = useState<Question>({
+    mode: 'target',
     target: 8,
+    leftCount: 5,
+    rightCount: 3,
     knownSide: 'left',
-    knownCount: 5,
     answer: 3,
   });
 
@@ -65,9 +67,24 @@ export function ExerciseSplitBox() {
   const generateQuestion = useCallback(() => {
     const { minTarget, maxTarget } = cfg;
     const target = Math.floor(Math.random() * (maxTarget - minTarget + 1)) + minTarget;
-    const knownCount = Math.floor(Math.random() * (target - 1)) + 1; // 1..target-1
+    const leftCount = Math.floor(Math.random() * (target - 1)) + 1; // 1..target-1
+    const rightCount = target - leftCount;
+
+    const modes: Mode[] = ['target', 'left', 'right', 'sum'];
+    const mode = modes[Math.floor(Math.random() * modes.length)];
     const knownSide: Side = Math.random() < 0.5 ? 'left' : 'right';
-    setQuestion({ target, knownSide, knownCount, answer: target - knownCount });
+
+    let answer: number;
+    if (mode === 'target' || mode === 'sum') answer = target;
+    else if (mode === 'left') answer = leftCount;
+    else answer = rightCount;
+
+    // Voor 'target' mode bepaalt knownSide welke kant zichtbaar is; answer = andere kant.
+    if (mode === 'target') {
+      answer = knownSide === 'left' ? rightCount : leftCount;
+    }
+
+    setQuestion({ mode, target, leftCount, rightCount, knownSide, answer });
     setInputValue('');
     setStatus('idle');
     setIsNumpadOpen(false);
