@@ -1,77 +1,46 @@
-# Plan: Lees-oefening "Prent & Woord"
+# Nieuwe oefening: Splitsdoos (The Split-Box)
 
-Een nieuwe lees-oefening voor leerjaar 1 waarbij het kind een woord naar de juiste prent sleept. De oefening krijgt categorieën per ronde (dieren, voertuigen, eten, natuur) en wordt toegevoegd aan alle 4 stages met oplopende moeilijkheid.
+Een nieuwe rekenoefening voor groep 1 die traditionele "stippen splitsen"-werkbladen digitaliseert tot een tactiele, game-achtige ervaring. Een doos met tokens wordt verdeeld door een gekleurde scheidingslijn; het kind ziet hoeveel tokens links staan en moet invullen hoeveel er rechts staan (of omgekeerd) — een visuele intro op getallen splitsen.
 
-## Werking (kindperspectief)
+## Wat de gebruiker krijgt te zien
 
-1. Een grote prent verschijnt centraal op het scherm (Unsplash foto, ronde kaart, glow-effect — Dark Space stijl).
-2. Onderaan staan 3 of 4 woordkaarten (afhankelijk van stage).
-3. Het kind sleept het juiste woord naar de prent.
-4. Bij een correct antwoord: groene glow + confetti + buddy "Super!" → volgende ronde.
-5. Bij een fout: rode glow + shake op het foute woord, levensaftrek, woord keert terug naar startpositie.
-6. 5 rondes = oefening voltooid → `complete_exercise` RPC + navigatie terug naar Fluisterbos van de juiste stage.
+- Nieuwe oefening **"Splitsdoos"** als 8e oefening onder Rekenen → Groep 1 → Stage 1, met dezelfde Dark Space look & feel als de andere oefeningen (ExerciseShell met sterren, header, buddy).
+- **Tray:** een grote ceramic/neumorphic doos met afgeronde hoeken (radius > 12px), zachte schaduwen en een glanzende top-highlight.
+- **Tokens:** 3D-lite bolletjes (gradient + binnenshadow + highlight) die in een verzonken tray "liggen". Aantallen schalen mee met de moeilijkheidsgraad uit `NUMBER_BOND_CONFIG` (5–8 in stage 1, oplopend tot 8–15).
+- **Divider:** een verticale neon-paars/mint accentbalk dwars door de tray, met een lichte glow — alsof er een fysieke barrière in de doos is gezet.
+- **Twee labels onder de tray:** links toont het bekende getal, rechts een leeg "?"-veld dat het kind invult. Per ronde wordt willekeurig de linker- of rechterhelft het invulveld.
 
-## Moeilijkheidsschaling per stage
+## Interactie
 
-| Stage | Aantal woordkaarten | Categorieën gemixt | Voorbeeld woorden |
-|-------|--------------------|--------------------|----------------------|
-| 1 | 3 | Eén categorie per ronde | kat, hond, vis |
-| 2 | 3 | Eén categorie per ronde | auto, bus, fiets |
-| 3 | 4 | Eén categorie per ronde | appel, brood, kaas, ei |
-| 4 | 4 | Categorieën gemixt per ronde | boom + auto + appel + kat |
+- **Desktop (≥ md):** 4-koloms grid met meerdere mini-vragen niet nodig — we tonen 1 grote tray gecentreerd (consistent met andere oefeningen). Hover op tokens geeft een subtiele lift + glow. Fysiek toetsenbord: cijfers + Enter werken direct (tab gaat naar volgend invulveld als er meerdere zijn — hier is er één per ronde).
+- **Mobile:** zelfde single-tray layout, invulveld minimaal 44×44px. Tap op het "?"-veld opent de bestaande **`ExerciseNumpad`** bottom sheet (numeric only, geen QWERTY).
+- **Squish-effect:** tap/click op het invulveld en op tokens → `active:scale-[0.95]` (consistent met bestaande knoppen).
+- **Pop-animatie bij correct:** de tokens aan de "antwoord"-kant poppen één voor één (`scale [1, 1.2, 1]`, 50ms stagger) via Framer Motion.
+- **Feedback:** zelfde glow-shadows als andere oefeningen — groen bij correct, oranje bij fout, met shake op het invulveld. Confetti bij ronde-correct, `complete_exercise` RPC bij 5 correct (5 rondes × 20% progress).
 
-Categorieën: **dieren**, **voertuigen**, **eten**, **natuur**. Per ronde wordt één categorie gekozen (stage 1-3) of vier woorden uit verschillende categorieën (stage 4).
+## Voorbeeld layout
 
-## Woordenschat & afbeeldingen
+```text
+        Maak samen 8 !
 
-Alle woorden + bijhorende Unsplash-URLs worden in `src/data/picturePool.ts` gedefinieerd (~6-8 woorden per categorie, ~28 in totaal). Bestaand `ImageWithFallback` component wordt hergebruikt. nl-NL audio via `useSpeech` zodat de prent ook hardop wordt benoemd voor extra leerwaarde (knop bovenaan).
-
-## Technische aanpak
-
-### Bestanden — nieuw
-
-- `src/screens/ExercisePictureWord.tsx` — hoofdscherm, gebouwd op `ExerciseShell`, hergebruikt patronen uit `ExerciseLanguage` (status state, lives, progress, completeExercise) en drag-drop logica uit `ExerciseMoney`/`ExerciseSentenceDoctor` (pointer events, hit-test op drop-zone).
-- `src/data/picturePool.ts` — woordpool per categorie met `{ word, imageUrl }` objecten.
-
-### Bestanden — gewijzigd
-
-- `src/routes/appRoutes.tsx` — nieuwe lazy import + route `exercises/picture-word/:id`.
-- `src/hooks/useStageExercises.ts` — geen wijziging nodig, werkt automatisch zodra rij in DB staat.
-- `mem://content/curriculum-mapping` — bijwerken naar 13 oefeningen.
-
-### Database — migratie
-
-INSERT 4 nieuwe rijen in `exercises`:
-
-```sql
-INSERT INTO exercises (title, subject, grade, stage, route, display_order, xp_reward) VALUES
-  ('Prent & Woord', 'reading', 1, 'stage-1', '/exercises/picture-word/1', 3, 25),
-  ('Prent & Woord', 'reading', 1, 'stage-2', '/exercises/picture-word/2', 3, 25),
-  ('Prent & Woord', 'reading', 1, 'stage-3', '/exercises/picture-word/3', 3, 30),
-  ('Prent & Woord', 'reading', 1, 'stage-4', '/exercises/picture-word/4', 3, 30);
+  ┌─────────────────────┐
+  │   ●  ●  ●  │  ?  ?  │   ← tray + divider
+  │   ●  ●     │        │
+  └─────────────────────┘
+        [ 5 ]    [ ? ]      ← tap "?" → numpad
 ```
 
-`useExerciseId` haalt de juiste UUID op basis van het URL-pad, dus dezelfde React-component werkt voor alle 4 stages — `useDifficultyLevel` (al aanwezig) bepaalt het aantal kaarten en of de categorieën gemixt worden.
+## Technische details
 
-### Drag-drop interactie
+**Bestanden:**
+- **Nieuw:** `src/screens/ExerciseSplitBox.tsx` — volgt het standaardpatroon (`useExerciseId`, `useCompleteExercise`, `useDifficultyLevel`, `ExerciseShell`, `ExerciseNumpad`). Hergebruikt `NUMBER_BOND_CONFIG` voor `target` range (zelfde difficulty curve als getallen splitsen). Genereert per ronde: `target`, `knownSide` ('left'|'right'), `knownCount`, `answer = target - knownCount`. Rendert tray als `<div>` grid van token-cellen (max 20 cellen in 2 rijen × 10), met de divider als absolute element op `left: ${(knownCount / target) * 100}%` wanneer linker bekend is, of op de spiegel-positie. Lege antwoordzijde toont "?"-placeholder tokens met dashed border tot het kind antwoordt; bij correct vullen de tokens in en poppen.
+- **Edit:** `src/routes/appRoutes.tsx` — voeg lazy route `exercises/split-box/:id` → `ExerciseSplitBox` toe.
+- **DB migration:** voeg 1 record toe aan `exercises`:
+  - `title='Splitsdoos'`, `subject='math'`, `grade=1`, `stage='stage-1'`, `route='/exercises/split-box/1'`, `display_order=8`, `xp_reward=30`.
+- **Memory update:** `mem://content/curriculum-mapping` ophogen naar 14 oefeningen (8 Rekenen).
 
-- `onPointerDown` op een woordkaart start het slepen, kaart volgt cursor met `transform: translate(...)`.
-- `onPointerUp` controleert of het middelpunt binnen de hitbox van de prent valt (refs + `getBoundingClientRect`).
-- Touch + muis ondersteund via Pointer Events (zelfde patroon als ExerciseMoney).
-- Visuele feedback: prent krijgt amber glow ring tijdens hover, groene/rode glow bij drop.
+**Niet in scope (kan later in een vervolg):**
+- Stage 2/3/4 varianten van Splitsdoos (beginnen met alleen stage-1 zoals expliciet gevraagd "level 1"; uit te breiden zodra werking bevestigd is).
+- Haptic feedback / geluidseffect — bestaande oefeningen gebruiken die nog niet, dus we houden het consistent (alleen confetti + visuele feedback).
 
-### Persistence
-
-Standaard flow via `useCompleteExercise.mutate({ exerciseId, score, maxScore: 5, stars, timeSpent })`. XP, mastery (5 voltooiingen), badges en trimester progress worden door de bestaande `complete_exercise` RPC afgehandeld — geen aparte logica nodig.
-
-## QuestMap & Fluisterbos
-
-Geen wijzigingen nodig. `useStageExercises` filtert op `stage-{n}` en de Fluisterbos-tegels renderen automatisch elke nieuwe oefening die aan die stage gekoppeld is.
-
-## Niet inbegrepen (om scope te beperken)
-
-- Geen audio-opname per woord; gebruik bestaande TTS via `useSpeech`.
-- Geen aparte afbeeldingen per stage — dezelfde Unsplash pool wordt hergebruikt, alleen aantal kaarten/mix verandert.
-- Geen nieuwe badge-definitie.
-
-Klaar om te bouwen — laat het me weten als je iets wil aanpassen.
+Akkoord om dit te bouwen?
