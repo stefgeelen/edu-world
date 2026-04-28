@@ -164,10 +164,24 @@ export function ExerciseSplitBox() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputValue, status, question]);
 
-  const leftCount = question.knownSide === 'left' ? question.knownCount : question.answer;
-  const rightCount = question.knownSide === 'right' ? question.knownCount : question.answer;
-  const inputIsLeft = question.knownSide === 'right';
-  const showAnswerTokens = status === 'correct';
+  const { mode, leftCount, rightCount, target } = question;
+  // In 'target' mode toont één kant bollen, andere kant '?'. In andere modes tonen beide bollen.
+  const showLeftTokens = mode !== 'target' || question.knownSide === 'left' || status === 'correct';
+  const showRightTokens = mode !== 'target' || question.knownSide === 'right' || status === 'correct';
+  const leftIsAnswerSide = mode === 'target' && question.knownSide === 'right';
+  const rightIsAnswerSide = mode === 'target' && question.knownSide === 'left';
+
+  const leftLabelIsInput = mode === 'left';
+  const rightLabelIsInput = mode === 'right';
+  const sumIsInput = mode === 'sum' || mode === 'target';
+
+  const openNumpad = () => {
+    setIsNumpadOpen(true);
+    if (status === 'incorrect') {
+      setStatus('idle');
+      setInputValue('');
+    }
+  };
 
   return (
     <ExerciseShell
@@ -183,11 +197,17 @@ export function ExerciseSplitBox() {
       >
         <div className="mb-6 md:mb-10 text-center">
           <h2 className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">
-            Maak samen{' '}
-            <span className="inline-block px-3 py-1 mx-1 rounded-2xl bg-emerald-400 text-white border-b-[4px] border-emerald-600 shadow-lg">
-              {question.target}
-            </span>
-            !
+            {mode === 'target' ? (
+              <>
+                Maak samen{' '}
+                <span className="inline-block px-3 py-1 mx-1 rounded-2xl bg-emerald-400 text-white border-b-[4px] border-emerald-600 shadow-lg">
+                  {target}
+                </span>
+                !
+              </>
+            ) : (
+              'Vul de som in!'
+            )}
           </h2>
         </div>
 
@@ -196,28 +216,23 @@ export function ExerciseSplitBox() {
           onClick={(e) => e.stopPropagation()}
           className="relative w-full max-w-[640px] aspect-[2/1] rounded-[28px] md:rounded-[36px] bg-gradient-to-b from-[#3b2d71] to-[#2d1b54] border-b-[8px] md:border-b-[10px] border-[#1c1134] shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_4px_12px_rgba(0,0,0,0.5)] overflow-hidden"
         >
-          {/* Top highlight */}
           <div className="absolute top-0 inset-x-0 h-1/4 bg-gradient-to-b from-white/15 to-transparent rounded-t-[28px] md:rounded-t-[36px] pointer-events-none" />
 
-          {/* Inner tray (recessed) */}
           <div className="absolute inset-3 md:inset-5 rounded-2xl md:rounded-3xl bg-[#1a103c]/70 shadow-[inset_0_6px_18px_rgba(0,0,0,0.6)] flex">
-            {/* Left half */}
             <SplitHalf
               count={leftCount}
-              showQuestion={inputIsLeft && !showAnswerTokens}
+              showQuestion={!showLeftTokens}
               status={status}
-              isAnswerSide={inputIsLeft}
+              isAnswerSide={leftIsAnswerSide}
             />
-            {/* Right half */}
             <SplitHalf
               count={rightCount}
-              showQuestion={!inputIsLeft && !showAnswerTokens}
+              showQuestion={!showRightTokens}
               status={status}
-              isAnswerSide={!inputIsLeft}
+              isAnswerSide={rightIsAnswerSide}
             />
           </div>
 
-          {/* Divider */}
           <motion.div
             initial={{ scaleY: 0 }}
             animate={{ scaleY: 1 }}
@@ -233,36 +248,34 @@ export function ExerciseSplitBox() {
           />
         </div>
 
-        {/* Labels under tray */}
-        <div className="mt-6 md:mt-8 w-full max-w-[640px] flex justify-around items-center gap-4">
+        {/* Equation: left + right = sum */}
+        <div className="mt-6 md:mt-8 w-full max-w-[640px] flex justify-center items-center gap-2 md:gap-4 flex-wrap">
           <NumberLabel
-            value={inputIsLeft ? null : leftCount}
-            isInput={inputIsLeft}
+            value={leftLabelIsInput ? null : leftCount}
+            isInput={leftLabelIsInput}
             inputValue={inputValue}
             status={status}
             isNumpadOpen={isNumpadOpen}
-            onTap={() => {
-              setIsNumpadOpen(true);
-              if (status === 'incorrect') {
-                setStatus('idle');
-                setInputValue('');
-              }
-            }}
+            onTap={openNumpad}
           />
           <div className="text-3xl md:text-4xl font-black text-[#a78bfa]/70 select-none">+</div>
           <NumberLabel
-            value={inputIsLeft ? rightCount : null}
-            isInput={!inputIsLeft}
+            value={rightLabelIsInput ? null : rightCount}
+            isInput={rightLabelIsInput}
             inputValue={inputValue}
             status={status}
             isNumpadOpen={isNumpadOpen}
-            onTap={() => {
-              setIsNumpadOpen(true);
-              if (status === 'incorrect') {
-                setStatus('idle');
-                setInputValue('');
-              }
-            }}
+            onTap={openNumpad}
+          />
+          <div className="text-3xl md:text-4xl font-black text-[#a78bfa]/70 select-none">=</div>
+          <NumberLabel
+            value={sumIsInput ? null : target}
+            isInput={sumIsInput}
+            inputValue={inputValue}
+            status={status}
+            isNumpadOpen={isNumpadOpen}
+            onTap={openNumpad}
+            tone="emerald"
           />
         </div>
       </motion.div>
