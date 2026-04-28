@@ -370,12 +370,20 @@ interface NumberLabelProps {
   status: Status;
   isNumpadOpen: boolean;
   onTap: () => void;
+  tone?: 'cyan' | 'emerald';
 }
 
-function NumberLabel({ value, isInput, inputValue, status, isNumpadOpen, onTap }: NumberLabelProps) {
+function NumberLabel({ value, isInput, inputValue, status, isNumpadOpen, onTap, tone = 'cyan' }: NumberLabelProps) {
   if (!isInput) {
+    const toneClasses =
+      tone === 'emerald'
+        ? 'bg-emerald-400 border-emerald-600 ring-emerald-200/50'
+        : 'bg-cyan-400 border-cyan-600 ring-cyan-200/50';
     return (
-      <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-cyan-400 border-b-[6px] border-cyan-600 ring-4 ring-cyan-200/50 shadow-[0_10px_25px_rgba(0,0,0,0.4)] flex items-center justify-center">
+      <div className={cn(
+        'relative w-20 h-20 md:w-24 md:h-24 rounded-2xl border-b-[6px] ring-4 shadow-[0_10px_25px_rgba(0,0,0,0.4)] flex items-center justify-center',
+        toneClasses,
+      )}>
         <div className="absolute top-0 inset-x-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-2xl pointer-events-none" />
         <span className="text-4xl md:text-5xl font-black text-white drop-shadow-[0_3px_3px_rgba(0,0,0,0.4)]">
           {value}
