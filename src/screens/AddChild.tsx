@@ -5,6 +5,7 @@ import { UserPlus, ArrowRight, Baby, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
 import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
@@ -12,6 +13,7 @@ import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 export function AddChild() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [age, setAge] = useState<number | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,6 +53,7 @@ export function AddChild() {
       });
 
       if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ['my-child'] });
       toast.success(`${name.trim()} is toegevoegd!`);
       navigate('/app');
     } catch (err: any) {
