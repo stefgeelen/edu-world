@@ -2,22 +2,18 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Azure-backed Dutch TTS hook with browser speech synthesis fallback.
+ * Azure-backed Dutch TTS hook with instant browser speech synthesis fallback.
  *
- * Primary: calls the `synthesize-speech` edge function which proxies Azure
- * Cognitive Services (nl-NL-FennaNeural). Returns high-quality neural audio.
- *
- * Fallback: if the edge function fails (e.g. no network, not deployed), it
- * silently falls back to the browser's Web Speech API.
- *
- * iOS Safari note: speechUnlock.ts (imported from Layout.tsx) fires a silent
- * utterance on the first user gesture to unblock audio on WebKit. The Audio
- * element used for Azure playback is also subject to this restriction, but
- * since it's triggered from a React effect (which fires after a user interaction
- * has already occurred during exercise navigation), it plays reliably.
+ * Strategy:
+ *  1. Browser speech fires immediately (zero latency).
+ *  2. Azure edge function is called in parallel.
+ *  3. If Azure responds in time, it cancels the browser utterance and plays
+ *     the higher-quality neural audio instead.
+ *  4. If Azure fails or is not deployed, the browser speech is already playing.
  */
 
 let voicesCache: SpeechSynthesisVoice[] = [];
+let currentAudio: HTMLAudioElement | null = null;
 
 function browserSpeak(text: string) {
   if (!text || typeof window === 'undefined') return;
@@ -43,22 +39,22 @@ function browserSpeak(text: string) {
   }
 }
 
-// Module-level audio ref so a new speak() call cancels the previous one across all callers.
-let currentAudio: HTMLAudioElement | null = null;
-
-/**
- * Standalone Dutch TTS function — same behaviour as `useSpeech().speak`,
- * usable outside React components (e.g. inside toast renderers).
- */
 export async function speakText(text: string): Promise<void> {
   if (!text) return;
 
+  // Start browser speech immediately — zero latency fallback.
+  browserSpeak(text);
+
+  // In parallel, try to get higher-quality Azure audio.
   try {
     const { data, error } = await supabase.functions.invoke('synthesize-speech', {
       body: { text },
     });
 
-    if (error || !data?.audioBase64) throw new Error(error?.message ?? 'No audio returned');
+    if (error || !data?.audioBase64) return; // browser speech is already playing
+
+    // Azure succeeded — cancel browser speech and play neural audio.
+    window.speechSynthesis.cancel();
 
     const binary = atob(data.audioBase64);
     const bytes = new Uint8Array(binary.length);
@@ -77,7 +73,7 @@ export async function speakText(text: string): Promise<void> {
     audio.addEventListener('error', () => URL.revokeObjectURL(url), { once: true });
     await audio.play();
   } catch {
-    browserSpeak(text);
+    // Azure failed — browser speech is already playing, nothing to do.
   }
 }
 
