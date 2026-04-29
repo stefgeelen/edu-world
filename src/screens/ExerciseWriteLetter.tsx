@@ -8,7 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
-import { useSpeech } from '@/hooks/useSpeech';
+
 import { LETTER_FILLED } from './letterFilledPaths';
 
 // ── Cursive-style letter SVG paths (100 × 130 normalized space) ────────────
@@ -183,7 +183,7 @@ export function ExerciseWriteLetter() {
   const completeExercise = useCompleteExercise();
   const correctCountRef = useRef(0);
   const startTimeRef = useRef(Date.now());
-  const { speak: speakWord } = useSpeech();
+  
 
   const { id } = useParams<{ id?: string }>();
   // Allow forcing a specific letter via URL (e.g. /exercises/write-letter/g) for testing.
@@ -228,11 +228,6 @@ export function ExerciseWriteLetter() {
   const isFilledGlyph = !!filledPath;
   const isMultiStroke = !isFilledGlyph && getSubpathStarts(pathStr).length > 1;
 
-  // Speak the letter on load and when it changes
-  useEffect(() => {
-    const timer = setTimeout(() => speakWord(currentLetter), 400);
-    return () => clearTimeout(timer);
-  }, [currentLetter, speakWord]);
 
   useEffect(() => {
     return () => {
@@ -450,13 +445,9 @@ export function ExerciseWriteLetter() {
             <span className="text-base">✏️</span>
             {guideCfg.label}
           </p>
-          <button
-            onClick={() => speakWord(currentLetter)}
-            className="flex items-center gap-2 bg-[#1c1134]/60 border border-[#3b2d71] rounded-2xl px-3 py-1.5 hover:bg-[#2d1b54] transition-colors"
-          >
+          <div className="flex items-center gap-2 bg-[#1c1134]/60 border border-[#3b2d71] rounded-2xl px-3 py-1.5">
             <span className="font-black text-orange-400" style={{ fontSize: 28, fontFamily: "'Caveat', cursive" }}>{currentLetter}</span>
-            <span className="text-xs font-bold text-orange-300/80">🔊</span>
-          </button>
+          </div>
         </div>
 
         {isMultiStroke && (

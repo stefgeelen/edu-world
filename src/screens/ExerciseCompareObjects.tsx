@@ -9,7 +9,7 @@ import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { COMPARE_OBJECTS_CONFIG, DEFAULT_COMPARE_OBJECTS } from '@/data/difficultyConfig';
-import { useSpeech } from '@/hooks/useSpeech';
+
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Answer = 'left' | 'right' | 'equal';
@@ -122,19 +122,11 @@ export function ExerciseCompareObjects() {
   const { key: difficultyKey } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  const { speak } = useSpeech();
-
   const config = COMPARE_OBJECTS_CONFIG[difficultyKey] ?? DEFAULT_COMPARE_OBJECTS;
 
   const [question, setQuestion] = useState<Question>(() =>
     generateQuestion(config.minObjects, config.maxObjects)
   );
-
-  useEffect(() => {
-    const text = `${objectLabel(question.left, question.leftCount)} of ${objectLabel(question.right, question.rightCount)}, welke kant heeft meer?`;
-    const t = setTimeout(() => speak(text), 400);
-    return () => clearTimeout(t);
-  }, [question, speak]);
   const [selected, setSelected] = useState<Answer | null>(null);
   const [status, setStatus] = useState<QStatus>('idle');
   const [progress, setProgress] = useState(0);

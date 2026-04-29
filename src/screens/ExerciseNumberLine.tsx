@@ -9,7 +9,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
-import { useSpeech } from '@/hooks/useSpeech';
+
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -54,7 +54,7 @@ export function ExerciseNumberLine() {
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  const { speak } = useSpeech();
+  
 
   const [slots, setSlots] = useState<Slot[]>(makeSlots);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
@@ -75,12 +75,6 @@ export function ExerciseNumberLine() {
   const allFilled = blanks.length > 0 && filled.length === blanks.length;
   const remaining = blanks.length - filled.length;
 
-  useEffect(() => {
-    if (activeSlot !== null) {
-      const t = setTimeout(() => speak(`Schrijf het getal ${activeSlot}`), 300);
-      return () => clearTimeout(t);
-    }
-  }, [activeSlot, speak]);
 
   useEffect(() => {
     isDrawing.current = false;

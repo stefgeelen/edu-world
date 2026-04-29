@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core';
 import { RotateCcw } from 'lucide-react';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
-import { useSpeech } from '@/hooks/useSpeech';
+
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
@@ -155,14 +155,8 @@ function Kassa({ droppedCoins, totalCents, priceCents }: KassaProps) {
 export function ExerciseMoney() {
   const navigate = useNavigate();
 
-  const { speak } = useSpeech();
   const [product, setProduct] = useState(() => PRODUCTS[randomInt(0, PRODUCTS.length - 1)]);
   const [priceCents, setPriceCents] = useState(() => generatePrice());
-
-  useEffect(() => {
-    const t = setTimeout(() => speak(`${product.name} kost ${formatCents(priceCents)}`), 400);
-    return () => clearTimeout(t);
-  }, [product, priceCents, speak]);
   const [droppedCoins, setDroppedCoins] = useState<{ id: string; coin: CoinDef }[]>([]);
   const [dragCoinId, setDragCoinId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'too-little' | 'too-much' | null>(null);

@@ -10,7 +10,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { NUMBER_BOND_CONFIG, DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
-import { useSpeech } from '@/hooks/useSpeech';
+
 
 export function ExerciseNumberBond() {
   const navigate = useNavigate();
@@ -20,17 +20,11 @@ export function ExerciseNumberBond() {
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
-  const { speak } = useSpeech();
   const bondConfig = NUMBER_BOND_CONFIG[difficultyKey] ?? DEFAULT_NUMBER_BOND;
 
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
   const [question, setQuestion] = useState({ target: 8, known: 3, answer: 5 });
-
-  useEffect(() => {
-    const t = setTimeout(() => speak(`${question.known} en hoeveel maakt samen ${question.target}?`), 400);
-    return () => clearTimeout(t);
-  }, [question, speak]);
 
   const [inputValue, setInputValue] = useState("");
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);

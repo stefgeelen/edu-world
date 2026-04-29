@@ -9,7 +9,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { DOT_COUNT_CONFIG, DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
-import { useSpeech } from '@/hooks/useSpeech';
+
 
 interface Dot {
   id: string;
@@ -26,18 +26,12 @@ export function ExerciseDotCount() {
   const startTime = useRef(Date.now());
   const areaRef = useRef<HTMLDivElement>(null);
 
-  const { speak } = useSpeech();
   const dotConfig = DOT_COUNT_CONFIG[difficultyKey] ?? DEFAULT_DOT_COUNT;
 
   const getRandomTarget = () =>
     Math.floor(Math.random() * (dotConfig.maxDots - dotConfig.minDots + 1)) + dotConfig.minDots;
 
   const [target, setTarget] = useState(getRandomTarget);
-
-  useEffect(() => {
-    const t = setTimeout(() => speak(`Zet ${target} ${target === 1 ? 'stip' : 'stippen'}`), 400);
-    return () => clearTimeout(t);
-  }, [target, speak]);
   const [dots, setDots] = useState<Dot[]>([]);
   const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect'>('idle');
   const [progress, setProgress] = useState(0);

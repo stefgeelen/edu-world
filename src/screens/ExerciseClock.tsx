@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Volume2 } from 'lucide-react';
+
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -67,28 +67,6 @@ function norm(angle: number): number {
   return ((angle % 360) + 360) % 360;
 }
 
-/* ── Speech ─────────────────────────────────────────────────── */
-function speak(text: string) {
-  if (!('speechSynthesis' in window)) return;
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'nl-NL';
-  u.rate = 0.75;
-  // Try to pick a Dutch voice
-  const voices = synth.getVoices();
-  const nlVoice = voices.find(v => v.lang.startsWith('nl'));
-  if (nlVoice) u.voice = nlVoice;
-  // iOS Safari fix: cancel() + immediate speak() silently fails without a delay
-  const isWebKit =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
-  if (isWebKit) {
-    setTimeout(() => synth.speak(u), 100);
-  } else {
-    synth.speak(u);
-  }
-}
 
 /* ── Clock Face component ───────────────────────────────────── */
 interface ClockFaceProps {
@@ -297,11 +275,6 @@ export function ExerciseClock() {
     onNextQuestion: nextQuestion,
   });
 
-  // Speak the task on load and when task changes
-  useEffect(() => {
-    const timer = setTimeout(() => speak(task.label), 400);
-    return () => clearTimeout(timer);
-  }, [task]);
 
   const handleCheck = useCallback(() => {
     if (status !== 'idle') return;
@@ -339,12 +312,6 @@ export function ExerciseClock() {
             <span className="text-3xl md:text-4xl font-bold text-white/90 font-mono tracking-wider">
               {task.digital}
             </span>
-            <button
-              onClick={() => speak(task.label)}
-              className="w-10 h-10 rounded-full bg-[#2d1b54] border border-[#3b2d71] flex items-center justify-center active:scale-95 transition-transform"
-            >
-              <Volume2 className="w-5 h-5 text-cyan-400" />
-            </button>
           </div>
           <p className="text-lg md:text-xl text-white/70 font-medium">{task.label}</p>
         </div>
