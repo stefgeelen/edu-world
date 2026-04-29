@@ -55,13 +55,7 @@ export function ExerciseLanguage() {
     if (isPlaying || !correctWord) return;
     setIsPlaying(true);
 
-    const utterance = speak(correctWord);
-    if (utterance) {
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
-    } else {
-      setTimeout(() => setIsPlaying(false), 600);
-    }
+    speak(correctWord).finally(() => setIsPlaying(false));
   }, [isPlaying, correctWord, speak]);
 
   const handleWordSelect = (word: string) => {
