@@ -104,6 +104,7 @@ export function ExerciseLanguage() {
       progress={progress}
       lives={lives}
       onClose={() => navigate('/app/map')}
+      silenceBuddy
     >
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col items-center z-10 relative px-6 mt-8 md:mt-12 w-full max-w-md mx-auto">

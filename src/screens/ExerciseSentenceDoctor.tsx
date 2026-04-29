@@ -172,7 +172,7 @@ export function ExerciseSentenceDoctor() {
   const isBuild = question.mode === 'build';
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate('/app/map')}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate('/app/map')} silenceBuddy>
       <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-10 w-full max-w-xl mx-auto">
 
         {/* Title */}

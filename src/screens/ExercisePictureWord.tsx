@@ -189,6 +189,7 @@ export function ExercisePictureWord() {
       lives={lives}
       onClose={() => navigate(stageReturnPath)}
       buddyMood={buddyMood}
+      silenceBuddy
     >
       <div
         className="flex-1 flex flex-col items-center z-10 relative px-6 mt-6 md:mt-10 w-full max-w-md mx-auto pb-8"

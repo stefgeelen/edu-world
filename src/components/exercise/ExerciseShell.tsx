@@ -14,13 +14,15 @@ interface ExerciseShellProps {
   className?: string;
   /** Set to trigger buddy feedback (correct/wrong/complete). Resets on change. */
   buddyMood?: BuddyMood | null;
+  /** Disable TTS for the buddy bubble (e.g. in reading exercises that already speak). */
+  silenceBuddy?: boolean;
 }
 
 /**
  * Shared exercise layout: dark space-themed background with stars,
  * unified header (close button + progress bar + lives), and buddy integration.
  */
-export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood }: ExerciseShellProps) {
+export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false }: ExerciseShellProps) {
   const { getMessage } = useBuddyMessage();
   const [buddyData, setBuddyData] = useState<{ message: string; mood: BuddyMood; avatarUrl: string; avatarName: string } | null>(null);
 
@@ -108,6 +110,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
           mood={buddyData.mood}
           avatarUrl={buddyData.avatarUrl}
           avatarName={buddyData.avatarName}
+          speakOnMount={!silenceBuddy}
           onDismiss={() => setBuddyData(null)}
         />
       )}
