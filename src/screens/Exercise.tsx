@@ -10,7 +10,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { MATH_SUMS_CONFIG, DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
-import { useSpeech } from '@/hooks/useSpeech';
+
 
 const OP_SPOKEN: Record<string, string> = { '+': 'plus', '-': 'min', '×': 'maal', '÷': 'gedeeld door' };
 
@@ -73,7 +73,7 @@ export function Exercise() {
   const { key: difficultyKey } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  const { speak } = useSpeech();
+  
 
   const config = MATH_SUMS_CONFIG[difficultyKey] ?? DEFAULT_MATH_SUMS;
 
@@ -96,11 +96,6 @@ export function Exercise() {
     regenerate();
   }, [regenerate]);
 
-  useEffect(() => {
-    const text = `${question.num1} ${OP_SPOKEN[question.operator] ?? question.operator} ${question.num2} is?`;
-    const t = setTimeout(() => speak(text), 400);
-    return () => clearTimeout(t);
-  }, [question, speak]);
 
   const handleSelect = (option: number) => {
     if (status !== 'idle') return;
