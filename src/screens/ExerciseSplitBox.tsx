@@ -10,6 +10,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { NUMBER_BOND_CONFIG, DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
+import { useSpeech } from '@/hooks/useSpeech';
 
 type Status = 'idle' | 'incorrect' | 'correct';
 type Side = 'left' | 'right';
@@ -47,6 +48,7 @@ export function ExerciseSplitBox() {
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
+  const { speak } = useSpeech();
   const cfg = NUMBER_BOND_CONFIG[difficultyKey] ?? DEFAULT_NUMBER_BOND;
 
   const [progress, setProgress] = useState(0);
@@ -59,6 +61,23 @@ export function ExerciseSplitBox() {
     knownSide: 'left',
     answer: 3,
   });
+
+  useEffect(() => {
+    const { mode, target, leftCount, rightCount, knownSide } = question;
+    let text: string;
+    if (mode === 'target') {
+      const known = knownSide === 'left' ? leftCount : rightCount;
+      text = `${known} en hoeveel maakt samen ${target}?`;
+    } else if (mode === 'sum') {
+      text = `${leftCount} plus ${rightCount} is?`;
+    } else if (mode === 'left') {
+      text = `Welk getal plus ${rightCount} is ${target}?`;
+    } else {
+      text = `${leftCount} plus welk getal is ${target}?`;
+    }
+    const t = setTimeout(() => speak(text), 400);
+    return () => clearTimeout(t);
+  }, [question, speak]);
 
   const [inputValue, setInputValue] = useState('');
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);

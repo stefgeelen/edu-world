@@ -8,6 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { useSpeech } from '@/hooks/useSpeech';
 
 // ── Digit SVG paths (100 × 130 normalized space) ──────────────────────────
 const DIGIT_PATHS: Record<string, string> = {
@@ -167,6 +168,7 @@ export function ExerciseWriteDigit() {
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
+  const { speak } = useSpeech();
 
   // Generate a random digit (0-9) on mount; ignore URL param
   const [currentDigit, setCurrentDigit] = useState(() => String(Math.floor(Math.random() * 10)));
@@ -195,6 +197,12 @@ export function ExerciseWriteDigit() {
   const guideCfg = GUIDE_CONFIGS[Math.min(iteration, GUIDE_CONFIGS.length - 1)];
   const safeDigit = DIGIT_PATHS[currentDigit] ? currentDigit : '8';
   const isMultiStroke = getSubpathStarts(DIGIT_PATHS[safeDigit]).length > 1;
+
+  useEffect(() => {
+    const name = DIGIT_NAMES[currentDigit] ?? currentDigit;
+    const t = setTimeout(() => speak(name), 400);
+    return () => clearTimeout(t);
+  }, [currentDigit, speak]);
 
   useEffect(() => {
     return () => {

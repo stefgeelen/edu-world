@@ -1,78 +1,103 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Cross-browser Dutch speech synthesis hook.
- * Handles iOS Safari quirks:
- * - cancel() immediately before speak() silently fails on WebKit
- * - Voices may load asynchronously
- * - User gesture requirement: handled by speechUnlock.ts, which is imported
- *   from Layout.tsx (eagerly loaded) so the unlock fires before the user
- *   ever reaches an exercise screen.
+ * Azure-backed Dutch TTS hook with browser speech synthesis fallback.
+ *
+ * Primary: calls the `synthesize-speech` edge function which proxies Azure
+ * Cognitive Services (nl-NL-FennaNeural). Returns high-quality neural audio.
+ *
+ * Fallback: if the edge function fails (e.g. no network, not deployed), it
+ * silently falls back to the browser's Web Speech API.
+ *
+ * iOS Safari note: speechUnlock.ts (imported from Layout.tsx) fires a silent
+ * utterance on the first user gesture to unblock audio on WebKit. The Audio
+ * element used for Azure playback is also subject to this restriction, but
+ * since it's triggered from a React effect (which fires after a user interaction
+ * has already occurred during exercise navigation), it plays reliably.
  */
+
+let voicesCache: SpeechSynthesisVoice[] = [];
+
+function browserSpeak(text: string) {
+  if (!text || typeof window === 'undefined') return;
+  const synth = window.speechSynthesis;
+  synth.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'nl-NL';
+  utterance.rate = 0.75;
+
+  const voices = voicesCache.length > 0 ? voicesCache : synth.getVoices();
+  const dutch = voices.find((v) => v.lang === 'nl-NL') ?? voices.find((v) => v.lang.startsWith('nl'));
+  if (dutch) utterance.voice = dutch;
+
+  const isWebKit =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+  if (isWebKit) {
+    setTimeout(() => synth.speak(utterance), 100);
+  } else {
+    synth.speak(utterance);
+  }
+}
+
 export function useSpeech() {
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const synth = window.speechSynthesis;
     const load = () => {
       const v = synth.getVoices();
-      if (v.length > 0) voicesRef.current = v;
+      if (v.length > 0) voicesCache = v;
     };
     load();
     synth.addEventListener('voiceschanged', load);
     return () => synth.removeEventListener('voiceschanged', load);
   }, []);
 
-  const speak = useCallback((text: string): SpeechSynthesisUtterance | null => {
-    if (!text || typeof window === 'undefined') return null;
+  // Stop any playing audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
-    const synth = window.speechSynthesis;
+  const speak = useCallback(async (text: string) => {
+    if (!text) return;
 
-    // Cancel any ongoing speech
-    synth.cancel();
+    try {
+      const { data, error } = await supabase.functions.invoke('synthesize-speech', {
+        body: { text },
+      });
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'nl-NL';
-    utterance.rate = 0.75;
+      if (error || !data?.audioBase64) throw new Error(error?.message ?? 'No audio returned');
 
-    const voices =
-      voicesRef.current.length > 0
-        ? voicesRef.current
-        : synth.getVoices();
+      // Decode base64 → Blob → Object URL → play
+      const binary = atob(data.audioBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
 
-    const dutchVoice =
-      voices.find((v) => v.lang === 'nl-NL') ||
-      voices.find((v) => v.lang.startsWith('nl'));
-    if (dutchVoice) utterance.voice = dutchVoice;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
 
-    // iOS Safari fix: cancel() + immediate speak() silently fails.
-    // Adding a small delay lets WebKit finish the cancel cycle.
-    const isWebKit =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
-
-    if (isWebKit) {
-      setTimeout(() => {
-        synth.speak(utterance);
-        // iOS Safari pauses speech when tab is backgrounded; resume trick.
-        // Use addEventListener (not onend/onerror property assignment) so we
-        // don't overwrite the caller's own onend/onerror handlers.
-        const keepAlive = setInterval(() => {
-          if (!synth.speaking) {
-            clearInterval(keepAlive);
-          } else {
-            synth.pause();
-            synth.resume();
-          }
-        }, 5000);
-        utterance.addEventListener('end', () => clearInterval(keepAlive));
-        utterance.addEventListener('error', () => clearInterval(keepAlive));
-      }, 100);
-    } else {
-      synth.speak(utterance);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.addEventListener('ended', () => URL.revokeObjectURL(url), { once: true });
+      audio.addEventListener('error', () => URL.revokeObjectURL(url), { once: true });
+      await audio.play();
+    } catch {
+      // Edge function unavailable or failed — fall back to browser TTS
+      browserSpeak(text);
     }
-
-    return utterance;
   }, []);
 
   return { speak };

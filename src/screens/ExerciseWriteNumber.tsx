@@ -9,6 +9,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
+import { useSpeech } from '@/hooks/useSpeech';
 
 function getRandomTarget() {
   return Math.floor(Math.random() * 10) + 1;
@@ -55,6 +56,7 @@ export function ExerciseWriteNumber() {
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
   const startTimeRef = useRef(Date.now());
+  const { speak } = useSpeech();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
@@ -62,6 +64,12 @@ export function ExerciseWriteNumber() {
   const hasDrawnRef = useRef(false);
 
   const [target, setTarget] = useState(getRandomTarget);
+
+  useEffect(() => {
+    const t = setTimeout(() => speak(`Schrijf het getal ${target}`), 400);
+    return () => clearTimeout(t);
+  }, [target, speak]);
+
   const [hasDrawn, setHasDrawn] = useState(false);
   const [status, setStatus] = useState<'idle' | 'drawn' | 'checking' | 'correct' | 'incorrect'>('idle');
   const [progress, setProgress] = useState(0);

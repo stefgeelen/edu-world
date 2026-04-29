@@ -11,6 +11,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { COMPARISON_CONFIG, DEFAULT_COMPARISON } from '@/data/difficultyConfig';
+import { useSpeech } from '@/hooks/useSpeech';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type VariationType = 1 | 2 | 3 | 4;
@@ -123,10 +124,23 @@ export function ExerciseComparison() {
   const { key: difficultyKey } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
+  const { speak } = useSpeech();
 
   const compConfig = COMPARISON_CONFIG[difficultyKey] ?? DEFAULT_COMPARISON;
 
   const [question, setQuestion] = useState<Question>(() => generateQuestion(compConfig.maxNumber));
+
+  useEffect(() => {
+    const { variation, leftValue, rightValue, symbol } = question;
+    let text: string;
+    if (variation === 1 || variation === 2) {
+      text = `${leftValue} en ${rightValue}. Kies het juiste teken.`;
+    } else {
+      text = `${leftValue} ${SYMBOL_LABEL[symbol]} welk getal?`;
+    }
+    const t = setTimeout(() => speak(text), 400);
+    return () => clearTimeout(t);
+  }, [question, speak]);
   const [selectedSymbol, setSelectedSymbol] = useState<CompSymbol | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
