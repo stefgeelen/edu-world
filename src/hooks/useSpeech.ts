@@ -43,9 +43,45 @@ function browserSpeak(text: string) {
   }
 }
 
-export function useSpeech() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+// Module-level audio ref so a new speak() call cancels the previous one across all callers.
+let currentAudio: HTMLAudioElement | null = null;
 
+/**
+ * Standalone Dutch TTS function — same behaviour as `useSpeech().speak`,
+ * usable outside React components (e.g. inside toast renderers).
+ */
+export async function speakText(text: string): Promise<void> {
+  if (!text) return;
+
+  try {
+    const { data, error } = await supabase.functions.invoke('synthesize-speech', {
+      body: { text },
+    });
+
+    if (error || !data?.audioBase64) throw new Error(error?.message ?? 'No audio returned');
+
+    const binary = atob(data.audioBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'audio/mpeg' });
+    const url = URL.createObjectURL(blob);
+
+    if (currentAudio) {
+      currentAudio.pause();
+      try { URL.revokeObjectURL(currentAudio.src); } catch { /* noop */ }
+    }
+
+    const audio = new Audio(url);
+    currentAudio = audio;
+    audio.addEventListener('ended', () => URL.revokeObjectURL(url), { once: true });
+    audio.addEventListener('error', () => URL.revokeObjectURL(url), { once: true });
+    await audio.play();
+  } catch {
+    browserSpeak(text);
+  }
+}
+
+export function useSpeech() {
   useEffect(() => {
     const synth = window.speechSynthesis;
     const load = () => {
@@ -57,48 +93,7 @@ export function useSpeech() {
     return () => synth.removeEventListener('voiceschanged', load);
   }, []);
 
-  // Stop any playing audio on unmount
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  const speak = useCallback(async (text: string) => {
-    if (!text) return;
-
-    try {
-      const { data, error } = await supabase.functions.invoke('synthesize-speech', {
-        body: { text },
-      });
-
-      if (error || !data?.audioBase64) throw new Error(error?.message ?? 'No audio returned');
-
-      // Decode base64 → Blob → Object URL → play
-      const binary = atob(data.audioBase64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'audio/mpeg' });
-      const url = URL.createObjectURL(blob);
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
-      }
-
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.addEventListener('ended', () => URL.revokeObjectURL(url), { once: true });
-      audio.addEventListener('error', () => URL.revokeObjectURL(url), { once: true });
-      await audio.play();
-    } catch {
-      // Edge function unavailable or failed — fall back to browser TTS
-      browserSpeak(text);
-    }
-  }, []);
+  const speak = useCallback((text: string) => speakText(text), []);
 
   return { speak };
 }
