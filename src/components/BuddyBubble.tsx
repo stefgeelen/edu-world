@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { BuddyMood } from '@/data/buddyMessages';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
+import { useSpeech } from '@/hooks/useSpeech';
 
 interface BuddyBubbleProps {
   message: string;
@@ -10,6 +11,8 @@ interface BuddyBubbleProps {
   /** Auto-dismiss delay in ms. Set to 0 to disable. Default 4000. */
   autoDismissMs?: number;
   onDismiss?: () => void;
+  /** When true (default), the message is spoken aloud on mount. */
+  speakOnMount?: boolean;
 }
 
 const MOOD_AVATAR_ANIMATION: Record<BuddyMood, string> = {
@@ -24,9 +27,17 @@ const MOOD_AVATAR_ANIMATION: Record<BuddyMood, string> = {
  * Animated buddy avatar with speech bubble overlay.
  * Shows the selected study buddy with a contextual message and mood-based animation.
  */
-export function BuddyBubble({ message, mood, avatarUrl, avatarName, autoDismissMs = 4000, onDismiss }: BuddyBubbleProps) {
+export function BuddyBubble({ message, mood, avatarUrl, avatarName, autoDismissMs = 4000, onDismiss, speakOnMount = true }: BuddyBubbleProps) {
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
+  const { speak } = useSpeech();
+
+  // Speak the bubble message on mount (once)
+  useEffect(() => {
+    if (!speakOnMount || !message) return;
+    speak(message);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (autoDismissMs <= 0) return;
