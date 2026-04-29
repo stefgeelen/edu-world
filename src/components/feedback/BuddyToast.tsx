@@ -1,5 +1,11 @@
 import { toast } from 'sonner';
 import React from 'react';
+import { speakText } from '@/hooks/useSpeech';
+
+/** Strip emoji & symbol characters so TTS doesn't read them aloud as "smiling face". */
+function stripEmoji(text: string): string {
+  return text.replace(/[\p{Extended_Pictographic}\p{Emoji_Component}]/gu, '').replace(/\s+/g, ' ').trim();
+}
 
 /**
  * Kindvriendelijke "buddy" toast — groot, vrolijk, niet alarmerend.
@@ -50,11 +56,13 @@ function renderBubble(
 
 export const buddyToast = {
   oops(message: string, opts: BuddyToastOptions = {}) {
+    void speakText(stripEmoji(message));
     return toast.custom(() => renderBubble(message, 'oops', opts), {
       duration: opts.duration ?? 5000,
     });
   },
   cheer(message: string, opts: BuddyToastOptions = {}) {
+    void speakText(stripEmoji(message));
     return toast.custom(() => renderBubble(message, 'cheer', opts), {
       duration: opts.duration ?? 4000,
     });
