@@ -119,3 +119,27 @@ export const COMPARE_OBJECTS_CONFIG: Record<string, CompareObjectsConfig> = {
 export const DEFAULT_COMPARE_OBJECTS: CompareObjectsConfig = {
   minObjects: 1, maxObjects: 6,
 };
+
+// ── Subtract Box (ExerciseSubtractBox.tsx) ─────────────────────────────────
+
+export interface SubtractBoxConfig {
+  /** Maximum total tokens in the box (the minuend) */
+  maxTotal: number;
+}
+
+export const SUBTRACT_BOX_CONFIG: Record<string, SubtractBoxConfig> = {
+  // Grade 1
+  "1-1": { maxTotal: 6 },
+  "1-2": { maxTotal: 8 },
+  "1-3": { maxTotal: 10 },
+  "1-4": { maxTotal: 12 },
+  // Grade 2
+  "2-1": { maxTotal: 15 },
+  "2-2": { maxTotal: 18 },
+  "2-3": { maxTotal: 20 },
+  "2-4": { maxTotal: 20 },
+};
+
+export const DEFAULT_SUBTRACT_BOX: SubtractBoxConfig = {
+  maxTotal: 6,
+};
