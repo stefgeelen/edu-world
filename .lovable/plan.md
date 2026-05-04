@@ -1,75 +1,147 @@
+# Beta Landing One-Pager voor EduWorld
+
 ## Doel
 
-Een nieuwe rekenoefening **"Aftrekdoos"** toevoegen die aftrekken tot 6 oefent op dezelfde visuele en interactieve manier als de bestaande Splitsdoos. Het kind ziet een doos met tokens (bolletjes), een aantal tokens is doorgestreept (= het getal dat afgetrokken wordt), en het kind vult het antwoord in via het bestaande numpad.
+Een aparte, conversiegerichte one-pager waar Vlaamse ouders zich kunnen inschrijven voor de beta (lancering begin augustus). Snel, duidelijk, met sterke SEO en email capture die opgeslagen wordt in een aparte database tabel.
 
-## Hoe de oefening werkt
+---
 
-Per vraag:
+## 1. Route & navigatie
 
-- **Totaal** (2–6) tokens worden in de doos geplaatst.
-- Een willekeurig deel daarvan (1 tot totaal-1) krijgt een schuine streep eroverheen, identiek aan de stijl in de bijgevoegde foto.
-- Onder de doos staat de som als grote labels: `totaal − afgestreept = ?`
-- Het kind tikt op het `?`-label, opent het bestaande `ExerciseNumpad` en vult het antwoord in.
-- Bij correct: confetti, doorstreepte tokens "verdwijnen" weg en de overgebleven tokens lichten groen op (vergelijkbaar met de spring-animatie in Splitsdoos).
-- Bij fout: shake + leven kwijt (3 levens, zelfde flow als andere oefeningen).
-- 5 ronden per sessie, score wordt opgeslagen via `useCompleteExercise` met `exerciseId`.
+- Nieuwe publieke route: `**/beta**` (apart van de bestaande `/` Landing — die blijft ongemoeid voor de productapp)
+- Toegevoegd in `src/routes/publicRoutes.tsx`
+- Optioneel later: `/` redirecten naar `/beta` tot na launch (vraag: zie onderaan)
 
-Variatie (zoals Splitsdoos meerdere modes heeft):
+## 2. Database — `beta_signups` tabel
 
-- **Mode A — antwoord = uitkomst** (meest voorkomend): `5 − 3 = ?`
-- **Mode B — antwoord = aftrekker**: `6 − ? = 2` (kind ziet hoeveel tokens er over zijn en moet uitrekenen hoeveel er weg zijn)
+Migratie via Lovable Cloud:
 
-Beide modes laten dezelfde doos zien; alleen het invul-label verschuift.
+```sql
+create table public.beta_signups (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  full_name text,
+  child_grade text,           -- '1ste leerjaar' | '2de leerjaar' | 'kleuter' | 'ander'
+  source text,                -- referral / utm bron
+  user_agent text,
+  created_at timestamptz not null default now()
+);
 
-## Visueel ontwerp
+alter table public.beta_signups enable row level security;
 
-Hergebruik **exact dezelfde "tray"** als Splitsdoos (paars-violet gradient, neon-glow, neumorphic) maar **zonder de verticale scheidingslijn in het midden** — de tokens vullen de hele doos.
+-- Iedereen (anon + authenticated) mag inschrijven
+create policy "Anyone can sign up for beta"
+  on public.beta_signups for insert
+  to anon, authenticated
+  with check (true);
 
-Tokens:
+-- Alleen admins mogen lezen
+create policy "Admins can view beta signups"
+  on public.beta_signups for select
+  to authenticated
+  using (has_role(auth.uid(), 'admin'));
+```
 
-- Cyaan bolletjes (zelfde stijl als Splitsdoos).
-- Doorgestreepte tokens krijgen een witte/lichtroze diagonale streep (`rotate-12`) eroverheen, met lichte opacity-verlaging om "weggehaald" te suggereren — net als in de werkblad-foto.
-- Op correct antwoord: doorgestreepte tokens faden weg met `AnimatePresence`, overblijvende tokens pulsen groen.
+Email validatie via Zod client-side + `unique` constraint server-side (duplicaat = vriendelijke "je staat al op de lijst" boodschap).
 
-Equation-balk onder de doos:
+## 3. One-pager structuur (`src/screens/BetaLanding.tsx`)
 
-- `[totaal] − [aftrekker] = [?]` met dezelfde `NumberLabel` stijl als Splitsdoos (cyaan/emerald tegels, paars dashed input-label).
+Mobile-first, single-scroll, snelle laadtijd. Secties:
 
-## Bestanden
+1. **Hero** — Kop "Jouw kind oefent elke dag. Zonder gezeur." + subkop over Vlaams curriculum. Inline email-formulier (email + optioneel naam + leerjaar dropdown) met grote CTA "Schrijf me in voor de beta". Badge: "Lancering begin augustus 2026 · Eerste maand gratis".
+2. **Social proof / urgentie** — "Beperkte plaatsen voor de beta" + counter (statisch of live van DB count).
+3. **3 voordelen** (uit GTM doc):
+  - Voor het kind: gamified avontuur (XP, badges, quest map)
+  - Voor de ouder: pincode-portaal met voortgang per vak + eigen beloningen
+  - Belgisch curriculum: trimestersysteem 1ste/2de leerjaar, Nederlandse spraak
+4. **Hoe werkt het** — 3 stappen met screenshots/illustraties
+5. **Voor wie** — Eerste & tweede leerjaar (6-8 jaar), Vlaanderen
+6. **FAQ** — Wat kost het na de beta? Wanneer start het? Op welke toestellen? Privacy?
+7. **Tweede CTA-blok** — Email capture herhalen + "Wat krijg je: 1 maand gratis bij lancering, vroege toegang, directe lijn met de maker"
+8. **Footer** — privacy, contact
+
+## 4. Form flow
+
+- React Hook Form + Zod schema (email required + valid, leerjaar optioneel)
+- Submit: `supabase.from('beta_signups').insert(...)`
+- Bij `unique` violation (code `23505`): toast "Je staat al op onze lijst — bedankt!"
+- Bij succes: state wisselt naar bedankscherm (geen redirect) met deel-knoppen (WhatsApp, Facebook) — past bij Fase 2 van de GTM (peer sharing)
+- Geen authenticatie nodig — anonieme insert via RLS policy
+
+## 5. SEO strategie
+
+**Technisch (in `index.html` + per-page met react-helmet-async):**
+
+- Title: `EduWorld Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen`
+- Meta description: 155 tekens, focus op "oefenen thuis", "Vlaams", "1ste leerjaar", "rekenen lezen schrijven"
+- Canonical URL naar `/beta`
+- Open Graph + Twitter Card met hero-afbeelding (1200x630) — voor delen in Facebook-groepen (kanaal #1 in GTM)
+- `lang="nl-BE"`
+- Favicon + apple-touch-icon
+
+**Structured data (JSON-LD):**
+
+- `SoftwareApplication` schema (naam, prijsrange, doelgroep)
+- `FAQPage` schema gekoppeld aan FAQ-sectie → rich snippets in Google
+- `Organization` schema
+
+**On-page:**
+
+- Eén `<h1>` met primaire keyword: "Online oefenen voor het 1ste en 2de leerjaar"
+- `<h2>`/`<h3>` hiërarchie semantisch
+- Alt-tekst op alle afbeeldingen (Nederlands)
+- Interne ankerlinks (`#voordelen`, `#hoe-werkt-het`, `#faq`)
+- Snelle LCP: hero-afbeelding `loading="eager"`, rest `lazy`
+- Semantische HTML (`<main>`, `<section>`, `<article>`)
+
+**Off-page voorbereid:**
+
+- Update `public/robots.txt` (al ok, allow all)
+- Nieuwe `public/sitemap.xml` met `/beta` als prioriteit 1.0
+- `public/manifest.json` titel/description checken
+
+**Keyword focus** (Vlaams, low-competition long-tail):
+
+- "oefenen 1ste leerjaar online"
+- "rekenen oefenen tweede leerjaar"
+- "leerapp Vlaanderen kinderen"
+- "Bingel alternatief gamified"
+
+## 6. Admin uitbreiding (klein)
+
+Optionele tab in `AdminDashboard` om beta-aanmeldingen te zien (lijst + CSV export). Vraag onderaan of dit nu of later moet.
+
+## 7. Bestanden
 
 **Nieuw:**
 
-- `src/screens/ExerciseSubtractBox.tsx` — gebaseerd op `ExerciseSplitBox.tsx`. Hergebruikt `ExerciseShell`, `ExerciseNumpad`, `useCompleteExercise`, `useExerciseId`, `useDifficultyLevel`, `triggerConfetti`. Eigen `Token` helper met `crossedOut` prop. Geen `SplitHalf` (geen scheidingslijn).
+- `src/screens/BetaLanding.tsx` — de one-pager
+- `src/components/beta/BetaSignupForm.tsx` — herbruikbaar formulier
+- `src/components/beta/BetaFAQ.tsx`
+- `src/components/SEO.tsx` — herbruikbare helmet wrapper
+- `public/sitemap.xml`
+- DB migratie voor `beta_signups`
 
-**Bewerken:**
+**Aangepast:**
 
-- `src/routes/appRoutes.tsx` — lazy import + route `exercises/subtract-box/:id`.
-- `src/data/difficultyConfig.ts` — nieuwe `SUBTRACT_BOX_CONFIG` per grade/trimester (Grade 1-1: max 6, Grade 1-2: max 8, Grade 1-3: max 10, Grade 1-4 en hoger oplopend tot 20).
-- `mem://content/curriculum-mapping` — toevoegen "Aftrekdoos" als 9e rekenoefening.
+- `src/routes/publicRoutes.tsx` — route toevoegen
+- `index.html` — default meta tags + react-helmet-async setup
+- `src/main.tsx` — `HelmetProvider`
+- `package.json` — `react-helmet-async` toevoegen
 
-**Database (migratie):**
+## 8. Buiten scope (tenzij je vraagt)
 
-- Insert in `exercises` tabel: 1 record voor stage-1 met `route='/exercises/subtract-box/1'`, `subject='math'`, `title='Aftrekdoos'`, `xp_reward=30`, `display_order=9`.
+- Email confirmatie / double opt-in (bvb via Resend)
+- A/B testing varianten van de kop
+- Analytics (Plausible/GA4)
 
-## Difficulty config (voorstel)
+---
 
-```text
-1-1: max 6   (zoals gevraagd: aftrekken tot 6)
-1-2: max 8
-1-3: max 10
-1-4: max 12
-2-1: max 15
-2-2: max 18
-2-3: max 20
-2-4: max 20
-```
+## Vragen voor jou
 
-## Audio / TTS
-
-Geen TTS toevoegen — dit is een rekenoefening, conform de bestaande regel dat TTS alleen voor lees-oefeningen en study buddy bubbles is.
-
-## Open punt
-
-De Splitsdoos zit nu alleen in stage-1 in de quest map. Wil je de Aftrekdoos ook alleen in stage-1, of meteen ook in latere stages? **Voorstel: alleen stage-1 starten** (consistent met Splitsdoos), uit te breiden later. D  
-  
---> Dit mag in eens voor alle stages.
+1. **Wat moet `/` (de huidige Landing) doen?** Onveranderd laten, of redirect naar `/beta` tot na de launch? 
+  1. Onveranderd.
+2. **Email confirmatie nodig?** Wil je dat aanmelders een bevestigingsmail krijgen (via Resend connector) of houden we het puur op DB-opslag voor nu?  
+1. Puur op DB opslag
+3. **Admin-overzicht van beta-aanmeldingen meteen meeleveren** in deze iteratie, of later?  
+Direct meenemen.
