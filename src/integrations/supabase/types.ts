@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_signups: {
+        Row: {
+          child_grade: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          source: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          child_grade?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          source?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          child_grade?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          source?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       child_badges: {
         Row: {
           badge_id: string
