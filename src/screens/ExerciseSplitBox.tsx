@@ -172,9 +172,9 @@ export function ExerciseSplitBox() {
   const leftIsAnswerSide = mode === 'target' && question.knownSide === 'right';
   const rightIsAnswerSide = mode === 'target' && question.knownSide === 'left';
 
-  const leftLabelIsInput = mode === 'left';
-  const rightLabelIsInput = mode === 'right';
-  const sumIsInput = mode === 'sum' || mode === 'target';
+  const leftLabelIsInput = mode === 'left' || (mode === 'target' && question.knownSide === 'right');
+  const rightLabelIsInput = mode === 'right' || (mode === 'target' && question.knownSide === 'left');
+  const sumIsInput = mode === 'sum';
 
   const openNumpad = () => {
     setIsNumpadOpen(true);
