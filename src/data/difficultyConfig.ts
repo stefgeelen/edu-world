@@ -143,3 +143,31 @@ export const SUBTRACT_BOX_CONFIG: Record<string, SubtractBoxConfig> = {
 export const DEFAULT_SUBTRACT_BOX: SubtractBoxConfig = {
   maxTotal: 6,
 };
+
+// ── Sound House (ExerciseSoundHouse.tsx) ───────────────────────────────────
+
+export interface SoundHouseConfig {
+  /** Welke posities toegestaan zijn voor deze stage. */
+  allowedPositions: Array<'begin' | 'middle' | 'end'>;
+  /** Stage-nummer doorgegeven aan de woordenpool generator. */
+  poolStage: 1 | 2 | 3 | 4;
+}
+
+export const SOUND_HOUSE_CONFIG: Record<string, SoundHouseConfig> = {
+  // Grade 1 — Kern 1: enkel medeklinkers begin/einde
+  "1-1": { allowedPositions: ['begin', 'end'], poolStage: 1 },
+  // Kern 2: voeg klinkers in het midden toe
+  "1-2": { allowedPositions: ['begin', 'middle', 'end'], poolStage: 2 },
+  "1-3": { allowedPositions: ['begin', 'middle', 'end'], poolStage: 3 },
+  "1-4": { allowedPositions: ['begin', 'middle', 'end'], poolStage: 4 },
+  // Grade 2 — alle posities, volle pool
+  "2-1": { allowedPositions: ['begin', 'middle', 'end'], poolStage: 4 },
+  "2-2": { allowedPositions: ['begin', 'middle', 'end'], poolStage: 4 },
+  "2-3": { allowedPositions: ['begin', 'middle', 'end'], poolStage: 4 },
+  "2-4": { allowedPositions: ['begin', 'middle', 'end'], poolStage: 4 },
+};
+
+export const DEFAULT_SOUND_HOUSE: SoundHouseConfig = {
+  allowedPositions: ['begin', 'end'],
+  poolStage: 1,
+};
