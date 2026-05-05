@@ -23,6 +23,7 @@ const ExerciseClock = lazy(() => import('@/screens/ExerciseClock').then(m => ({ 
 const ExerciseSentenceDoctor = lazy(() => import('@/screens/ExerciseSentenceDoctor').then(m => ({ default: m.ExerciseSentenceDoctor })));
 const ExerciseSplitBox = lazy(() => import('@/screens/ExerciseSplitBox').then(m => ({ default: m.ExerciseSplitBox })));
 const ExerciseSubtractBox = lazy(() => import('@/screens/ExerciseSubtractBox').then(m => ({ default: m.ExerciseSubtractBox })));
+const ExerciseSoundHouse = lazy(() => import('@/screens/ExerciseSoundHouse').then(m => ({ default: m.ExerciseSoundHouse })));
 const ExercisePictureWord = lazy(() => import('@/screens/ExercisePictureWord').then(m => ({ default: m.ExercisePictureWord })));
 const ExerciseWriteLetter = lazy(() => import('@/screens/ExerciseWriteLetter').then(m => ({ default: m.ExerciseWriteLetter })));
 const BadgeOverview = lazy(() => import('@/screens/BadgeOverview').then(m => ({ default: m.BadgeOverview })));
@@ -55,6 +56,7 @@ export const appRoutes = (
     <Route path="exercises/sentence-doctor/:id" element={<S><ExerciseSentenceDoctor /></S>} />
     <Route path="exercises/split-box/:id" element={<S><ExerciseSplitBox /></S>} />
     <Route path="exercises/subtract-box/:id" element={<S><ExerciseSubtractBox /></S>} />
+    <Route path="exercises/sound-house/:id" element={<S><ExerciseSoundHouse /></S>} />
     <Route path="exercises/picture-word/:id" element={<S><ExercisePictureWord /></S>} />
     <Route path="exercises/write-letter/:id" element={<S><ExerciseWriteLetter /></S>} />
     <Route path="badges" element={<S><BadgeOverview /></S>} />
