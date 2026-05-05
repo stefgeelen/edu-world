@@ -1,147 +1,90 @@
-# Beta Landing One-Pager voor EduWorld
+# Klankhuis (Sound House) — Auditieve oefening
 
-## Doel
+A new reading exercise where the child hears a Dutch word (Belgian pronunciation) and must tap one of three windows of a house — **begin / midden / einde** — to indicate where they hear a target sound. Built in the same style as Splitsdoos / Aftrekdoos / Prent & Woord, using the existing TTS (`useSpeech` → Azure `nl-NL-FennaNeural`).
 
-Een aparte, conversiegerichte one-pager waar Vlaamse ouders zich kunnen inschrijven voor de beta (lancering begin augustus). Snel, duidelijk, met sterke SEO en email capture die opgeslagen wordt in een aparte database tabel.
+## Pedagogical model (Vlaamse Kern-aanpak)
 
----
+- Klanken (not letters): we werken met losse klanken zoals "m", "s", "p", "aa", "oo".
+- Stage 1 (Kern 1): focus op **medeklinkers in begin/einde** met korte mkm-woorden (maan, mat, som, …). Geen "midden" om verwarring te vermijden.
+- Stage 2: voeg **klinkers in het midden** toe (aa in maan, oo in boom).
+- Stage 3: alle posities, meer klanken (m, s, p, k, r, l, aa, oo, ie).
+- Stage 4: trickier woorden (4 letters), inclusief klanken die op meerdere plekken voorkomen — kind moet de **eerst gehoorde** positie kiezen, of we filteren woorden zo dat de doelklank uniek voorkomt (we kiezen unieke voorkomens om eerlijk te scoren).
 
-## 1. Route & navigatie
+## UX flow
 
-- Nieuwe publieke route: `**/beta**` (apart van de bestaande `/` Landing — die blijft ongemoeid voor de productapp)
-- Toegevoegd in `src/routes/publicRoutes.tsx`
-- Optioneel later: `/` redirecten naar `/beta` tot na launch (vraag: zie onderaan)
+1. Bovenaan een grote oranje **luidspreker-knop** (zelfde stijl als ExerciseLanguage) — speelt het woord uit via `speak(word)`.
+2. Daaronder een tekst: **"Waar hoor je de [m]?"** — de doelklank wordt ook apart uitspreekbaar gemaakt (tap op de letterbubbel = `speak("mmm")`).
+3. Een **huis** in SVG met drie ramen op één rij: links = Begin, midden = Midden, rechts = Einde. Elk raam toont een icoontje + label.
+4. Kind tikt een raam:
+   - Correct → raam licht groen op met gloed, confetti, buddy "Goed gehoord!", auto-naar volgende vraag na 1.5s.
+   - Fout → raam schudt rood, leven -1, woord wordt automatisch opnieuw uitgesproken na 600ms zodat het kind opnieuw kan luisteren (zelfde vraag blijft staan tot lives op).
+5. 5 vragen per ronde, gebruikt `useExerciseId` + `useCompleteExercise` voor XP / mastery via de bestaande RPC.
 
-## 2. Database — `beta_signups` tabel
-
-Migratie via Lovable Cloud:
-
-```sql
-create table public.beta_signups (
-  id uuid primary key default gen_random_uuid(),
-  email text not null unique,
-  full_name text,
-  child_grade text,           -- '1ste leerjaar' | '2de leerjaar' | 'kleuter' | 'ander'
-  source text,                -- referral / utm bron
-  user_agent text,
-  created_at timestamptz not null default now()
-);
-
-alter table public.beta_signups enable row level security;
-
--- Iedereen (anon + authenticated) mag inschrijven
-create policy "Anyone can sign up for beta"
-  on public.beta_signups for insert
-  to anon, authenticated
-  with check (true);
-
--- Alleen admins mogen lezen
-create policy "Admins can view beta signups"
-  on public.beta_signups for select
-  to authenticated
-  using (has_role(auth.uid(), 'admin'));
+```text
+ ┌─────────────────────────────┐
+ │      🔊  (tap to hear)      │
+ │    "Waar hoor je de [m]?"   │
+ │                             │
+ │        ╱▔▔▔▔▔▔▔▔╲           │
+ │       ╱  KLANK   ╲          │
+ │      ╱   HUIS     ╲         │
+ │     ┌──┬──────┬──┐          │
+ │     │BG│ MID  │EI│          │
+ │     │🟦│  🟦  │🟦│          │
+ │     └──┴──────┴──┘          │
+ └─────────────────────────────┘
 ```
 
-Email validatie via Zod client-side + `unique` constraint server-side (duplicaat = vriendelijke "je staat al op de lijst" boodschap).
+## Word/sound bank (`src/data/soundHousePool.ts` — new file)
 
-## 3. One-pager structuur (`src/screens/BetaLanding.tsx`)
+Curated lijst woorden met de **positie** van elke target-klank (alleen unieke voorkomens om dubbelzinnigheid te vermijden). Voorbeeld:
 
-Mobile-first, single-scroll, snelle laadtijd. Secties:
+```ts
+export type SoundPosition = 'begin' | 'middle' | 'end';
+export interface SoundWord {
+  word: string;            // wat TTS uitspreekt: "maan"
+  display?: string;        // optioneel hoofdletters voor lezen
+  sound: string;           // doelklank: "m"
+  spoken: string;          // hoe TTS de klank zegt: "mmm"
+  position: SoundPosition; // begin | middle | end
+  stage: 1 | 2 | 3 | 4;    // beschikbaar vanaf stage
+}
+```
 
-1. **Hero** — Kop "Jouw kind oefent elke dag. Zonder gezeur." + subkop over Vlaams curriculum. Inline email-formulier (email + optioneel naam + leerjaar dropdown) met grote CTA "Schrijf me in voor de beta". Badge: "Lancering begin augustus 2026 · Eerste maand gratis".
-2. **Social proof / urgentie** — "Beperkte plaatsen voor de beta" + counter (statisch of live van DB count).
-3. **3 voordelen** (uit GTM doc):
-  - Voor het kind: gamified avontuur (XP, badges, quest map)
-  - Voor de ouder: pincode-portaal met voortgang per vak + eigen beloningen
-  - Belgisch curriculum: trimestersysteem 1ste/2de leerjaar, Nederlandse spraak
-4. **Hoe werkt het** — 3 stappen met screenshots/illustraties
-5. **Voor wie** — Eerste & tweede leerjaar (6-8 jaar), Vlaanderen
-6. **FAQ** — Wat kost het na de beta? Wanneer start het? Op welke toestellen? Privacy?
-7. **Tweede CTA-blok** — Email capture herhalen + "Wat krijg je: 1 maand gratis bij lancering, vroege toegang, directe lijn met de maker"
-8. **Footer** — privacy, contact
+Initiële set (~30 woorden) over klanken **m, s, p, k, r, aa, oo, ie**, met dekking voor begin/midden/einde per stage. Voorbeelden: maan(m,begin), boom(m,end), som(m,end), sok(s,begin), bus(s,end), pop(p,begin), kop(k,begin), riem(r,begin), maan(aa,middle), boom(oo,middle), vier(ie,middle).
 
-## 4. Form flow
+Selectielogica per ronde:
+- Filter op `stage <= currentStage` en op toegestane posities voor die stage.
+- Trek willekeurig 5 verschillende woorden, varieer de doelklank en posities zodat het niet voorspelbaar is.
 
-- React Hook Form + Zod schema (email required + valid, leerjaar optioneel)
-- Submit: `supabase.from('beta_signups').insert(...)`
-- Bij `unique` violation (code `23505`): toast "Je staat al op onze lijst — bedankt!"
-- Bij succes: state wisselt naar bedankscherm (geen redirect) met deel-knoppen (WhatsApp, Facebook) — past bij Fase 2 van de GTM (peer sharing)
-- Geen authenticatie nodig — anonieme insert via RLS policy
+## Files
 
-## 5. SEO strategie
+**New**
+- `src/screens/ExerciseSoundHouse.tsx` — scherm, gebruikt `ExerciseShell`, `useSpeech`, `useExerciseId`, `useCompleteExercise`, `useDifficultyLevel`.
+- `src/data/soundHousePool.ts` — woordenbank + `generateSoundHouseRound(stage)`.
 
-**Technisch (in `index.html` + per-page met react-helmet-async):**
+**Edited**
+- `src/routes/appRoutes.tsx` — nieuwe lazy route `exercises/sound-house/:id`.
+- `src/data/difficultyConfig.ts` — `SOUND_HOUSE_CONFIG` met per stage de toegestane posities en max woordlengte.
 
-- Title: `EduWorld Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen`
-- Meta description: 155 tekens, focus op "oefenen thuis", "Vlaams", "1ste leerjaar", "rekenen lezen schrijven"
-- Canonical URL naar `/beta`
-- Open Graph + Twitter Card met hero-afbeelding (1200x630) — voor delen in Facebook-groepen (kanaal #1 in GTM)
-- `lang="nl-BE"`
-- Favicon + apple-touch-icon
+**Database (migration)**
+4 nieuwe `exercises` rijen (één per stage 1–4), subject `reading`, `display_order = 4`, `xp_reward = 25`, titel `"Klankhuis"`, route key zodat curriculum-mapping de juiste URL bouwt (volgt het bestaande patroon van Aftrekdoos/Splitsdoos).
 
-**Structured data (JSON-LD):**
+**Memory**
+- Update `mem://content/curriculum-mapping` met Klankhuis (4 records, route, stage-scaling).
 
-- `SoftwareApplication` schema (naam, prijsrange, doelgroep)
-- `FAQPage` schema gekoppeld aan FAQ-sectie → rich snippets in Google
-- `Organization` schema
+## Audio details
 
-**On-page:**
+- `useSpeech().speak(word)` voor het hele woord (Azure `nl-NL-FennaNeural` via edge function — al actief).
+- `speak(spoken)` voor de losse klank (bv. "mmm", "sss", "aaa") zodat het kind de target klank duidelijk hoort, ook bij mis-antwoord.
+- Eerste afspelen automatisch 400ms na render (zelfde patroon als ExerciseLanguage / PictureWord), met `silenceBuddy` op de Shell.
 
-- Eén `<h1>` met primaire keyword: "Online oefenen voor het 1ste en 2de leerjaar"
-- `<h2>`/`<h3>` hiërarchie semantisch
-- Alt-tekst op alle afbeeldingen (Nederlands)
-- Interne ankerlinks (`#voordelen`, `#hoe-werkt-het`, `#faq`)
-- Snelle LCP: hero-afbeelding `loading="eager"`, rest `lazy`
-- Semantische HTML (`<main>`, `<section>`, `<article>`)
+## Feedback styling
 
-**Off-page voorbereid:**
+Volgens project memory (`mem://design/exercise-feedback-styling`): groene / rode glow op het geselecteerde raam, geen vinkjes/kruisjes. Buddy-toast met korte Vlaamse zin ("Goed gehoord!", "Luister nog eens.").
 
-- Update `public/robots.txt` (al ok, allow all)
-- Nieuwe `public/sitemap.xml` met `/beta` als prioriteit 1.0
-- `public/manifest.json` titel/description checken
+## Out of scope (kan later)
 
-**Keyword focus** (Vlaams, low-competition long-tail):
-
-- "oefenen 1ste leerjaar online"
-- "rekenen oefenen tweede leerjaar"
-- "leerapp Vlaanderen kinderen"
-- "Bingel alternatief gamified"
-
-## 6. Admin uitbreiding (klein)
-
-Optionele tab in `AdminDashboard` om beta-aanmeldingen te zien (lijst + CSV export). Vraag onderaan of dit nu of later moet.
-
-## 7. Bestanden
-
-**Nieuw:**
-
-- `src/screens/BetaLanding.tsx` — de one-pager
-- `src/components/beta/BetaSignupForm.tsx` — herbruikbaar formulier
-- `src/components/beta/BetaFAQ.tsx`
-- `src/components/SEO.tsx` — herbruikbare helmet wrapper
-- `public/sitemap.xml`
-- DB migratie voor `beta_signups`
-
-**Aangepast:**
-
-- `src/routes/publicRoutes.tsx` — route toevoegen
-- `index.html` — default meta tags + react-helmet-async setup
-- `src/main.tsx` — `HelmetProvider`
-- `package.json` — `react-helmet-async` toevoegen
-
-## 8. Buiten scope (tenzij je vraagt)
-
-- Email confirmatie / double opt-in (bvb via Resend)
-- A/B testing varianten van de kop
-- Analytics (Plausible/GA4)
-
----
-
-## Vragen voor jou
-
-1. **Wat moet `/` (de huidige Landing) doen?** Onveranderd laten, of redirect naar `/beta` tot na de launch? 
-  1. Onveranderd.
-2. **Email confirmatie nodig?** Wil je dat aanmelders een bevestigingsmail krijgen (via Resend connector) of houden we het puur op DB-opslag voor nu?  
-1. Puur op DB opslag
-3. **Admin-overzicht van beta-aanmeldingen meteen meeleveren** in deze iteratie, of later?  
-Direct meenemen.
+- Spectrogram-visualisatie van de klank.
+- Microfoonopname om kind zelf de klank te laten herhalen.
+- Letter-vs-klank tutorial pop-up bij eerste keer spelen.
