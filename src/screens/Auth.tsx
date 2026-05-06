@@ -180,6 +180,23 @@ export function Auth() {
           </button>
         </div>
 
+        {mode === 'signup' && password.length > 0 && (
+          <ul className="space-y-1 px-1">
+            {[
+              { ok: pwReq.length, text: `Minimaal ${PASSWORD_MIN_LENGTH} tekens` },
+              { ok: pwReq.digit, text: 'Minimaal één cijfer' },
+              { ok: pwReq.special, text: 'Minimaal één speciaal teken' },
+            ].map((r, i) => (
+              <li key={i} className="flex items-center gap-2 text-xs font-semibold">
+                <div className={cn('w-4 h-4 rounded-full flex items-center justify-center', r.ok ? 'bg-emerald-500' : 'bg-slate-200')}>
+                  {r.ok && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                </div>
+                <span className={r.ok ? 'text-emerald-600' : 'text-slate-500'}>{r.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
         <button
           type="submit"
           disabled={!isValid || loading}
