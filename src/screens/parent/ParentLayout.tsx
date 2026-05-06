@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { path: '/app/parent', label: 'Kinderen', icon: Users, exact: true },
   { path: '/app/parent/rewards', label: 'Beloningen', icon: Gift },
   { path: '/app/parent/subscription', label: 'Abonnement', icon: CreditCard },
+  { path: '/app/parent/account', label: 'Account', icon: UserCog },
 ];
 
 export function ParentLayout() {
