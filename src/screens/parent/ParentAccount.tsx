@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { mapAuthError, mapDbError } from '@/lib/errorMessages';
 import { parentPinSession } from '@/hooks/useParentPin';
+import { passwordSchema as strongPasswordSchema, PASSWORD_REQUIREMENTS_TEXT } from '@/lib/passwordValidation';
 
 const PLAN_LABELS: Record<string, string> = {
   free: 'Gratis',
