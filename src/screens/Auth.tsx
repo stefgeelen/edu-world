@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { isPasswordValid, validatePassword, PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
