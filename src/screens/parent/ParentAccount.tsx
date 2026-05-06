@@ -29,7 +29,7 @@ const emailSchema = z.object({
 });
 
 const passwordSchema = z.object({
-  password: z.string().min(8, 'Minstens 8 tekens'),
+  password: strongPasswordSchema,
   confirm: z.string(),
 }).refine((d) => d.password === d.confirm, { message: 'Wachtwoorden komen niet overeen', path: ['confirm'] });
 
