@@ -147,7 +147,7 @@ export function ResetPassword() {
               { ok: requirements.length, text: `Minimaal ${MIN_LENGTH} tekens` },
               { ok: requirements.digit, text: 'Minimaal één cijfer' },
               { ok: requirements.special, text: 'Minimaal één speciaal teken' },
-              // placeholder removed
+              
             ].map((req, i) => (
               <li key={i} className="flex items-center gap-2 text-xs font-semibold">
                 <div className={cn(
