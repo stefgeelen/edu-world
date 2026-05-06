@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Gift, CreditCard, LogOut, ChevronRight, Shield, KeyRound, Lock } from 'lucide-react';
+import { Users, Gift, CreditCard, LogOut, ChevronRight, Shield, KeyRound, Lock, UserCog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
