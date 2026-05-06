@@ -31,5 +31,6 @@ export const parentRoutes = (
     <Route path="rewards" element={<Suspense fallback={<LoadingSpinner />}><ParentRewards /></Suspense>} />
     <Route path="subscription" element={<Suspense fallback={<LoadingSpinner />}><ParentSubscription /></Suspense>} />
     <Route path="add-child" element={<Suspense fallback={<LoadingSpinner />}><ParentAddChild /></Suspense>} />
+    <Route path="account" element={<Suspense fallback={<LoadingSpinner />}><ParentAccount /></Suspense>} />
   </Route>
 );
