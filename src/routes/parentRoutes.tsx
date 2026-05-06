@@ -11,6 +11,7 @@ const ParentChildDetail = lazy(() => import('@/screens/parent/ParentChildDetail'
 const ParentRewards = lazy(() => import('@/screens/parent/ParentRewards').then(m => ({ default: m.ParentRewards })));
 const ParentSubscription = lazy(() => import('@/screens/parent/ParentSubscription').then(m => ({ default: m.ParentSubscription })));
 const ParentAddChild = lazy(() => import('@/screens/parent/ParentAddChild').then(m => ({ default: m.ParentAddChild })));
+const ParentAccount = lazy(() => import('@/screens/parent/ParentAccount').then(m => ({ default: m.ParentAccount })));
 
 export const parentRoutes = (
   <Route
