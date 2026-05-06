@@ -40,12 +40,12 @@ export function ResetPassword() {
 
   const requirements = useMemo(() => ({
     length: password.length >= MIN_LENGTH,
-    mixedCase: /[A-Z]/.test(password) && /[a-z]/.test(password),
     digit: /\d/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
   }), [password]);
 
   const allRequirementsMet =
-    requirements.length && requirements.mixedCase && requirements.digit;
+    requirements.length && requirements.digit && requirements.special;
   const strongEnough = strength.score >= MIN_STRENGTH_SCORE;
   const passwordsMatch = password.length > 0 && password === confirm;
   const showMismatch = confirmTouched && confirm.length > 0 && !passwordsMatch;
