@@ -303,7 +303,7 @@ function TokenGrid({ total, crossedOut, status }: TokenGridProps) {
                 initial={{ scaleX: 0, opacity: 0 }}
                 animate={{ scaleX: 1, opacity: 1 }}
                 transition={{ delay: 0.05 + i * 0.04, duration: 0.25 }}
-                className="absolute top-1/2 left-[-10%] w-[120%] h-[3px] md:h-[4px] bg-white rounded-full origin-left -rotate-[20deg] shadow-[0_0_4px_rgba(255,255,255,0.6)] pointer-events-none"
+                className="absolute top-1/2 left-[-10%] w-[120%] h-[3px] md:h-[4px] bg-white rounded-full origin-left -rotate-45 shadow-[0_0_4px_rgba(255,255,255,0.6)] pointer-events-none"
               />
             )}
           </div>
