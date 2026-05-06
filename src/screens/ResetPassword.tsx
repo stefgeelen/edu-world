@@ -6,8 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { mapAuthError } from '@/lib/errorMessages';
 import { cn } from '@/lib/utils';
+import { PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
 
-const MIN_LENGTH = 8;
+const MIN_LENGTH = PASSWORD_MIN_LENGTH;
 const MIN_STRENGTH_SCORE = 2; // require at least "Goed"
 
 export function ResetPassword() {
