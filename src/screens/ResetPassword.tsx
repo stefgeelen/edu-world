@@ -6,8 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { mapAuthError } from '@/lib/errorMessages';
 import { cn } from '@/lib/utils';
+import { PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
 
-const MIN_LENGTH = 8;
+const MIN_LENGTH = PASSWORD_MIN_LENGTH;
 const MIN_STRENGTH_SCORE = 2; // require at least "Goed"
 
 export function ResetPassword() {
@@ -39,12 +40,12 @@ export function ResetPassword() {
 
   const requirements = useMemo(() => ({
     length: password.length >= MIN_LENGTH,
-    mixedCase: /[A-Z]/.test(password) && /[a-z]/.test(password),
     digit: /\d/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
   }), [password]);
 
   const allRequirementsMet =
-    requirements.length && requirements.mixedCase && requirements.digit;
+    requirements.length && requirements.digit && requirements.special;
   const strongEnough = strength.score >= MIN_STRENGTH_SCORE;
   const passwordsMatch = password.length > 0 && password === confirm;
   const showMismatch = confirmTouched && confirm.length > 0 && !passwordsMatch;
@@ -144,8 +145,9 @@ export function ResetPassword() {
           <ul id="password-requirements" className="mt-3 space-y-1">
             {[
               { ok: requirements.length, text: `Minimaal ${MIN_LENGTH} tekens` },
-              { ok: requirements.mixedCase, text: 'Hoofdletter en kleine letter' },
               { ok: requirements.digit, text: 'Minimaal één cijfer' },
+              { ok: requirements.special, text: 'Minimaal één speciaal teken' },
+              
             ].map((req, i) => (
               <li key={i} className="flex items-center gap-2 text-xs font-semibold">
                 <div className={cn(

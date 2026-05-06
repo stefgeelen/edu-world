@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { mapAuthError, mapDbError } from '@/lib/errorMessages';
 import { parentPinSession } from '@/hooks/useParentPin';
+import { passwordSchema as strongPasswordSchema, PASSWORD_REQUIREMENTS_TEXT } from '@/lib/passwordValidation';
 
 const PLAN_LABELS: Record<string, string> = {
   free: 'Gratis',
@@ -28,7 +29,7 @@ const emailSchema = z.object({
 });
 
 const passwordSchema = z.object({
-  password: z.string().min(8, 'Minstens 8 tekens'),
+  password: strongPasswordSchema,
   confirm: z.string(),
 }).refine((d) => d.password === d.confirm, { message: 'Wachtwoorden komen niet overeen', path: ['confirm'] });
 
@@ -245,6 +246,7 @@ export function ParentAccount() {
           </button>
         ) : (
           <form onSubmit={passwordForm.handleSubmit((v) => updatePassword.mutate(v))} className="space-y-3">
+            <p className="text-xs text-slate-500">{PASSWORD_REQUIREMENTS_TEXT}</p>
             <Field label="Nieuw wachtwoord">
               <input
                 type="password"
