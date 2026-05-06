@@ -246,6 +246,7 @@ export function ParentAccount() {
           </button>
         ) : (
           <form onSubmit={passwordForm.handleSubmit((v) => updatePassword.mutate(v))} className="space-y-3">
+            <p className="text-xs text-slate-500">{PASSWORD_REQUIREMENTS_TEXT}</p>
             <Field label="Nieuw wachtwoord">
               <input
                 type="password"
