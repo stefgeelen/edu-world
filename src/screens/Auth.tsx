@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { isPasswordValid, validatePassword, PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -25,15 +26,16 @@ export function Auth() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const emailOk = emailRegex.test(email.trim());
-  const passwordOk = mode === 'login' ? password.length > 0 : password.length >= 6;
+  const passwordOk = mode === 'login' ? password.length > 0 : isPasswordValid(password);
   const nameOk = mode === 'login' ? true : fullName.trim().length >= 2;
   const isValid = emailOk && passwordOk && nameOk;
+  const pwReq = validatePassword(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid) {
       if (!emailOk) toast.error('Vul een geldig e-mailadres in.');
-      else if (!passwordOk) toast.error('Wachtwoord moet minstens 6 tekens zijn.');
+      else if (!passwordOk) toast.error(`Wachtwoord moet minstens ${PASSWORD_MIN_LENGTH} tekens, een cijfer en een speciaal teken bevatten.`);
       else if (!nameOk) toast.error('Vul je volledige naam in.');
       return;
     }
@@ -177,6 +179,23 @@ export function Auth() {
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
+
+        {mode === 'signup' && password.length > 0 && (
+          <ul className="space-y-1 px-1">
+            {[
+              { ok: pwReq.length, text: `Minimaal ${PASSWORD_MIN_LENGTH} tekens` },
+              { ok: pwReq.digit, text: 'Minimaal één cijfer' },
+              { ok: pwReq.special, text: 'Minimaal één speciaal teken' },
+            ].map((r, i) => (
+              <li key={i} className="flex items-center gap-2 text-xs font-semibold">
+                <div className={cn('w-4 h-4 rounded-full flex items-center justify-center', r.ok ? 'bg-emerald-500' : 'bg-slate-200')}>
+                  {r.ok && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                </div>
+                <span className={r.ok ? 'text-emerald-600' : 'text-slate-500'}>{r.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <button
           type="submit"

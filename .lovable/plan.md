@@ -1,147 +1,74 @@
-# Beta Landing One-Pager voor EduWorld
-
 ## Doel
 
-Een aparte, conversiegerichte one-pager waar Vlaamse ouders zich kunnen inschrijven voor de beta (lancering begin augustus). Snel, duidelijk, met sterke SEO en email capture die opgeslagen wordt in een aparte database tabel.
+Voeg een **"Mijn Account"** sectie toe aan het ouderportaal waar de ouder zijn/haar persoonlijke gegevens kan beheren.
 
----
+## Nieuwe pagina: `/app/parent/account`
 
-## 1. Route & navigatie
+Toegankelijk via een nieuwe tab "Account" in de `ParentLayout` navigatie (naast Kinderen, Beloningen, Abonnement).
 
-- Nieuwe publieke route: `**/beta**` (apart van de bestaande `/` Landing — die blijft ongemoeid voor de productapp)
-- Toegevoegd in `src/routes/publicRoutes.tsx`
-- Optioneel later: `/` redirecten naar `/beta` tot na launch (vraag: zie onderaan)
+### Secties op de pagina
 
-## 2. Database — `beta_signups` tabel
+1. **Profielgegevens** (uit `profiles` tabel)
+   - Volledige naam (bewerkbaar)
+   - E-mailadres (read-only — tonen met uitleg dat dit via "wijzig e-mail" gaat)
+   - Avatar URL / initialen weergave
+   - Opslaan-knop → update `profiles` rij
 
-Migratie via Lovable Cloud:
+2. **E-mailadres wijzigen**
+   - Knop opent inline form
+   - Gebruikt `supabase.auth.updateUser({ email })`
+   - Toont melding dat bevestigingsmail wordt verstuurd
 
-```sql
-create table public.beta_signups (
-  id uuid primary key default gen_random_uuid(),
-  email text not null unique,
-  full_name text,
-  child_grade text,           -- '1ste leerjaar' | '2de leerjaar' | 'kleuter' | 'ander'
-  source text,                -- referral / utm bron
-  user_agent text,
-  created_at timestamptz not null default now()
-);
+3. **Wachtwoord wijzigen**
+   - Inline form: nieuw wachtwoord + bevestiging
+   - Zod validatie (min 8 tekens)
+   - `supabase.auth.updateUser({ password })`
 
-alter table public.beta_signups enable row level security;
+4. **Ouder-PIN wijzigen**
+   - Knop linkt naar bestaande `/auth/setup-pin?change=1&redirect=/app/parent/account`
+   - (Hergebruikt bestaande flow — nu staat dit als icoontje rechtsboven; we houden dat én voegen het hier toe als duidelijke menu-optie)
 
--- Iedereen (anon + authenticated) mag inschrijven
-create policy "Anyone can sign up for beta"
-  on public.beta_signups for insert
-  to anon, authenticated
-  with check (true);
+5. **Account informatie**
+   - Aanmaakdatum
+   - Abonnementstype (badge, link naar Abonnement)
 
--- Alleen admins mogen lezen
-create policy "Admins can view beta signups"
-  on public.beta_signups for select
-  to authenticated
-  using (has_role(auth.uid(), 'admin'));
-```
+6. **Gevarenzone**
+   - "Account verwijderen" knop met bevestigingsdialog
+   - Roept een nieuwe edge function `delete-account` aan (security definer met service role) die alle data + auth user verwijdert
 
-Email validatie via Zod client-side + `unique` constraint server-side (duplicaat = vriendelijke "je staat al op de lijst" boodschap).
+## Technische uitwerking
 
-## 3. One-pager structuur (`src/screens/BetaLanding.tsx`)
+### Nieuwe bestanden
+- `src/screens/parent/ParentAccount.tsx` — hoofdpagina met alle secties
+- `src/components/parent/ProfileForm.tsx` — naam-formulier (RHF + Zod)
+- `src/components/parent/ChangeEmailForm.tsx`
+- `src/components/parent/ChangePasswordForm.tsx`
+- `src/components/parent/DeleteAccountDialog.tsx`
+- `supabase/functions/delete-account/index.ts` — edge function (verify_jwt = true) die `auth.admin.deleteUser` aanroept
 
-Mobile-first, single-scroll, snelle laadtijd. Secties:
+### Bestaande bestanden te wijzigen
+- `src/routes/parentRoutes.tsx` — nieuwe lazy route `account`
+- `src/screens/parent/ParentLayout.tsx` — `User` icon tab toevoegen aan `NAV_ITEMS`
 
-1. **Hero** — Kop "Jouw kind oefent elke dag. Zonder gezeur." + subkop over Vlaams curriculum. Inline email-formulier (email + optioneel naam + leerjaar dropdown) met grote CTA "Schrijf me in voor de beta". Badge: "Lancering begin augustus 2026 · Eerste maand gratis".
-2. **Social proof / urgentie** — "Beperkte plaatsen voor de beta" + counter (statisch of live van DB count).
-3. **3 voordelen** (uit GTM doc):
-  - Voor het kind: gamified avontuur (XP, badges, quest map)
-  - Voor de ouder: pincode-portaal met voortgang per vak + eigen beloningen
-  - Belgisch curriculum: trimestersysteem 1ste/2de leerjaar, Nederlandse spraak
-4. **Hoe werkt het** — 3 stappen met screenshots/illustraties
-5. **Voor wie** — Eerste & tweede leerjaar (6-8 jaar), Vlaanderen
-6. **FAQ** — Wat kost het na de beta? Wanneer start het? Op welke toestellen? Privacy?
-7. **Tweede CTA-blok** — Email capture herhalen + "Wat krijg je: 1 maand gratis bij lancering, vroege toegang, directe lijn met de maker"
-8. **Footer** — privacy, contact
+### Data flow
+- Profiel-query: `useQuery(['parent-profile', user.id])` → `profiles` tabel
+- Mutaties: `useMutation` met `queryClient.invalidateQueries(['parent-profile'])`
+- Foutafhandeling via bestaande `mapAuthError` / `mapDbError` helpers
+- Toast notificaties via `sonner`
 
-## 4. Form flow
+### Stijl
+Volgt bestaande ParentLayout-stijl: witte cards op `bg-slate-50`, blauwe accent (`bg-blue-500`), rounded-xl, schaduw-sm. Mobile-first met `max-w-3xl mx-auto`.
 
-- React Hook Form + Zod schema (email required + valid, leerjaar optioneel)
-- Submit: `supabase.from('beta_signups').insert(...)`
-- Bij `unique` violation (code `23505`): toast "Je staat al op onze lijst — bedankt!"
-- Bij succes: state wisselt naar bedankscherm (geen redirect) met deel-knoppen (WhatsApp, Facebook) — past bij Fase 2 van de GTM (peer sharing)
-- Geen authenticatie nodig — anonieme insert via RLS policy
+### Beveiliging
+- E-mail/wachtwoord wijzigen verloopt via Supabase Auth (gebruiker is al ingelogd én PIN-geverifieerd via `ParentPinGate`)
+- Account verwijderen vereist:
+  - Type-bevestiging ("VERWIJDER" intypen)
+  - Edge function valideert `auth.uid()` en verwijdert eigen account
+  - RLS cascadeert via `parent_id` foreign key gedrag (kinderen, rewards, etc. — controleren of cascade nodig is, anders expliciet wissen in edge function)
 
-## 5. SEO strategie
+## Wat NIET in deze stap zit
+- Notificatie-instellingen (geen bestaande infrastructuur)
+- Taal/locale switcher (project is volledig nl-NL)
+- Avatar upload (gebruikt nu nog geen storage bucket voor parent avatars)
 
-**Technisch (in `index.html` + per-page met react-helmet-async):**
-
-- Title: `EduWorld Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen`
-- Meta description: 155 tekens, focus op "oefenen thuis", "Vlaams", "1ste leerjaar", "rekenen lezen schrijven"
-- Canonical URL naar `/beta`
-- Open Graph + Twitter Card met hero-afbeelding (1200x630) — voor delen in Facebook-groepen (kanaal #1 in GTM)
-- `lang="nl-BE"`
-- Favicon + apple-touch-icon
-
-**Structured data (JSON-LD):**
-
-- `SoftwareApplication` schema (naam, prijsrange, doelgroep)
-- `FAQPage` schema gekoppeld aan FAQ-sectie → rich snippets in Google
-- `Organization` schema
-
-**On-page:**
-
-- Eén `<h1>` met primaire keyword: "Online oefenen voor het 1ste en 2de leerjaar"
-- `<h2>`/`<h3>` hiërarchie semantisch
-- Alt-tekst op alle afbeeldingen (Nederlands)
-- Interne ankerlinks (`#voordelen`, `#hoe-werkt-het`, `#faq`)
-- Snelle LCP: hero-afbeelding `loading="eager"`, rest `lazy`
-- Semantische HTML (`<main>`, `<section>`, `<article>`)
-
-**Off-page voorbereid:**
-
-- Update `public/robots.txt` (al ok, allow all)
-- Nieuwe `public/sitemap.xml` met `/beta` als prioriteit 1.0
-- `public/manifest.json` titel/description checken
-
-**Keyword focus** (Vlaams, low-competition long-tail):
-
-- "oefenen 1ste leerjaar online"
-- "rekenen oefenen tweede leerjaar"
-- "leerapp Vlaanderen kinderen"
-- "Bingel alternatief gamified"
-
-## 6. Admin uitbreiding (klein)
-
-Optionele tab in `AdminDashboard` om beta-aanmeldingen te zien (lijst + CSV export). Vraag onderaan of dit nu of later moet.
-
-## 7. Bestanden
-
-**Nieuw:**
-
-- `src/screens/BetaLanding.tsx` — de one-pager
-- `src/components/beta/BetaSignupForm.tsx` — herbruikbaar formulier
-- `src/components/beta/BetaFAQ.tsx`
-- `src/components/SEO.tsx` — herbruikbare helmet wrapper
-- `public/sitemap.xml`
-- DB migratie voor `beta_signups`
-
-**Aangepast:**
-
-- `src/routes/publicRoutes.tsx` — route toevoegen
-- `index.html` — default meta tags + react-helmet-async setup
-- `src/main.tsx` — `HelmetProvider`
-- `package.json` — `react-helmet-async` toevoegen
-
-## 8. Buiten scope (tenzij je vraagt)
-
-- Email confirmatie / double opt-in (bvb via Resend)
-- A/B testing varianten van de kop
-- Analytics (Plausible/GA4)
-
----
-
-## Vragen voor jou
-
-1. **Wat moet `/` (de huidige Landing) doen?** Onveranderd laten, of redirect naar `/beta` tot na de launch? 
-  1. Onveranderd.
-2. **Email confirmatie nodig?** Wil je dat aanmelders een bevestigingsmail krijgen (via Resend connector) of houden we het puur op DB-opslag voor nu?  
-1. Puur op DB opslag
-3. **Admin-overzicht van beta-aanmeldingen meteen meeleveren** in deze iteratie, of later?  
-Direct meenemen.
+Mocht je een van deze wel willen, laat het weten — ik kan het toevoegen.
