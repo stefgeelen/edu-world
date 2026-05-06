@@ -26,15 +26,16 @@ export function Auth() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const emailOk = emailRegex.test(email.trim());
-  const passwordOk = mode === 'login' ? password.length > 0 : password.length >= 6;
+  const passwordOk = mode === 'login' ? password.length > 0 : isPasswordValid(password);
   const nameOk = mode === 'login' ? true : fullName.trim().length >= 2;
   const isValid = emailOk && passwordOk && nameOk;
+  const pwReq = validatePassword(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid) {
       if (!emailOk) toast.error('Vul een geldig e-mailadres in.');
-      else if (!passwordOk) toast.error('Wachtwoord moet minstens 6 tekens zijn.');
+      else if (!passwordOk) toast.error(`Wachtwoord moet minstens ${PASSWORD_MIN_LENGTH} tekens, een cijfer en een speciaal teken bevatten.`);
       else if (!nameOk) toast.error('Vul je volledige naam in.');
       return;
     }
