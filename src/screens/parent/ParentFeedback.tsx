@@ -54,10 +54,10 @@ export function ParentFeedback() {
   const submitMutation = useMutation({
     mutationFn: async () => {
       const parsed = schema.parse({ category, subject, message });
-      const { error } = await supabase.from('feedback').insert({
+      const { error } = await supabase.from('feedback').insert([{
         user_id: user!.id,
         ...parsed,
-      });
+      }]);
       if (error) throw error;
     },
     onSuccess: () => {
