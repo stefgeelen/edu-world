@@ -56,7 +56,9 @@ export function ParentFeedback() {
       const parsed = schema.parse({ category, subject, message });
       const { error } = await supabase.from('feedback').insert([{
         user_id: user!.id,
-        ...parsed,
+        category: parsed.category,
+        subject: parsed.subject,
+        message: parsed.message,
       }]);
       if (error) throw error;
     },
