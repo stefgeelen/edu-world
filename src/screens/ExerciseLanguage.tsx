@@ -10,6 +10,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 
 const WORD_POOL = ['boom', 'roos', 'vis', 'maan', 'vuur', 'huis', 'boek', 'kat', 'hond', 'zon', 'ster', 'wolk', 'gras', 'berg', 'meer'];
 
@@ -17,6 +18,7 @@ export function ExerciseLanguage() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const { speak } = useSpeech();
@@ -77,7 +79,7 @@ export function ExerciseLanguage() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate('/app/map');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           generateQuestion();
         }
@@ -88,7 +90,7 @@ export function ExerciseLanguage() {
       
       setTimeout(() => {
         if (lives - 1 <= 0) {
-          navigate('/app/map');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           setStatus('idle');
           setSelectedWord(null);
@@ -103,7 +105,7 @@ export function ExerciseLanguage() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/map')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
       silenceBuddy
     >
       {/* Main Content Area */}

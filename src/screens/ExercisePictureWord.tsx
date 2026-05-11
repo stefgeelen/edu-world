@@ -9,6 +9,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { PICTURE_WORD_CONFIG, DEFAULT_PICTURE_WORD } from '@/data/difficultyConfig';
 import { useSpeech } from '@/hooks/useSpeech';
 import { generatePictureRound, type PictureItem } from '@/data/picturePool';
 import type { BuddyMood } from '@/data/buddyMessages';
@@ -29,11 +30,11 @@ export function ExercisePictureWord() {
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const { speak } = useSpeech();
-  const { stage } = useDifficultyLevel();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
 
-  // Stage scaling: stage 1-2 = 3 cards single category; 3 = 4 cards single; 4 = 4 cards mixed
-  const optionCount: 3 | 4 = stage <= 2 ? 3 : 4;
-  const mixed = stage >= 4;
+  const picCfg = PICTURE_WORD_CONFIG[difficultyKey] ?? DEFAULT_PICTURE_WORD;
+  const optionCount = picCfg.optionCount;
+  const mixed = false;
 
   const startTime = useRef(Date.now());
   const correctCount = useRef(0);

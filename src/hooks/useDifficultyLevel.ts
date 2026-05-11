@@ -12,8 +12,8 @@ export function useDifficultyLevel() {
 
   return useMemo(() => {
     const grade = child?.grade ?? 1;
-    // The :id param in exercise routes corresponds to stage number (1-4)
-    const stage = Math.max(1, Math.min(4, Number(id) || 1));
+    // The :id param in exercise routes corresponds to stage number (1-3)
+    const stage = Math.max(1, Math.min(3, Number(id) || 1));
     return { grade, stage, key: `${grade}-${stage}` };
   }, [child?.grade, id]);
 }

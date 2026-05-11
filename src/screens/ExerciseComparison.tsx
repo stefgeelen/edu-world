@@ -121,7 +121,7 @@ export function ExerciseComparison() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey } = useDifficultyLevel();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const compConfig = COMPARISON_CONFIG[difficultyKey] ?? DEFAULT_COMPARISON;
@@ -159,7 +159,7 @@ export function ExerciseComparison() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate('/app/stage/fluisterbos');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else generateNext();
       }, 1800);
     } else {
@@ -172,7 +172,7 @@ export function ExerciseComparison() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: 0, timeSpent });
           }
-          navigate('/app/stage/fluisterbos');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else generateNext();
       }, 1600);
     }
@@ -310,7 +310,7 @@ export function ExerciseComparison() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/stage/fluisterbos')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}

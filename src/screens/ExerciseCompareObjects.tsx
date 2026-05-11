@@ -119,7 +119,7 @@ export function ExerciseCompareObjects() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey } = useDifficultyLevel();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const config = COMPARE_OBJECTS_CONFIG[difficultyKey] ?? DEFAULT_COMPARE_OBJECTS;
@@ -161,7 +161,7 @@ export function ExerciseCompareObjects() {
               timeSpent,
             });
           }
-          navigate('/app/stage/fluisterbos');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           generateNext();
         }
@@ -182,7 +182,7 @@ export function ExerciseCompareObjects() {
               timeSpent,
             });
           }
-          navigate('/app/stage/fluisterbos');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           generateNext();
         }
@@ -209,7 +209,7 @@ export function ExerciseCompareObjects() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/stage/fluisterbos')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
     >
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 

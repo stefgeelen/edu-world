@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -18,6 +18,8 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { MONEY_CONFIG, DEFAULT_MONEY } from '@/data/difficultyConfig';
 import { randomInt } from '@/lib/random';
 
 /* ── Products ─────────────────────────────────────────────────── */
@@ -32,29 +34,39 @@ const PRODUCTS = [
   { name: 'Bal', emoji: '⚽' },
 ];
 
-/* ── Coin definitions ─────────────────────────────────────────── */
-interface CoinDef {
+/* ── Denomination definitions ─────────────────────────────────── */
+interface DenominationDef {
   label: string;
   value: number; // in cents
+  shape: 'coin' | 'banknote';
   color: string;
   border: string;
   size: string;
+  /** Extra text color for banknotes */
+  textColor?: string;
+  /** Secondary pattern color for banknotes */
+  patternColor?: string;
 }
 
-const COINS: CoinDef[] = [
-  { label: '€2', value: 200, color: 'from-amber-300 to-yellow-500', border: 'border-amber-600', size: 'w-16 h-16 md:w-20 md:h-20' },
-  { label: '€1', value: 100, color: 'from-amber-200 to-yellow-400', border: 'border-amber-500', size: 'w-14 h-14 md:w-18 md:h-18' },
-  { label: '50c', value: 50, color: 'from-orange-300 to-orange-500', border: 'border-orange-600', size: 'w-14 h-14 md:w-18 md:h-18' },
-  { label: '20c', value: 20, color: 'from-orange-200 to-orange-400', border: 'border-orange-500', size: 'w-12 h-12 md:w-16 md:h-16' },
-  { label: '10c', value: 10, color: 'from-yellow-200 to-amber-300', border: 'border-yellow-500', size: 'w-12 h-12 md:w-16 md:h-16' },
-  { label: '5c', value: 5, color: 'from-red-300 to-red-500', border: 'border-red-600', size: 'w-11 h-11 md:w-14 md:h-14' },
+const ALL_DENOMINATIONS: DenominationDef[] = [
+  // Banknotes — realistic Euro colors
+  { label: '€50',  value: 5000, shape: 'banknote', color: 'from-orange-400 to-orange-500', border: 'border-orange-600', size: 'w-20 h-12 md:w-24 md:h-14', textColor: 'text-orange-900', patternColor: 'bg-orange-300/30' },
+  { label: '€20',  value: 2000, shape: 'banknote', color: 'from-blue-400 to-blue-500',     border: 'border-blue-600',   size: 'w-20 h-12 md:w-24 md:h-14', textColor: 'text-blue-900',   patternColor: 'bg-blue-300/30' },
+  { label: '€10',  value: 1000, shape: 'banknote', color: 'from-rose-400 to-rose-500',     border: 'border-rose-600',   size: 'w-20 h-12 md:w-24 md:h-14', textColor: 'text-rose-900',   patternColor: 'bg-rose-300/30' },
+  { label: '€5',   value: 500,  shape: 'banknote', color: 'from-gray-400 to-gray-500',     border: 'border-gray-600',   size: 'w-20 h-12 md:w-24 md:h-14', textColor: 'text-gray-900',   patternColor: 'bg-gray-300/30' },
+  // Coins
+  { label: '€2',  value: 200, shape: 'coin', color: 'from-amber-300 to-yellow-500',  border: 'border-amber-600',  size: 'w-16 h-16 md:w-20 md:h-20' },
+  { label: '€1',  value: 100, shape: 'coin', color: 'from-amber-200 to-yellow-400',  border: 'border-amber-500',  size: 'w-14 h-14 md:w-18 md:h-18' },
+  { label: '50c', value: 50,  shape: 'coin', color: 'from-orange-300 to-orange-500',  border: 'border-orange-600', size: 'w-14 h-14 md:w-18 md:h-18' },
+  { label: '20c', value: 20,  shape: 'coin', color: 'from-orange-200 to-orange-400',  border: 'border-orange-500', size: 'w-12 h-12 md:w-16 md:h-16' },
+  { label: '10c', value: 10,  shape: 'coin', color: 'from-yellow-200 to-amber-300',   border: 'border-yellow-500', size: 'w-12 h-12 md:w-16 md:h-16' },
+  { label: '5c',  value: 5,   shape: 'coin', color: 'from-red-300 to-red-500',        border: 'border-red-600',    size: 'w-11 h-11 md:w-14 md:h-14' },
 ];
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 
-/** Generate a price in cents between 5 and 1000, rounded to 5c */
-function generatePrice(): number {
-  return randomInt(1, 200) * 5; // 5c – €10.00
+function generatePrice(maxCents: number): number {
+  return randomInt(1, Math.floor(maxCents / 5)) * 5;
 }
 
 function formatCents(cents: number): string {
@@ -64,25 +76,36 @@ function formatCents(cents: number): string {
   return `€${euros},${rest.toString().padStart(2, '0')}`;
 }
 
-/* ── Draggable Coin ───────────────────────────────────────────── */
+/* ── Denomination Visual ──────────────────────────────────────── */
 
-interface DraggableCoinProps {
-  id: string;
-  coin: CoinDef;
-  isOverlay?: boolean;
-}
+function DenominationVisual({ denom, isOverlay }: { denom: DenominationDef; isOverlay?: boolean }) {
+  if (denom.shape === 'banknote') {
+    return (
+      <div
+        className={`${denom.size} rounded-lg bg-gradient-to-br ${denom.color} ${denom.border} border-2 flex items-center justify-center font-black text-sm md:text-base shadow-lg select-none relative overflow-hidden ${isOverlay ? 'scale-110 shadow-2xl' : ''}`}
+      >
+        {/* Decorative corner pattern */}
+        <div className={`absolute top-0 left-0 w-4 h-4 md:w-5 md:h-5 ${denom.patternColor} rounded-br-full`} />
+        <div className={`absolute bottom-0 right-0 w-4 h-4 md:w-5 md:h-5 ${denom.patternColor} rounded-tl-full`} />
+        {/* Subtle border line */}
+        <div className="absolute inset-1 rounded border border-white/20 pointer-events-none" />
+        <span className={`drop-shadow-md ${denom.textColor ?? 'text-white'} font-black text-sm md:text-base z-10`}>{denom.label}</span>
+      </div>
+    );
+  }
 
-function CoinVisual({ coin, isOverlay }: { coin: CoinDef; isOverlay?: boolean }) {
   return (
     <div
-      className={`${coin.size} rounded-full bg-gradient-to-br ${coin.color} ${coin.border} border-[3px] flex items-center justify-center font-black text-sm md:text-base text-white shadow-lg select-none ${isOverlay ? 'scale-110 shadow-2xl' : ''}`}
+      className={`${denom.size} rounded-full bg-gradient-to-br ${denom.color} ${denom.border} border-[3px] flex items-center justify-center font-black text-sm md:text-base text-white shadow-lg select-none ${isOverlay ? 'scale-110 shadow-2xl' : ''}`}
     >
-      <span className="drop-shadow-md">{coin.label}</span>
+      <span className="drop-shadow-md">{denom.label}</span>
     </div>
   );
 }
 
-function DraggableCoin({ id, coin }: DraggableCoinProps) {
+/* ── Draggable Denomination ───────────────────────────────────── */
+
+function DraggableDenomination({ id, denom }: { id: string; denom: DenominationDef }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id });
 
   return (
@@ -92,20 +115,14 @@ function DraggableCoin({ id, coin }: DraggableCoinProps) {
       {...attributes}
       className={`touch-none cursor-grab active:cursor-grabbing transition-opacity ${isDragging ? 'opacity-30' : ''}`}
     >
-      <CoinVisual coin={coin} />
+      <DenominationVisual denom={denom} />
     </div>
   );
 }
 
 /* ── Droppable Kassa ──────────────────────────────────────────── */
 
-interface KassaProps {
-  droppedCoins: { id: string; coin: CoinDef }[];
-  totalCents: number;
-  priceCents: number;
-}
-
-function Kassa({ droppedCoins, totalCents, priceCents }: KassaProps) {
+function Kassa({ droppedItems, totalCents, priceCents }: { droppedItems: { id: string; denom: DenominationDef }[]; totalCents: number; priceCents: number }) {
   const { isOver, setNodeRef } = useDroppable({ id: 'kassa' });
 
   return (
@@ -117,20 +134,20 @@ function Kassa({ droppedCoins, totalCents, priceCents }: KassaProps) {
           : 'border-[#3b2d71] bg-[#1c1134]/40'
       }`}
     >
-      {droppedCoins.length === 0 ? (
+      {droppedItems.length === 0 ? (
         <p className="text-white/40 text-sm md:text-base font-medium">
-          Sleep munten hierheen 🪙
+          Sleep geld hierheen 🪙
         </p>
       ) : (
         <div className="flex flex-wrap gap-2 justify-center">
-          {droppedCoins.map((dc) => (
+          {droppedItems.map((di) => (
             <motion.div
-              key={dc.id}
+              key={di.id}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               className="pointer-events-none"
             >
-              <CoinVisual coin={dc.coin} />
+              <DenominationVisual denom={di.denom} />
             </motion.div>
           ))}
         </div>
@@ -154,25 +171,33 @@ function Kassa({ droppedCoins, totalCents, priceCents }: KassaProps) {
 
 export function ExerciseMoney() {
   const navigate = useNavigate();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const moneyCfg = MONEY_CONFIG[difficultyKey] ?? DEFAULT_MONEY;
+
+  // Filter denominations based on trimester config
+  const availableDenoms = useMemo(
+    () => ALL_DENOMINATIONS.filter((d) => moneyCfg.denominations.includes(d.value)),
+    [moneyCfg.denominations]
+  );
 
   const [product, setProduct] = useState(() => PRODUCTS[randomInt(0, PRODUCTS.length - 1)]);
-  const [priceCents, setPriceCents] = useState(() => generatePrice());
-  const [droppedCoins, setDroppedCoins] = useState<{ id: string; coin: CoinDef }[]>([]);
-  const [dragCoinId, setDragCoinId] = useState<string | null>(null);
+  const [priceCents, setPriceCents] = useState(() => generatePrice(moneyCfg.maxPriceCents));
+  const [droppedItems, setDroppedItems] = useState<{ id: string; denom: DenominationDef }[]>([]);
+  const [dragId, setDragId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'too-little' | 'too-much' | null>(null);
-  const [coinCounter, setCoinCounter] = useState(0);
+  const [counter, setCounter] = useState(0);
 
   const totalCents = useMemo(
-    () => droppedCoins.reduce((sum, dc) => sum + dc.coin.value, 0),
-    [droppedCoins]
+    () => droppedItems.reduce((sum, di) => sum + di.denom.value, 0),
+    [droppedItems]
   );
 
   const nextQuestion = useCallback(() => {
     setProduct(PRODUCTS[randomInt(0, PRODUCTS.length - 1)]);
-    setPriceCents(generatePrice());
-    setDroppedCoins([]);
+    setPriceCents(generatePrice(moneyCfg.maxPriceCents));
+    setDroppedItems([]);
     setFeedback(null);
-  }, []);
+  }, [moneyCfg.maxPriceCents]);
 
   const exerciseId = useExerciseId();
   const {
@@ -184,7 +209,7 @@ export function ExerciseMoney() {
   } = useExerciseState({
     totalQuestions: 5,
     xpReward: 15,
-    returnPath: '/app/map',
+    returnPath: `/app/stage/fluisterbos/${stage}`,
     exerciseId,
     onNextQuestion: nextQuestion,
   });
@@ -196,23 +221,23 @@ export function ExerciseMoney() {
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    setDragCoinId(event.active.id as string);
+    setDragId(event.active.id as string);
   }, []);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
-      setDragCoinId(null);
+      setDragId(null);
       if (!event.over || event.over.id !== 'kassa') return;
 
-      const coinIndex = parseInt((event.active.id as string).split('-')[1], 10);
-      const coin = COINS[coinIndex];
-      if (!coin) return;
+      const denomIndex = parseInt((event.active.id as string).split('-')[1], 10);
+      const denom = availableDenoms[denomIndex];
+      if (!denom) return;
 
-      setCoinCounter((c) => c + 1);
-      setDroppedCoins((prev) => [...prev, { id: `dropped-${coinCounter}`, coin }]);
+      setCounter((c) => c + 1);
+      setDroppedItems((prev) => [...prev, { id: `dropped-${counter}`, denom }]);
       setFeedback(null);
     },
-    [coinCounter]
+    [counter, availableDenoms]
   );
 
   /* ── Pay ──── */
@@ -225,31 +250,31 @@ export function ExerciseMoney() {
     } else if (totalCents < priceCents) {
       setFeedback('too-little');
       setTimeout(() => {
-        setDroppedCoins([]);
+        setDroppedItems([]);
         setFeedback(null);
       }, 1400);
     } else {
       setFeedback('too-much');
       setTimeout(() => {
-        setDroppedCoins([]);
+        setDroppedItems([]);
         setFeedback(null);
       }, 1400);
     }
   }, [totalCents, priceCents, status, handleCorrect]);
 
   const handleReset = useCallback(() => {
-    setDroppedCoins([]);
+    setDroppedItems([]);
     setFeedback(null);
   }, []);
 
-  /* ── Active drag coin for overlay ──── */
-  const activeCoin = dragCoinId ? COINS[parseInt(dragCoinId.split('-')[1], 10)] : null;
+  /* ── Active drag denomination for overlay ──── */
+  const activeDenom = dragId ? availableDenoms[parseInt(dragId.split('-')[1], 10)] : null;
 
   return (
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/map')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
     >
       <DndContext
         sensors={sensors}
@@ -275,7 +300,7 @@ export function ExerciseMoney() {
           </motion.div>
 
           {/* ── Kassa (Dropzone) ──── */}
-          <Kassa droppedCoins={droppedCoins} totalCents={totalCents} priceCents={priceCents} />
+          <Kassa droppedItems={droppedItems} totalCents={totalCents} priceCents={priceCents} />
 
           {/* ── Feedback ──── */}
           <AnimatePresence>
@@ -324,14 +349,14 @@ export function ExerciseMoney() {
             </button>
           </div>
 
-          {/* ── Portefeuille (Coins) ──── */}
+          {/* ── Portefeuille (Denominations) ──── */}
           <div className="bg-[#1c1134]/50 backdrop-blur-sm rounded-3xl p-4 md:p-6 border-2 border-[#3b2d71]">
             <p className="text-white/50 text-xs font-semibold mb-3 text-center uppercase tracking-wider">
               Jouw portefeuille
             </p>
             <div className="flex flex-wrap gap-3 md:gap-4 justify-center">
-              {COINS.map((coin, i) => (
-                <DraggableCoin key={i} id={`coin-${i}`} coin={coin} />
+              {availableDenoms.map((denom, i) => (
+                <DraggableDenomination key={i} id={`denom-${i}`} denom={denom} />
               ))}
             </div>
           </div>
@@ -339,7 +364,7 @@ export function ExerciseMoney() {
 
         {/* Drag overlay */}
         <DragOverlay>
-          {activeCoin && <CoinVisual coin={activeCoin} isOverlay />}
+          {activeDenom && <DenominationVisual denom={activeDenom} isOverlay />}
         </DragOverlay>
       </DndContext>
     </ExerciseShell>

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { CLOCK_CONFIG, DEFAULT_CLOCK } from '@/data/difficultyConfig';
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClockTask {
@@ -15,9 +17,9 @@ interface ClockTask {
 }
 
 /* ── Task generation ────────────────────────────────────────── */
-function generateTask(): ClockTask {
+function generateTask(allowHalf = true): ClockTask {
   const hour = Math.floor(Math.random() * 12) + 1;
-  const half = Math.random() < 0.5;
+  const half = allowHalf && Math.random() < 0.5;
 
   const hourNames = [
     '', 'een', 'twee', 'drie', 'vier', 'vijf', 'zes',
@@ -252,19 +254,21 @@ function ClockFace({ hourAngle, minuteAngle, onHourChange, onMinuteChange, statu
 /* ── Main Exercise ──────────────────────────────────────────── */
 export function ExerciseClock() {
   const navigate = useNavigate();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const clockCfg = CLOCK_CONFIG[difficultyKey] ?? DEFAULT_CLOCK;
 
-  const [task, setTask] = useState<ClockTask>(generateTask);
+  const [task, setTask] = useState<ClockTask>(() => generateTask(clockCfg.halfHours));
   const [hourAngle, setHourAngle] = useState(0);
   const [minuteAngle, setMinuteAngle] = useState(0);
   const [hint, setHint] = useState('');
 
   const nextQuestion = useCallback(() => {
-    const t = generateTask();
+    const t = generateTask(clockCfg.halfHours);
     setTask(t);
     setHourAngle(0);
     setMinuteAngle(0);
     setHint('');
-  }, []);
+  }, [clockCfg.halfHours]);
 
   const exerciseId = useExerciseId();
   const { lives, progress, status, handleCorrect, handleIncorrect } = useExerciseState({
@@ -303,7 +307,7 @@ export function ExerciseClock() {
   }, [status, hourAngle, minuteAngle, task, handleCorrect, handleIncorrect]);
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate('/app/map')}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}>
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 z-10 max-w-2xl mx-auto w-full">
 
         {/* Task card */}

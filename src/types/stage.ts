@@ -1,4 +1,4 @@
-export type SubjectType = 'math' | 'reading' | 'writing';
+export type SubjectType = 'math' | 'reading' | 'writing' | 'other';
 
 export interface StageExercise {
   id: string;

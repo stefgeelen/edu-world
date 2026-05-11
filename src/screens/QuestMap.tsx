@@ -11,10 +11,9 @@ import { useBuddyMessage } from "@/hooks/useBuddyMessage";
 import { BuddyCompanion } from "@/components/BuddyCompanion";
 import { useChildGreeting } from "@/hooks/useChildGreeting";
 const TRIMESTER_CONFIG = [
-  { id: 1, name: STAGE_NAMES[1], icon: "🌳", yPos: 82, xPos: 40 },
-  { id: 2, name: STAGE_NAMES[2], icon: "🌊", yPos: 58, xPos: 65 },
-  { id: 3, name: STAGE_NAMES[3], icon: "🦊", yPos: 35, xPos: 30 },
-  { id: 4, name: STAGE_NAMES[4], icon: "🏰", yPos: 10, xPos: 60 },
+  { id: 1, name: STAGE_NAMES[1], icon: "🌳", yPos: 78, xPos: 40 },
+  { id: 2, name: STAGE_NAMES[2], icon: "🌊", yPos: 48, xPos: 65 },
+  { id: 3, name: STAGE_NAMES[3], icon: "🦊", yPos: 18, xPos: 30 },
 ];
 
 const DECORATIVE_ELEMENTS = [
@@ -154,7 +153,7 @@ export function QuestMap() {
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              d="M 40 82 C 40 72, 65 68, 65 58 C 65 48, 30 45, 30 35 C 30 25, 60 20, 60 10"
+              d="M 40 78 C 40 65, 65 58, 65 48 C 65 38, 30 28, 30 18"
               fill="none"
               stroke="url(#glowPath)"
               strokeWidth="4"

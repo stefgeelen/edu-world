@@ -12,7 +12,7 @@ export const REQUIRED_COMPLETIONS = 5;
 export function useStageExercises(stage: number = 1) {
   const { data: child, isFetched } = useCurrentChild();
   const childId = child?.id;
-  const safeStage = Math.max(1, Math.min(4, stage || 1));
+  const safeStage = Math.max(1, Math.min(3, stage || 1));
 
   return useQuery({
     queryKey: ['stage-exercises-progress', childId, safeStage],
@@ -21,6 +21,7 @@ export function useStageExercises(stage: number = 1) {
         .from('exercises')
         .select('*')
         .eq('stage', `stage-${safeStage}`)
+        .eq('is_active', true)
         .order('subject')
         .order('display_order');
 

@@ -9,7 +9,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { NUMBER_BOND_CONFIG, DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
+import { SPLIT_BOX_CONFIG, DEFAULT_SPLIT_BOX } from '@/data/difficultyConfig';
 
 
 type Status = 'idle' | 'incorrect' | 'correct';
@@ -44,11 +44,11 @@ export function ExerciseSplitBox() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey } = useDifficultyLevel();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
-  const cfg = NUMBER_BOND_CONFIG[difficultyKey] ?? DEFAULT_NUMBER_BOND;
+  const cfg = SPLIT_BOX_CONFIG[difficultyKey] ?? DEFAULT_SPLIT_BOX;
 
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
@@ -129,7 +129,7 @@ export function ExerciseSplitBox() {
               timeSpent,
             });
           }
-          navigate('/app/map');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           generateQuestion();
         }
@@ -138,7 +138,7 @@ export function ExerciseSplitBox() {
       setStatus('incorrect');
       setLives((l) => l - 1);
       if (lives - 1 <= 0) {
-        setTimeout(() => navigate('/app/map'), 1500);
+        setTimeout(() => navigate(`/app/stage/fluisterbos/${stage}`), 1500);
       }
     }
   };
@@ -188,7 +188,7 @@ export function ExerciseSplitBox() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/map')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
       onClick={() => setIsNumpadOpen(false)}
     >
       <motion.div

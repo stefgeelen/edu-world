@@ -38,7 +38,7 @@ export function ExerciseSubtractBox() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey } = useDifficultyLevel();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
@@ -113,7 +113,7 @@ export function ExerciseSubtractBox() {
               timeSpent,
             });
           }
-          navigate('/app/map');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           generateQuestion();
         }
@@ -122,7 +122,7 @@ export function ExerciseSubtractBox() {
       setStatus('incorrect');
       setLives((l) => l - 1);
       if (lives - 1 <= 0) {
-        setTimeout(() => navigate('/app/map'), 1500);
+        setTimeout(() => navigate(`/app/stage/fluisterbos/${stage}`), 1500);
       }
     }
   };
@@ -167,7 +167,7 @@ export function ExerciseSubtractBox() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/map')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
       onClick={() => setIsNumpadOpen(false)}
     >
       <motion.div

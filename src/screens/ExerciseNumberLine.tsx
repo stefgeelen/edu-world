@@ -8,6 +8,8 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { NUMBER_LINE_CONFIG, DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -21,15 +23,18 @@ interface Slot {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function makeSlots(): Slot[] {
-  const indices = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+function makeSlots(maxNumber = 10): Slot[] {
+  // Build array of possible blank indices (1 to maxNumber-1, skipping 0 and maxNumber)
+  const indices: number[] = [];
+  for (let i = 1; i < maxNumber; i++) indices.push(i);
   for (let i = indices.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     const tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp;
   }
-  const blanks = new Set([indices[0], indices[1], indices[2]]);
+  const blankCount = Math.min(3, indices.length);
+  const blanks = new Set(indices.slice(0, blankCount));
   const result: Slot[] = [];
-  for (let n = 0; n <= 10; n++) {
+  for (let n = 0; n <= maxNumber; n++) {
     result.push({ value: n, isBlank: blanks.has(n), filled: false });
   }
   return result;
@@ -52,11 +57,13 @@ export function ExerciseNumberLine() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const nlCfg = NUMBER_LINE_CONFIG[difficultyKey] ?? DEFAULT_NUMBER_LINE;
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  
 
-  const [slots, setSlots] = useState<Slot[]>(makeSlots);
+
+  const [slots, setSlots] = useState<Slot[]>(() => makeSlots(nlCfg.maxNumber));
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
@@ -198,7 +205,7 @@ export function ExerciseNumberLine() {
         );
         setTimeout(() => {
           if (nextLives <= 0) {
-            navigate('/app/stage/fluisterbos');
+            navigate(`/app/stage/fluisterbos/${stage}`);
           } else {
             clearCanvas();
             setCheckStatus('idle');
@@ -226,9 +233,9 @@ export function ExerciseNumberLine() {
           const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
           completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
         }
-        navigate('/app/stage/fluisterbos');
+        navigate(`/app/stage/fluisterbos/${stage}`);
       } else {
-        setSlots(makeSlots());
+        setSlots(makeSlots(nlCfg.maxNumber));
         setRoundDone(false);
       }
     }, 2200);
@@ -238,7 +245,7 @@ export function ExerciseNumberLine() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/stage/fluisterbos')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
     >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">

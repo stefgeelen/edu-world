@@ -21,7 +21,7 @@ export function ExerciseDotCount() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey } = useDifficultyLevel();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const areaRef = useRef<HTMLDivElement>(null);
@@ -85,7 +85,7 @@ export function ExerciseDotCount() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate('/app/stage/fluisterbos');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           generateNew();
         }
@@ -98,7 +98,7 @@ export function ExerciseDotCount() {
       setLives(nextLives);
       setTimeout(() => {
         if (nextLives <= 0) {
-          navigate('/app/stage/fluisterbos');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           setDots([]);
           setStatus('idle');
@@ -115,7 +115,7 @@ export function ExerciseDotCount() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/stage/fluisterbos')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
     >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">

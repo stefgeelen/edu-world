@@ -64,13 +64,25 @@ const SUBJECTS: SubjectConfig[] = [
     progressColor: 'bg-orange-500',
     progressTrack: 'bg-orange-100',
   },
+  {
+    id: 'other',
+    label: 'Andere',
+    icon: Coins,
+    emoji: '🎯',
+    gradient: 'from-teal-500 to-teal-600',
+    bg: 'bg-teal-50',
+    border: 'border-teal-200',
+    accent: 'text-teal-600',
+    progressColor: 'bg-teal-500',
+    progressTrack: 'bg-teal-100',
+  },
 ];
 
 /* ── Main component ─────────────────────────────────── */
 export function Fluisterbos() {
   const navigate = useNavigate();
   const { stage: stageParam } = useParams<{ stage?: string }>();
-  const stage = Math.max(1, Math.min(4, Number(stageParam) || 1));
+  const stage = Math.max(1, Math.min(3, Number(stageParam) || 1));
   const { data: allExercises = [], isLoading } = useStageExercises(stage);
   const { stages, isLoading: masteryLoading } = useStageMastery();
 

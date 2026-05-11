@@ -282,6 +282,7 @@ export type Database = {
           display_order: number
           grade: number
           id: string
+          is_active: boolean
           route: string
           stage: string
           subject: Database["public"]["Enums"]["subject_type"]
@@ -293,6 +294,7 @@ export type Database = {
           display_order?: number
           grade?: number
           id?: string
+          is_active?: boolean
           route: string
           stage?: string
           subject: Database["public"]["Enums"]["subject_type"]
@@ -304,6 +306,7 @@ export type Database = {
           display_order?: number
           grade?: number
           id?: string
+          is_active?: boolean
           route?: string
           stage?: string
           subject?: Database["public"]["Enums"]["subject_type"]
@@ -625,7 +628,7 @@ export type Database = {
       app_role: "admin" | "moderator" | "user"
       exercise_status: "completed" | "available" | "locked"
       org_role: "owner" | "admin" | "teacher"
-      subject_type: "math" | "reading" | "writing"
+      subject_type: "math" | "reading" | "writing" | "other"
       subscription_plan: "free" | "basic" | "family" | "school"
       subscription_status:
         | "trialing"
@@ -764,7 +767,7 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
       exercise_status: ["completed", "available", "locked"],
       org_role: ["owner", "admin", "teacher"],
-      subject_type: ["math", "reading", "writing"],
+      subject_type: ["math", "reading", "writing", "other"],
       subscription_plan: ["free", "basic", "family", "school"],
       subscription_status: [
         "trialing",

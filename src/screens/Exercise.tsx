@@ -70,7 +70,7 @@ export function Exercise() {
   const { selectedAvatar } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey } = useDifficultyLevel();
+  const { key: difficultyKey, stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   
@@ -113,19 +113,19 @@ export function Exercise() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate('/app/dashboard');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           regenerate();
         }
       }, 1500);
-      
+
     } else {
       setStatus('incorrect');
       setLives(l => l - 1);
-      
+
       setTimeout(() => {
         if (lives - 1 <= 0) {
-          navigate('/app/dashboard');
+          navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           setSelectedOption(null);
           setStatus('idle');
@@ -138,7 +138,7 @@ export function Exercise() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/map')}
+      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
     >
       {/* Main Content */}
       <div className="flex-1 flex flex-col px-6 md:px-12 lg:px-16 justify-center max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full z-10 relative mt-8 md:mt-12">

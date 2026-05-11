@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Plus, Trash2, Pencil, Loader2, X, BookOpen, Calculator, PenTool, CheckCircle2 } from 'lucide-react';
+import { Gift, Plus, Trash2, Pencil, Loader2, X, BookOpen, Calculator, PenTool, Shapes, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ const SUBJECT_OPTIONS = [
   { value: 'reading' as const, label: 'Lezen', icon: BookOpen, color: 'text-violet-600 bg-violet-50' },
   { value: 'math' as const, label: 'Rekenen', icon: Calculator, color: 'text-blue-600 bg-blue-50' },
   { value: 'writing' as const, label: 'Schrijven', icon: PenTool, color: 'text-orange-600 bg-orange-50' },
+  { value: 'other' as const, label: 'Andere', icon: Shapes, color: 'text-teal-600 bg-teal-50' },
 ];
 
 export function ParentRewards() {
@@ -223,12 +224,12 @@ function RewardForm({
 }: {
   children: { id: string; name: string }[];
   parentId: string;
-  existing?: { id: string; title: string; subject: 'math' | 'reading' | 'writing'; required_exercises: number; child_id: string } | null;
+  existing?: { id: string; title: string; subject: 'math' | 'reading' | 'writing' | 'other'; required_exercises: number; child_id: string } | null;
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const [title, setTitle] = useState(existing?.title ?? '');
-  const [subject, setSubject] = useState<'math' | 'reading' | 'writing'>(existing?.subject ?? 'math');
+  const [subject, setSubject] = useState<'math' | 'reading' | 'writing' | 'other'>(existing?.subject ?? 'math');
   const [requiredExercises, setRequiredExercises] = useState(existing?.required_exercises ?? 5);
   const [childId, setChildId] = useState(existing?.child_id ?? children[0]?.id ?? '');
   const [saving, setSaving] = useState(false);

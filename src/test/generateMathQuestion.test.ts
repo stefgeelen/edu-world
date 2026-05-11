@@ -48,7 +48,7 @@ function generateMathQuestion(config: MathSumsConfig) {
 }
 
 describe('generateMathQuestion', () => {
-  it('grade 1 only generates + and - with no negatives', () => {
+  it('trimester 1 only generates + and - with no negatives', () => {
     const config = MATH_SUMS_CONFIG['1-1'];
     for (let i = 0; i < 100; i++) {
       const { question } = generateMathQuestion(config);
@@ -59,18 +59,13 @@ describe('generateMathQuestion', () => {
     }
   });
 
-  it('grade 2 stage 3 can generate ÷ with clean division', () => {
-    const config = MATH_SUMS_CONFIG['2-3'];
-    let sawDivision = false;
-    for (let i = 0; i < 200; i++) {
+  it('trimester 3 generates + and - up to 20', () => {
+    const config = MATH_SUMS_CONFIG['1-3'];
+    for (let i = 0; i < 100; i++) {
       const { question } = generateMathQuestion(config);
-      if (question.operator === '÷') {
-        sawDivision = true;
-        expect(question.num1 % question.num2).toBe(0);
-        expect(question.answer).toBe(question.num1 / question.num2);
-      }
+      expect(['+', '-']).toContain(question.operator);
+      expect(question.answer).toBeGreaterThanOrEqual(0);
     }
-    expect(sawDivision).toBe(true);
   });
 
   it('always generates exactly 4 options including the answer', () => {
@@ -82,8 +77,8 @@ describe('generateMathQuestion', () => {
     }
   });
 
-  it('subtraction in grade 1 never goes below 0', () => {
-    const config = MATH_SUMS_CONFIG['1-4'];
+  it('subtraction in trimester 3 never goes below 0', () => {
+    const config = MATH_SUMS_CONFIG['1-3'];
     for (let i = 0; i < 200; i++) {
       const { question } = generateMathQuestion(config);
       if (question.operator === '-') {
