@@ -12,6 +12,7 @@ const ParentRewards = lazy(() => import('@/screens/parent/ParentRewards').then(m
 const ParentSubscription = lazy(() => import('@/screens/parent/ParentSubscription').then(m => ({ default: m.ParentSubscription })));
 const ParentAddChild = lazy(() => import('@/screens/parent/ParentAddChild').then(m => ({ default: m.ParentAddChild })));
 const ParentAccount = lazy(() => import('@/screens/parent/ParentAccount').then(m => ({ default: m.ParentAccount })));
+const ParentFeedback = lazy(() => import('@/screens/parent/ParentFeedback').then(m => ({ default: m.ParentFeedback })));
 
 export const parentRoutes = (
   <Route
@@ -32,5 +33,6 @@ export const parentRoutes = (
     <Route path="subscription" element={<Suspense fallback={<LoadingSpinner />}><ParentSubscription /></Suspense>} />
     <Route path="add-child" element={<Suspense fallback={<LoadingSpinner />}><ParentAddChild /></Suspense>} />
     <Route path="account" element={<Suspense fallback={<LoadingSpinner />}><ParentAccount /></Suspense>} />
+    <Route path="feedback" element={<Suspense fallback={<LoadingSpinner />}><ParentFeedback /></Suspense>} />
   </Route>
 );
