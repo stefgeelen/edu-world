@@ -28,7 +28,7 @@ export function useStageMastery() {
   const childId = child?.id;
 
   const query = useQuery({
-    queryKey: ['stage-mastery', childId],
+    queryKey: ['stage-mastery', childId, child?.max_unlocked_stage],
     queryFn: async (): Promise<StageMastery[]> => {
       // Fetch all active exercises across stages 1-3
       const { data: exercises, error } = await supabase
@@ -72,12 +72,21 @@ export function useStageMastery() {
         };
       });
 
-      // Determine current = first non-completed stage with content; locked = stages after that
+      // Determine current/locked, respecting parent's max_unlocked_stage override
+      const maxUnlocked = child?.max_unlocked_stage ?? 1;
       const firstIncomplete = stages.findIndex((s) => !s.isCompleted);
       stages.forEach((s, i) => {
-        if (firstIncomplete === -1) return; // all done
-        if (i === firstIncomplete) s.isCurrent = true;
-        if (i > firstIncomplete) s.isLocked = true;
+        const stageNum = i + 1;
+        if (stageNum <= maxUnlocked) {
+          // Always unlocked by parent override
+          s.isLocked = false;
+          if (firstIncomplete !== -1 && i === firstIncomplete) s.isCurrent = true;
+        } else {
+          // Beyond parent override — use mastery-based locking
+          if (firstIncomplete === -1) return; // all done
+          if (i === firstIncomplete) s.isCurrent = true;
+          if (i > firstIncomplete) s.isLocked = true;
+        }
       });
 
       return stages;

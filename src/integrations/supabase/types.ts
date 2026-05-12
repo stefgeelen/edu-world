@@ -173,6 +173,7 @@ export type Database = {
           id: string
           last_active_date: string | null
           level: number
+          max_unlocked_stage: number
           name: string
           organization_id: string | null
           parent_id: string | null
@@ -190,6 +191,7 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           level?: number
+          max_unlocked_stage?: number
           name: string
           organization_id?: string | null
           parent_id?: string | null
@@ -207,6 +209,7 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           level?: number
+          max_unlocked_stage?: number
           name?: string
           organization_id?: string | null
           parent_id?: string | null

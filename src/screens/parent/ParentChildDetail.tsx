@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   ChevronLeft, GraduationCap, Zap, Flame, Calculator, BookOpen, PenTool,
-  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle,
+  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -82,6 +82,24 @@ export function ParentChildDetail() {
       return data ?? [];
     },
     enabled: !!childId && !!child,
+  });
+
+  const stageMutation = useMutation({
+    mutationFn: async (maxStage: number) => {
+      const { error } = await supabase
+        .from('children')
+        .update({ max_unlocked_stage: maxStage })
+        .eq('id', childId!)
+        .eq('parent_id', user!.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, maxStage) => {
+      queryClient.invalidateQueries({ queryKey: ['parent-child', childId] });
+      queryClient.invalidateQueries({ queryKey: ['my-child'] });
+      queryClient.invalidateQueries({ queryKey: ['stage-mastery'] });
+      toast.success(`${child?.name} heeft nu toegang tot trimester 1${maxStage > 1 ? ` t/m ${maxStage}` : ''}.`);
+    },
+    onError: (e) => toast.error(mapDbError(e)),
   });
 
   const promoteMutation = useMutation({
@@ -200,8 +218,8 @@ export function ParentChildDetail() {
         <div className="px-5 py-4 border-b border-slate-100">
           <h3 className="font-bold text-slate-900">Trimesters - {GRADE_LABELS[child.grade]}</h3>
         </div>
-        <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((num) => {
+        <div className="p-5 grid grid-cols-3 gap-3">
+          {[1, 2, 3].map((num) => {
             const t = trimesters.find((tr) => tr.trimester_number === num);
             const pct = t ? Math.min(Math.round((t.xp_earned / t.xp_threshold) * 100), 100) : 0;
             const completed = t?.is_completed ?? false;
@@ -226,6 +244,40 @@ export function ParentChildDetail() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Trimester Access Control */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100">
+          <h3 className="font-bold text-slate-900">Trimester toegang</h3>
+          <p className="text-xs text-slate-500 mt-0.5">Kies tot welk trimester {child.name} toegang heeft.</p>
+        </div>
+        <div className="p-5">
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3].map((num) => {
+              const isUnlocked = num <= (child.max_unlocked_stage ?? 1);
+              return (
+                <button
+                  key={num}
+                  onClick={() => stageMutation.mutate(num)}
+                  disabled={stageMutation.isPending}
+                  className={`flex flex-col items-center gap-1.5 px-3 py-4 rounded-xl border-2 font-bold text-sm transition-all ${
+                    isUnlocked
+                      ? 'bg-teal-50 border-teal-400 text-teal-700'
+                      : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-slate-300'
+                  }`}
+                >
+                  {isUnlocked ? (
+                    <Unlock className="w-5 h-5" />
+                  ) : (
+                    <Lock className="w-5 h-5" />
+                  )}
+                  <span>Trimester {num}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
