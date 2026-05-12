@@ -231,7 +231,6 @@ export function ExerciseNumberBond() {
         status={status}
         onTryAgain={handleTryAgain}
         checkDisabled={!inputValue}
-        autoSubmitLength={2}
       />
     </ExerciseShell>
   );

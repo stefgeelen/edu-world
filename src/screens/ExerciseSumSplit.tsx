@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
@@ -19,8 +19,8 @@ interface Question {
   num1: number;
   num2: number;
   total: number;
-  leftPart: number; // = 10 - num1
-  rightPart: number; // = num2 - leftPart
+  leftPart: number;
+  rightPart: number;
 }
 
 function generateQuestion(minSum: number, maxSum: number): Question {
@@ -64,7 +64,11 @@ export function ExerciseSumSplit() {
   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
 
-  const splitsComplete = leftStatus === 'correct' && rightStatus === 'correct';
+  // Result slot only unlocks once both split values are filled
+  const resultUnlocked = !!leftValue && !!rightValue;
+  // Validate button activates once all three slots have a value
+  const allFilled = !!leftValue && !!rightValue && !!resultValue;
+  const hasAnyError = leftStatus === 'incorrect' || rightStatus === 'incorrect' || resultStatus === 'incorrect';
 
   const nextQuestion = useCallback(() => {
     setQuestion(generateQuestion(config.minSum, config.maxSum));
@@ -79,44 +83,52 @@ export function ExerciseSumSplit() {
   }, [config.minSum, config.maxSum]);
 
   const openSlot = (slot: Slot) => {
-    if (slot === 'result' && !splitsComplete) return;
+    if (slot === 'result' && !resultUnlocked) return;
     if (slot === 'left' && leftStatus === 'correct') return;
     if (slot === 'right' && rightStatus === 'correct') return;
     if (slot === 'result' && resultStatus === 'correct') return;
+    // Clear incorrect status when reopening
+    if (slot === 'left' && leftStatus === 'incorrect') setLeftStatus('idle');
+    if (slot === 'right' && rightStatus === 'incorrect') setRightStatus('idle');
+    if (slot === 'result' && resultStatus === 'incorrect') setResultStatus('idle');
     setActiveSlot(slot);
     setIsNumpadOpen(true);
-    if (slot === 'left' && leftStatus === 'incorrect') { setLeftStatus('idle'); setLeftValue(''); }
-    if (slot === 'right' && rightStatus === 'incorrect') { setRightStatus('idle'); setRightValue(''); }
-    if (slot === 'result' && resultStatus === 'incorrect') { setResultStatus('idle'); setResultValue(''); }
   };
 
   const handleNumberClick = (num: number | string) => {
     if (!activeSlot) return;
-    const maxLen = activeSlot === 'result' ? 2 : 2;
     if (activeSlot === 'left') {
-      setLeftStatus(s => (s === 'incorrect' ? 'idle' : s));
-      setLeftValue(prev => prev.length >= maxLen ? prev : prev + num.toString());
+      setLeftValue(prev => prev.length >= 2 ? prev : prev + num.toString());
     } else if (activeSlot === 'right') {
-      setRightStatus(s => (s === 'incorrect' ? 'idle' : s));
-      setRightValue(prev => prev.length >= maxLen ? prev : prev + num.toString());
+      setRightValue(prev => prev.length >= 2 ? prev : prev + num.toString());
     } else {
-      setResultStatus(s => (s === 'incorrect' ? 'idle' : s));
-      setResultValue(prev => prev.length >= maxLen ? prev : prev + num.toString());
+      setResultValue(prev => prev.length >= 2 ? prev : prev + num.toString());
     }
   };
 
   const handleDelete = () => {
     if (!activeSlot) return;
-    if (activeSlot === 'left') { setLeftValue(prev => prev.slice(0, -1)); setLeftStatus(s => (s === 'incorrect' ? 'idle' : s)); }
-    else if (activeSlot === 'right') { setRightValue(prev => prev.slice(0, -1)); setRightStatus(s => (s === 'incorrect' ? 'idle' : s)); }
-    else { setResultValue(prev => prev.slice(0, -1)); setResultStatus(s => (s === 'incorrect' ? 'idle' : s)); }
+    if (activeSlot === 'left') setLeftValue(prev => prev.slice(0, -1));
+    else if (activeSlot === 'right') setRightValue(prev => prev.slice(0, -1));
+    else setResultValue(prev => prev.slice(0, -1));
   };
 
-  const handleTryAgain = () => {
+  // Numpad ✓ just confirms the slot and auto-advances to the next empty one
+  const handleNumpadConfirm = () => {
     if (!activeSlot) return;
-    if (activeSlot === 'left') { setLeftValue(''); setLeftStatus('idle'); }
-    else if (activeSlot === 'right') { setRightValue(''); setRightStatus('idle'); }
-    else { setResultValue(''); setResultStatus('idle'); }
+    const nextEmpty = activeSlot === 'left'
+      ? (!rightValue ? 'right' : (resultUnlocked && !resultValue ? 'result' : null))
+      : activeSlot === 'right'
+      ? (resultUnlocked && !resultValue ? 'result' : (!leftValue ? 'left' : null))
+      : null;
+
+    if (nextEmpty) {
+      setActiveSlot(nextEmpty);
+      // Keep numpad open, just switch slot
+    } else {
+      setIsNumpadOpen(false);
+      setActiveSlot(null);
+    }
   };
 
   const finishExerciseIfDone = (newProgress: number) => {
@@ -144,45 +156,26 @@ export function ExerciseSumSplit() {
     const newProgress = progress + 20;
     setProgress(newProgress);
     setTimeout(() => {
-      if (!finishExerciseIfDone(newProgress)) {
-        nextQuestion();
-      }
+      if (!finishExerciseIfDone(newProgress)) nextQuestion();
     }, 1600);
   };
 
-  const handleCheck = () => {
-    if (!activeSlot) return;
-    const value = activeSlot === 'left' ? leftValue : activeSlot === 'right' ? rightValue : resultValue;
-    if (!value) return;
+  // On-screen validate button: checks all three slots at once
+  const handleValidateAll = () => {
+    if (!allFilled) return;
+    setIsNumpadOpen(false);
 
-    const expected = activeSlot === 'left' ? question.leftPart
-      : activeSlot === 'right' ? question.rightPart
-      : question.total;
-    const correct = parseInt(value, 10) === expected;
+    const leftCorrect = parseInt(leftValue, 10) === question.leftPart;
+    const rightCorrect = parseInt(rightValue, 10) === question.rightPart;
+    const resultCorrect = parseInt(resultValue, 10) === question.total;
 
-    if (correct) {
-      if (activeSlot === 'left') {
-        setLeftStatus('correct');
-        if (rightStatus === 'correct') {
-          setTimeout(() => { setActiveSlot('result'); setIsNumpadOpen(true); }, 600);
-        } else {
-          setTimeout(() => { setActiveSlot('right'); setIsNumpadOpen(true); }, 600);
-        }
-      } else if (activeSlot === 'right') {
-        setRightStatus('correct');
-        if (leftStatus === 'correct') {
-          setTimeout(() => { setActiveSlot('result'); setIsNumpadOpen(true); }, 600);
-        } else {
-          setTimeout(() => { setActiveSlot('left'); setIsNumpadOpen(true); }, 600);
-        }
-      } else {
-        setResultStatus('correct');
-        setTimeout(() => completeQuestion(), 600);
-      }
+    setLeftStatus(leftCorrect ? 'correct' : 'incorrect');
+    setRightStatus(rightCorrect ? 'correct' : 'incorrect');
+    setResultStatus(resultCorrect ? 'correct' : 'incorrect');
+
+    if (leftCorrect && rightCorrect && resultCorrect) {
+      setTimeout(() => completeQuestion(), 700);
     } else {
-      if (activeSlot === 'left') setLeftStatus('incorrect');
-      else if (activeSlot === 'right') setRightStatus('incorrect');
-      else setResultStatus('incorrect');
       const nextLives = lives - 1;
       setLives(nextLives);
       if (nextLives <= 0) {
@@ -190,10 +183,6 @@ export function ExerciseSumSplit() {
       }
     }
   };
-
-  useEffect(() => {
-    if (!isNumpadOpen) setActiveSlot(null);
-  }, [isNumpadOpen]);
 
   const renderSplitSlot = (slot: 'left' | 'right') => {
     const value = slot === 'left' ? leftValue : rightValue;
@@ -209,14 +198,15 @@ export function ExerciseSumSplit() {
           { scale: isActive && !value ? 1.05 : 1 }
         }
         transition={
-          status === 'incorrect' ? { duration: 0.5, ease: 'easeInOut' } :
-          status === 'correct' ? { duration: 0.5, ease: 'easeOut' } :
+          status === 'incorrect' ? { duration: 0.5 } :
+          status === 'correct' ? { duration: 0.5 } :
           { duration: 0.2 }
         }
         className={cn(
           'relative w-20 h-20 md:w-28 md:h-28 rounded-2xl flex items-center justify-center z-10 transition-all duration-300 transform-gpu cursor-pointer outline-none',
           status === 'correct' ? 'bg-emerald-400 border-b-[8px] border-emerald-600 ring-4 ring-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.8)]' :
           status === 'incorrect' ? 'bg-orange-500 border-b-[8px] border-orange-700 ring-4 ring-orange-300 shadow-[0_0_30px_rgba(249,115,22,0.6)]' :
+          isActive ? 'bg-purple-500 border-b-[8px] border-purple-700 ring-4 ring-purple-300 shadow-xl' :
           value ? 'bg-purple-500 border-b-[8px] border-purple-700 ring-4 ring-purple-300 shadow-xl' :
           'bg-[#2d1b54]/40 border-4 border-dashed border-[#a78bfa] hover:bg-[#3b2d71]/60 shadow-inner'
         )}
@@ -227,23 +217,19 @@ export function ExerciseSumSplit() {
         {!value && status === 'idle' && !isActive && (
           <div className="absolute inset-0 rounded-2xl border-4 border-white/20 animate-ping pointer-events-none" />
         )}
-        {value ? (
-          <span className="text-4xl md:text-5xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]">
-            {value}
-          </span>
-        ) : (
-          <span className={cn(
-            'text-4xl md:text-5xl font-black text-[#a78bfa]/50 transition-colors',
-            isActive && 'text-[#a78bfa]'
-          )}>?</span>
-        )}
+        <span className={cn(
+          'text-4xl md:text-5xl font-black drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]',
+          value ? 'text-white' : isActive ? 'text-[#a78bfa]' : 'text-[#a78bfa]/50'
+        )}>
+          {value || '?'}
+        </span>
       </motion.button>
     );
   };
 
   const renderResultSlot = () => {
     const isActive = activeSlot === 'result' && isNumpadOpen;
-    const locked = !splitsComplete;
+    const locked = !resultUnlocked;
 
     return (
       <motion.button
@@ -254,8 +240,8 @@ export function ExerciseSumSplit() {
           { scale: isActive && !resultValue ? 1.05 : 1 }
         }
         transition={
-          resultStatus === 'incorrect' ? { duration: 0.5, ease: 'easeInOut' } :
-          resultStatus === 'correct' ? { duration: 0.5, ease: 'easeOut' } :
+          resultStatus === 'incorrect' ? { duration: 0.5 } :
+          resultStatus === 'correct' ? { duration: 0.5 } :
           { duration: 0.2 }
         }
         disabled={locked}
@@ -267,7 +253,7 @@ export function ExerciseSumSplit() {
               ? 'bg-emerald-400 border-b-[6px] border-emerald-600 ring-4 ring-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.8)] cursor-pointer'
             : resultStatus === 'incorrect'
               ? 'bg-orange-500 border-b-[6px] border-orange-700 ring-4 ring-orange-300 cursor-pointer'
-            : resultValue
+            : isActive || resultValue
               ? 'bg-amber-500 border-b-[6px] border-amber-700 ring-4 ring-amber-300 shadow-xl cursor-pointer'
               : 'bg-[#2d1b54]/60 border-4 border-dashed border-amber-400/70 hover:bg-[#3b2d71]/80 shadow-inner cursor-pointer'
         )}
@@ -278,26 +264,18 @@ export function ExerciseSumSplit() {
         {!locked && !resultValue && resultStatus === 'idle' && !isActive && (
           <div className="absolute inset-0 rounded-2xl border-4 border-white/20 animate-ping pointer-events-none" />
         )}
-        {locked ? (
-          <span className="text-2xl md:text-3xl font-black text-[#4c3b82]/60">?</span>
-        ) : resultValue ? (
-          <span className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]">
-            {resultValue}
-          </span>
-        ) : (
-          <span className={cn(
-            'text-2xl md:text-3xl font-black text-amber-400/60 transition-colors',
-            isActive && 'text-amber-400'
-          )}>?</span>
-        )}
+        <span className={cn(
+          'text-2xl md:text-3xl font-black drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]',
+          locked ? 'text-[#4c3b82]/60' :
+          resultValue ? 'text-white' :
+          isActive ? 'text-amber-400' : 'text-amber-400/60'
+        )}>
+          {locked ? '?' : (resultValue || '?')}
+        </span>
       </motion.button>
     );
   };
 
-  const activeStatus = activeSlot === 'left' ? leftStatus
-    : activeSlot === 'right' ? rightStatus
-    : activeSlot === 'result' ? resultStatus
-    : 'idle';
   const activeValue = activeSlot === 'left' ? leftValue
     : activeSlot === 'right' ? rightValue
     : activeSlot === 'result' ? resultValue
@@ -313,20 +291,20 @@ export function ExerciseSumSplit() {
       <motion.div
         animate={{ y: isNumpadOpen ? -60 : 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="flex-1 flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0 pb-12"
+        className="flex-1 flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0 pb-4"
       >
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <h2 className="text-xl md:text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">
             Splits om door 10 te springen!
           </h2>
         </div>
 
-        {/* Sum statement with interactive result slot */}
+        {/* Equation with result slot */}
         <motion.div
           key={`${question.num1}-${question.num2}`}
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#1c1134]/60 backdrop-blur-sm rounded-[2rem] px-6 py-4 md:px-10 md:py-6 shadow-[0_15px_40px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] mb-8"
+          className="bg-[#1c1134]/60 backdrop-blur-sm rounded-[2rem] px-6 py-4 md:px-10 md:py-6 shadow-[0_15px_40px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] mb-6"
         >
           <div className="flex items-center gap-2 md:gap-4">
             <span className="text-5xl md:text-7xl font-black text-cyan-400 drop-shadow-sm">{question.num1}</span>
@@ -364,40 +342,49 @@ export function ExerciseSumSplit() {
           </div>
 
           <AnimatePresence>
-            {(leftStatus === 'incorrect' || rightStatus === 'incorrect' || resultStatus === 'incorrect') && (
+            {hasAnyError && (
               <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ type: 'spring', bounce: 0.5 }}
-                className="mt-6 flex items-center gap-2 bg-orange-100/10 backdrop-blur-md px-4 py-2 rounded-full border border-orange-400/30 shadow-lg"
+                className="mt-4 flex items-center gap-2 bg-orange-100/10 backdrop-blur-md px-4 py-2 rounded-full border border-orange-400/30 shadow-lg"
               >
                 <Sparkles className="w-4 h-4 text-orange-400 animate-pulse" />
-                <span className="text-sm font-bold text-orange-300 tracking-wide uppercase">Bijna!</span>
+                <span className="text-sm font-bold text-orange-300 tracking-wide uppercase">Bijna! Probeer opnieuw.</span>
                 <Sparkles className="w-4 h-4 text-orange-400 animate-pulse" />
               </motion.div>
             )}
           </AnimatePresence>
-
-          <p className="mt-6 text-center text-sm md:text-base text-[#a78bfa] font-semibold max-w-xs">
-            {splitsComplete
-              ? 'Goed! Wat is het antwoord?'
-              : 'Hoeveel heb je nodig om eerst tot 10 te komen? En hoeveel blijft er over?'}
-          </p>
         </div>
+
+        {/* Validate button */}
+        <motion.button
+          onClick={handleValidateAll}
+          disabled={!allFilled}
+          animate={allFilled && !hasAnyError ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          className={cn(
+            'mt-8 flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-lg md:text-xl transition-all duration-300 shadow-xl',
+            allFilled
+              ? 'bg-emerald-500 border-b-[6px] border-emerald-700 text-white hover:bg-emerald-400 active:border-b-0 active:translate-y-1 shadow-[0_6px_20px_rgba(16,185,129,0.5)]'
+              : 'bg-[#2d1b54] border-b-[6px] border-[#1c1134] text-[#6b5ca5] cursor-not-allowed opacity-50'
+          )}
+        >
+          <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7" />
+          Controleer!
+        </motion.button>
       </motion.div>
 
       <ExerciseNumpad
         isOpen={isNumpadOpen}
-        onClose={() => setIsNumpadOpen(false)}
+        onClose={() => { setIsNumpadOpen(false); setActiveSlot(null); }}
         inputValue={activeValue}
         onNumberClick={handleNumberClick}
         onDelete={handleDelete}
-        onCheck={handleCheck}
-        status={activeStatus}
-        onTryAgain={handleTryAgain}
+        onCheck={handleNumpadConfirm}
+        status="idle"
         checkDisabled={!activeValue}
-        autoSubmitLength={2}
       />
     </ExerciseShell>
   );

@@ -430,7 +430,6 @@ export function ExerciseComparison() {
           onCheck={handleNumberCheck}
           status={status}
           checkDisabled={!inputValue}
-          autoSubmitLength={2}
         />
       )}
     </ExerciseShell>
