@@ -215,3 +215,20 @@ export const NUMBER_LINE_CONFIG: Record<string, NumberLineConfig> = {
 export const DEFAULT_NUMBER_LINE: NumberLineConfig = {
   maxNumber: 6,
 };
+
+// ── Sum Split / Splitsen via 10 (ExerciseSumSplit.tsx) ─────────────────────
+
+export interface SumSplitConfig {
+  /** Minimum sum (num1 + num2), should be > 10 to require crossing the ten. */
+  minSum: number;
+  /** Maximum sum. */
+  maxSum: number;
+}
+
+export const SUM_SPLIT_CONFIG: Record<string, SumSplitConfig> = {
+  "1-3": { minSum: 11, maxSum: 18 },
+};
+
+export const DEFAULT_SUM_SPLIT: SumSplitConfig = {
+  minSum: 11, maxSum: 18,
+};
