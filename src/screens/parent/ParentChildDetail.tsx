@@ -96,7 +96,6 @@ export function ParentChildDetail() {
     onSuccess: (_, maxStage) => {
       queryClient.invalidateQueries({ queryKey: ['parent-child', childId] });
       queryClient.invalidateQueries({ queryKey: ['my-child'] });
-      queryClient.invalidateQueries({ queryKey: ['stage-mastery'] });
       toast.success(`${child?.name} heeft nu toegang tot trimester 1${maxStage > 1 ? ` t/m ${maxStage}` : ''}.`);
     },
     onError: (e) => toast.error(mapDbError(e)),
