@@ -60,6 +60,7 @@ export const appRoutes = (
     <Route path="exercises/sound-house/:id" element={<S><ExerciseSoundHouse /></S>} />
     <Route path="exercises/picture-word/:id" element={<S><ExercisePictureWord /></S>} />
     <Route path="exercises/write-letter/:id" element={<S><ExerciseWriteLetter /></S>} />
+    <Route path="exercises/sum-split/:id" element={<S><ExerciseSumSplit /></S>} />
     <Route path="badges" element={<S><BadgeOverview /></S>} />
     <Route path="badges/:id" element={<S><BadgeDetail /></S>} />
     <Route path="progress" element={<S><Progress /></S>} />
