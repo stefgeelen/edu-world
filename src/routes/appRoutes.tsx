@@ -26,6 +26,7 @@ const ExerciseSubtractBox = lazy(() => import('@/screens/ExerciseSubtractBox').t
 const ExerciseSoundHouse = lazy(() => import('@/screens/ExerciseSoundHouse').then(m => ({ default: m.ExerciseSoundHouse })));
 const ExercisePictureWord = lazy(() => import('@/screens/ExercisePictureWord').then(m => ({ default: m.ExercisePictureWord })));
 const ExerciseWriteLetter = lazy(() => import('@/screens/ExerciseWriteLetter').then(m => ({ default: m.ExerciseWriteLetter })));
+const ExerciseSumSplit = lazy(() => import('@/screens/ExerciseSumSplit').then(m => ({ default: m.ExerciseSumSplit })));
 const BadgeOverview = lazy(() => import('@/screens/BadgeOverview').then(m => ({ default: m.BadgeOverview })));
 const BadgeDetail = lazy(() => import('@/screens/BadgeDetail').then(m => ({ default: m.BadgeDetail })));
 const Progress = lazy(() => import('@/screens/Progress').then(m => ({ default: m.Progress })));
@@ -59,6 +60,7 @@ export const appRoutes = (
     <Route path="exercises/sound-house/:id" element={<S><ExerciseSoundHouse /></S>} />
     <Route path="exercises/picture-word/:id" element={<S><ExercisePictureWord /></S>} />
     <Route path="exercises/write-letter/:id" element={<S><ExerciseWriteLetter /></S>} />
+    <Route path="exercises/sum-split/:id" element={<S><ExerciseSumSplit /></S>} />
     <Route path="badges" element={<S><BadgeOverview /></S>} />
     <Route path="badges/:id" element={<S><BadgeDetail /></S>} />
     <Route path="progress" element={<S><Progress /></S>} />
