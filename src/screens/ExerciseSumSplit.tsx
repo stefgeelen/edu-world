@@ -12,7 +12,7 @@ import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { SUM_SPLIT_CONFIG, DEFAULT_SUM_SPLIT } from '@/data/difficultyConfig';
 import { randomInt } from '@/lib/random';
 
-type Slot = 'left' | 'right';
+type Slot = 'left' | 'right' | 'result';
 type SlotStatus = 'idle' | 'correct' | 'incorrect';
 
 interface Question {
@@ -24,8 +24,6 @@ interface Question {
 }
 
 function generateQuestion(minSum: number, maxSum: number): Question {
-  // num1 in 6..9, num2 chosen so num1+num2 between minSum..maxSum and num2 < 10
-  // and leftPart (10-num1) >= 1 and rightPart >= 1.
   for (let i = 0; i < 50; i++) {
     const num1 = randomInt(6, 9);
     const minN2 = Math.max(11 - num1, minSum - num1, 2);
@@ -38,7 +36,6 @@ function generateQuestion(minSum: number, maxSum: number): Question {
       return { num1, num2, total: num1 + num2, leftPart, rightPart };
     }
   }
-  // Fallback
   return { num1: 8, num2: 6, total: 14, leftPart: 2, rightPart: 4 };
 }
 
@@ -60,64 +57,66 @@ export function ExerciseSumSplit() {
 
   const [leftValue, setLeftValue] = useState('');
   const [rightValue, setRightValue] = useState('');
+  const [resultValue, setResultValue] = useState('');
   const [leftStatus, setLeftStatus] = useState<SlotStatus>('idle');
   const [rightStatus, setRightStatus] = useState<SlotStatus>('idle');
+  const [resultStatus, setResultStatus] = useState<SlotStatus>('idle');
   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
+
+  const splitsComplete = leftStatus === 'correct' && rightStatus === 'correct';
 
   const nextQuestion = useCallback(() => {
     setQuestion(generateQuestion(config.minSum, config.maxSum));
     setLeftValue('');
     setRightValue('');
+    setResultValue('');
     setLeftStatus('idle');
     setRightStatus('idle');
+    setResultStatus('idle');
     setActiveSlot(null);
     setIsNumpadOpen(false);
   }, [config.minSum, config.maxSum]);
 
   const openSlot = (slot: Slot) => {
-    if (leftStatus === 'correct' && rightStatus === 'correct') return;
+    if (slot === 'result' && !splitsComplete) return;
+    if (slot === 'left' && leftStatus === 'correct') return;
+    if (slot === 'right' && rightStatus === 'correct') return;
+    if (slot === 'result' && resultStatus === 'correct') return;
     setActiveSlot(slot);
     setIsNumpadOpen(true);
-    if (slot === 'left' && leftStatus === 'incorrect') {
-      setLeftStatus('idle');
-      setLeftValue('');
-    }
-    if (slot === 'right' && rightStatus === 'incorrect') {
-      setRightStatus('idle');
-      setRightValue('');
-    }
+    if (slot === 'left' && leftStatus === 'incorrect') { setLeftStatus('idle'); setLeftValue(''); }
+    if (slot === 'right' && rightStatus === 'incorrect') { setRightStatus('idle'); setRightValue(''); }
+    if (slot === 'result' && resultStatus === 'incorrect') { setResultStatus('idle'); setResultValue(''); }
   };
 
   const handleNumberClick = (num: number | string) => {
     if (!activeSlot) return;
-    const setter = activeSlot === 'left' ? setLeftValue : setRightValue;
-    const statusSetter = activeSlot === 'left' ? setLeftStatus : setRightStatus;
-    statusSetter(s => (s === 'incorrect' ? 'idle' : s));
-    setter(prev => {
-      // If incorrect or correct (shouldn't reach here when correct), replace; else append
-      if (prev.length >= 2) return prev;
-      return prev + num.toString();
-    });
+    const maxLen = activeSlot === 'result' ? 2 : 2;
+    if (activeSlot === 'left') {
+      setLeftStatus(s => (s === 'incorrect' ? 'idle' : s));
+      setLeftValue(prev => prev.length >= maxLen ? prev : prev + num.toString());
+    } else if (activeSlot === 'right') {
+      setRightStatus(s => (s === 'incorrect' ? 'idle' : s));
+      setRightValue(prev => prev.length >= maxLen ? prev : prev + num.toString());
+    } else {
+      setResultStatus(s => (s === 'incorrect' ? 'idle' : s));
+      setResultValue(prev => prev.length >= maxLen ? prev : prev + num.toString());
+    }
   };
 
   const handleDelete = () => {
     if (!activeSlot) return;
-    const setter = activeSlot === 'left' ? setLeftValue : setRightValue;
-    const statusSetter = activeSlot === 'left' ? setLeftStatus : setRightStatus;
-    setter(prev => prev.slice(0, -1));
-    statusSetter(s => (s === 'incorrect' ? 'idle' : s));
+    if (activeSlot === 'left') { setLeftValue(prev => prev.slice(0, -1)); setLeftStatus(s => (s === 'incorrect' ? 'idle' : s)); }
+    else if (activeSlot === 'right') { setRightValue(prev => prev.slice(0, -1)); setRightStatus(s => (s === 'incorrect' ? 'idle' : s)); }
+    else { setResultValue(prev => prev.slice(0, -1)); setResultStatus(s => (s === 'incorrect' ? 'idle' : s)); }
   };
 
   const handleTryAgain = () => {
     if (!activeSlot) return;
-    if (activeSlot === 'left') {
-      setLeftValue('');
-      setLeftStatus('idle');
-    } else {
-      setRightValue('');
-      setRightStatus('idle');
-    }
+    if (activeSlot === 'left') { setLeftValue(''); setLeftStatus('idle'); }
+    else if (activeSlot === 'right') { setRightValue(''); setRightStatus('idle'); }
+    else { setResultValue(''); setResultStatus('idle'); }
   };
 
   const finishExerciseIfDone = (newProgress: number) => {
@@ -138,49 +137,6 @@ export function ExerciseSumSplit() {
     return false;
   };
 
-  const handleCheck = () => {
-    if (!activeSlot) return;
-    const value = activeSlot === 'left' ? leftValue : rightValue;
-    if (!value) return;
-
-    const expected = activeSlot === 'left' ? question.leftPart : question.rightPart;
-    const correct = parseInt(value, 10) === expected;
-
-    if (correct) {
-      if (activeSlot === 'left') {
-        setLeftStatus('correct');
-        // If right already correct (unlikely as we go left first), finish question
-        if (rightStatus === 'correct') {
-          completeQuestion();
-        } else {
-          // Move on to right slot
-          setTimeout(() => {
-            setActiveSlot('right');
-            setIsNumpadOpen(true);
-          }, 600);
-        }
-      } else {
-        setRightStatus('correct');
-        if (leftStatus === 'correct') {
-          completeQuestion();
-        } else {
-          setTimeout(() => {
-            setActiveSlot('left');
-            setIsNumpadOpen(true);
-          }, 600);
-        }
-      }
-    } else {
-      if (activeSlot === 'left') setLeftStatus('incorrect');
-      else setRightStatus('incorrect');
-      const nextLives = lives - 1;
-      setLives(nextLives);
-      if (nextLives <= 0) {
-        setTimeout(() => navigate(`/app/stage/fluisterbos/${stage}`), 1500);
-      }
-    }
-  };
-
   const completeQuestion = () => {
     setIsNumpadOpen(false);
     correctCount.current += 1;
@@ -194,22 +150,59 @@ export function ExerciseSumSplit() {
     }, 1600);
   };
 
-  // When numpad is closed and a slot still has wrong/incorrect status, leave as-is
+  const handleCheck = () => {
+    if (!activeSlot) return;
+    const value = activeSlot === 'left' ? leftValue : activeSlot === 'right' ? rightValue : resultValue;
+    if (!value) return;
+
+    const expected = activeSlot === 'left' ? question.leftPart
+      : activeSlot === 'right' ? question.rightPart
+      : question.total;
+    const correct = parseInt(value, 10) === expected;
+
+    if (correct) {
+      if (activeSlot === 'left') {
+        setLeftStatus('correct');
+        if (rightStatus === 'correct') {
+          setTimeout(() => { setActiveSlot('result'); setIsNumpadOpen(true); }, 600);
+        } else {
+          setTimeout(() => { setActiveSlot('right'); setIsNumpadOpen(true); }, 600);
+        }
+      } else if (activeSlot === 'right') {
+        setRightStatus('correct');
+        if (leftStatus === 'correct') {
+          setTimeout(() => { setActiveSlot('result'); setIsNumpadOpen(true); }, 600);
+        } else {
+          setTimeout(() => { setActiveSlot('left'); setIsNumpadOpen(true); }, 600);
+        }
+      } else {
+        setResultStatus('correct');
+        setTimeout(() => completeQuestion(), 600);
+      }
+    } else {
+      if (activeSlot === 'left') setLeftStatus('incorrect');
+      else if (activeSlot === 'right') setRightStatus('incorrect');
+      else setResultStatus('incorrect');
+      const nextLives = lives - 1;
+      setLives(nextLives);
+      if (nextLives <= 0) {
+        setTimeout(() => navigate(`/app/stage/fluisterbos/${stage}`), 1500);
+      }
+    }
+  };
+
   useEffect(() => {
     if (!isNumpadOpen) setActiveSlot(null);
   }, [isNumpadOpen]);
 
-  const renderSlot = (slot: Slot) => {
+  const renderSplitSlot = (slot: 'left' | 'right') => {
     const value = slot === 'left' ? leftValue : rightValue;
     const status = slot === 'left' ? leftStatus : rightStatus;
     const isActive = activeSlot === slot && isNumpadOpen;
 
     return (
       <motion.button
-        onClick={(e) => {
-          e.stopPropagation();
-          openSlot(slot);
-        }}
+        onClick={(e) => { e.stopPropagation(); openSlot(slot); }}
         animate={
           status === 'incorrect' ? { x: [-5, 5, -4, 4, -2, 2, 0] } :
           status === 'correct' ? { scale: [1, 1.1, 1], rotate: [0, -5, 5, 0] } :
@@ -248,8 +241,67 @@ export function ExerciseSumSplit() {
     );
   };
 
-  const activeStatus = activeSlot === 'left' ? leftStatus : activeSlot === 'right' ? rightStatus : 'idle';
-  const activeValue = activeSlot === 'left' ? leftValue : activeSlot === 'right' ? rightValue : '';
+  const renderResultSlot = () => {
+    const isActive = activeSlot === 'result' && isNumpadOpen;
+    const locked = !splitsComplete;
+
+    return (
+      <motion.button
+        onClick={(e) => { e.stopPropagation(); openSlot('result'); }}
+        animate={
+          resultStatus === 'incorrect' ? { x: [-5, 5, -4, 4, -2, 2, 0] } :
+          resultStatus === 'correct' ? { scale: [1, 1.15, 1], rotate: [0, -5, 5, 0] } :
+          { scale: isActive && !resultValue ? 1.05 : 1 }
+        }
+        transition={
+          resultStatus === 'incorrect' ? { duration: 0.5, ease: 'easeInOut' } :
+          resultStatus === 'correct' ? { duration: 0.5, ease: 'easeOut' } :
+          { duration: 0.2 }
+        }
+        disabled={locked}
+        className={cn(
+          'relative w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center transition-all duration-300 transform-gpu outline-none',
+          locked
+            ? 'bg-[#1c1134]/40 border-4 border-dashed border-[#4c3b82]/50 opacity-50 cursor-not-allowed'
+            : resultStatus === 'correct'
+              ? 'bg-emerald-400 border-b-[6px] border-emerald-600 ring-4 ring-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.8)] cursor-pointer'
+            : resultStatus === 'incorrect'
+              ? 'bg-orange-500 border-b-[6px] border-orange-700 ring-4 ring-orange-300 cursor-pointer'
+            : resultValue
+              ? 'bg-amber-500 border-b-[6px] border-amber-700 ring-4 ring-amber-300 shadow-xl cursor-pointer'
+              : 'bg-[#2d1b54]/60 border-4 border-dashed border-amber-400/70 hover:bg-[#3b2d71]/80 shadow-inner cursor-pointer'
+        )}
+      >
+        {!locked && (resultValue || resultStatus !== 'idle') && (
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
+        )}
+        {!locked && !resultValue && resultStatus === 'idle' && !isActive && (
+          <div className="absolute inset-0 rounded-2xl border-4 border-white/20 animate-ping pointer-events-none" />
+        )}
+        {locked ? (
+          <span className="text-2xl md:text-3xl font-black text-[#4c3b82]/60">?</span>
+        ) : resultValue ? (
+          <span className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]">
+            {resultValue}
+          </span>
+        ) : (
+          <span className={cn(
+            'text-2xl md:text-3xl font-black text-amber-400/60 transition-colors',
+            isActive && 'text-amber-400'
+          )}>?</span>
+        )}
+      </motion.button>
+    );
+  };
+
+  const activeStatus = activeSlot === 'left' ? leftStatus
+    : activeSlot === 'right' ? rightStatus
+    : activeSlot === 'result' ? resultStatus
+    : 'idle';
+  const activeValue = activeSlot === 'left' ? leftValue
+    : activeSlot === 'right' ? rightValue
+    : activeSlot === 'result' ? resultValue
+    : '';
 
   return (
     <ExerciseShell
@@ -269,23 +321,23 @@ export function ExerciseSumSplit() {
           </h2>
         </div>
 
-        {/* Sum statement */}
+        {/* Sum statement with interactive result slot */}
         <motion.div
           key={`${question.num1}-${question.num2}`}
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-[#1c1134]/60 backdrop-blur-sm rounded-[2rem] px-6 py-4 md:px-10 md:py-6 shadow-[0_15px_40px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] mb-8"
         >
-          <div className="text-5xl md:text-7xl font-black tracking-tight flex items-center gap-2 md:gap-4">
-            <span className="text-cyan-400 drop-shadow-sm">{question.num1}</span>
-            <span className="text-amber-400">+</span>
-            <span className="text-emerald-400 drop-shadow-sm">{question.num2}</span>
-            <span className="text-[#9d8bce]">=</span>
-            <span className="text-[#a78bfa]">{question.total}</span>
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="text-5xl md:text-7xl font-black text-cyan-400 drop-shadow-sm">{question.num1}</span>
+            <span className="text-5xl md:text-7xl font-black text-amber-400">+</span>
+            <span className="text-5xl md:text-7xl font-black text-emerald-400 drop-shadow-sm">{question.num2}</span>
+            <span className="text-5xl md:text-7xl font-black text-[#9d8bce]">=</span>
+            {renderResultSlot()}
           </div>
         </motion.div>
 
-        {/* Split fork: from second number down to two slots */}
+        {/* Split fork */}
         <div className="relative w-full max-w-[280px] md:max-w-[360px] flex flex-col items-center">
           <svg className="w-full h-20 md:h-28 pointer-events-none" viewBox="0 0 100 40" preserveAspectRatio="none">
             <path
@@ -307,12 +359,12 @@ export function ExerciseSumSplit() {
           </svg>
 
           <div className="w-full flex justify-between px-2 -mt-2">
-            {renderSlot('left')}
-            {renderSlot('right')}
+            {renderSplitSlot('left')}
+            {renderSplitSlot('right')}
           </div>
 
           <AnimatePresence>
-            {(leftStatus === 'incorrect' || rightStatus === 'incorrect') && (
+            {(leftStatus === 'incorrect' || rightStatus === 'incorrect' || resultStatus === 'incorrect') && (
               <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -328,7 +380,9 @@ export function ExerciseSumSplit() {
           </AnimatePresence>
 
           <p className="mt-6 text-center text-sm md:text-base text-[#a78bfa] font-semibold max-w-xs">
-            Hoeveel heb je nodig om eerst tot 10 te komen? En hoeveel blijft er over?
+            {splitsComplete
+              ? 'Goed! Wat is het antwoord?'
+              : 'Hoeveel heb je nodig om eerst tot 10 te komen? En hoeveel blijft er over?'}
           </p>
         </div>
       </motion.div>
@@ -343,6 +397,7 @@ export function ExerciseSumSplit() {
         status={activeStatus}
         onTryAgain={handleTryAgain}
         checkDisabled={!activeValue}
+        autoSubmitLength={2}
       />
     </ExerciseShell>
   );

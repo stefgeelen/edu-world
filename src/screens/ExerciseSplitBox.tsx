@@ -294,6 +294,7 @@ export function ExerciseSplitBox() {
         status={status}
         onTryAgain={handleTryAgain}
         checkDisabled={!inputValue}
+        autoSubmitLength={2}
       />
     </ExerciseShell>
   );
