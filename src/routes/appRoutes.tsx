@@ -26,6 +26,7 @@ const ExerciseSubtractBox = lazy(() => import('@/screens/ExerciseSubtractBox').t
 const ExerciseSoundHouse = lazy(() => import('@/screens/ExerciseSoundHouse').then(m => ({ default: m.ExerciseSoundHouse })));
 const ExercisePictureWord = lazy(() => import('@/screens/ExercisePictureWord').then(m => ({ default: m.ExercisePictureWord })));
 const ExerciseWriteLetter = lazy(() => import('@/screens/ExerciseWriteLetter').then(m => ({ default: m.ExerciseWriteLetter })));
+const ExerciseSumSplit = lazy(() => import('@/screens/ExerciseSumSplit').then(m => ({ default: m.ExerciseSumSplit })));
 const BadgeOverview = lazy(() => import('@/screens/BadgeOverview').then(m => ({ default: m.BadgeOverview })));
 const BadgeDetail = lazy(() => import('@/screens/BadgeDetail').then(m => ({ default: m.BadgeDetail })));
 const Progress = lazy(() => import('@/screens/Progress').then(m => ({ default: m.Progress })));
