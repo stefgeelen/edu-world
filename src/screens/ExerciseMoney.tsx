@@ -65,8 +65,9 @@ const ALL_DENOMINATIONS: DenominationDef[] = [
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 
-function generatePrice(maxCents: number): number {
-  return randomInt(1, Math.floor(maxCents / 5)) * 5;
+function generatePrice(maxCents: number, denominations: number[]): number {
+  const smallest = Math.min(...denominations);
+  return randomInt(1, Math.floor(maxCents / smallest)) * smallest;
 }
 
 function formatCents(cents: number): string {
@@ -181,7 +182,7 @@ export function ExerciseMoney() {
   );
 
   const [product, setProduct] = useState(() => PRODUCTS[randomInt(0, PRODUCTS.length - 1)]);
-  const [priceCents, setPriceCents] = useState(() => generatePrice(moneyCfg.maxPriceCents));
+  const [priceCents, setPriceCents] = useState(() => generatePrice(moneyCfg.maxPriceCents, moneyCfg.denominations));
   const [droppedItems, setDroppedItems] = useState<{ id: string; denom: DenominationDef }[]>([]);
   const [dragId, setDragId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'too-little' | 'too-much' | null>(null);
@@ -194,7 +195,7 @@ export function ExerciseMoney() {
 
   const nextQuestion = useCallback(() => {
     setProduct(PRODUCTS[randomInt(0, PRODUCTS.length - 1)]);
-    setPriceCents(generatePrice(moneyCfg.maxPriceCents));
+    setPriceCents(generatePrice(moneyCfg.maxPriceCents, moneyCfg.denominations));
     setDroppedItems([]);
     setFeedback(null);
   }, [moneyCfg.maxPriceCents]);
