@@ -35,10 +35,9 @@ function getCheckpointStatus(
   stages: { stage: number; isCompleted: boolean; isCurrent: boolean; isLocked: boolean }[]
 ): "completed" | "current" | "locked" {
   const s = stages.find((x) => x.stage === stage);
-  if (!s) return "locked";
+  if (!s || s.isLocked) return "locked";
   if (s.isCompleted) return "completed";
-  if (s.isCurrent) return "current";
-  return "locked";
+  return "current";
 }
 
 function getButtonClass(status: "completed" | "current" | "locked") {
