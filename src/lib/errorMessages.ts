@@ -47,8 +47,8 @@ export function mapAuthError(error: AnyError): string {
   if (code === 'user_already_exists' || lower.includes('already registered') || lower.includes('user already')) {
     return 'Er bestaat al een account met dit e-mailadres. Log in.';
   }
-  if (code === 'weak_password' || lower.includes('password should be at least') || lower.includes('weak password')) {
-    return 'Je wachtwoord is te zwak. Gebruik minstens 6 tekens.';
+  if (code === 'weak_password' || lower.includes('password should be at least') || lower.includes('weak password') || lower.includes('password is too weak') || lower.includes('leaked')) {
+    return 'Dit wachtwoord is te veelgebruikt of te zwak. Kies een uniek wachtwoord dat je nergens anders gebruikt.';
   }
   if (code === 'over_email_send_rate_limit' || lower.includes('rate limit') || status === 429) {
     return 'Te veel pogingen. Wacht een minuut en probeer opnieuw.';
