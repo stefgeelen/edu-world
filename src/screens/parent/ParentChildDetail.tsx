@@ -14,6 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useChildInsights } from '@/hooks/useChildInsights';
 
 const GRADE_LABELS: Record<number, string> = {
   1: '1ste leerjaar', 2: '2de leerjaar', 3: '3de leerjaar',
@@ -32,6 +33,20 @@ function formatTime(seconds: number): string {
   if (mins < 60) return `${mins}min`;
   const hrs = Math.floor(mins / 60);
   return `${hrs}u ${mins % 60}m`;
+}
+
+function scoreColor(pct: number) {
+  if (pct < 0.4) return { text: 'text-red-600', bg: 'bg-red-50' };
+  return { text: 'text-orange-600', bg: 'bg-orange-50' };
+}
+
+function stageLabel(stage: string) {
+  const map: Record<string, string> = {
+    'stage-1': 'Trimester 1',
+    'stage-2': 'Trimester 2',
+    'stage-3': 'Trimester 3',
+  };
+  return map[stage] ?? stage;
 }
 
 export function ParentChildDetail() {
@@ -83,6 +98,8 @@ export function ParentChildDetail() {
     },
     enabled: !!childId && !!child,
   });
+
+  const { data: insights = [], isLoading: insightsLoading } = useChildInsights(childId);
 
   const stageMutation = useMutation({
     mutationFn: async (maxStage: number) => {
@@ -204,6 +221,72 @@ export function ParentChildDetail() {
                   <div className="text-right">
                     <p className="text-lg font-black text-slate-900">{score}%</p>
                     <p className="text-xs font-bold text-slate-400">{p.total_xp} XP</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Aandachtspunten */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
+          <div>
+            <h3 className="font-bold text-slate-900">Aandachtspunten</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Oefeningen die extra aandacht verdienen</p>
+          </div>
+        </div>
+
+        {insightsLoading ? (
+          <div className="divide-y divide-slate-100">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="px-5 py-4 flex items-center gap-4 animate-pulse">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-slate-100 rounded w-2/3" />
+                  <div className="h-2.5 bg-slate-100 rounded w-1/3" />
+                </div>
+                <div className="h-6 w-12 bg-slate-100 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : insights.length === 0 ? (
+          <div className="px-5 py-8 flex flex-col items-center gap-2 text-center">
+            <CheckCircle2 className="w-8 h-8 text-teal-500" />
+            <p className="font-bold text-slate-700 text-sm">Alles gaat goed!</p>
+            <p className="text-xs text-slate-400">Geen oefeningen met aanhoudende moeite gevonden.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {insights.slice(0, 5).map((insight) => {
+              const cfg = SUBJECT_CONFIG[insight.subject];
+              const Icon = cfg?.icon;
+              const colors = scoreColor(insight.avgScorePct);
+              return (
+                <div key={insight.exerciseId} className="px-5 py-4 flex items-center gap-4">
+                  {cfg && Icon ? (
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
+                      <Icon className={`w-5 h-5 ${cfg.color}`} />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-slate-800 truncate">{insight.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {cfg && (
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color}`}>
+                          {cfg.label}
+                        </span>
+                      )}
+                      <span className="text-xs text-slate-400">{stageLabel(insight.stage)}</span>
+                      <span className="text-xs text-slate-400">{insight.attemptCount}× geprobeerd</span>
+                    </div>
+                  </div>
+                  <div className={`text-right flex-shrink-0 px-2.5 py-1 rounded-xl ${colors.bg}`}>
+                    <p className={`text-lg font-black ${colors.text}`}>{Math.round(insight.avgScorePct * 100)}%</p>
                   </div>
                 </div>
               );

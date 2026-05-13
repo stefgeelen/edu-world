@@ -91,6 +91,7 @@ export function useCompleteExercise() {
       queryClient.invalidateQueries({ queryKey: ['parent-children'] });
       queryClient.invalidateQueries({ queryKey: ['parent-children', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['game-badges'] });
+      queryClient.invalidateQueries({ queryKey: ['child-insights'] });
 
       // Trigger celebrations
       if (data?.completed_rewards && data.completed_rewards.length > 0) {
