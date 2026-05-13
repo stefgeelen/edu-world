@@ -35,7 +35,7 @@ export function InstallPrompt() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-white text-sm">
-                  Voeg EduWorld toe! 🎒
+                  Voeg Leapio toe! 🎒
                 </p>
                 <p className="text-white/80 text-xs mt-0.5">
                   Installeer de app op je startscherm voor snelle toegang

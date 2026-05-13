@@ -1,4 +1,4 @@
-# EduWorld — Claude Code Context
+# Leapio — Claude Code Context
 
 ## Stack
 - **React 18.3** + **TypeScript 5.8** + **Vite 5.4** (SWC)

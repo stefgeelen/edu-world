@@ -31,7 +31,7 @@ export function AdminDashboard() {
           </button>
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-indigo-600" />
-            <h1 className="text-xl font-black text-slate-900">EduWorld Admin</h1>
+            <h1 className="text-xl font-black text-slate-900">Leapio Admin</h1>
           </div>
         </div>
         <button

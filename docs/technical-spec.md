@@ -1,4 +1,4 @@
-# EduWorld — Technical Specification
+# Leapio — Technical Specification
 
 > **Maintainer:** Senior Technical Architect Agent (automated)
 > **Last reviewed:** 2026-04-28
@@ -8,7 +8,7 @@
 
 ## 1. Project Overview
 
-EduWorld is a gamified educational web application for Dutch primary school children (grades 1–6). Children complete interactive exercises in math and language, earn XP, collect badges, and progress through stages. Parents manage child profiles, set PIN access, and monitor progress. Admins manage users and subscriptions.
+Leapio is a gamified educational web application for Dutch primary school children (grades 1–6). Children complete interactive exercises in math and language, earn XP, collect badges, and progress through stages. Parents manage child profiles, set PIN access, and monitor progress. Admins manage users and subscriptions.
 
 **Target users:**
 - Children (ages 6–12) — primary users

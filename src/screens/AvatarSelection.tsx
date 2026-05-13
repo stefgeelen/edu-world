@@ -100,7 +100,7 @@ export function AvatarSelection() {
       >
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md shadow-sm border border-white/20 mb-4">
           <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-yellow-400" />
-          <span className="text-xs md:text-sm font-bold text-white tracking-wide uppercase">Welkom bij EduWorld</span>
+          <span className="text-xs md:text-sm font-bold text-white tracking-wide uppercase">Welkom bij Leapio</span>
         </div>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
           Kies je <br />
