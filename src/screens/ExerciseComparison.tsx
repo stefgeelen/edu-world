@@ -133,6 +133,7 @@ export function ExerciseComparison() {
   const [status, setStatus] = useState<QStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
+  const [numpadHeight, setNumpadHeight] = useState(0);
 
   const needsSymbol = question.variation === 1 || question.variation === 2;
   const needsNumber = question.variation === 3 || question.variation === 4;
@@ -416,7 +417,7 @@ export function ExerciseComparison() {
           )}
         </AnimatePresence>
 
-        <div className="flex-shrink-0 h-2" />
+        <div className="flex-shrink-0" style={{ height: isNumpadOpen && needsNumber ? numpadHeight + 8 : 8 }} />
       </div>
 
       {/* Numpad for number input variations */}
@@ -430,6 +431,7 @@ export function ExerciseComparison() {
           onCheck={handleNumberCheck}
           status={status}
           checkDisabled={!inputValue}
+          onHeightChange={setNumpadHeight}
         />
       )}
     </ExerciseShell>

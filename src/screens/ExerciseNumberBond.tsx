@@ -29,6 +29,8 @@ export function ExerciseNumberBond() {
   const [inputValue, setInputValue] = useState("");
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
   const [status, setStatus] = useState<'idle' | 'incorrect' | 'correct'>('idle');
+  const [numpadHeight, setNumpadHeight] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const generateQuestion = () => {
     const { minTarget, maxTarget } = bondConfig;
@@ -43,6 +45,13 @@ export function ExerciseNumberBond() {
   useEffect(() => {
     generateQuestion();
   }, []);
+
+  useEffect(() => {
+    if (!isNumpadOpen || !scrollRef.current) return;
+    const el = scrollRef.current;
+    const timer = setTimeout(() => el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }), 50);
+    return () => clearTimeout(timer);
+  }, [isNumpadOpen]);
 
   const handleNumberClick = (num: number | string) => {
     if (status === 'incorrect') {
@@ -97,10 +106,10 @@ export function ExerciseNumberBond() {
       onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
       onClick={() => setIsNumpadOpen(false)}
     >
-      <motion.div 
-        animate={{ y: isNumpadOpen ? -60 : 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="flex-1 flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0 pb-12"
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
+      <div
+        className="min-h-full flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0"
+        style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 48 }}
       >
         <div className="mb-12 text-center">
           <h2 className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">
@@ -216,7 +225,8 @@ export function ExerciseNumberBond() {
             </motion.button>
           </div>
         </div>
-      </motion.div>
+      </div>
+      </div>
 
       <ExerciseNumpad
         isOpen={isNumpadOpen}
@@ -231,6 +241,7 @@ export function ExerciseNumberBond() {
         status={status}
         onTryAgain={handleTryAgain}
         checkDisabled={!inputValue}
+        onHeightChange={setNumpadHeight}
       />
     </ExerciseShell>
   );

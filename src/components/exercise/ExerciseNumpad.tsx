@@ -15,6 +15,8 @@ interface ExerciseNumpadProps {
   checkDisabled?: boolean;
   /** When inputValue reaches this length, auto-submit after 400 ms. */
   autoSubmitLength?: number;
+  /** Called with the numpad's rendered height (px) when it mounts. */
+  onHeightChange?: (height: number) => void;
 }
 
 const ROWS = [
@@ -38,6 +40,7 @@ export function ExerciseNumpad({
   onTryAgain,
   checkDisabled = false,
   autoSubmitLength,
+  onHeightChange,
 }: ExerciseNumpadProps) {
   // Keep a stable ref so the auto-submit effect never captures a stale onCheck
   const onCheckRef = useRef(onCheck);
@@ -62,6 +65,7 @@ export function ExerciseNumpad({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          ref={(el) => { if (el && onHeightChange) onHeightChange(el.offsetHeight); }}
           initial={{ y: '100%', opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}

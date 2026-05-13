@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
@@ -63,6 +63,8 @@ export function ExerciseSumSplit() {
   const [resultStatus, setResultStatus] = useState<SlotStatus>('idle');
   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
+  const [numpadHeight, setNumpadHeight] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Result slot only unlocks once both split values are filled
   const resultUnlocked = !!leftValue && !!rightValue;
@@ -81,6 +83,15 @@ export function ExerciseSumSplit() {
     setActiveSlot(null);
     setIsNumpadOpen(false);
   }, [config.minSum, config.maxSum]);
+
+  useEffect(() => {
+    if (!isNumpadOpen || !scrollRef.current) return;
+    const el = scrollRef.current;
+    // Result slot is near the top — scroll up. Split slots are lower — scroll down.
+    const target = activeSlot === 'result' ? 0 : el.scrollHeight;
+    const timer = setTimeout(() => el.scrollTo({ top: target, behavior: 'smooth' }), 50);
+    return () => clearTimeout(timer);
+  }, [isNumpadOpen, activeSlot]);
 
   const openSlot = (slot: Slot) => {
     if (slot === 'result' && !resultUnlocked) return;
@@ -288,10 +299,10 @@ export function ExerciseSumSplit() {
       onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
       onClick={() => setIsNumpadOpen(false)}
     >
-      <motion.div
-        animate={{ y: isNumpadOpen ? -60 : 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="flex-1 flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0 pb-4"
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
+      <div
+        className="min-h-full flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0"
+        style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 16 }}
       >
         <div className="mb-6 text-center">
           <h2 className="text-xl md:text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">
@@ -374,7 +385,8 @@ export function ExerciseSumSplit() {
           <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7" />
           Controleer!
         </motion.button>
-      </motion.div>
+      </div>
+      </div>
 
       <ExerciseNumpad
         isOpen={isNumpadOpen}
@@ -385,6 +397,7 @@ export function ExerciseSumSplit() {
         onCheck={handleNumpadConfirm}
         status="idle"
         checkDisabled={!activeValue}
+        onHeightChange={setNumpadHeight}
       />
     </ExerciseShell>
   );
