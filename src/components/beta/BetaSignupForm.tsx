@@ -58,7 +58,7 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
 
   if (success) {
     const shareText = encodeURIComponent(
-      'Ontdek EduWorld — gamified oefenen voor het 1ste & 2de leerjaar in Vlaanderen. Schrijf je in voor de beta:'
+      'Ontdek Leapio — gamified oefenen voor het 1ste & 2de leerjaar in Vlaanderen. Schrijf je in voor de beta:'
     );
     const shareUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '');
     return (

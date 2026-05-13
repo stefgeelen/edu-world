@@ -83,7 +83,7 @@ export function Auth() {
         transition={{ delay: 0.1 }}
         className="text-3xl font-black text-slate-800 mb-1 tracking-tight"
       >
-        EduWorld
+        Leapio
       </motion.h1>
       <motion.p
         initial={{ y: 20, opacity: 0 }}

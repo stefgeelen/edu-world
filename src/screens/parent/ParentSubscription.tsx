@@ -153,7 +153,7 @@ export function ParentSubscription() {
                     ))}
                   </div>
                   <a
-                    href={`mailto:support@eduworld.app?subject=${encodeURIComponent(`Upgrade naar ${info.label}`)}&body=${encodeURIComponent(`Hallo,\n\nIk wil graag mijn abonnement upgraden naar ${info.label}.\n\nMijn account: ${user?.email ?? ''}\n\nBedankt!`)}`}
+                    href={`mailto:support@leapio.app?subject=${encodeURIComponent(`Upgrade naar ${info.label}`)}&body=${encodeURIComponent(`Hallo,\n\nIk wil graag mijn abonnement upgraden naar ${info.label}.\n\nMijn account: ${user?.email ?? ''}\n\nBedankt!`)}`}
                     className="block w-full text-center py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-colors"
                   >
                     Upgrade naar {info.label}
@@ -172,7 +172,7 @@ export function ParentSubscription() {
             Je kunt je abonnement op elk moment opzeggen. Je behoudt toegang tot het einde van de huidige factureringsperiode.
           </p>
           <a
-            href={`mailto:support@eduworld.app?subject=${encodeURIComponent('Verzoek tot opzegging abonnement')}&body=${encodeURIComponent(`Hallo,\n\nIk wil mijn ${planInfo.label}-abonnement opzeggen.\n\nMijn account: ${user?.email ?? ''}\n\nBedankt!`)}`}
+            href={`mailto:support@leapio.app?subject=${encodeURIComponent('Verzoek tot opzegging abonnement')}&body=${encodeURIComponent(`Hallo,\n\nIk wil mijn ${planInfo.label}-abonnement opzeggen.\n\nMijn account: ${user?.email ?? ''}\n\nBedankt!`)}`}
             className="inline-block px-4 py-2.5 rounded-xl border-2 border-red-200 text-red-600 font-bold text-sm hover:bg-red-50 transition-colors"
           >
             Neem contact op om op te zeggen

@@ -14,20 +14,20 @@ const FAQ_ITEMS = [
     a: 'De beta opent begin augustus 2026. Je krijgt een mailtje zodra je toegang hebt.',
   },
   {
-    q: 'Wat kost EduWorld na de beta?',
+    q: 'Wat kost Leapio na de beta?',
     a: 'Beta-deelnemers krijgen 1 maand gratis bij de officiële lancering. Daarna start de Basis-formule vanaf €5,99/maand voor één kind, of €8,99/maand voor het Gezinsplan tot 3 kinderen.',
   },
   {
     q: 'Op welke toestellen werkt het?',
-    a: 'EduWorld is een PWA — installeer het rechtstreeks op smartphone, tablet of laptop, zonder app store. Werkt op iPhone, iPad, Android en computers.',
+    a: 'Leapio is een PWA — installeer het rechtstreeks op smartphone, tablet of laptop, zonder app store. Werkt op iPhone, iPad, Android en computers.',
   },
   {
     q: 'Voor welke leeftijden is het bedoeld?',
-    a: 'EduWorld is ontworpen voor kinderen van 6 tot 8 jaar — het 1ste en 2de leerjaar in Vlaanderen. De moeilijkheidsgraad past zich automatisch aan per trimester.',
+    a: 'Leapio is ontworpen voor kinderen van 6 tot 8 jaar — het 1ste en 2de leerjaar in Vlaanderen. De moeilijkheidsgraad past zich automatisch aan per trimester.',
   },
   {
     q: 'Is het ook in lijn met het Vlaamse curriculum?',
-    a: 'Ja. EduWorld is specifiek gebouwd rond het Vlaamse trimestersysteem en de leerdoelen voor het 1ste en 2de leerjaar. Geen Nederlandse aanpassing — echt Belgisch.',
+    a: 'Ja. Leapio is specifiek gebouwd rond het Vlaamse trimestersysteem en de leerdoelen voor het 1ste en 2de leerjaar. Geen Nederlandse aanpassing — echt Belgisch.',
   },
   {
     q: 'Hoe zit het met privacy?',
@@ -76,13 +76,13 @@ const STEPS = [
 
 export default function BetaLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const canonical = typeof window !== 'undefined' ? `${window.location.origin}/beta` : 'https://edu-world.lovable.app/beta';
+  const canonical = typeof window !== 'undefined' ? `${window.location.origin}/beta` : 'https://leapio.lovable.app/beta';
 
   const jsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      name: 'EduWorld',
+      name: 'Leapio',
       operatingSystem: 'Web, iOS, Android',
       applicationCategory: 'EducationalApplication',
       description: 'Gamified leerplatform voor het 1ste en 2de leerjaar in Vlaanderen. Rekenen, lezen en schrijven met XP, badges en een Vlaams curriculum.',
@@ -110,7 +110,7 @@ export default function BetaLanding() {
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'EduWorld',
+      name: 'Leapio',
       url: canonical,
     },
   ];
@@ -118,8 +118,8 @@ export default function BetaLanding() {
   return (
     <>
       <SEO
-        title="EduWorld Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen"
-        description="Schrijf je in voor de EduWorld beta. Een gamified leerapp voor rekenen, lezen en schrijven, gebouwd voor het Vlaamse 1ste en 2de leerjaar. Lancering augustus 2026."
+        title="Leapio Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen"
+        description="Schrijf je in voor de Leapio beta. Een gamified leerapp voor rekenen, lezen en schrijven, gebouwd voor het Vlaamse 1ste en 2de leerjaar. Lancering augustus 2026."
         canonical={canonical}
         ogImage={heroImg}
         jsonLd={jsonLd}
@@ -138,7 +138,7 @@ export default function BetaLanding() {
               <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30">
                 <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
-              <span className="text-xl font-black tracking-tight">EduWorld</span>
+              <span className="text-xl font-black tracking-tight">Leapio</span>
             </div>
             <span className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-xs font-bold">
               <Clock className="w-3.5 h-3.5" /> Lancering augustus 2026
@@ -202,7 +202,7 @@ export default function BetaLanding() {
               <div className="absolute -inset-6 bg-gradient-to-br from-amber-400/30 to-violet-500/30 rounded-[3rem] blur-2xl" />
               <img
                 src={heroImg}
-                alt="Vlaams kind oefent rekenen en lezen op de EduWorld leerapp"
+                alt="Vlaams kind oefent rekenen en lezen op de Leapio leerapp"
                 width={1280}
                 height={960}
                 loading="eager"
@@ -218,10 +218,10 @@ export default function BetaLanding() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-14">
               <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">
-                Waarom ouders kiezen voor EduWorld
+                Waarom ouders kiezen voor Leapio
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Drie redenen waarom EduWorld werkt waar werkboekjes en huiswerkapps falen.
+                Drie redenen waarom Leapio werkt waar werkboekjes en huiswerkapps falen.
               </p>
             </div>
 
@@ -328,7 +328,7 @@ export default function BetaLanding() {
               Word één van de eerste 100 gezinnen
             </h2>
             <p className="text-lg md:text-xl text-violet-100/90 mb-8">
-              Vroege toegang. Eén maand gratis. Een directe lijn naar de maker om mee te bouwen aan EduWorld.
+              Vroege toegang. Eén maand gratis. Een directe lijn naar de maker om mee te bouwen aan Leapio.
             </p>
             <div className="max-w-xl mx-auto">
               <BetaSignupForm variant="inline" source="footer" />
@@ -341,11 +341,11 @@ export default function BetaLanding() {
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="font-bold text-white">EduWorld</span>
+              <span className="font-bold text-white">Leapio</span>
               <span>© 2026</span>
             </div>
             <div className="flex items-center gap-6">
-              <a href="mailto:hallo@eduworld.be" className="hover:text-white transition-colors">Contact</a>
+              <a href="mailto:hallo@leapio.be" className="hover:text-white transition-colors">Contact</a>
               <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
             </div>
           </div>

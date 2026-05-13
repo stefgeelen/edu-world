@@ -36,7 +36,7 @@ export function ParentLayout() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">Ouderportaal</p>
-              <h1 className="font-black text-xl text-slate-900">EduWorld</h1>
+              <h1 className="font-black text-xl text-slate-900">Leapio</h1>
             </div>
             <div className="flex items-center gap-2">
               {isAdmin && (

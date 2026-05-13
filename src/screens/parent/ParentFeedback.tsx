@@ -83,7 +83,7 @@ export function ParentFeedback() {
         </div>
         <div>
           <h2 className="text-2xl font-black text-slate-900">Feedback</h2>
-          <p className="text-sm text-slate-500">Help ons EduWorld te verbeteren — laat ons weten wat je denkt.</p>
+          <p className="text-sm text-slate-500">Help ons Leapio te verbeteren — laat ons weten wat je denkt.</p>
         </div>
       </div>
 
@@ -159,7 +159,7 @@ export function ParentFeedback() {
                   <p className="text-sm text-slate-600 whitespace-pre-wrap">{item.message}</p>
                   {item.admin_notes && (
                     <div className="mt-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
-                      <p className="text-xs font-bold text-blue-700 mb-1">Reactie EduWorld</p>
+                      <p className="text-xs font-bold text-blue-700 mb-1">Reactie Leapio</p>
                       <p className="text-sm text-blue-900 whitespace-pre-wrap">{item.admin_notes}</p>
                     </div>
                   )}

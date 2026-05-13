@@ -1,65 +1,74 @@
-# Sommensplitser — splitsen via 10
+# Rebrand: EduWorld → Leapio
 
-Een nieuwe rekenoefening die getallenlijn-splitsen (`/exercises/bonds/`) combineert met optellingen tot 20 (`/exercises/math/`). De leerling ziet een som zoals `8 + 6 =` met daaronder een splitsboog naar twee vakjes. Het tweede getal wordt gesplitst zodat het eerste deel het eerste getal aanvult tot 10.
+Scope: replace every user-facing and internal reference to "EduWorld" with **"Leapio"** (capitalised), including domain placeholders and contact emails. Visual theme, colours, fonts, and all functionality stay unchanged — text only.
 
-Voorbeeld: `8 + 6 =` → vakjes invullen met `2` en `4` (want 8+2=10, 10+4=14). Alleen beschikbaar in **groep 1, trimester 3**.
+## What gets changed
 
-## Visuele opzet (ExerciseShell, Dark Space stijl)
+### 1. Sitewide head & PWA shell
 
-```text
-        8  +  6  =  14
-              |
-            split
-           /     \
-        [ ? ]   [ ? ]
-```
+- `index.html` — `<title>`, meta description, `apple-mobile-web-app-title`, `og:title`, `twitter:title`.
+- `public/manifest.json` — `name` ("Leapio - Leren is een avontuur") and `short_name` ("Leapio").
+- `public/sitemap.xml` — replace `https://edu-world.lovable.app` with `https://leapio.lovable.app` (placeholder; see "Domain" below).
 
-- Bovenin de som met dezelfde grote, gekleurde cijfers als `Exercise.tsx` (cyan/amber/emerald op donker paars paneel).
-- Daaronder een SVG-splitsboog (hergebruik styling uit `ExerciseNumberBond`) van het tweede getal naar twee ronde knop-vakjes.
-- Linkervakje = aanvulling tot 10, rechtervakje = restant. Beide tikken activeren `ExerciseNumpad` (één vakje tegelijk actief).
-- Per vakje: standaard knop (paars dashed), gevuld (paars), correct (emerald glow), incorrect (orange glow) — consistent met `NumberBond`.
-- Som-resultaat (`= 14`) blijft onthuld; alleen de splitsing is de opdracht. (Dit traint het strategisch splitsen, niet het hoofdrekenen.)
+### 2. Public marketing pages
 
-## Vraaggeneratie
+- `src/screens/BetaLanding.tsx` — wordmark, FAQ copy (4 mentions), hero alt text, JSON-LD `name` (×2), SEO title/description, footer brand, canonical URL fallback.
+- `src/screens/Landing.tsx` — wordmark (header + footer), 4 body-copy mentions, image alt, copyright line.
 
-In nieuwe utility binnen het scherm:
-- `num1` = random 6–9
-- `num2` = random zo dat `num1 + num2 > 10` en `num2 < 10` (dus splitsing zinvol is)
-- `leftPart` = `10 - num1`  (correct antwoord linkervakje)
-- `rightPart` = `num2 - leftPart`  (correct antwoord rechtervakje)
-- 5 vragen per sessie, 3 levens, XP via `complete_exercise` RPC.
+### 3. App shell (kid-facing)
 
-## Bestanden
+- `src/screens/Auth.tsx` — brand title.
+- `src/screens/AvatarSelection.tsx` — "Welkom bij Leapio".
+- `src/screens/AddChild.tsx` — onboarding copy.
+- `src/components/InstallPrompt.tsx` — "Voeg Leapio toe!".
 
-**Nieuw**
-- `src/screens/ExerciseSumSplit.tsx` — scherm, gemodelleerd naar `ExerciseNumberBond.tsx` (twee invoervakjes i.p.v. één, validatie controleert beide). Bovenin de som zoals in `Exercise.tsx`.
+### 4. Parent & admin portals
 
-**Aanpassen**
-- `src/data/difficultyConfig.ts` — voeg toe:
-  ```ts
-  export interface SumSplitConfig { minSum: number; maxSum: number }
-  export const SUM_SPLIT_CONFIG: Record<string, SumSplitConfig> = {
-    "1-3": { minSum: 11, maxSum: 18 },
-  };
-  export const DEFAULT_SUM_SPLIT: SumSplitConfig = { minSum: 11, maxSum: 18 };
-  ```
-- `src/routes/appRoutes.tsx` — lazy import + route `exercises/sum-split/:id` (alleen `:id = 3` is functioneel).
-- `src/test/difficultyConfig.test.ts` — test voor `SUM_SPLIT_CONFIG['1-3']`.
+- `src/screens/parent/ParentLayout.tsx` — header brand.
+- `src/screens/parent/ParentFeedback.tsx` — 2 copy mentions.
+- `src/screens/admin/AdminDashboard.tsx` — "Leapio Admin".
 
-**Database (migration)**
-- Eén nieuwe rij in `exercises`:
-  - `route = '/exercises/sum-split/3'`
-  - `title = 'Sommensplitser'`
-  - `subject = 'math'`, `grade = 1`, `stage = 'stage-3'`
-  - `display_order = 10`, `xp_reward = 20`, `is_active = true`
-- Geen schemawijzigingen, geen nieuwe RLS — `exercises` heeft al lees-policy.
+### 5. Contact email addresses
 
-## Navigatie / mapping
+Currently two distinct addresses appear:
 
-Sluit aan bij bestaande Quest Map flow: omdat `Fluisterbos.tsx` exercises ophaalt via `useStageExercises` (db-driven), verschijnt de nieuwe tegel automatisch in stage 3 zodra de migration is uitgevoerd. Geen mapping-wijziging nodig in `curriculum-mapping`-memory voor de gebruiker; alleen latere notatie als wens.
+- `hallo@eduworld.be` → `hallo@leapio.be` (BetaLanding footer)
+- `support@eduworld.app` → `support@leapio.app` (ParentErrorBoundary, ParentSubscription ×2)
 
-## QA / kwaliteitscheck
+I'll keep the two TLDs as-is and just swap the brand. If you want them unified (e.g. both on `leapio.be` or `leapio.app`), tell me which and I'll consolidate.
 
-- 100 vraaggeneraties: `leftPart >= 1`, `rightPart >= 1`, `num1 + num2 == 10 + rightPart`.
-- Numpad cyclus: tik vakje 1 → numpad → cijfer → check → fout-feedback → opnieuw → goed → vakje 2 wordt actief → check → confetti → volgende vraag.
-- Verifieer dat oefening enkel zichtbaar is bij groep 1 trimester 3 (db-filter doet dit automatisch).
+### 6. Domain references in source
+
+All hard-coded `edu-world.lovable.app` strings → `leapio.lovable.app` placeholder:
+
+- `src/screens/BetaLanding.tsx` (canonical fallback)
+- `public/sitemap.xml` (×2 entries)
+
+Note: this only updates the URLs *referenced* in code/sitemap. The actual deployed Lovable subdomain (and any custom domain) must be changed by you in **Project Settings → Domains** — I can't rename the subdomain. Once you've done that, tell me the final URL and I'll align the strings if `leapio.lovable.app` isn't right.
+
+### 7. Internal docs
+
+- `CLAUDE.md`, `EXERCISES.md`, `SEO-AUDIT.md`, `README.md`, `docs/technical-spec.md` — replace EduWorld with Leapio.
+- `.claude/settings.json`, `.claude/settings.local.json` — leave untouched (tool config, not user-facing content).
+
+### 8. Memory
+
+Update `mem://index.md` Core line so future sessions refer to "Leapio" instead of "EduWorld".
+
+## What does NOT change
+
+- Database schema, table names, RPCs, edge function names.
+- Visual theme ("Magische Fluisterbos"), colours, fonts.
+- `manifest.json` icon files (`/icon-192.png`, `/icon-512.png`) — same images, just app name changes. If you want a new logo, that's a separate request.
+- The actual deployed domain (you handle that in Project Settings).
+- OG/Twitter preview image URL (still hosted on the existing R2 bucket; if you want a new branded preview image, say so).
+
+## Open follow-ups (optional, ask only if you want them now)
+
+- New Leapio logo/icon files.
+- New OG preview image with the Leapio name.
+- Custom domain `leapio.be` or `leapio.app` (requires DNS setup in Project Settings → Domains).
+
+## Files touched (summary)
+
+~20 files: 2 in `public/`, `index.html`, ~13 in `src/screens/**`, 2 in `src/components/**`, plus 5 docs and the memory index.  

@@ -1,9 +1,9 @@
-# SEO Audit: EduWorld
+# SEO Audit: Leapio
 
 **Platform:** Flemish educational SaaS for children aged 6-8 (1ste & 2de leerjaar)
 **Target audience for SEO:** Parents, teachers in Flanders/Belgium
 **Curriculum:** Vlaamse leerplan (Flemish trimester system)
-**Domain:** `edu-world.lovable.app` (currently on Lovable subdomain)
+**Domain:** `leapio.lovable.app` (currently on Lovable subdomain)
 **Audit date:** 2026-05-06
 
 ---
@@ -18,14 +18,14 @@
 
 **What Googlebot sees on first fetch of `/`:**
 ```html
-<title>EduWorld Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen</title>
+<title>Leapio Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen</title>
 <meta property="og:description" content="Lovable Generated Project">
 ```
 The Landing page (`/`) does **not use the SEO component at all** — no title, no description, no structured data are injected even after JS renders.
 
 ### index.html (line 7-31)
 - `og:description`: **"Lovable Generated Project"** — placeholder left by the generator
-- `og:title`: Generic "EduWorld" — no keyword targeting
+- `og:title`: Generic "Leapio" — no keyword targeting
 - `twitter:site`: **"@Lovable"** — not your account
 - `twitter:description`: **"Lovable Generated Project"**
 - `meta name="author"`: **"Lovable"** — should be your company
@@ -38,7 +38,7 @@ The Landing page (`/`) does **not use the SEO component at all** — no title, n
 
 ### sitemap.xml
 - Only 2 URLs (`/` and `/beta`)
-- Hardcoded to `edu-world.lovable.app` — will break when you move to your own domain
+- Hardcoded to `leapio.lovable.app` — will break when you move to your own domain
 - Missing `<lastmod>` dates
 - Homepage has priority 0.7, beta has 1.0 — homepage should be highest priority
 
@@ -48,10 +48,10 @@ The Landing page (`/`) does **not use the SEO component at all** — no title, n
 - Landing page has no canonical at all
 
 ### HTTPS & Domain
-- Currently on `edu-world.lovable.app` — a subdomain of Lovable's domain. You are building link equity and domain authority for Lovable, not for yourself. Moving to your own domain later means starting from zero.
+- Currently on `leapio.lovable.app` — a subdomain of Lovable's domain. You are building link equity and domain authority for Lovable, not for yourself. Moving to your own domain later means starting from zero.
 
 ### Recommendations
-1. **Get your own domain immediately** (e.g., `eduworld.be`) — every day on the Lovable subdomain is wasted SEO equity
+1. **Get your own domain immediately** (e.g., `leapio.be`) — every day on the Lovable subdomain is wasted SEO equity
 2. Add a prerendering solution (e.g., `vite-plugin-prerender` or a service like Prerender.io) so crawlers get fully rendered HTML
 3. Fix all placeholder meta tags in `index.html`
 4. Add `Sitemap: https://yourdomain.be/sitemap.xml` to `robots.txt`
@@ -85,14 +85,14 @@ The Landing page (`/`) does **not use the SEO component at all** — no title, n
 ### BetaLanding (`/beta`) — `src/screens/BetaLanding.tsx`
 **This is actually the better-optimized page:**
 - SEO component used correctly with title, description, canonical, OG image, JSON-LD
-- Title: "EduWorld Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen" — strong keyword coverage
+- Title: "Leapio Beta — Gamified Oefenen voor 1ste & 2de Leerjaar | Vlaanderen" — strong keyword coverage
 - Description targets "gamified leerapp", "rekenen, lezen en schrijven", "Vlaamse 1ste en 2de leerjaar"
 - 3 structured data blocks (SoftwareApplication, FAQPage, Organization)
 - FAQ section with 6 questions targeting real user queries
 
 ### Image Alt Text
-- Landing hero: `"EduWorld gamified learning dashboard met badges en oefeningen"` — good but English-mixed
-- Beta hero: `"Vlaams kind oefent rekenen en lezen op de EduWorld leerapp"` — excellent, fully Dutch, keyword-rich
+- Landing hero: `"Leapio gamified learning dashboard met badges en oefeningen"` — good but English-mixed
+- Beta hero: `"Vlaams kind oefent rekenen en lezen op de Leapio leerapp"` — excellent, fully Dutch, keyword-rich
 
 ### Footer Links (Landing.tsx:463-466)
 ```html
@@ -169,7 +169,7 @@ These subject/grade pages are the single biggest SEO opportunity — they captur
 - No advisory board or educational consultant mentioned
 
 ### Authoritativeness
-- Domain is `edu-world.lovable.app` — zero domain authority, built on someone else's brand
+- Domain is `leapio.lovable.app` — zero domain authority, built on someone else's brand
 - No press mentions, awards, or partnerships
 - No `.be` domain signals Belgian market focus
 - `meta name="author"` is "Lovable" — not your brand
@@ -205,7 +205,7 @@ The platform explicitly targets **Flanders, Belgium**. This is correctly stated 
 - No `hreflang` tag (even a self-referencing `hreflang="nl-BE"` helps signal locale)
 - No `og:locale` meta tag
 - `manifest.json` uses `"lang": "nl"` instead of `"nl-BE"` — inconsistent with `index.html`'s `lang="nl-BE"`
-- Sitemap URLs use `edu-world.lovable.app` — not a `.be` domain
+- Sitemap URLs use `leapio.lovable.app` — not a `.be` domain
 
 ### EdTech Directory Presence
 Not assessed (requires external checks), but the platform should be listed on:
@@ -221,7 +221,7 @@ Not assessed (requires external checks), but the platform should be listed on:
 - `.be` university education departments
 
 ### Recommendations
-1. Register `eduworld.be` and host the site there
+1. Register `leapio.be` and host the site there
 2. Add `hreflang="nl-BE"` self-referencing tag
 3. Add `og:locale` content `nl_BE`
 4. Register on Klascement as a teacher resource
@@ -232,7 +232,7 @@ Not assessed (requires external checks), but the platform should be listed on:
 ## 6. Backlink Profile — Critical Issue
 
 ### Current State
-The site is on `edu-world.lovable.app` — a subdomain of Lovable's domain. This means:
+The site is on `leapio.lovable.app` — a subdomain of Lovable's domain. This means:
 - **Any backlinks point to Lovable's domain**, not yours
 - Domain authority is effectively zero
 - You cannot build backlink equity until you have your own domain
@@ -259,7 +259,7 @@ Direct competitors in the Flemish primary education space likely include:
 | **Gynzy / Prowise** | Teacher-facing tools with high `.be`/`.nl` authority |
 | **Khan Academy Kids** | Global authority, free model, massive content library |
 
-**What competitors do that EduWorld doesn't:**
+**What competitors do that Leapio doesn't:**
 - Dedicated subject and grade-level landing pages
 - Blog content targeting parent informational queries
 - School partnership pages with logos/testimonials
@@ -305,7 +305,7 @@ Education + children = higher E-E-A-T scrutiny. Currently:
 
 | # | Action | Impact | Effort |
 |---|--------|--------|--------|
-| **1** | **Get your own domain (`eduworld.be`)** and migrate off `edu-world.lovable.app` | Critical — every day builds equity for Lovable, not you | Medium |
+| **1** | **Get your own domain (`leapio.be`)** and migrate off `leapio.lovable.app` | Critical — every day builds equity for Lovable, not you | Medium |
 | **2** | **Create privacy policy, terms, and safeguarding pages** | Critical — legal requirement for children's platform, YMYL trust signal | Medium |
 | **3** | **Add prerendering** so Googlebot sees fully rendered HTML with meta tags | Critical — without this, Google may index placeholder content | Medium |
 | **4** | **Add `<SEO>` component to Landing page** with keyword-rich title, description, structured data | High — your homepage currently has zero on-page optimization | Low |
@@ -321,7 +321,7 @@ Education + children = higher E-E-A-T scrutiny. Currently:
 ## Quick Wins (under 1 week)
 
 1. **Fix `index.html` meta tags** — replace all "Lovable" references, update OG/Twitter descriptions, remove TODO comment (30 min)
-2. **Add `<SEO>` to Landing page** with title "EduWorld — Leerapp voor Rekenen, Lezen & Schrijven | 1ste & 2de Leerjaar Vlaanderen" (1 hour)
+2. **Add `<SEO>` to Landing page** with title "Leapio — Leerapp voor Rekenen, Lezen & Schrijven | 1ste & 2de Leerjaar Vlaanderen" (1 hour)
 3. **Fix `robots.txt`** — add `Sitemap:` line, add `Disallow: /app/` and `Disallow: /auth/` (15 min)
 4. **Update `sitemap.xml`** with correct domain and all public routes (30 min)
 5. **Fix dead footer links** — create minimal `/privacy` and `/voorwaarden` placeholder pages (2-3 hours)
@@ -334,6 +334,6 @@ Education + children = higher E-E-A-T scrutiny. Currently:
 ## Red Flags Needing Immediate Attention
 
 1. **No privacy policy on a children's education platform** — this is a compliance blocker and a YMYL ranking risk. Do not launch publicly without one.
-2. **Building on `edu-world.lovable.app`** — you are investing effort into someone else's domain. Secure your own domain now.
+2. **Building on `leapio.lovable.app`** — you are investing effort into someone else's domain. Secure your own domain now.
 3. **`og:description: "Lovable Generated Project"`** — if anyone shares your site on LinkedIn, Facebook, WhatsApp, or Slack right now, this is what appears. Fix today.
 4. **Landing page has zero SEO** — your most important page has no custom title, description, structured data, or keyword targeting. The BetaLanding is better optimized than your homepage.

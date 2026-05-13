@@ -105,7 +105,7 @@ export function AddChild() {
           transition={{ delay: 0.2 }}
           className="text-slate-500 font-medium max-w-sm mx-auto"
         >
-          Vul deze gegevens in om een EduWorld-profiel voor je kind te maken.
+          Vul deze gegevens in om een Leapio-profiel voor je kind te maken.
         </motion.p>
       </div>
 

@@ -1,4 +1,4 @@
-# EduWorld — Oefeningen Overzicht
+# Leapio — Oefeningen Overzicht
 
 > Gegenereerd op 2026-05-04  
 > Alle 16 oefentypes met routes, moeilijkheidsgraden en spelregels.

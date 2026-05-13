@@ -55,7 +55,7 @@ const STEPS = [
     number: '1',
     icon: Users,
     title: 'Maak een profiel',
-    description: 'Stel een profiel in voor je kind met naam en leeftijd. EduWorld bepaalt automatisch het juiste niveau.',
+    description: 'Stel een profiel in voor je kind met naam en leeftijd. Leapio bepaalt automatisch het juiste niveau.',
     color: 'from-edu-blue to-edu-purple',
   },
   {
@@ -82,7 +82,7 @@ const TESTIMONIALS = [
     avatar: '👩',
   },
   {
-    quote: 'Als leerkracht zie ik een duidelijk verschil bij leerlingen die EduWorld thuis gebruiken. Ze zijn zelfverzekerder.',
+    quote: 'Als leerkracht zie ik een duidelijk verschil bij leerlingen die Leapio thuis gebruiken. Ze zijn zelfverzekerder.',
     name: 'Pieter Janssen',
     role: 'Leerkracht groep 4',
     avatar: '👨‍🏫',
@@ -114,7 +114,7 @@ export function Landing() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-edu-blue to-edu-teal flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
               <GraduationCap className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
-            <span className="text-xl font-display font-black text-foreground tracking-tight">EduWorld</span>
+            <span className="text-xl font-display font-black text-foreground tracking-tight">Leapio</span>
           </button>
 
           {/* Desktop nav */}
@@ -214,7 +214,7 @@ export function Landing() {
                 variants={fadeUp} custom={2} initial="hidden" animate="visible"
                 className="text-lg sm:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed"
               >
-                EduWorld houdt je kinderen gemotiveerd en betrokken bij hun schoolwerk door{' '}
+                Leapio houdt je kinderen gemotiveerd en betrokken bij hun schoolwerk door{' '}
                 <strong className="text-foreground">leuk, interactief leren</strong> met beloningen, badges en avonturen.
               </motion.p>
 
@@ -264,7 +264,7 @@ export function Landing() {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-edu-blue/15 border-2 border-border/50">
                 <img
                   src={heroIllustration}
-                  alt="EduWorld gamified learning dashboard met badges en oefeningen"
+                  alt="Leapio gamified learning dashboard met badges en oefeningen"
                   className="w-full h-auto"
                   loading="eager"
                 />
@@ -304,7 +304,7 @@ export function Landing() {
               Alles wat je kind nodig heeft
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Van adaptieve oefeningen tot motiverende beloningen — EduWorld maakt leren leuk én effectief.
+              Van adaptieve oefeningen tot motiverende beloningen — Leapio maakt leren leuk én effectief.
             </p>
           </motion.div>
 
@@ -437,7 +437,7 @@ export function Landing() {
               Klaar om leren leuk te maken?
             </h2>
             <p className="text-lg text-white/80 max-w-xl mx-auto mb-8 relative z-10">
-              Start vandaag nog gratis en ontdek waarom duizenden gezinnen kiezen voor EduWorld.
+              Start vandaag nog gratis en ontdek waarom duizenden gezinnen kiezen voor Leapio.
             </p>
             <button
               onClick={() => navigate('/auth')}
@@ -457,7 +457,7 @@ export function Landing() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-edu-blue to-edu-teal flex items-center justify-center">
                 <GraduationCap className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
-              <span className="font-display font-black text-foreground">EduWorld</span>
+              <span className="font-display font-black text-foreground">Leapio</span>
             </div>
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -467,7 +467,7 @@ export function Landing() {
             </div>
 
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} EduWorld. Alle rechten voorbehouden.
+              © {new Date().getFullYear()} Leapio. Alle rechten voorbehouden.
             </p>
           </div>
         </div>

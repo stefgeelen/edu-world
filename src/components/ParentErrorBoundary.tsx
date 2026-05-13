@@ -35,7 +35,7 @@ export class ParentErrorBoundary extends React.Component<
     if (!this.state.hasError) return this.props.children;
 
     const detail = this.state.error?.message ?? 'Onbekende fout';
-    const mailto = `mailto:support@eduworld.app?subject=${encodeURIComponent(
+    const mailto = `mailto:support@leapio.app?subject=${encodeURIComponent(
       'Foutmelding ouderportaal'
     )}&body=${encodeURIComponent(`Beschrijving van wat ik deed:\n\n\n--- Technische info ---\n${detail}\n${window.location.href}`)}`;
 
