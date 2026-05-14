@@ -264,62 +264,72 @@ interface TokenGridProps {
 }
 
 function TokenGrid({ total, crossedOut, status }: TokenGridProps) {
-  // Kies kolommen op basis van totaal: tot 6 → 3 cols (2 rijen), tot 10 → 5 cols, daarboven → 5 cols
-  const cols = total <= 6 ? Math.min(3, total) : 5;
-  const tokens = Array.from({ length: total });
+  const crossThreshold = total - crossedOut;
+
+  const renderTokens = (from: number, to: number) => {
+    const count = to - from;
+    return (
+      <div className="grid grid-rows-2 grid-flow-col gap-2 md:gap-3">
+        {Array.from({ length: count }).map((_, j) => {
+          const combinedIndex = from + j;
+          const isCrossed = combinedIndex >= crossThreshold;
+          // Bij correct antwoord: doorgestreepte tokens faden weg, overblijvende lichten groen op
+          const showCrossed = status !== 'correct';
+          return (
+            <div key={j} className="relative w-9 h-9 md:w-12 md:h-12">
+              <AnimatePresence>
+                {(!isCrossed || showCrossed) && (
+                  <motion.div
+                    initial={{ scale: 1 }}
+                    animate={
+                      !isCrossed && status === 'correct'
+                        ? { scale: [1, 1.25, 1] }
+                        : { scale: 1, opacity: isCrossed ? 0.55 : 1 }
+                    }
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{
+                      delay: !isCrossed && status === 'correct' ? j * 0.06 : 0,
+                      type: 'spring',
+                      damping: 12,
+                      stiffness: 280,
+                    }}
+                    className={cn(
+                      'absolute inset-0 rounded-full bg-gradient-to-br shadow-[0_4px_8px_rgba(0,0,0,0.4),inset_0_-3px_4px_rgba(0,0,0,0.25)]',
+                      !isCrossed && status === 'correct'
+                        ? 'from-emerald-300 to-emerald-500 ring-2 ring-emerald-200/60 shadow-[0_0_12px_rgba(16,185,129,0.7)]'
+                        : 'from-cyan-300 to-cyan-500'
+                    )}
+                  >
+                    {/* highlight */}
+                    <div className="absolute top-1 left-1.5 w-2 h-2 md:w-3 md:h-3 rounded-full bg-white/70 blur-[1px]" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Doorstreep diagonale lijn — alleen tonen zolang status !== 'correct' */}
+              {isCrossed && status !== 'correct' && (
+                <motion.div
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={{ scaleX: 1, opacity: 1 }}
+                  transition={{ delay: 0.05 + j * 0.04, duration: 0.25 }}
+                  className="absolute top-1/2 left-[-10%] w-[120%] h-[3px] md:h-[4px] bg-white rounded-full origin-left -rotate-45 shadow-[0_0_4px_rgba(255,255,255,0.6)] pointer-events-none"
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  if (total <= 10) {
+    return renderTokens(0, total);
+  }
 
   return (
-    <div
-      className="grid gap-2 md:gap-3"
-      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-    >
-      {tokens.map((_, i) => {
-        const isCrossed = i < crossedOut;
-        // Bij correct antwoord: doorgestreepte tokens faden weg, overblijvende lichten groen op
-        const showCrossed = status !== 'correct';
-        return (
-          <div key={i} className="relative w-9 h-9 md:w-12 md:h-12">
-            <AnimatePresence>
-              {(!isCrossed || showCrossed) && (
-                <motion.div
-                  initial={{ scale: 1 }}
-                  animate={
-                    !isCrossed && status === 'correct'
-                      ? { scale: [1, 1.25, 1] }
-                      : { scale: 1, opacity: isCrossed ? 0.55 : 1 }
-                  }
-                  exit={{ scale: 0, opacity: 0 }}
-                  transition={{
-                    delay: !isCrossed && status === 'correct' ? i * 0.06 : 0,
-                    type: 'spring',
-                    damping: 12,
-                    stiffness: 280,
-                  }}
-                  className={cn(
-                    'absolute inset-0 rounded-full bg-gradient-to-br shadow-[0_4px_8px_rgba(0,0,0,0.4),inset_0_-3px_4px_rgba(0,0,0,0.25)]',
-                    !isCrossed && status === 'correct'
-                      ? 'from-emerald-300 to-emerald-500 ring-2 ring-emerald-200/60 shadow-[0_0_12px_rgba(16,185,129,0.7)]'
-                      : 'from-cyan-300 to-cyan-500'
-                  )}
-                >
-                  {/* highlight */}
-                  <div className="absolute top-1 left-1.5 w-2 h-2 md:w-3 md:h-3 rounded-full bg-white/70 blur-[1px]" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Doorstreep diagonale lijn — alleen tonen zolang status !== 'correct' */}
-            {isCrossed && status !== 'correct' && (
-              <motion.div
-                initial={{ scaleX: 0, opacity: 0 }}
-                animate={{ scaleX: 1, opacity: 1 }}
-                transition={{ delay: 0.05 + i * 0.04, duration: 0.25 }}
-                className="absolute top-1/2 left-[-10%] w-[120%] h-[3px] md:h-[4px] bg-white rounded-full origin-left -rotate-45 shadow-[0_0_4px_rgba(255,255,255,0.6)] pointer-events-none"
-              />
-            )}
-          </div>
-        );
-      })}
+    <div className="flex gap-3 md:gap-4">
+      {renderTokens(0, 10)}
+      {renderTokens(10, total)}
     </div>
   );
 }

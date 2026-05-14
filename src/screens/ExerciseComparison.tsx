@@ -11,6 +11,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { COMPARISON_CONFIG, DEFAULT_COMPARISON } from '@/data/difficultyConfig';
+import { KwadraatGrid } from '@/components/exercise/KwadraatGrid';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -56,24 +57,13 @@ const SYMBOL_LABEL: Record<CompSymbol, string> = { '<': 'kleiner dan', '>': 'gro
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 function DotsDisplay({ count }: { count: number }) {
-  const colsFull = Math.floor(count / 2);
-  const hasExtra = count % 2 === 1;
+  if (count <= 10) {
+    return <KwadraatGrid count={count} />;
+  }
   return (
-    <div className="flex flex-col gap-2">
-      {[0, 1].map(row => (
-        <div key={row} className="flex gap-2 justify-center">
-          {[0, 1, 2, 3, 4].map(col => {
-            const filled = col < colsFull || (col === colsFull && row === 0 && hasExtra);
-            return (
-              <div key={col} className={cn('w-9 h-9 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                filled ? 'bg-gradient-to-br from-orange-400 to-orange-500 border-orange-600 shadow-sm' : 'bg-[#1c1134] border-[#3b2d71]'
-              )}>
-                {filled && <div className="w-2.5 h-2.5 rounded-full bg-white/40" />}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+    <div className="flex gap-3">
+      <KwadraatGrid count={10} offset={0} total={count} />
+      <KwadraatGrid count={count - 10} offset={10} total={count} />
     </div>
   );
 }

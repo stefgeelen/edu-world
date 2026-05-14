@@ -320,10 +320,6 @@ interface SplitHalfProps {
 }
 
 function SplitHalf({ count, showQuestion, status, isAnswerSide }: SplitHalfProps) {
-  // Render up to `count` token spheres in a centered grid (max 10 per side → 2 rows × 5)
-  const cols = Math.min(5, Math.max(1, Math.ceil(count / 2)));
-  const tokens = Array.from({ length: count });
-
   if (showQuestion) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -334,13 +330,15 @@ function SplitHalf({ count, showQuestion, status, isAnswerSide }: SplitHalfProps
     );
   }
 
-  return (
-    <div className="flex-1 flex items-center justify-center p-2 md:p-4">
-      <div
-        className="grid gap-1.5 md:gap-2.5"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-      >
-        {tokens.map((_, i) => (
+  const isLargeCount = count > 10;
+  const dotSizeClass = isLargeCount ? 'w-5 h-5' : 'w-7 h-7 md:w-10 md:h-10';
+  const gapClass = isLargeCount ? 'gap-1' : 'gap-1.5 md:gap-2.5';
+
+  const renderDotGrid = (from: number, to: number) => (
+    <div className={cn('grid grid-rows-2 grid-flow-col', gapClass)}>
+      {Array.from({ length: to - from }).map((_, j) => {
+        const i = from + j;
+        return (
           <motion.div
             key={i}
             initial={isAnswerSide && status === 'correct' ? { scale: 0 } : { scale: 1 }}
@@ -356,7 +354,7 @@ function SplitHalf({ count, showQuestion, status, isAnswerSide }: SplitHalfProps
               stiffness: 280,
             }}
             className={cn(
-              'relative w-7 h-7 md:w-10 md:h-10 rounded-full transition-all duration-300',
+              `relative ${dotSizeClass} rounded-full transition-all duration-300`,
               'bg-gradient-to-br shadow-[0_4px_8px_rgba(0,0,0,0.4),inset_0_-3px_4px_rgba(0,0,0,0.25)]',
               isAnswerSide && status === 'correct'
                 ? 'from-emerald-300 to-emerald-500 ring-2 ring-emerald-200/60 shadow-[0_0_12px_rgba(16,185,129,0.7)]'
@@ -366,11 +364,23 @@ function SplitHalf({ count, showQuestion, status, isAnswerSide }: SplitHalfProps
               'hover:scale-110 hover:-translate-y-0.5'
             )}
           >
-            {/* highlight */}
             <div className="absolute top-1 left-1.5 w-2 h-2 md:w-3 md:h-3 rounded-full bg-white/70 blur-[1px]" />
           </motion.div>
-        ))}
-      </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div className="flex-1 flex items-center justify-start p-2 md:p-4">
+      {count <= 10 ? (
+        renderDotGrid(0, count)
+      ) : (
+        <div className="flex gap-2">
+          {renderDotGrid(0, 10)}
+          {renderDotGrid(10, count)}
+        </div>
+      )}
     </div>
   );
 }
