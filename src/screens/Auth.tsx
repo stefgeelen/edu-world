@@ -35,7 +35,7 @@ export function Auth() {
     e.preventDefault();
     if (!isValid) {
       if (!emailOk) toast.error('Vul een geldig e-mailadres in.');
-      else if (!passwordOk) toast.error(`Wachtwoord moet minstens ${PASSWORD_MIN_LENGTH} tekens, een cijfer en een speciaal teken bevatten.`);
+      else if (!passwordOk) toast.error(`Wachtwoord moet minstens ${PASSWORD_MIN_LENGTH} tekens, een hoofdletter, kleine letter en cijfer bevatten.`);
       else if (!nameOk) toast.error('Vul je volledige naam in.');
       return;
     }
@@ -187,7 +187,6 @@ export function Auth() {
               { ok: pwReq.uppercase, text: 'Minimaal één hoofdletter' },
               { ok: pwReq.lowercase, text: 'Minimaal één kleine letter' },
               { ok: pwReq.digit,     text: 'Minimaal één cijfer' },
-              { ok: pwReq.special,   text: 'Minimaal één speciaal teken' },
             ].map((r, i) => (
               <li key={i} className="flex items-center gap-2 text-xs font-semibold">
                 <div className={cn('w-4 h-4 rounded-full flex items-center justify-center', r.ok ? 'bg-emerald-500' : 'bg-slate-200')}>

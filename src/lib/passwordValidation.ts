@@ -7,7 +7,6 @@ export const passwordRules = {
   uppercase: (p: string) => /[A-Z]/.test(p),
   lowercase: (p: string) => /[a-z]/.test(p),
   digit:     (p: string) => /\d/.test(p),
-  special:   (p: string) => /[^A-Za-z0-9]/.test(p),
 };
 
 export function validatePassword(p: string) {
@@ -16,13 +15,12 @@ export function validatePassword(p: string) {
     uppercase: passwordRules.uppercase(p),
     lowercase: passwordRules.lowercase(p),
     digit:     passwordRules.digit(p),
-    special:   passwordRules.special(p),
   };
 }
 
 export function isPasswordValid(p: string) {
   const r = validatePassword(p);
-  return r.length && r.uppercase && r.lowercase && r.digit && r.special;
+  return r.length && r.uppercase && r.lowercase && r.digit;
 }
 
 export const passwordSchema = z
@@ -30,7 +28,6 @@ export const passwordSchema = z
   .min(PASSWORD_MIN_LENGTH, `Minstens ${PASSWORD_MIN_LENGTH} tekens`)
   .refine(passwordRules.uppercase, 'Moet minstens één hoofdletter bevatten')
   .refine(passwordRules.lowercase, 'Moet minstens één kleine letter bevatten')
-  .refine(passwordRules.digit,     'Moet minstens één cijfer bevatten')
-  .refine(passwordRules.special,   'Moet minstens één speciaal teken bevatten');
+  .refine(passwordRules.digit,     'Moet minstens één cijfer bevatten');
 
-export const PASSWORD_REQUIREMENTS_TEXT = `Min. ${PASSWORD_MIN_LENGTH} tekens, hoofdletter, kleine letter, cijfer en speciaal teken.`;
+export const PASSWORD_REQUIREMENTS_TEXT = `Min. ${PASSWORD_MIN_LENGTH} tekens, hoofdletter, kleine letter en cijfer.`;

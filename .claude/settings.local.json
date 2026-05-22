@@ -5,7 +5,11 @@
       "Bash(ls -1 /Users/stefgeelen/Documents/Projects/EduWorld/Codebase/EduWorld/src/screens/*.tsx)",
       "Bash(grep -E \"\\\\.\\(tsx?|ts\\)$\")",
       "Bash(npx tsc:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(ffmpeg -i /Users/stefgeelen/Desktop/temp/onboarding.mov -vf \"fps=0.5\" /Users/stefgeelen/Desktop/temp/frame_%03d.png)",
+      "Bash(brew install:*)",
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
+      "Bash(ffmpeg -i /Users/stefgeelen/Desktop/temp/onboarding.mov -vf \"fps=0.3\" /Users/stefgeelen/Desktop/temp/frame_%03d.png)"
     ]
   }
 }

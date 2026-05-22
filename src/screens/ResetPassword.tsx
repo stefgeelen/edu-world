@@ -27,7 +27,7 @@ export function ResetPassword() {
     if (password.length >= 6) score++;
     if (password.length >= 10) score++;
     if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-    if (/\d/.test(password) && /[^A-Za-z0-9]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
     const map = [
       { label: 'Te kort', color: 'bg-red-400' },
       { label: 'Zwak', color: 'bg-orange-400' },
@@ -39,13 +39,14 @@ export function ResetPassword() {
   }, [password]);
 
   const requirements = useMemo(() => ({
-    length: password.length >= MIN_LENGTH,
-    digit: /\d/.test(password),
-    special: /[^A-Za-z0-9]/.test(password),
+    length:    password.length >= MIN_LENGTH,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    digit:     /\d/.test(password),
   }), [password]);
 
   const allRequirementsMet =
-    requirements.length && requirements.digit && requirements.special;
+    requirements.length && requirements.uppercase && requirements.lowercase && requirements.digit;
   const strongEnough = strength.score >= MIN_STRENGTH_SCORE;
   const passwordsMatch = password.length > 0 && password === confirm;
   const showMismatch = confirmTouched && confirm.length > 0 && !passwordsMatch;
@@ -144,10 +145,10 @@ export function ResetPassword() {
           {/* Requirements checklist */}
           <ul id="password-requirements" className="mt-3 space-y-1">
             {[
-              { ok: requirements.length, text: `Minimaal ${MIN_LENGTH} tekens` },
-              { ok: requirements.digit, text: 'Minimaal één cijfer' },
-              { ok: requirements.special, text: 'Minimaal één speciaal teken' },
-              
+              { ok: requirements.length,    text: `Minimaal ${MIN_LENGTH} tekens` },
+              { ok: requirements.uppercase, text: 'Minimaal één hoofdletter' },
+              { ok: requirements.lowercase, text: 'Minimaal één kleine letter' },
+              { ok: requirements.digit,     text: 'Minimaal één cijfer' },
             ].map((req, i) => (
               <li key={i} className="flex items-center gap-2 text-xs font-semibold">
                 <div className={cn(
