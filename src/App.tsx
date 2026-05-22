@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import { publicRoutes } from "@/routes/publicRoutes";
 import { adminRoutes } from "@/routes/adminRoutes";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="*" element={<Suspense fallback={<LoadingSpinner />}><NotFound /></Suspense>} />
             </Routes>
             <InstallPrompt />
+            <SpeedInsights />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
