@@ -7,6 +7,7 @@ const Auth = lazy(() => import('@/screens/Auth').then(m => ({ default: m.Auth })
 const ResetPassword = lazy(() => import('@/screens/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const SetupParentPin = lazy(() => import('@/screens/SetupParentPin').then(m => ({ default: m.SetupParentPin })));
 const BetaLanding = lazy(() => import('@/screens/BetaLanding'));
+const AuthCallback = lazy(() => import('@/screens/AuthCallback').then(m => ({ default: m.AuthCallback })));
 
 export const publicRoutes = (
   <>
@@ -14,6 +15,7 @@ export const publicRoutes = (
     <Route path="/beta" element={<Suspense fallback={<LoadingSpinner />}><BetaLanding /></Suspense>} />
     <Route path="/auth" element={<Suspense fallback={<LoadingSpinner />}><Auth /></Suspense>} />
     <Route path="/auth/setup-pin" element={<Suspense fallback={<LoadingSpinner />}><SetupParentPin /></Suspense>} />
+    <Route path="/auth/callback" element={<Suspense fallback={<LoadingSpinner />}><AuthCallback /></Suspense>} />
     <Route path="/reset-password" element={<Suspense fallback={<LoadingSpinner />}><ResetPassword /></Suspense>} />
   </>
 );

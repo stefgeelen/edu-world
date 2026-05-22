@@ -5,13 +5,29 @@ import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff, Check } from 'luci
 import { useAuth } from '@/context/AuthContext';
 import { isPasswordValid, validatePassword, PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
 
+const GoogleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#4285F4" d="M47.5 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h13.2c-.6 3-2.3 5.5-4.9 7.2v6h7.9c4.6-4.3 7.3-10.6 7.3-17.4z" />
+    <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.9-6c-2.1 1.4-4.8 2.3-7.9 2.3-6.1 0-11.2-4.1-13.1-9.6H2.7v6.2C6.7 42.8 14.8 48 24 48z" />
+    <path fill="#FBBC05" d="M10.9 28.9c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4v-6.2H2.7C1 17.2 0 20.5 0 24s1 6.8 2.7 9.9l8.2-5z" />
+    <path fill="#EA4335" d="M24 9.6c3.4 0 6.5 1.2 8.9 3.5l6.6-6.6C35.9 2.5 30.5 0 24 0 14.8 0 6.7 5.2 2.7 14.1l8.2 5c1.9-5.5 7-9.5 13.1-9.5z" />
+  </svg>
+);
+
+const AppleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 814 1000" aria-hidden="true" fill="currentColor">
+    <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.4-150.3-109.2c-52.1-78.3-95-207.3-95-330.6 0-177.5 115.6-271.5 229.2-271.5 60.4 0 110.8 39.5 148.4 39.5 35.8 0 92.8-42.4 162.1-42.4 26 0 108.2 2.6 168.6 79.7zm-56.1-190.9c26.6-31.6 45.4-75.7 45.4-119.8 0-6.1-.5-12.2-1.6-17.2-42.9 1.6-94.2 28.5-124.9 63.9-23.7 26.6-46.1 70.7-46.1 115.4 0 6.7.6 13.4 1.1 15.5 2.7.5 7.1 1.1 11.6 1.1 38.4 0 86.1-25.4 114.5-58.9z" />
+  </svg>
+);
+
+
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { mapAuthError } from '@/lib/errorMessages';
 
 export function Auth() {
   const navigate = useNavigate();
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, signInWithOAuth, user } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -115,6 +131,36 @@ export function Auth() {
             {m === 'login' ? 'Inloggen' : 'Registreren'}
           </button>
         ))}
+      </motion.div>
+
+      {/* Social login */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.25 }}
+        className="w-full max-w-sm space-y-3"
+      >
+        <button
+          type="button"
+          onClick={() => signInWithOAuth('google')}
+          className="w-full h-13 rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-300 font-bold text-slate-700 flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm"
+        >
+          <GoogleIcon />
+          Doorgaan met Google
+        </button>
+        <button
+          type="button"
+          onClick={() => signInWithOAuth('apple')}
+          className="w-full h-13 rounded-2xl bg-slate-900 hover:bg-slate-800 font-bold text-white flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm"
+        >
+          <AppleIcon />
+          Doorgaan met Apple
+        </button>
+        <div className="flex items-center gap-3 py-1">
+          <div className="flex-1 h-px bg-slate-200" />
+          <span className="text-xs font-semibold text-slate-400">of</span>
+          <div className="flex-1 h-px bg-slate-200" />
+        </div>
       </motion.div>
 
       {/* Form */}
