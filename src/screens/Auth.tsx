@@ -14,11 +14,6 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const AppleIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 814 1000" aria-hidden="true" fill="currentColor">
-    <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.4-150.3-109.2c-52.1-78.3-95-207.3-95-330.6 0-177.5 115.6-271.5 229.2-271.5 60.4 0 110.8 39.5 148.4 39.5 35.8 0 92.8-42.4 162.1-42.4 26 0 108.2 2.6 168.6 79.7zm-56.1-190.9c26.6-31.6 45.4-75.7 45.4-119.8 0-6.1-.5-12.2-1.6-17.2-42.9 1.6-94.2 28.5-124.9 63.9-23.7 26.6-46.1 70.7-46.1 115.4 0 6.7.6 13.4 1.1 15.5 2.7.5 7.1 1.1 11.6 1.1 38.4 0 86.1-25.4 114.5-58.9z" />
-  </svg>
-);
 
 
 import { cn } from '@/lib/utils';
@@ -142,19 +137,18 @@ export function Auth() {
       >
         <button
           type="button"
-          onClick={() => signInWithOAuth('google')}
-          className="w-full h-13 rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-300 font-bold text-slate-700 flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm"
+          onClick={async () => { setLoading(true); await signInWithOAuth('google'); setLoading(false); }}
+          disabled={loading}
+          className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-300 hover:shadow-md font-bold text-slate-700 flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm border-b-4 border-b-slate-200 active:border-b-2 active:translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <GoogleIcon />
-          Doorgaan met Google
-        </button>
-        <button
-          type="button"
-          onClick={() => signInWithOAuth('apple')}
-          className="w-full h-13 rounded-2xl bg-slate-900 hover:bg-slate-800 font-bold text-white flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm"
-        >
-          <AppleIcon />
-          Doorgaan met Apple
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+          ) : (
+            <>
+              <GoogleIcon />
+              <span>Doorgaan met Google</span>
+            </>
+          )}
         </button>
         <div className="flex items-center gap-3 py-1">
           <div className="flex-1 h-px bg-slate-200" />
