@@ -9,7 +9,8 @@
       "Bash(ffmpeg -i /Users/stefgeelen/Desktop/temp/onboarding.mov -vf \"fps=0.5\" /Users/stefgeelen/Desktop/temp/frame_%03d.png)",
       "Bash(brew install:*)",
       "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
-      "Bash(ffmpeg -i /Users/stefgeelen/Desktop/temp/onboarding.mov -vf \"fps=0.3\" /Users/stefgeelen/Desktop/temp/frame_%03d.png)"
+      "Bash(ffmpeg -i /Users/stefgeelen/Desktop/temp/onboarding.mov -vf \"fps=0.3\" /Users/stefgeelen/Desktop/temp/frame_%03d.png)",
+      "Bash(python3:*)"
     ]
   }
 }
