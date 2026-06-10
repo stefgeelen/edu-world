@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -21,19 +20,28 @@ serve(async (req) => {
       });
     }
 
-    // Use Gemini via the Lovable AI proxy
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+        "x-api-key": Deno.env.get("ANTHROPIC_API_KEY") ?? "",
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 50,
         messages: [
           {
             role: "user",
             content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/png",
+                  data: imageBase64,
+                },
+              },
               {
                 type: "text",
                 text: `You are a handwriting recognition system for a children's educational app. A child (age 5-7) has drawn a number on a canvas. Look at the image and determine what single number (1-10) they wrote. Children's handwriting may be messy or imperfect - be generous in your interpretation.
@@ -46,17 +54,9 @@ Rules:
 - "10" is two digits written together
 - Be lenient - children's handwriting is imperfect`,
               },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/png;base64,${imageBase64}`,
-                },
-              },
             ],
           },
         ],
-        max_tokens: 50,
-        temperature: 0.1,
       }),
     });
 
@@ -67,7 +67,7 @@ Rules:
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content?.trim() ?? "";
+    const content = data.content?.[0]?.text?.trim() ?? "";
 
     // Parse the JSON from the response
     let recognized: number | null = null;
