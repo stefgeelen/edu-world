@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Azure-backed Dutch TTS hook (nl-NL-FennaNeural).
+ * ElevenLabs-backed Dutch (Flemish) TTS hook.
  * Falls back to the browser's Web Speech API only if the edge function fails.
  */
 

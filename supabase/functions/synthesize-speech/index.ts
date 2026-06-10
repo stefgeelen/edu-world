@@ -5,6 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const VOICE_ID = "wqDY19Brqhu7UCoLadPh";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -20,45 +22,51 @@ serve(async (req) => {
       });
     }
 
-    const key = Deno.env.get("AZURE_SPEECH_KEY");
-    const region = Deno.env.get("AZURE_SPEECH_REGION");
-
-    if (!key || !region) {
-      return new Response(JSON.stringify({ error: "Azure Speech not configured" }), {
+    const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "ElevenLabs not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const ssml = `
-      <speak version='1.0' xml:lang='nl-NL'>
-        <voice name='nl-NL-FennaNeural'>
-          <prosody rate='0.9'>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</prosody>
-        </voice>
-      </speak>
-    `.trim();
-
     const response = await fetch(
-      `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
       {
         method: "POST",
         headers: {
-          "Ocp-Apim-Subscription-Key": key,
-          "Content-Type": "application/ssml+xml",
-          "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3",
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+          "Accept": "audio/mpeg",
         },
-        body: ssml,
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_multilingual_v2",
+          language_code: "nl-BE",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            style: 0.0,
+            use_speaker_boost: true,
+          },
+        }),
       }
     );
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Azure TTS error:", errText);
-      throw new Error(`Azure TTS returned ${response.status}`);
+      console.error("ElevenLabs TTS error:", errText);
+      throw new Error(`ElevenLabs TTS returned ${response.status}`);
     }
 
     const audioBuffer = await response.arrayBuffer();
-    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+    const bytes = new Uint8Array(audioBuffer);
+    let binary = "";
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    const audioBase64 = btoa(binary);
 
     return new Response(
       JSON.stringify({ audioBase64 }),
