@@ -248,20 +248,14 @@ export function ExerciseMoney() {
     if (totalCents === priceCents) {
       setFeedback('correct');
       handleCorrect();
-    } else if (totalCents < priceCents) {
-      setFeedback('too-little');
-      setTimeout(() => {
-        setDroppedItems([]);
-        setFeedback(null);
-      }, 1400);
     } else {
-      setFeedback('too-much');
-      setTimeout(() => {
-        setDroppedItems([]);
-        setFeedback(null);
-      }, 1400);
+      // Wrong amount (too little or too much) now costs a life via the shared
+      // exercise state machine, matching every other exercise screen. It also
+      // handles game-over navigation and clears the tray on the next question.
+      setFeedback(totalCents < priceCents ? 'too-little' : 'too-much');
+      handleIncorrect();
     }
-  }, [totalCents, priceCents, status, handleCorrect]);
+  }, [totalCents, priceCents, status, handleCorrect, handleIncorrect]);
 
   const handleReset = useCallback(() => {
     setDroppedItems([]);

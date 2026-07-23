@@ -90,6 +90,13 @@ export function ExerciseLanguage() {
       
       setTimeout(() => {
         if (lives - 1 <= 0) {
+          // Persist the partial attempt on game over (0 stars), matching the
+          // correct-finish branch and every other exercise screen. Previously
+          // a failed run left no record at all.
+          if (exerciseId) {
+            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
+            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: 0, timeSpent });
+          }
           navigate(`/app/stage/fluisterbos/${stage}`);
         } else {
           setStatus('idle');

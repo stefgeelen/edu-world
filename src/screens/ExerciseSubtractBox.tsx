@@ -165,6 +165,10 @@ export function ExerciseSubtractBox() {
   const resultIsInput = mode === 'result';
 
   const openNumpad = () => {
+    // Once the answer is locked in as correct the auto-advance is already
+    // scheduled; reopening the numpad would let a second confirm re-fire
+    // confetti and double-count progress. Match ExerciseSumSplit's guard.
+    if (status === 'correct') return;
     setIsNumpadOpen(true);
     if (status === 'incorrect') {
       setStatus('idle');
