@@ -116,8 +116,9 @@ export function Dashboard() {
     { title: 'Behoud een reeks van 5 dagen', xp: '+150 XP', done: streak >= 5 },
   ];
 
-  const xpRequired = level * 1000;
-  const progress = Math.min((xp / xpRequired) * 100, 100);
+  const xpForCurrentLevel = (level - 1) * 1000;
+  const xpInLevel = xp - xpForCurrentLevel;
+  const progress = Math.min((xpInLevel / 1000) * 100, 100);
   const completedQuests = dailyQuests.filter(q => q.done).length;
 
   // Trophy room: real badges from DB
@@ -249,8 +250,8 @@ export function Dashboard() {
               </div>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-black text-cyan-300">{xp}</span>
-              <span className="text-xs font-bold text-[#7c6bae] ml-1">/ {xpRequired}</span>
+              <span className="text-2xl font-black text-cyan-300">{xpInLevel}</span>
+              <span className="text-xs font-bold text-[#7c6bae] ml-1">/ 1000</span>
               <p className="text-[10px] font-bold text-violet-300/60 uppercase tracking-widest mt-0.5">XP</p>
             </div>
           </div>
