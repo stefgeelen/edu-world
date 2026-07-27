@@ -101,8 +101,9 @@ export function Fluisterbos() {
 
   const mastered = allExercises.filter((e) => e.completions >= REQUIRED_COMPLETIONS);
   const totalXpEarned = mastered.reduce((s, e) => s + e.xpReward, 0);
-  const overallPct =
-    allExercises.length > 0 ? Math.round((mastered.length / allExercises.length) * 100) : 0;
+  const totalCompletions = allExercises.reduce((s, e) => s + Math.min(e.completions, REQUIRED_COMPLETIONS), 0);
+  const totalRequired = allExercises.length * REQUIRED_COMPLETIONS;
+  const overallPct = totalRequired > 0 ? Math.round((totalCompletions / totalRequired) * 100) : 0;
 
   if (isLoading) {
     return (
