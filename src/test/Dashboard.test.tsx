@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { createTestQueryClient, queryWrapper, fakeSupabaseChain } from './testUtils';
+import { createTestQueryClient, queryWrapper } from './testUtils';
 
 // Dashboard.tsx is CLAUDE.md's own headline example of a high-risk file (514
 // lines, many queries, an eslint-disabled effect). Rather than fight its
@@ -47,17 +47,20 @@ vi.mock('@/hooks/useChildGreeting', () => ({
   useChildGreeting: () => useChildGreetingMock(),
 }));
 
+const useDailyQuestsMock = vi.fn();
+vi.mock('@/hooks/useDailyQuests', () => ({
+  useDailyQuests: () => useDailyQuestsMock(),
+}));
+
 vi.mock('@/components/ChildRewards', () => ({ ChildRewards: () => <div data-testid="child-rewards-stub" /> }));
 vi.mock('@/components/JourneyCard', () => ({ JourneyCard: () => <div data-testid="journey-card-stub" /> }));
 vi.mock('@/components/BuddyBubble', () => ({ BuddyBubble: () => <div data-testid="buddy-bubble-stub" /> }));
 vi.mock('@/components/figma/ImageWithFallback', () => ({ ImageWithFallback: (p: { alt?: string }) => <img alt={p.alt} /> }));
 
 const signOutMock = vi.fn();
-const fromMock = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: { signOut: (...args: unknown[]) => signOutMock(...args) },
-    from: (...args: unknown[]) => fromMock(...args),
   },
 }));
 
@@ -72,7 +75,17 @@ const BADGE_IN_PROGRESS = (id: string, progress: number, maxProgress: number) =>
   progress, maxProgress, isUnlocked: false,
 });
 
-function setDefaults(overrides: Partial<{ isAdmin: boolean; todayAttempts: number; streak: number; badges: unknown[] }> = {}) {
+// Quest pool selection, thresholds, and Supabase fetching for daily quests
+// now live in useDailyQuests (see dailyQuests.test.ts / useDailyQuests.test.tsx)
+// — Dashboard.test.tsx only needs to verify it renders whatever the hook
+// returns, so the hook itself is mocked rather than faking Supabase here.
+const DEFAULT_QUESTS = [
+  { id: 'count-1', title: 'Rond 1 oefening af', xp: '+50 XP', done: false },
+  { id: 'count-3', title: 'Doe 3 oefeningen vandaag', xp: '+100 XP', done: false },
+  { id: 'subject-nudge-math', title: 'Doe een Rekenen-oefening', xp: '+75 XP', done: false },
+];
+
+function setDefaults(overrides: Partial<{ isAdmin: boolean; streak: number; badges: unknown[]; dailyQuests: typeof DEFAULT_QUESTS }> = {}) {
   useGameMock.mockReturnValue({
     selectedAvatar: { name: 'Milo', imageUrlHead: '/milo.png' },
     xp: 250,
@@ -85,7 +98,7 @@ function setDefaults(overrides: Partial<{ isAdmin: boolean; todayAttempts: numbe
   useBuddyMessageMock.mockReturnValue({ getMessage: vi.fn(() => null), hasAvatar: true });
   useCurrentChildMock.mockReturnValue({ data: { id: 'child-1' } });
   useChildGreetingMock.mockReturnValue({ greeting: 'Hallo, Timmy!', childName: 'Timmy' });
-  fromMock.mockReturnValue(fakeSupabaseChain({ data: null, error: null, count: overrides.todayAttempts ?? 0 }));
+  useDailyQuestsMock.mockReturnValue({ quests: overrides.dailyQuests ?? DEFAULT_QUESTS, isLoading: false });
 }
 
 function renderDashboard() {
@@ -139,32 +152,22 @@ describe('Dashboard', () => {
     expect(navigateMock).toHaveBeenCalledWith('/app/map');
   });
 
-  it('marks the streak quest done once the streak reaches 5 days', () => {
-    setDefaults({ streak: 5 });
+  it('renders the quests from useDailyQuests, marking done ones with strikethrough', () => {
+    setDefaults({
+      dailyQuests: [
+        { id: 'count-1', title: 'Rond 1 oefening af', xp: '+50 XP', done: true },
+        { id: 'count-3', title: 'Doe 3 oefeningen vandaag', xp: '+100 XP', done: false },
+        { id: 'subject-nudge-writing', title: 'Doe een Schrijven-oefening', xp: '+75 XP', done: false },
+      ],
+    });
     renderDashboard();
+
     // The done/undone styling (incl. line-through) lives on the title <span>
     // itself, not a wrapping <div> — getByText already returns that span.
-    const questTitle = screen.getByText('Behoud een reeks van 5 dagen');
-    expect(questTitle.className).toMatch(/line-through/);
-  });
-
-  it('leaves the streak quest undone below a 5-day streak', () => {
-    setDefaults({ streak: 4 });
-    renderDashboard();
-    const questTitle = screen.getByText('Behoud een reeks van 5 dagen');
-    expect(questTitle.className).not.toMatch(/line-through/);
-  });
-
-  it('marks exercise-count quests done once today\'s attempts clear their threshold', async () => {
-    setDefaults({ todayAttempts: 3 });
-    renderDashboard();
-
-    await waitFor(() => {
-      const oneEx = screen.getByText('Rond 1 oefening af');
-      expect(oneEx.className).toMatch(/line-through/);
-    });
-    const threeEx = screen.getByText('Doe 3 oefeningen vandaag');
-    expect(threeEx.className).toMatch(/line-through/);
+    expect(screen.getByText('Rond 1 oefening af').className).toMatch(/line-through/);
+    expect(screen.getByText('Doe 3 oefeningen vandaag').className).not.toMatch(/line-through/);
+    expect(screen.getByText('Doe een Schrijven-oefening').className).not.toMatch(/line-through/);
+    expect(screen.getByText('1 / 3 voltooid')).toBeInTheDocument();
   });
 
   it('shows up to 3 unlocked badges in the trophy showcase, ignoring locked ones', () => {

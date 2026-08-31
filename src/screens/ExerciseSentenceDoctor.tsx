@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
@@ -46,6 +46,26 @@ const BUILD_SENTENCES: string[][] = [
   ['het', 'kind', 'lacht', 'hard'],
   ['de', 'vogel', 'zingt', 'mooi'],
   ['ik', 'drink', 'een', 'glas', 'melk'],
+  ['de', 'bal', 'rolt', 'weg'],
+  ['het', 'meisje', 'lacht', 'vrolijk'],
+  ['ik', 'zie', 'een', 'ster'],
+  ['de', 'regen', 'valt', 'zacht'],
+  ['mama', 'zingt', 'een', 'liedje'],
+  ['de', 'boom', 'staat', 'groot'],
+  ['papa', 'rijdt', 'op', 'de', 'fiets'],
+  ['wij', 'bouwen', 'een', 'hut'],
+  ['ik', 'speel', 'met', 'de', 'bal'],
+  ['het', 'kind', 'rent', 'snel'],
+  ['de', 'hond', 'rent', 'naar', 'huis'],
+  ['ik', 'schrijf', 'een', 'brief'],
+  ['de', 'appel', 'is', 'rood'],
+  ['mama', 'bakt', 'een', 'taart'],
+  ['de', 'maan', 'schijnt', 'helder'],
+  ['wij', 'spelen', 'een', 'spel'],
+  ['het', 'kind', 'tekent', 'een', 'huis'],
+  ['de', 'vis', 'zwemt', 'in', 'het', 'meer'],
+  ['ik', 'eet', 'een', 'appel'],
+  ['de', 'wind', 'waait', 'hard'],
 ];
 
 const FIX_SENTENCES: FixQuestion[] = [
@@ -57,6 +77,21 @@ const FIX_SENTENCES: FixQuestion[] = [
   { mode: 'fix', sentence: ['de', 'kat', 'leest', 'op', 'de', 'bank'], wrongIndex: 2, wrongWord: 'leest', correctWord: 'slaapt', distractors: ['kookt', 'rijdt'] },
   { mode: 'fix', sentence: ['papa', 'rijdt', 'op', 'een', 'banaan'], wrongIndex: 4, wrongWord: 'banaan', correctWord: 'fiets', distractors: ['appel', 'wortel'] },
   { mode: 'fix', sentence: ['de', 'baby', 'kookt', 'in', 'de', 'wieg'], wrongIndex: 2, wrongWord: 'kookt', correctWord: 'slaapt', distractors: ['rijdt', 'leest'] },
+  { mode: 'fix', sentence: ['de', 'zon', 'regent', 'vandaag'], wrongIndex: 2, wrongWord: 'regent', correctWord: 'schijnt', distractors: ['slaapt', 'zingt'] },
+  { mode: 'fix', sentence: ['de', 'hond', 'vliegt', 'in', 'de', 'tuin'], wrongIndex: 2, wrongWord: 'vliegt', correctWord: 'rent', distractors: ['zwemt', 'slaapt'] },
+  { mode: 'fix', sentence: ['het', 'meisje', 'zwemt', 'op', 'het', 'plein'], wrongIndex: 2, wrongWord: 'zwemt', correctWord: 'speelt', distractors: ['slaapt', 'kookt'] },
+  { mode: 'fix', sentence: ['papa', 'slaapt', 'op', 'het', 'dak'], wrongIndex: 4, wrongWord: 'dak', correctWord: 'bed', distractors: ['tafel', 'stoel'] },
+  { mode: 'fix', sentence: ['mama', 'schrijft', 'met', 'een', 'banaan'], wrongIndex: 4, wrongWord: 'banaan', correctWord: 'pen', distractors: ['boek', 'bal'] },
+  { mode: 'fix', sentence: ['wij', 'zwemmen', 'in', 'het', 'zand'], wrongIndex: 4, wrongWord: 'zand', correctWord: 'water', distractors: ['park', 'bos'] },
+  { mode: 'fix', sentence: ['de', 'bloem', 'loopt', 'in', 'de', 'tuin'], wrongIndex: 2, wrongWord: 'loopt', correctWord: 'groeit', distractors: ['slaapt', 'vliegt'] },
+  { mode: 'fix', sentence: ['de', 'beer', 'woont', 'in', 'de', 'zee'], wrongIndex: 5, wrongWord: 'zee', correctWord: 'bos', distractors: ['stad', 'school'] },
+  { mode: 'fix', sentence: ['het', 'kind', 'rijdt', 'op', 'een', 'olifant'], wrongIndex: 5, wrongWord: 'olifant', correctWord: 'fiets', distractors: ['stoel', 'boom'] },
+  { mode: 'fix', sentence: ['ik', 'eet', 'pudding', 'met', 'een', 'vork'], wrongIndex: 5, wrongWord: 'vork', correctWord: 'lepel', distractors: ['mes', 'bord'] },
+  { mode: 'fix', sentence: ['de', 'kat', 'blaft', 'naar', 'de', 'maan'], wrongIndex: 2, wrongWord: 'blaft', correctWord: 'kijkt', distractors: ['zingt', 'zwemt'] },
+  { mode: 'fix', sentence: ['het', 'paard', 'zwemt', 'in', 'de', 'wei'], wrongIndex: 2, wrongWord: 'zwemt', correctWord: 'loopt', distractors: ['vliegt', 'slaapt'] },
+  { mode: 'fix', sentence: ['wij', 'slapen', 'op', 'het', 'schoolplein'], wrongIndex: 4, wrongWord: 'schoolplein', correctWord: 'bed', distractors: ['tafel', 'stoel'] },
+  { mode: 'fix', sentence: ['de', 'appel', 'groeit', 'in', 'het', 'water'], wrongIndex: 5, wrongWord: 'water', correctWord: 'boom', distractors: ['gras', 'zand'] },
+  { mode: 'fix', sentence: ['de', 'vis', 'klimt', 'in', 'de', 'boom'], wrongIndex: 2, wrongWord: 'klimt', correctWord: 'zwemt', distractors: ['vliegt', 'rent'] },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -84,6 +119,17 @@ function pickRandom<T>(arr: T[]): T {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
+function pickUnused<T>(arr: T[], used: Set<number>): { item: T; index: number } {
+  const available = arr.map((_, i) => i).filter(i => !used.has(i));
+  if (available.length === 0) {
+    used.clear();
+    const i = Math.floor(Math.random() * arr.length);
+    return { item: arr[i], index: i };
+  }
+  const i = available[Math.floor(Math.random() * available.length)];
+  return { item: arr[i], index: i };
+}
+
 export function ExerciseSentenceDoctor() {
   const navigate = useNavigate();
   const { speak } = useSpeech();
@@ -98,10 +144,14 @@ export function ExerciseSentenceDoctor() {
   // memoize alternatives so they don't reshuffle on every render
   const [alternatives, setAlternatives] = useState<string[]>([]);
 
+  const usedBuildIndices = useRef<Set<number>>(new Set());
+  const usedFixIndices = useRef<Set<number>>(new Set());
+
   const generateQuestion = useCallback(() => {
     const mode = Math.random() < 0.5 ? 'build' : 'fix';
     if (mode === 'build') {
-      const words = pickRandom(BUILD_SENTENCES);
+      const { item: words, index } = pickUnused(BUILD_SENTENCES, usedBuildIndices.current);
+      usedBuildIndices.current.add(index);
       const correctOrder: WordItem[] = words.map((w, i) => ({ id: `${i}-${w}`, word: w }));
       let shuffled = shuffle(correctOrder);
       // ensure not already correct
@@ -111,7 +161,8 @@ export function ExerciseSentenceDoctor() {
       setQuestion({ mode: 'build', correctOrder });
       setOrderedItems(shuffled);
     } else {
-      const q = pickRandom(FIX_SENTENCES);
+      const { item: q, index } = pickUnused(FIX_SENTENCES, usedFixIndices.current);
+      usedFixIndices.current.add(index);
       setQuestion(q);
       setFixedSentence([...q.sentence]);
       setAlternatives(shuffle([q.correctWord, ...q.distractors]));

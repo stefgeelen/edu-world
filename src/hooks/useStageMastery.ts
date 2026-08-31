@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { REQUIRED_COMPLETIONS } from '@/hooks/useStageExercises';
+import { clampToSupportedGrade } from '@/data/difficultyConfig';
 
 export interface StageMastery {
   stage: number;
@@ -26,14 +27,16 @@ export const STAGE_NAMES: Record<number, string> = {
 export function useStageMastery() {
   const { data: child, isFetched } = useCurrentChild();
   const childId = child?.id;
+  const grade = clampToSupportedGrade(child?.grade);
 
   const query = useQuery({
-    queryKey: ['stage-mastery', childId, child?.max_unlocked_stage],
+    queryKey: ['stage-mastery', childId, child?.max_unlocked_stage, grade],
     queryFn: async (): Promise<StageMastery[]> => {
-      // Fetch all active exercises across stages 1-3
+      // Fetch all active exercises across stages 1-3 for this child's grade
       const { data: exercises, error } = await supabase
         .from('exercises')
         .select('id, stage')
+        .eq('grade', grade)
         .eq('is_active', true);
       if (error) throw error;
 

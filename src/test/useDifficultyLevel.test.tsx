@@ -28,10 +28,21 @@ function wrapperFor(path: string) {
 
 describe('useDifficultyLevel', () => {
   it('derives grade from the child and stage from the :id route param', () => {
-    useCurrentChildMock.mockReturnValue({ data: { grade: 2 } });
+    useCurrentChildMock.mockReturnValue({ data: { grade: 1 } });
     const { result } = renderHook(() => useDifficultyLevel(), { wrapper: wrapperFor('/app/exercise/3') });
 
-    expect(result.current).toEqual({ grade: 2, stage: 3, key: '2-3' });
+    expect(result.current).toEqual({ grade: 1, stage: 3, key: '1-3' });
+  });
+
+  it('clamps a child above the supported grade ceiling down to the highest grade with real content', () => {
+    // Onboarding already derives grades 1-6 from age, but only grade 1 has
+    // content today. Without this clamp, a grade-2+ child would fall through
+    // every exercise's DEFAULT_* config — the easiest tier — instead of
+    // getting the full grade-1 progression across stages.
+    useCurrentChildMock.mockReturnValue({ data: { grade: 4 } });
+    const { result } = renderHook(() => useDifficultyLevel(), { wrapper: wrapperFor('/app/exercise/3') });
+
+    expect(result.current).toEqual({ grade: 1, stage: 3, key: '1-3' });
   });
 
   it('defaults grade to 1 when there is no child yet', () => {

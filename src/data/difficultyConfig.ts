@@ -5,6 +5,19 @@
  * Exercises without a config entry use the default.
  */
 
+/**
+ * Highest grade with real content today. Raise this as new grades ship.
+ * Children with a higher `grade` value (from age-based onboarding) are
+ * clamped to this ceiling everywhere content/exercises are read, so they
+ * get the full grade-1 progression instead of falling through every
+ * config's DEFAULT_* (easiest-tier) fallback.
+ */
+export const MAX_SUPPORTED_GRADE = 1;
+
+export function clampToSupportedGrade(grade: number | null | undefined): number {
+  return Math.max(1, Math.min(grade ?? 1, MAX_SUPPORTED_GRADE));
+}
+
 // ── Math Sums (Exercise.tsx) ───────────────────────────────────────────────
 
 export interface MathSumsConfig {

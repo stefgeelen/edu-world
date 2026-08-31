@@ -13,6 +13,12 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: (...args: unknown[]) => fromMock(...args) },
 }));
 
+// useExerciseId now scopes its lookup by the child's grade; mock the child
+// directly so this test doesn't need a real AuthProvider in the tree.
+vi.mock('@/hooks/useCompleteExercise', () => ({
+  useCurrentChild: () => ({ data: { grade: 1 } }),
+}));
+
 import { useExerciseId } from '@/hooks/useExerciseId';
 
 function wrapperFor(path: string) {

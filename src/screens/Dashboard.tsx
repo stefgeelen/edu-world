@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import type { BuddyMood } from '@/data/buddyMessages';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Flame, Star, Trophy, ChevronRight, Check, LogOut, Shield, Users, Zap, Sparkles, Gift, Award, BookOpen, Target, Crown, Heart, Lock, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,7 @@ import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { useChildGreeting } from '@/hooks/useChildGreeting';
 import { JourneyCard } from '@/components/JourneyCard';
+import { useDailyQuests } from '@/hooks/useDailyQuests';
 
 /* ── Icon registry for db-driven badges ──────────────── */
 const BADGE_ICONS: Record<string, LucideIcon> = {
@@ -92,29 +93,8 @@ export function Dashboard() {
     ? `${Math.round(totalTimeSecs / 3600)}u`
     : `${Math.round(totalTimeSecs / 60)}m`;
 
-  // Today's exercise count from exercise_attempts
-  const { data: todayAttempts = 0 } = useQuery({
-    queryKey: ['today-attempts', child?.id],
-    queryFn: async () => {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const { count, error } = await supabase
-        .from('exercise_attempts')
-        .select('id', { count: 'exact', head: true })
-        .eq('child_id', child!.id)
-        .gte('completed_at', start.toISOString());
-      if (error) throw error;
-      return count ?? 0;
-    },
-    enabled: !!child?.id,
-  });
-
-  // Dynamic daily quests based on real activity
-  const dailyQuests = [
-    { title: 'Rond 1 oefening af', xp: '+50 XP', done: todayAttempts >= 1 },
-    { title: 'Doe 3 oefeningen vandaag', xp: '+100 XP', done: todayAttempts >= 3 },
-    { title: 'Behoud een reeks van 5 dagen', xp: '+150 XP', done: streak >= 5 },
-  ];
+  // Dynamic daily quests: rotating pool + a subject-nudge slot, based on real activity
+  const { quests: dailyQuests } = useDailyQuests();
 
   const xpForCurrentLevel = (level - 1) * 1000;
   const xpInLevel = xp - xpForCurrentLevel;
@@ -332,7 +312,7 @@ export function Dashboard() {
                 <circle
                   cx="18" cy="18" r="15" fill="none"
                   stroke="url(#questGrad)" strokeWidth="3" strokeLinecap="round"
-                  strokeDasharray={`${(completedQuests / dailyQuests.length) * 94.25} 94.25`}
+                  strokeDasharray={`${(completedQuests / (dailyQuests.length || 1)) * 94.25} 94.25`}
                 />
                 <defs>
                   <linearGradient id="questGrad" x1="0" x2="1" y1="0" y2="1">
@@ -342,7 +322,7 @@ export function Dashboard() {
                 </defs>
               </svg>
               <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-cyan-200">
-                {Math.round((completedQuests / dailyQuests.length) * 100)}%
+                {Math.round((completedQuests / (dailyQuests.length || 1)) * 100)}%
               </span>
             </div>
           </div>
@@ -350,7 +330,7 @@ export function Dashboard() {
           <div className="space-y-2.5 relative z-10">
             {dailyQuests.map((quest, i) => (
               <div
-                key={i}
+                key={quest.id}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-2xl border-2 transition-all",
                   quest.done

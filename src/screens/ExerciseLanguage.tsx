@@ -12,7 +12,38 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 
-const WORD_POOL = ['boom', 'roos', 'vis', 'maan', 'vuur', 'huis', 'boek', 'kat', 'hond', 'zon', 'ster', 'wolk', 'gras', 'berg', 'meer'];
+// Curated Vlaamse woordenschat eerste leerjaar — gevarieerd en fonetisch geordend.
+// Korte klinkers (CVC), dan lange klinkers (aa/oo/ee/ie/oe), dan meerlettergrepige woorden.
+const WORD_POOL = [
+  // — korte klinkers —
+  'kat', 'pot', 'vis', 'bed', 'bus',
+  'dak', 'mes', 'kip', 'bom', 'pet',
+  'pak', 'bol', 'top', 'mug', 'zak',
+  'sap', 'hok', 'rem', 'rug', 'put',
+  'vel', 'dam', 'lip', 'gom', 'tak',
+  'nek', 'dop', 'pit', 'bek', 'mol',
+  // — lange klinkers / tweeklanken —
+  'maan', 'roos', 'boom', 'beer', 'muur',
+  'naam', 'boot', 'peer', 'jaar', 'toon',
+  'kaas', 'raam', 'vaas', 'boon', 'meer',
+  'veer', 'keel', 'heel', 'biet', 'wiel',
+  'boek', 'tuin', 'deur', 'neus', 'zaag',
+  'lied', 'zaal', 'heer', 'riet', 'loon',
+  // — vierlettrige woorden —
+  'lamp', 'kind', 'lift', 'band', 'hond',
+  'ring', 'hand', 'tand', 'wolk', 'been',
+  'rood', 'geel', 'brug', 'klas', 'melk',
+  'fles', 'berg', 'gras', 'ster', 'zon',
+];
+
+function fisherYates<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export function ExerciseLanguage() {
   const navigate = useNavigate();
@@ -22,10 +53,11 @@ export function ExerciseLanguage() {
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const { speak } = useSpeech();
-  
+  const usedCorrectWords = useRef<Set<string>>(new Set());
+
   const [currentWords, setCurrentWords] = useState<string[]>([]);
   const [correctWord, setCorrectWord] = useState<string>('');
-  
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'incorrect' | 'correct'>('idle');
@@ -33,9 +65,17 @@ export function ExerciseLanguage() {
   const [lives, setLives] = useState(3);
 
   const generateQuestion = () => {
-    const shuffled = [...WORD_POOL].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 4);
-    const answer = selected[Math.floor(Math.random() * 4)];
+    const shuffled = fisherYates(WORD_POOL);
+
+    // Prefer words not yet used as correct answer this session
+    const unused = shuffled.filter(w => !usedCorrectWords.current.has(w));
+    if (unused.length === 0) usedCorrectWords.current.clear();
+    const pool = unused.length >= 4 ? unused : shuffled;
+
+    const selected = pool.slice(0, 4);
+    const answer = selected[Math.floor(Math.random() * selected.length)];
+    usedCorrectWords.current.add(answer);
+
     setCurrentWords(selected);
     setCorrectWord(answer);
     setSelectedWord(null);

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { clampToSupportedGrade } from '@/data/difficultyConfig';
 import type { StageExercise } from '@/types/stage';
 
 export const REQUIRED_COMPLETIONS = 5;
@@ -13,13 +14,15 @@ export function useStageExercises(stage: number = 1) {
   const { data: child, isFetched } = useCurrentChild();
   const childId = child?.id;
   const safeStage = Math.max(1, Math.min(3, stage || 1));
+  const grade = clampToSupportedGrade(child?.grade);
 
   return useQuery({
-    queryKey: ['stage-exercises-progress', childId, safeStage],
+    queryKey: ['stage-exercises-progress', childId, safeStage, grade],
     queryFn: async (): Promise<StageExercise[]> => {
       const { data: exercises, error } = await supabase
         .from('exercises')
         .select('*')
+        .eq('grade', grade)
         .eq('stage', `stage-${safeStage}`)
         .eq('is_active', true)
         .order('subject')
