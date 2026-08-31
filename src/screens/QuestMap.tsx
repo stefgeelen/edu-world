@@ -5,29 +5,17 @@ import { Lock, Star, Check, ChevronLeft } from "lucide-react";
 import { useGame } from "@/context/GameContext";
 import { cn } from "@/lib/utils";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
-import { useStageMastery, STAGE_NAMES } from "@/hooks/useStageMastery";
+import { useStageMastery } from "@/hooks/useStageMastery";
+import { getWorldTheme } from "@/data/worldThemes";
 import { BuddyBubble } from "@/components/BuddyBubble";
 import { useBuddyMessage } from "@/hooks/useBuddyMessage";
 import { BuddyCompanion } from "@/components/BuddyCompanion";
 import { useChildGreeting } from "@/hooks/useChildGreeting";
-const TRIMESTER_CONFIG = [
-  { id: 1, name: STAGE_NAMES[1], icon: "🌳", yPos: 78, xPos: 40 },
-  { id: 2, name: STAGE_NAMES[2], icon: "🌊", yPos: 48, xPos: 65 },
-  { id: 3, name: STAGE_NAMES[3], icon: "🦊", yPos: 18, xPos: 30 },
-];
 
-const DECORATIVE_ELEMENTS = [
-  { icon: "🌲", top: "15%", left: "10%", size: "text-6xl", rotate: "-rotate-6", opacity: "opacity-40" },
-  { icon: "🍄", top: "28%", left: "80%", size: "text-5xl", rotate: "rotate-12", opacity: "opacity-50" },
-  { icon: "🌲", top: "48%", left: "88%", size: "text-7xl", rotate: "rotate-6", opacity: "opacity-30" },
-  { icon: "✨", top: "35%", left: "15%", size: "text-3xl", rotate: "rotate-0", opacity: "opacity-60 animate-pulse" },
-  { icon: "🦉", top: "5%", left: "78%", size: "text-4xl", rotate: "-rotate-12", opacity: "opacity-40" },
-  { icon: "🌲", top: "78%", left: "12%", size: "text-6xl", rotate: "rotate-3", opacity: "opacity-40" },
-  { icon: "🌺", top: "88%", left: "85%", size: "text-4xl", rotate: "rotate-45", opacity: "opacity-50" },
-  { icon: "🦋", top: "68%", left: "20%", size: "text-3xl", rotate: "-rotate-12", opacity: "opacity-50" },
-  { icon: "🌲", top: "10%", left: "30%", size: "text-5xl", rotate: "-rotate-3", opacity: "opacity-30" },
-  { icon: "✨", top: "65%", left: "85%", size: "text-2xl", rotate: "rotate-0", opacity: "opacity-60 animate-pulse" },
-  { icon: "🍄", top: "92%", left: "25%", size: "text-3xl", rotate: "-rotate-12", opacity: "opacity-40" },
+const CHECKPOINT_POSITIONS = [
+  { id: 1, yPos: 78, xPos: 40 },
+  { id: 2, yPos: 48, xPos: 65 },
+  { id: 3, yPos: 18, xPos: 30 },
 ];
 
 function getCheckpointStatus(
@@ -54,6 +42,7 @@ export function QuestMap() {
   const { stages, overallPct, child } = useStageMastery();
   const { getMessage, hasAvatar } = useBuddyMessage();
   const { childName } = useChildGreeting();
+  const theme = getWorldTheme(child?.grade);
 
   // Buddy encouragement on mount
   const [buddyData, setBuddyData] = useState<{ message: string; mood: any; avatarUrl: string; avatarName: string } | null>(null);
@@ -75,14 +64,21 @@ export function QuestMap() {
     }
   }, []);
 
-  // Build checkpoints from config + real stage mastery data
-  const checkpoints = TRIMESTER_CONFIG.map((cfg) => {
-    const status = getCheckpointStatus(cfg.id, stages);
-    return { ...cfg, status, btnClass: getButtonClass(status), stagePath: `/app/stage/fluisterbos/${cfg.id}` };
+  // Build checkpoints from theme + position config + real stage mastery data
+  const checkpoints = CHECKPOINT_POSITIONS.map((pos) => {
+    const status = getCheckpointStatus(pos.id, stages);
+    return {
+      ...pos,
+      name: theme.stageNames[pos.id],
+      icon: theme.stageIcons[pos.id],
+      status,
+      btnClass: getButtonClass(status),
+      stagePath: `/app/stage/fluisterbos/${pos.id}`,
+    };
   }).reverse(); // Render top-to-bottom (highest stage first)
 
   return (
-    <div className="h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] flex flex-col relative overflow-hidden font-sans">
+    <div className={cn("h-full w-full flex flex-col relative overflow-hidden font-sans", theme.classes.pageBackground)}>
       {/* Starry Background (memoized) */}
       {useMemo(() => (
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -99,7 +95,7 @@ export function QuestMap() {
       ), [])}
 
       {/* Decorations */}
-      {DECORATIVE_ELEMENTS.map((el, i) => (
+      {theme.decorativeElements.map((el, i) => (
         <div key={`deco-${i}`} className={`absolute pointer-events-none select-none ${el.size} ${el.rotate} ${el.opacity}`} style={{ top: el.top, left: el.left }}>
           {el.icon}
         </div>
@@ -107,18 +103,18 @@ export function QuestMap() {
 
       {/* Top Navigation Bar */}
       <div className="absolute top-0 left-0 right-0 p-4 md:p-6 z-50 pointer-events-none w-full max-w-2xl mx-auto">
-        <div className="flex flex-col gap-3 pointer-events-auto bg-[#1a103c]/80 backdrop-blur-xl rounded-3xl p-4 border-[3px] border-[#3b2d71] shadow-xl">
+        <div className={cn("flex flex-col gap-3 pointer-events-auto backdrop-blur-xl rounded-3xl p-4 border-[3px] shadow-xl", theme.classes.navBg, theme.classes.borderAccent)}>
           <div className="flex items-center justify-between gap-3">
-            <button onClick={() => navigate("/app/dashboard")} className="w-12 h-12 bg-[#2d1b54] rounded-full flex items-center justify-center border-b-[4px] border-[#1c1134] active:border-b-0 active:translate-y-1 transition-all flex-shrink-0 shadow-lg">
-              <ChevronLeft className="w-7 h-7 text-[#9d8bce]" />
+            <button onClick={() => navigate("/app/dashboard")} className={cn("w-12 h-12 rounded-full flex items-center justify-center border-b-[4px] active:border-b-0 active:translate-y-1 transition-all flex-shrink-0 shadow-lg", theme.classes.surfaceBg, theme.classes.surfaceDarkBorder)}>
+              <ChevronLeft className={cn("w-7 h-7", theme.classes.accentMutedText)} />
             </button>
             <div className="flex-1 flex flex-col items-center text-center px-1">
-              <p className="text-[#a78bfa] text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-0.5 shadow-sm">Leerjaar {child?.grade ?? 1}</p>
-              <h1 className="text-[15px] md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 drop-shadow-md uppercase tracking-wide leading-tight">
-                Het Magische Letterbos
+              <p className={cn("text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-0.5 shadow-sm", theme.classes.accentText)}>Leerjaar {child?.grade ?? 1}</p>
+              <h1 className={cn("text-[15px] md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r drop-shadow-md uppercase tracking-wide leading-tight", theme.classes.titleGradient)}>
+                {theme.title}
               </h1>
             </div>
-            <div className="w-14 h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg bg-[#2d1b54] flex-shrink-0 relative">
+            <div className={cn("w-14 h-14 rounded-full border-[3px] overflow-hidden shadow-lg flex-shrink-0 relative", theme.classes.avatarRing, theme.classes.surfaceBg)}>
               <ImageWithFallback
                 src={selectedAvatar?.imageUrlHead || "/avatars/fia_head.png"}
                 alt="Avatar"
@@ -129,7 +125,7 @@ export function QuestMap() {
 
           {/* Progress Bar - real data */}
           <div className="px-1">
-            <div className="w-full bg-[#1c1134] rounded-full h-5 border-2 border-[#3b2d71] overflow-hidden relative shadow-inner">
+            <div className={cn("w-full rounded-full h-5 border-2 overflow-hidden relative shadow-inner", theme.classes.surfaceDarkBg, theme.classes.borderAccent)}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${overallPct}%` }}
@@ -162,10 +158,9 @@ export function QuestMap() {
             />
             <defs>
               <linearGradient id="glowPath" x1="0%" y1="100%" x2="0%" y2="0%">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="30%" stopColor="#06b6d4" />
-                <stop offset="65%" stopColor="#6366f1" />
-                <stop offset="100%" stopColor="#a855f7" />
+                {theme.pathGradientStops.map((stop) => (
+                  <stop key={stop.offset} offset={stop.offset} stopColor={stop.color} />
+                ))}
               </linearGradient>
             </defs>
           </svg>
@@ -181,7 +176,7 @@ export function QuestMap() {
               transition={{ delay: index * 0.2, type: "spring", bounce: 0.5 }}
             >
               {/* Label */}
-              <div className={cn("mb-3 px-4 py-1.5 rounded-2xl shadow-xl whitespace-nowrap border-2", cp.status === "locked" ? "bg-[#1c1134]/90 border-[#3b2d71]" : "bg-[#2d1b54]/90 border-[#a78bfa]/50 backdrop-blur-sm")}>
+              <div className={cn("mb-3 px-4 py-1.5 rounded-2xl shadow-xl whitespace-nowrap border-2", cp.status === "locked" ? "bg-[#1c1134]/90 border-[#3b2d71]" : cn(theme.classes.checkpointActiveBg, theme.classes.checkpointActiveBorder, "backdrop-blur-sm"))}>
                 <h3 className={cn("text-sm md:text-base font-black tracking-wide", cp.status === "locked" ? "text-[#64568f]" : "text-white drop-shadow-md")}>{cp.name}</h3>
               </div>
 
@@ -199,7 +194,7 @@ export function QuestMap() {
                 <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
 
                 {/* Status Indicator */}
-                <div className="absolute -bottom-2 -right-2 w-8 h-8 md:w-10 md:h-10 rounded-full border-[3px] border-white flex items-center justify-center shadow-lg bg-[#2d1b54] z-20">
+                <div className={cn("absolute -bottom-2 -right-2 w-8 h-8 md:w-10 md:h-10 rounded-full border-[3px] border-white flex items-center justify-center shadow-lg z-20", theme.classes.surfaceBg)}>
                   {cp.status === "completed" && <Check className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" strokeWidth={4} />}
                   {cp.status === "current" && <Star className="w-5 h-5 md:w-6 md:h-6 text-amber-400 fill-amber-400" />}
                   {cp.status === "locked" && <Lock className="w-4 h-4 md:w-5 md:h-5 text-slate-400" strokeWidth={3} />}

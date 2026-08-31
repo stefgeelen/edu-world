@@ -13,12 +13,6 @@ export interface StageMastery {
   isLocked: boolean;
 }
 
-export const STAGE_NAMES: Record<number, string> = {
-  1: 'Fluisterbomen',
-  2: 'Borrelende Beek',
-  3: 'Woordenwoud',
-};
-
 /**
  * Computes per-stage mastery (1..3) for the current child.
  * A stage is "completed" when ALL its exercises have been mastered (>= REQUIRED_COMPLETIONS attempts).

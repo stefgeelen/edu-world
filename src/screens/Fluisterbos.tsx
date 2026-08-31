@@ -9,7 +9,6 @@ import {
   Calculator,
   BookOpen,
   PenTool,
-  Leaf,
   Loader2,
   CheckCircle2,
   Clock,
@@ -22,7 +21,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStageExercises, REQUIRED_COMPLETIONS } from '@/hooks/useStageExercises';
-import { useStageMastery, STAGE_NAMES } from '@/hooks/useStageMastery';
+import { useStageMastery } from '@/hooks/useStageMastery';
+import { getWorldTheme } from '@/data/worldThemes';
 import { toast } from '@/hooks/use-toast';
 import type { StageExercise, SubjectConfig } from '@/types/stage';
 
@@ -84,7 +84,8 @@ export function Fluisterbos() {
   const { stage: stageParam } = useParams<{ stage?: string }>();
   const stage = Math.max(1, Math.min(3, Number(stageParam) || 1));
   const { data: allExercises = [], isLoading } = useStageExercises(stage);
-  const { stages, isLoading: masteryLoading } = useStageMastery();
+  const { stages, isLoading: masteryLoading, child } = useStageMastery();
+  const theme = getWorldTheme(child?.grade);
 
   // Guard: redirect if locked
   useEffect(() => {
@@ -93,11 +94,11 @@ export function Fluisterbos() {
     if (s?.isLocked) {
       toast({
         title: 'Nog op slot 🔒',
-        description: `Voltooi eerst de vorige stage om "${STAGE_NAMES[stage]}" te openen.`,
+        description: `Voltooi eerst de vorige stage om "${theme.stageNames[stage]}" te openen.`,
       });
       navigate('/app/map', { replace: true });
     }
-  }, [masteryLoading, stages, stage, navigate]);
+  }, [masteryLoading, stages, stage, navigate, theme.stageNames]);
 
   const mastered = allExercises.filter((e) => e.completions >= REQUIRED_COMPLETIONS);
   const totalXpEarned = mastered.reduce((s, e) => s + e.xpReward, 0);
@@ -128,9 +129,9 @@ export function Fluisterbos() {
             </button>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
-                <Leaf className="w-3 h-3 text-teal-500" /> Stage {stage} · {STAGE_NAMES[stage]}
+                <theme.stageScreen.icon className={cn("w-3 h-3", theme.stageScreen.iconColor)} /> Stage {stage} · {theme.stageNames[stage]}
               </p>
-              <h1 className="font-black text-xl text-slate-900 truncate">Het Fluisterbos</h1>
+              <h1 className="font-black text-xl text-slate-900 truncate">{theme.stageScreen.title}</h1>
             </div>
             <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl flex-shrink-0">
               <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
