@@ -35,7 +35,7 @@ interface FixQuestion {
 
 type Question = BuildQuestion | FixQuestion;
 
-const BUILD_SENTENCES: string[][] = [
+const BUILD_SENTENCES_GRADE_1: string[][] = [
   ['de', 'poes', 'slaapt', 'op', 'de', 'mat'],
   ['ik', 'ga', 'naar', 'school'],
   ['de', 'zon', 'schijnt', 'vandaag'],
@@ -68,7 +68,7 @@ const BUILD_SENTENCES: string[][] = [
   ['de', 'wind', 'waait', 'hard'],
 ];
 
-const FIX_SENTENCES: FixQuestion[] = [
+const FIX_SENTENCES_GRADE_1: FixQuestion[] = [
   { mode: 'fix', sentence: ['de', 'vis', 'vliegt', 'in', 'de', 'kom'], wrongIndex: 2, wrongWord: 'vliegt', correctWord: 'zwemt', distractors: ['zingt', 'danst'] },
   { mode: 'fix', sentence: ['de', 'koe', 'blaft', 'in', 'de', 'wei'], wrongIndex: 2, wrongWord: 'blaft', correctWord: 'loeit', distractors: ['vliegt', 'zingt'] },
   { mode: 'fix', sentence: ['ik', 'slaap', 'in', 'mijn', 'auto'], wrongIndex: 4, wrongWord: 'auto', correctWord: 'bed', distractors: ['boom', 'tafel'] },
@@ -93,6 +93,40 @@ const FIX_SENTENCES: FixQuestion[] = [
   { mode: 'fix', sentence: ['de', 'appel', 'groeit', 'in', 'het', 'water'], wrongIndex: 5, wrongWord: 'water', correctWord: 'boom', distractors: ['gras', 'zand'] },
   { mode: 'fix', sentence: ['de', 'vis', 'klimt', 'in', 'de', 'boom'], wrongIndex: 2, wrongWord: 'klimt', correctWord: 'zwemt', distractors: ['vliegt', 'rent'] },
 ];
+
+// GRADE-2 PILOT — placeholder pools (slightly longer sentences, more
+// subordinate structure). Not curriculum-reviewed: needs a native-speaker/
+// curriculum pass before MAX_SUPPORTED_GRADE is raised (see difficultyConfig.ts).
+const BUILD_SENTENCES_GRADE_2: string[][] = [
+  ['de', 'kinderen', 'spelen', 'buiten', 'in', 'de', 'regen'],
+  ['mijn', 'zus', 'leert', 'elke', 'dag', 'piano'],
+  ['de', 'boer', 'brengt', 'de', 'koeien', 'naar', 'de', 'wei'],
+  ['wij', 'gaan', 'morgen', 'naar', 'het', 'zwembad'],
+  ['de', 'juf', 'legt', 'de', 'som', 'nog', 'eens', 'uit'],
+  ['papa', 'repareert', 'de', 'kapotte', 'fiets'],
+  ['de', 'bibliotheek', 'is', 'vandaag', 'gesloten'],
+  ['ik', 'help', 'mijn', 'opa', 'in', 'de', 'tuin'],
+  ['de', 'trein', 'vertrekt', 'over', 'tien', 'minuten'],
+  ['het', 'weer', 'wordt', 'morgen', 'zonnig', 'en', 'warm'],
+];
+
+const FIX_SENTENCES_GRADE_2: FixQuestion[] = [
+  { mode: 'fix', sentence: ['de', 'bibliotheek', 'verkoopt', 'boeken', 'aan', 'iedereen'], wrongIndex: 2, wrongWord: 'verkoopt', correctWord: 'verhuurt', distractors: ['bakt', 'wast'] },
+  { mode: 'fix', sentence: ['de', 'trein', 'zwemt', 'naar', 'het', 'station'], wrongIndex: 2, wrongWord: 'zwemt', correctWord: 'rijdt', distractors: ['vliegt', 'kookt'] },
+  { mode: 'fix', sentence: ['mijn', 'opa', 'plant', 'appels', 'in', 'de', 'oven'], wrongIndex: 6, wrongWord: 'oven', correctWord: 'tuin', distractors: ['kast', 'auto'] },
+  { mode: 'fix', sentence: ['de', 'juf', 'drinkt', 'de', 'som', 'op', 'het', 'bord'], wrongIndex: 2, wrongWord: 'drinkt', correctWord: 'schrijft', distractors: ['eet', 'gooit'] },
+  { mode: 'fix', sentence: ['de', 'boer', 'melkt', 'de', 'vogels', 'elke', 'ochtend'], wrongIndex: 4, wrongWord: 'vogels', correctWord: 'koeien', distractors: ['stenen', 'wolken'] },
+];
+
+const BUILD_SENTENCES_BY_GRADE: Record<number, string[][]> = {
+  1: BUILD_SENTENCES_GRADE_1,
+  2: BUILD_SENTENCES_GRADE_2,
+};
+
+const FIX_SENTENCES_BY_GRADE: Record<number, FixQuestion[]> = {
+  1: FIX_SENTENCES_GRADE_1,
+  2: FIX_SENTENCES_GRADE_2,
+};
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -133,7 +167,9 @@ function pickUnused<T>(arr: T[], used: Set<number>): { item: T; index: number } 
 export function ExerciseSentenceDoctor() {
   const navigate = useNavigate();
   const { speak } = useSpeech();
-  const { stage } = useDifficultyLevel();
+  const { grade, stage } = useDifficultyLevel();
+  const buildSentences = BUILD_SENTENCES_BY_GRADE[grade] ?? BUILD_SENTENCES_GRADE_1;
+  const fixSentences = FIX_SENTENCES_BY_GRADE[grade] ?? FIX_SENTENCES_GRADE_1;
 
   const [question, setQuestion] = useState<Question | null>(null);
   // build mode
@@ -150,7 +186,7 @@ export function ExerciseSentenceDoctor() {
   const generateQuestion = useCallback(() => {
     const mode = Math.random() < 0.5 ? 'build' : 'fix';
     if (mode === 'build') {
-      const { item: words, index } = pickUnused(BUILD_SENTENCES, usedBuildIndices.current);
+      const { item: words, index } = pickUnused(buildSentences, usedBuildIndices.current);
       usedBuildIndices.current.add(index);
       const correctOrder: WordItem[] = words.map((w, i) => ({ id: `${i}-${w}`, word: w }));
       let shuffled = shuffle(correctOrder);
@@ -161,14 +197,14 @@ export function ExerciseSentenceDoctor() {
       setQuestion({ mode: 'build', correctOrder });
       setOrderedItems(shuffled);
     } else {
-      const { item: q, index } = pickUnused(FIX_SENTENCES, usedFixIndices.current);
+      const { item: q, index } = pickUnused(fixSentences, usedFixIndices.current);
       usedFixIndices.current.add(index);
       setQuestion(q);
       setFixedSentence([...q.sentence]);
       setAlternatives(shuffle([q.correctWord, ...q.distractors]));
     }
     setPopoverOpen(false);
-  }, []);
+  }, [buildSentences, fixSentences]);
 
   const exerciseId = useExerciseId();
   const {

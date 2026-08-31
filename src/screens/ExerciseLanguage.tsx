@@ -12,9 +12,11 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 
-// Curated Vlaamse woordenschat eerste leerjaar — gevarieerd en fonetisch geordend.
-// Korte klinkers (CVC), dan lange klinkers (aa/oo/ee/ie/oe), dan meerlettergrepige woorden.
-const WORD_POOL = [
+// Curated Vlaamse woordenschat per leerjaar — gevarieerd en fonetisch geordend.
+// Grade 1: korte klinkers (CVC), dan lange klinkers (aa/oo/ee/ie/oe), dan
+// meerlettergrepige woorden. Same pool used across all 3 stages (this
+// exercise has never split content by stage, only by grade).
+const WORD_POOL_GRADE_1 = [
   // — korte klinkers —
   'kat', 'pot', 'vis', 'bed', 'bus',
   'dak', 'mes', 'kip', 'bom', 'pet',
@@ -36,6 +38,21 @@ const WORD_POOL = [
   'fles', 'berg', 'gras', 'ster', 'zon',
 ];
 
+// GRADE-2 PILOT — placeholder pool (consonant clusters / medeklinkerclusters).
+// Not curriculum-reviewed: needs a native-speaker/curriculum pass before
+// MAX_SUPPORTED_GRADE is raised (see difficultyConfig.ts).
+const WORD_POOL_GRADE_2 = [
+  'straat', 'brood', 'kraan', 'zwaan', 'vlag',
+  'plant', 'kloof', 'zwart', 'groen', 'vlieg',
+  'sport', 'markt', 'kast', 'nacht', 'licht',
+  'zacht', 'echt', 'macht', 'trein', 'winkel',
+];
+
+const WORD_POOLS: Record<number, string[]> = {
+  1: WORD_POOL_GRADE_1,
+  2: WORD_POOL_GRADE_2,
+};
+
 function fisherYates<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -49,7 +66,8 @@ export function ExerciseLanguage() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { stage } = useDifficultyLevel();
+  const { grade, stage } = useDifficultyLevel();
+  const wordPool = WORD_POOLS[grade] ?? WORD_POOL_GRADE_1;
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const { speak } = useSpeech();
@@ -65,7 +83,7 @@ export function ExerciseLanguage() {
   const [lives, setLives] = useState(3);
 
   const generateQuestion = () => {
-    const shuffled = fisherYates(WORD_POOL);
+    const shuffled = fisherYates(wordPool);
 
     // Prefer words not yet used as correct answer this session
     const unused = shuffled.filter(w => !usedCorrectWords.current.has(w));
