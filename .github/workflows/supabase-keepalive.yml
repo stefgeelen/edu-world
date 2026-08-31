@@ -1,0 +1,39 @@
+name: Supabase Keep-Alive
+
+# Supabase pauses free-tier projects after 7 days with no API requests, DB
+# connections, or dashboard logins. Pausing itself doesn't delete data, but a
+# project left paused too long gets permanently deleted with zero backups on
+# the free tier — which is what wiped auth.users before. This just pings the
+# project regularly so it never reaches that 7-day threshold.
+on:
+  schedule:
+    - cron: '0 8 * * 1,4' # Monday and Thursday, 08:00 UTC — max 4 days between pings
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase to prevent free-tier pause
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Missing SUPABASE_URL or SUPABASE_ANON_KEY repository secret."
+            exit 1
+          fi
+
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/auth/v1/health" \
+            -H "apikey: $SUPABASE_ANON_KEY")
+          echo "Supabase auth health endpoint responded with HTTP $code"
+
+          # Any real HTTP response means the project is up and just got
+          # counted as activity. "000" means curl couldn't connect at all —
+          # that's worth failing loudly on, since it may mean the project is
+          # already paused despite this workflow.
+          if [ "$code" = "000" ]; then
+            echo "::error::Could not reach the Supabase project — it may already be paused."
+            exit 1
+          fi
