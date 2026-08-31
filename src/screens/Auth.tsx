@@ -22,13 +22,14 @@ import { mapAuthError } from '@/lib/errorMessages';
 
 export function Auth() {
   const navigate = useNavigate();
-  const { signIn, signUp, signInWithOAuth, user } = useAuth();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const { signIn, signUp, signInWithOAuth, resetPasswordForEmail, user } = useAuth();
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   // Redirect if already logged in
   React.useEffect(() => {
@@ -37,10 +38,15 @@ export function Auth() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const emailOk = emailRegex.test(email.trim());
-  const passwordOk = mode === 'login' ? password.length > 0 : isPasswordValid(password);
-  const nameOk = mode === 'login' ? true : fullName.trim().length >= 2;
+  const passwordOk = mode === 'forgot' ? true : mode === 'login' ? password.length > 0 : isPasswordValid(password);
+  const nameOk = mode === 'signup' ? fullName.trim().length >= 2 : true;
   const isValid = emailOk && passwordOk && nameOk;
   const pwReq = validatePassword(password);
+
+  const switchMode = (m: 'login' | 'signup') => {
+    setMode(m);
+    setResetSent(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +58,16 @@ export function Auth() {
     }
     setLoading(true);
 
-    if (mode === 'signup') {
+    if (mode === 'forgot') {
+      const { error } = await resetPasswordForEmail(email.trim());
+      if (error) {
+        toast.error(mapAuthError(error));
+      } else {
+        // Generic confirmation regardless of whether the address is known,
+        // so this can't be used to check which emails have an account.
+        setResetSent(true);
+      }
+    } else if (mode === 'signup') {
       const { error } = await signUp(email.trim(), password, fullName.trim());
       if (error) {
         toast.error(mapAuthError(error));
@@ -102,60 +117,64 @@ export function Auth() {
         transition={{ delay: 0.15 }}
         className="text-slate-500 font-medium mb-8"
       >
-        {mode === 'login' ? 'Welkom terug!' : 'Maak een account aan'}
+        {mode === 'login' ? 'Welkom terug!' : mode === 'signup' ? 'Maak een account aan' : 'Wachtwoord resetten'}
       </motion.p>
 
       {/* Tab Switcher */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white rounded-2xl p-1.5 flex gap-1 mb-6 shadow-sm border border-slate-200 w-full max-w-sm"
-      >
-        {(['login', 'signup'] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={cn(
-              'flex-1 py-3 rounded-xl font-bold text-sm transition-all',
-              mode === m
-                ? 'bg-teal-500 text-white shadow-md'
-                : 'text-slate-500 hover:text-slate-700'
-            )}
-          >
-            {m === 'login' ? 'Inloggen' : 'Registreren'}
-          </button>
-        ))}
-      </motion.div>
+      {mode !== 'forgot' && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-2xl p-1.5 flex gap-1 mb-6 shadow-sm border border-slate-200 w-full max-w-sm"
+        >
+          {(['login', 'signup'] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => switchMode(m)}
+              className={cn(
+                'flex-1 py-3 rounded-xl font-bold text-sm transition-all',
+                mode === m
+                  ? 'bg-teal-500 text-white shadow-md'
+                  : 'text-slate-500 hover:text-slate-700'
+              )}
+            >
+              {m === 'login' ? 'Inloggen' : 'Registreren'}
+            </button>
+          ))}
+        </motion.div>
+      )}
 
       {/* Social login */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.25 }}
-        className="w-full max-w-sm space-y-3"
-      >
-        <button
-          type="button"
-          onClick={async () => { setLoading(true); await signInWithOAuth('google'); setLoading(false); }}
-          disabled={loading}
-          className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-300 hover:shadow-md font-bold text-slate-700 flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm border-b-4 border-b-slate-200 active:border-b-2 active:translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+      {mode !== 'forgot' && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="w-full max-w-sm space-y-3"
         >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-          ) : (
-            <>
-              <GoogleIcon />
-              <span>Doorgaan met Google</span>
-            </>
-          )}
-        </button>
-        <div className="flex items-center gap-3 py-1">
-          <div className="flex-1 h-px bg-slate-200" />
-          <span className="text-xs font-semibold text-slate-400">of</span>
-          <div className="flex-1 h-px bg-slate-200" />
-        </div>
-      </motion.div>
+          <button
+            type="button"
+            onClick={async () => { setLoading(true); await signInWithOAuth('google'); setLoading(false); }}
+            disabled={loading}
+            className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-300 hover:shadow-md font-bold text-slate-700 flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm border-b-4 border-b-slate-200 active:border-b-2 active:translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+            ) : (
+              <>
+                <GoogleIcon />
+                <span>Doorgaan met Google</span>
+              </>
+            )}
+          </button>
+          <div className="flex items-center gap-3 py-1">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-xs font-semibold text-slate-400">of</span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </div>
+        </motion.div>
+      )}
 
       {/* Form */}
       <motion.form
@@ -165,6 +184,24 @@ export function Auth() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm space-y-4"
       >
+        {mode === 'forgot' && resetSent ? (
+          <div className="bg-white rounded-2xl border-2 border-emerald-200 p-6 text-center space-y-4">
+            <div className="w-12 h-12 mx-auto bg-emerald-100 rounded-full flex items-center justify-center">
+              <Check className="w-6 h-6 text-emerald-600" strokeWidth={3} />
+            </div>
+            <p className="text-slate-600 font-medium text-sm">
+              Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een e-mail met een link om je wachtwoord opnieuw in te stellen.
+            </p>
+            <button
+              type="button"
+              onClick={() => switchMode('login')}
+              className="text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors"
+            >
+              Terug naar inloggen
+            </button>
+          </div>
+        ) : (
+        <>
         <AnimatePresence mode="wait">
           {mode === 'signup' && (
             <motion.div
@@ -201,24 +238,36 @@ export function Auth() {
           />
         </div>
 
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 flex items-center gap-3 focus-within:border-teal-400 transition-colors">
-          <Lock className="w-5 h-5 text-slate-400 shrink-0" />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Wachtwoord"
-            className="flex-1 bg-transparent text-slate-800 font-semibold placeholder:text-slate-400 placeholder:font-medium outline-none text-base"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          />
+        {mode !== 'forgot' && (
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 flex items-center gap-3 focus-within:border-teal-400 transition-colors">
+            <Lock className="w-5 h-5 text-slate-400 shrink-0" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Wachtwoord"
+              className="flex-1 bg-transparent text-slate-800 font-semibold placeholder:text-slate-400 placeholder:font-medium outline-none text-base"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+        )}
+
+        {mode === 'login' && (
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            onClick={() => { setMode('forgot'); setResetSent(false); }}
+            className="block text-sm font-semibold text-teal-600 hover:text-teal-700 transition-colors -mt-2"
           >
-            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            Wachtwoord vergeten?
           </button>
-        </div>
+        )}
 
         {mode === 'signup' && password.length > 0 && (
           <ul className="space-y-1 px-1">
@@ -252,11 +301,23 @@ export function Auth() {
             <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
-              {mode === 'login' ? 'Inloggen' : 'Account Aanmaken'}
+              {mode === 'login' ? 'Inloggen' : mode === 'signup' ? 'Account Aanmaken' : 'Verstuur resetlink'}
               <ArrowRight className="w-5 h-5" strokeWidth={3} />
             </>
           )}
         </button>
+
+        {mode === 'forgot' && (
+          <button
+            type="button"
+            onClick={() => switchMode('login')}
+            className="block w-full text-center text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors"
+          >
+            Terug naar inloggen
+          </button>
+        )}
+        </>
+        )}
       </motion.form>
     </div>
   );

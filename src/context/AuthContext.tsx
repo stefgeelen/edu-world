@@ -10,6 +10,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithOAuth: (provider: 'google') => Promise<{ error: Error | null }>;
+  resetPasswordForEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -59,6 +60,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error: error as Error | null };
   };
 
+  const resetPasswordForEmail = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error: error as Error | null };
+  };
+
   const signInWithOAuth = async (provider: 'google') => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -77,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithOAuth, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithOAuth, resetPasswordForEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   );

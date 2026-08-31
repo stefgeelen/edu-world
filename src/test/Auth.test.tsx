@@ -19,9 +19,10 @@ vi.mock('react-router-dom', async (importOriginal) => {
 const signIn = vi.fn();
 const signUp = vi.fn();
 const signInWithOAuth = vi.fn();
+const resetPasswordForEmail = vi.fn();
 let currentUser: unknown = null;
 vi.mock('@/context/AuthContext', () => ({
-  useAuth: () => ({ signIn, signUp, signInWithOAuth, user: currentUser }),
+  useAuth: () => ({ signIn, signUp, signInWithOAuth, resetPasswordForEmail, user: currentUser }),
 }));
 
 vi.mock('sonner', () => ({
@@ -154,5 +155,53 @@ describe('Auth screen', () => {
     currentUser = { id: 'user-1' };
     renderAuth();
     expect(navigateMock).toHaveBeenCalledWith('/app', { replace: true });
+  });
+
+  describe('forgot password', () => {
+    it('switching to forgot-password mode hides the password field and requires only a valid email', () => {
+      const { container } = renderAuth();
+      fireEvent.click(screen.getByRole('button', { name: 'Wachtwoord vergeten?' }));
+
+      expect(screen.queryByPlaceholderText('Wachtwoord')).not.toBeInTheDocument();
+      const submit = getSubmitButton(container);
+      expect(submit).toBeDisabled();
+
+      fireEvent.change(screen.getByPlaceholderText('E-mailadres'), { target: { value: 'parent@example.com' } });
+      expect(submit).toBeEnabled();
+    });
+
+    it('requests a reset link for the trimmed email and shows a generic confirmation, not the address itself', async () => {
+      resetPasswordForEmail.mockResolvedValue({ error: null });
+      const { container } = renderAuth();
+      fireEvent.click(screen.getByRole('button', { name: 'Wachtwoord vergeten?' }));
+
+      fireEvent.change(screen.getByPlaceholderText('E-mailadres'), { target: { value: '  parent@example.com  ' } });
+      fireEvent.click(getSubmitButton(container));
+
+      await waitFor(() => expect(resetPasswordForEmail).toHaveBeenCalledWith('parent@example.com'));
+      expect(await screen.findByText(/als dit e-mailadres bij ons bekend is/i)).toBeInTheDocument();
+      expect(screen.queryByText('parent@example.com')).not.toBeInTheDocument();
+    });
+
+    it('shows a mapped error toast when the reset request itself fails (e.g. rate limited)', async () => {
+      resetPasswordForEmail.mockResolvedValue({ error: { message: 'Email rate limit exceeded' } });
+      const { container } = renderAuth();
+      fireEvent.click(screen.getByRole('button', { name: 'Wachtwoord vergeten?' }));
+
+      fireEvent.change(screen.getByPlaceholderText('E-mailadres'), { target: { value: 'parent@example.com' } });
+      fireEvent.click(getSubmitButton(container));
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Te veel pogingen. Wacht een minuut en probeer opnieuw.'));
+      expect(screen.queryByText(/als dit e-mailadres bij ons bekend is/i)).not.toBeInTheDocument();
+    });
+
+    it('"Terug naar inloggen" returns to login mode with the password field and tab switcher back', () => {
+      renderAuth();
+      fireEvent.click(screen.getByRole('button', { name: 'Wachtwoord vergeten?' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Terug naar inloggen' }));
+
+      expect(screen.getByPlaceholderText('Wachtwoord')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Registreren' })).toBeInTheDocument();
+    });
   });
 });
