@@ -9,7 +9,8 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { SUBTRACT_BOX_CONFIG, DEFAULT_SUBTRACT_BOX } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_SUBTRACT_BOX } from '@/data/difficultyConfig';
 
 type Status = 'idle' | 'incorrect' | 'correct';
 /**
@@ -38,11 +39,11 @@ export function ExerciseSubtractBox() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
-  const cfg = SUBTRACT_BOX_CONFIG[difficultyKey] ?? DEFAULT_SUBTRACT_BOX;
+  const cfg = useExerciseConfig(DEFAULT_SUBTRACT_BOX);
 
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);

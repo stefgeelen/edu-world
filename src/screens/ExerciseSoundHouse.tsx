@@ -8,8 +8,9 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { useSpeech } from '@/hooks/useSpeech';
-import { SOUND_HOUSE_CONFIG, DEFAULT_SOUND_HOUSE } from '@/data/difficultyConfig';
+import { DEFAULT_SOUND_HOUSE } from '@/data/difficultyConfig';
 import { generateSoundHouseRound, type SoundPosition, type SoundWord } from '@/data/soundHousePool';
 import type { BuddyMood } from '@/data/buddyMessages';
 
@@ -30,8 +31,8 @@ export function ExerciseSoundHouse() {
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const { speak } = useSpeech();
-  const { stage, key } = useDifficultyLevel();
-  const cfg = SOUND_HOUSE_CONFIG[key] ?? DEFAULT_SOUND_HOUSE;
+  const { stage } = useDifficultyLevel();
+  const cfg = useExerciseConfig(DEFAULT_SOUND_HOUSE);
 
   const startTime = useRef(Date.now());
   const correctCount = useRef(0);

@@ -10,7 +10,8 @@ import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { COMPARISON_CONFIG, DEFAULT_COMPARISON } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_COMPARISON } from '@/data/difficultyConfig';
 import { KwadraatGrid } from '@/components/exercise/KwadraatGrid';
 
 
@@ -111,10 +112,10 @@ export function ExerciseComparison() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  const compConfig = COMPARISON_CONFIG[difficultyKey] ?? DEFAULT_COMPARISON;
+  const compConfig = useExerciseConfig(DEFAULT_COMPARISON);
 
   const [question, setQuestion] = useState<Question>(() => generateQuestion(compConfig.maxNumber));
   const [selectedSymbol, setSelectedSymbol] = useState<CompSymbol | null>(null);

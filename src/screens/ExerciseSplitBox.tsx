@@ -9,7 +9,8 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { SPLIT_BOX_CONFIG, DEFAULT_SPLIT_BOX } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_SPLIT_BOX } from '@/data/difficultyConfig';
 
 
 type Status = 'idle' | 'incorrect' | 'correct';
@@ -44,11 +45,11 @@ export function ExerciseSplitBox() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
-  const cfg = SPLIT_BOX_CONFIG[difficultyKey] ?? DEFAULT_SPLIT_BOX;
+  const cfg = useExerciseConfig(DEFAULT_SPLIT_BOX);
 
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);

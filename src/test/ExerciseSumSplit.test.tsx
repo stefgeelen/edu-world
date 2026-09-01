@@ -8,7 +8,6 @@ import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-li
 // generated question straight out of the rendered DOM instead of trying to
 // control the RNG) exercise the actual generation logic.
 import { randomInt } from '@/lib/random';
-import { SUM_SPLIT_CONFIG } from '@/data/difficultyConfig';
 
 interface Question {
   num1: number;
@@ -35,7 +34,8 @@ function generateQuestion(minSum: number, maxSum: number): Question {
 }
 
 describe('ExerciseSumSplit question generation', () => {
-  const { minSum, maxSum } = SUM_SPLIT_CONFIG['1-3'];
+  const minSum = 11;
+  const maxSum = 18;
 
   it('always produces num1 in [6, 9] with a positive leftPart and rightPart', () => {
     for (let i = 0; i < 200; i++) {
@@ -72,6 +72,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => navigateMock };
 });
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-3', stage: 1, grade: 1 }) }));
+vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => undefined }));
 vi.mock('@/hooks/useCompleteExercise', () => ({
   useCompleteExercise: () => ({ mutate: vi.fn() }),

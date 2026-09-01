@@ -6,7 +6,8 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { CLOCK_CONFIG, DEFAULT_CLOCK } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_CLOCK } from '@/data/difficultyConfig';
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClockTask {
@@ -254,8 +255,8 @@ function ClockFace({ hourAngle, minuteAngle, onHourChange, onMinuteChange, statu
 /* ── Main Exercise ──────────────────────────────────────────── */
 export function ExerciseClock() {
   const navigate = useNavigate();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
-  const clockCfg = CLOCK_CONFIG[difficultyKey] ?? DEFAULT_CLOCK;
+  const { stage } = useDifficultyLevel();
+  const clockCfg = useExerciseConfig(DEFAULT_CLOCK);
 
   const [task, setTask] = useState<ClockTask>(() => generateTask(clockCfg.halfHours));
   const [hourAngle, setHourAngle] = useState(0);

@@ -9,7 +9,8 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { PICTURE_WORD_CONFIG, DEFAULT_PICTURE_WORD } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_PICTURE_WORD } from '@/data/difficultyConfig';
 import { useSpeech } from '@/hooks/useSpeech';
 import { generatePictureRound, type PictureItem } from '@/data/picturePool';
 import type { BuddyMood } from '@/data/buddyMessages';
@@ -30,9 +31,9 @@ export function ExercisePictureWord() {
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const { speak } = useSpeech();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
 
-  const picCfg = PICTURE_WORD_CONFIG[difficultyKey] ?? DEFAULT_PICTURE_WORD;
+  const picCfg = useExerciseConfig(DEFAULT_PICTURE_WORD);
   const optionCount = picCfg.optionCount;
   const mixed = false;
 

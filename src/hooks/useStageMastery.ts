@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { REQUIRED_COMPLETIONS } from '@/hooks/useStageExercises';
-import { clampToSupportedGrade } from '@/data/difficultyConfig';
 
 export interface StageMastery {
   stage: number;
@@ -21,7 +20,7 @@ export interface StageMastery {
 export function useStageMastery() {
   const { data: child, isFetched } = useCurrentChild();
   const childId = child?.id;
-  const grade = clampToSupportedGrade(child?.grade);
+  const grade = child?.grade ?? 1;
 
   const query = useQuery({
     queryKey: ['stage-mastery', childId, child?.max_unlocked_stage, grade],

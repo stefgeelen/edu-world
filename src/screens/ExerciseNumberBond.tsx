@@ -9,18 +9,19 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { NUMBER_BOND_CONFIG, DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
 
 
 export function ExerciseNumberBond() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
-  const bondConfig = NUMBER_BOND_CONFIG[difficultyKey] ?? DEFAULT_NUMBER_BOND;
+  const bondConfig = useExerciseConfig(DEFAULT_NUMBER_BOND);
 
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);

@@ -9,7 +9,8 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { MATH_SUMS_CONFIG, DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
 
 
 const OP_SPOKEN: Record<string, string> = { '+': 'plus', '-': 'min', '×': 'maal', '÷': 'gedeeld door' };
@@ -70,12 +71,12 @@ export function Exercise() {
   const { selectedAvatar } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  
 
-  const config = MATH_SUMS_CONFIG[difficultyKey] ?? DEFAULT_MATH_SUMS;
+
+  const config = useExerciseConfig(DEFAULT_MATH_SUMS);
 
   const [question, setQuestion] = useState({ num1: 5, num2: 4, operator: '+', answer: 9 });
   const [options, setOptions] = useState([7, 9, 11, 8]);

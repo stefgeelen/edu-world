@@ -9,7 +9,8 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { NUMBER_LINE_CONFIG, DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -57,8 +58,8 @@ export function ExerciseNumberLine() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
-  const nlCfg = NUMBER_LINE_CONFIG[difficultyKey] ?? DEFAULT_NUMBER_LINE;
+  const { stage } = useDifficultyLevel();
+  const nlCfg = useExerciseConfig(DEFAULT_NUMBER_LINE);
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 

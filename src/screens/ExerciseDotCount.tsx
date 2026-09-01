@@ -8,7 +8,8 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { DOT_COUNT_CONFIG, DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
 
 
 interface Dot {
@@ -21,12 +22,12 @@ export function ExerciseDotCount() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const areaRef = useRef<HTMLDivElement>(null);
 
-  const dotConfig = DOT_COUNT_CONFIG[difficultyKey] ?? DEFAULT_DOT_COUNT;
+  const dotConfig = useExerciseConfig(DEFAULT_DOT_COUNT);
 
   const getRandomTarget = () =>
     Math.floor(Math.random() * (dotConfig.maxDots - dotConfig.minDots + 1)) + dotConfig.minDots;

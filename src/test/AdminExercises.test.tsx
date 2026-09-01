@@ -3,18 +3,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { createTestQueryClient, queryWrapper, fakeSupabaseChain } from './testUtils';
 
-// AdminExercises lists exercises (search-filterable) and toggles is_active
-// via a mutation. Covers: loading, rendered rows w/ subject+stage labels,
-// search filtering, the active/inactive toggle mutation (success + error
-// toast), and the empty-search state.
+// AdminExercises groups exercise rows by family (route with the trailing
+// stage number stripped) and links each family to its detail screen.
+// Covers: loading, grouped rendering (title/subject/grades/active count),
+// search filtering, empty-search state, and navigation on row click.
 
 const EXERCISES = [
-  { id: 'ex-1', title: 'Optellen tot 10', route: '/ex/add10', subject: 'math', stage: 'stage-1', display_order: 1, is_active: true },
-  { id: 'ex-2', title: 'Lezen: korte woorden', route: '/ex/read1', subject: 'reading', stage: 'stage-2', display_order: 1, is_active: false },
+  { id: 'ex-1', title: 'Optellen', route: '/exercises/math/1', subject: 'math', grade: 1, stage: 'stage-1', display_order: 1, is_active: true },
+  { id: 'ex-2', title: 'Optellen', route: '/exercises/math/2', subject: 'math', grade: 1, stage: 'stage-2', display_order: 1, is_active: false },
+  { id: 'ex-3', title: 'Lezen: korte woorden', route: '/exercises/language/1', subject: 'reading', grade: 1, stage: 'stage-1', display_order: 1, is_active: true },
 ];
 
-const toast = { success: vi.fn(), error: vi.fn() };
-vi.mock('sonner', () => ({ toast: { success: (...a: unknown[]) => toast.success(...a), error: (...a: unknown[]) => toast.error(...a) } }));
+const navigateMock = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return { ...actual, useNavigate: () => navigateMock };
+});
 
 const fromMock = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
@@ -40,63 +44,49 @@ describe('AdminExercises', () => {
     expect(container.querySelector('.animate-spin')).toBeTruthy();
   });
 
-  it('renders the active/inactive counts and each exercise\'s subject + stage labels', async () => {
+  it('groups rows by family (route with the trailing stage number stripped) and shows subject + grades + active count', async () => {
     fromMock.mockReturnValue(fakeSupabaseChain({ data: EXERCISES, error: null }));
     renderScreen();
 
-    await waitFor(() => expect(screen.getByText('Optellen tot 10')).toBeInTheDocument());
-    expect(screen.getByText('1 actief, 1 inactief')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Optellen')).toBeInTheDocument());
+    // Two math rows (stage 1 + 2) collapse into one family row
+    expect(screen.getAllByText('Optellen')).toHaveLength(1);
+    expect(screen.getByText('/exercises/math')).toBeInTheDocument();
     expect(screen.getByText('Rekenen')).toBeInTheDocument();
-    expect(screen.getByText('Trimester 1')).toBeInTheDocument();
-    expect(screen.getByText('Lezen')).toBeInTheDocument();
-    expect(screen.getByText('Trimester 2')).toBeInTheDocument();
+    expect(screen.getAllByText('Graad 1').length).toBeGreaterThan(0);
+    expect(screen.getByText('1/2')).toBeInTheDocument(); // 1 active of 2 math rows
+
+    expect(screen.getByText('Lezen: korte woorden')).toBeInTheDocument();
   });
 
   it('filters the list by the search input', async () => {
     fromMock.mockReturnValue(fakeSupabaseChain({ data: EXERCISES, error: null }));
     renderScreen();
-    await waitFor(() => expect(screen.getByText('Optellen tot 10')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Optellen')).toBeInTheDocument());
 
     fireEvent.change(screen.getByPlaceholderText('Zoek op naam...'), { target: { value: 'lezen' } });
 
-    expect(screen.queryByText('Optellen tot 10')).not.toBeInTheDocument();
+    expect(screen.queryByText('Optellen')).not.toBeInTheDocument();
     expect(screen.getByText('Lezen: korte woorden')).toBeInTheDocument();
   });
 
   it('shows the "no results" state when the search matches nothing', async () => {
     fromMock.mockReturnValue(fakeSupabaseChain({ data: EXERCISES, error: null }));
     renderScreen();
-    await waitFor(() => expect(screen.getByText('Optellen tot 10')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Optellen')).toBeInTheDocument());
 
     fireEvent.change(screen.getByPlaceholderText('Zoek op naam...'), { target: { value: 'zzz-nomatch' } });
 
     expect(screen.getByText('Geen oefeningen gevonden.')).toBeInTheDocument();
   });
 
-  it('toggles is_active via the mutation and invalidates the exercises query on success', async () => {
+  it('navigates to the family detail screen when a row is clicked', async () => {
     fromMock.mockReturnValue(fakeSupabaseChain({ data: EXERCISES, error: null }));
     renderScreen();
-    await waitFor(() => expect(screen.getByText('Optellen tot 10')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Optellen')).toBeInTheDocument());
 
-    const toggleButton = screen.getByTitle('Deactiveren'); // ex-1 is active
-    fireEvent.click(toggleButton);
+    fireEvent.click(screen.getByText('Optellen'));
 
-    // No dedicated "success" toast is shown on toggle; the UI relies on the
-    // query invalidation to reflect the new state. We assert the mutation
-    // resolved without the error toast firing.
-    await waitFor(() => expect(toast.error).not.toHaveBeenCalled());
-  });
-
-  it('shows an error toast when the toggle mutation fails', async () => {
-    fromMock
-      .mockReturnValueOnce(fakeSupabaseChain({ data: EXERCISES, error: null })) // initial fetch
-      .mockReturnValueOnce(fakeSupabaseChain({ data: null, error: new Error('update failed') })); // toggle mutation
-
-    renderScreen();
-    await waitFor(() => expect(screen.getByText('Optellen tot 10')).toBeInTheDocument());
-
-    fireEvent.click(screen.getByTitle('Deactiveren'));
-
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Kon oefening niet bijwerken.'));
+    expect(navigateMock).toHaveBeenCalledWith(`/admin/exercises/${encodeURIComponent('/exercises/math')}`);
   });
 });

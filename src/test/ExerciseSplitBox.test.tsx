@@ -8,7 +8,6 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 // `vi.spyOn(Math, 'random')` inside their own beforeEach/afterEach so the
 // generated question is deterministic without touching this describe block.
 import type { SplitBoxConfig } from '@/data/difficultyConfig';
-import { SPLIT_BOX_CONFIG } from '@/data/difficultyConfig';
 
 type Side = 'left' | 'right';
 type Mode = 'target' | 'left' | 'right' | 'sum';
@@ -45,7 +44,7 @@ function generateQuestion(cfg: SplitBoxConfig): Question {
 }
 
 describe('ExerciseSplitBox question generation', () => {
-  const cfg = SPLIT_BOX_CONFIG['1-2']; // minTarget: 5, maxTarget: 10
+  const cfg: SplitBoxConfig = { minTarget: 5, maxTarget: 10 };
 
   it('always keeps leftCount + rightCount === target, within [minTarget, maxTarget]', () => {
     for (let i = 0; i < 200; i++) {
@@ -77,6 +76,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => navigateMock };
 });
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-1', stage: 1, grade: 1 }) }));
+vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => undefined }));
 vi.mock('@/hooks/useCompleteExercise', () => ({
   useCompleteExercise: () => ({ mutate: vi.fn() }),

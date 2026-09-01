@@ -9,7 +9,8 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { SUM_SPLIT_CONFIG, DEFAULT_SUM_SPLIT } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_SUM_SPLIT } from '@/data/difficultyConfig';
 import { randomInt } from '@/lib/random';
 
 type Slot = 'left' | 'right' | 'result';
@@ -43,11 +44,11 @@ export function ExerciseSumSplit() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
-  const config = SUM_SPLIT_CONFIG[difficultyKey] ?? DEFAULT_SUM_SPLIT;
+  const config = useExerciseConfig(DEFAULT_SUM_SPLIT);
 
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);

@@ -8,7 +8,6 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 // `vi.spyOn(Math, 'random')` inside their own beforeEach/afterEach so the
 // generated question is deterministic without touching this describe block.
 import type { SubtractBoxConfig } from '@/data/difficultyConfig';
-import { SUBTRACT_BOX_CONFIG } from '@/data/difficultyConfig';
 
 type Mode = 'result' | 'subtrahend';
 
@@ -34,7 +33,7 @@ function generateQuestion(cfg: SubtractBoxConfig): Question {
 }
 
 describe('ExerciseSubtractBox question generation', () => {
-  const cfg = SUBTRACT_BOX_CONFIG['1-2']; // maxTotal: 10
+  const cfg: SubtractBoxConfig = { maxTotal: 10 };
 
   it('always keeps subtract + result === total, with subtract and result >= 1', () => {
     for (let i = 0; i < 200; i++) {
@@ -71,6 +70,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => navigateMock };
 });
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-1', stage: 1, grade: 1 }) }));
+vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => undefined }));
 vi.mock('@/hooks/useCompleteExercise', () => ({
   useCompleteExercise: () => ({ mutate: vi.fn() }),

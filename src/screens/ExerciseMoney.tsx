@@ -19,7 +19,8 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { MONEY_CONFIG, DEFAULT_MONEY } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_MONEY } from '@/data/difficultyConfig';
 import { randomInt } from '@/lib/random';
 
 /* ── Products ─────────────────────────────────────────────────── */
@@ -172,8 +173,8 @@ function Kassa({ droppedItems, totalCents, priceCents }: { droppedItems: { id: s
 
 export function ExerciseMoney() {
   const navigate = useNavigate();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
-  const moneyCfg = MONEY_CONFIG[difficultyKey] ?? DEFAULT_MONEY;
+  const { stage } = useDifficultyLevel();
+  const moneyCfg = useExerciseConfig(DEFAULT_MONEY);
 
   // Filter denominations based on trimester config
   const availableDenoms = useMemo(

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { MATH_SUMS_CONFIG, DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
+import { type MathSumsConfig } from '@/data/difficultyConfig';
+
+const TRIMESTER_1: MathSumsConfig = { operators: ['+', '-'], maxNumber: 6, allowNegative: false };
+const TRIMESTER_2: MathSumsConfig = { operators: ['+', '-'], maxNumber: 10, allowNegative: false };
+const TRIMESTER_3: MathSumsConfig = { operators: ['+', '-'], maxNumber: 20, allowNegative: false };
 
 // Copy the generation function from Exercise.tsx for testing
 function generateMathQuestion(config: MathSumsConfig) {
@@ -49,7 +53,7 @@ function generateMathQuestion(config: MathSumsConfig) {
 
 describe('generateMathQuestion', () => {
   it('trimester 1 only generates + and - with no negatives', () => {
-    const config = MATH_SUMS_CONFIG['1-1'];
+    const config = TRIMESTER_1;
     for (let i = 0; i < 100; i++) {
       const { question } = generateMathQuestion(config);
       expect(['+', '-']).toContain(question.operator);
@@ -60,7 +64,7 @@ describe('generateMathQuestion', () => {
   });
 
   it('trimester 3 generates + and - up to 20', () => {
-    const config = MATH_SUMS_CONFIG['1-3'];
+    const config = TRIMESTER_3;
     for (let i = 0; i < 100; i++) {
       const { question } = generateMathQuestion(config);
       expect(['+', '-']).toContain(question.operator);
@@ -69,7 +73,7 @@ describe('generateMathQuestion', () => {
   });
 
   it('always generates exactly 4 options including the answer', () => {
-    const config = MATH_SUMS_CONFIG['1-2'];
+    const config = TRIMESTER_2;
     for (let i = 0; i < 50; i++) {
       const { question, options } = generateMathQuestion(config);
       expect(options).toHaveLength(4);
@@ -78,7 +82,7 @@ describe('generateMathQuestion', () => {
   });
 
   it('subtraction in trimester 3 never goes below 0', () => {
-    const config = MATH_SUMS_CONFIG['1-3'];
+    const config = TRIMESTER_3;
     for (let i = 0; i < 200; i++) {
       const { question } = generateMathQuestion(config);
       if (question.operator === '-') {

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { BookOpen, Loader2, Search, ToggleLeft, ToggleRight } from 'lucide-react';
+import { BookOpen, Loader2, Search, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const SUBJECT_LABELS: Record<string, { label: string; color: string }> = {
@@ -13,14 +13,12 @@ const SUBJECT_LABELS: Record<string, { label: string; color: string }> = {
   other:   { label: 'Andere',     color: 'bg-teal-100 text-teal-700' },
 };
 
-const STAGE_LABELS: Record<string, string> = {
-  'stage-1': 'Trimester 1',
-  'stage-2': 'Trimester 2',
-  'stage-3': 'Trimester 3',
-};
+function familyKeyFor(route: string): string {
+  return route.replace(/\/\d+$/, '');
+}
 
 export function AdminExercises() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
   const { data: exercises = [], isLoading } = useQuery({
@@ -29,7 +27,6 @@ export function AdminExercises() {
       const { data, error } = await supabase
         .from('exercises')
         .select('*')
-        .order('stage')
         .order('subject')
         .order('display_order');
       if (error) throw error;
@@ -37,26 +34,24 @@ export function AdminExercises() {
     },
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const { error } = await supabase
-        .from('exercises')
-        .update({ is_active: isActive })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-exercises'] });
-      queryClient.invalidateQueries({ queryKey: ['stage-exercises-progress'] });
-      queryClient.invalidateQueries({ queryKey: ['stage-mastery'] });
-    },
-    onError: () => {
-      toast.error('Kon oefening niet bijwerken.');
-    },
-  });
+  const families = new Map<string, typeof exercises>();
+  for (const ex of exercises) {
+    const key = familyKeyFor(ex.route);
+    if (!families.has(key)) families.set(key, []);
+    families.get(key)!.push(ex);
+  }
 
-  const filtered = exercises.filter((ex) =>
-    ex.title.toLowerCase().includes(search.toLowerCase())
+  const familyList = [...families.entries()].map(([familyKey, rows]) => ({
+    familyKey,
+    title: rows[0].title,
+    subject: rows[0].subject,
+    grades: [...new Set(rows.map((r) => r.grade))].sort((a, b) => a - b),
+    activeCount: rows.filter((r) => r.is_active).length,
+    totalCount: rows.length,
+  }));
+
+  const filtered = familyList.filter((f) =>
+    f.title.toLowerCase().includes(search.toLowerCase())
   );
 
   const activeCount = exercises.filter((ex) => ex.is_active).length;
@@ -104,7 +99,7 @@ export function AdminExercises() {
             <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
               <span>Naam</span>
               <span className="w-28 text-center">Categorie</span>
-              <span className="w-28 text-center">Trimester</span>
+              <span className="w-32 text-center">Graden</span>
               <span className="w-20 text-center">Actief</span>
             </div>
 
@@ -114,27 +109,22 @@ export function AdminExercises() {
                 Geen oefeningen gevonden.
               </div>
             ) : (
-              filtered.map((ex, i) => {
-                const subCfg = SUBJECT_LABELS[ex.subject] ?? { label: ex.subject, color: 'bg-slate-100 text-slate-600' };
-                const stageLbl = STAGE_LABELS[ex.stage] ?? ex.stage;
+              filtered.map((family, i) => {
+                const subCfg = SUBJECT_LABELS[family.subject] ?? { label: family.subject, color: 'bg-slate-100 text-slate-600' };
 
                 return (
-                  <motion.div
-                    key={ex.id}
+                  <motion.button
+                    key={family.familyKey}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.02 }}
-                    className={cn(
-                      'grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-4 items-center border-b border-slate-100 last:border-b-0',
-                      !ex.is_active && 'bg-slate-50/50'
-                    )}
+                    onClick={() => navigate(`/admin/exercises/${encodeURIComponent(family.familyKey)}`)}
+                    className="w-full grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-4 items-center border-b border-slate-100 last:border-b-0 text-left hover:bg-slate-50 transition-colors"
                   >
                     {/* Name */}
                     <div className="flex flex-col">
-                      <span className={cn('font-semibold text-sm', ex.is_active ? 'text-slate-900' : 'text-slate-400')}>
-                        {ex.title}
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono">{ex.route}</span>
+                      <span className="font-semibold text-sm text-slate-900">{family.title}</span>
+                      <span className="text-xs text-slate-400 font-mono">{family.familyKey}</span>
                     </div>
 
                     {/* Subject badge */}
@@ -144,27 +134,21 @@ export function AdminExercises() {
                       </span>
                     </div>
 
-                    {/* Stage */}
-                    <div className="w-28 text-center">
-                      <span className="text-sm text-slate-600 font-medium">{stageLbl}</span>
+                    {/* Grades */}
+                    <div className="w-32 text-center">
+                      <span className="text-sm text-slate-600 font-medium">
+                        {family.grades.map((g) => `Graad ${g}`).join(', ')}
+                      </span>
                     </div>
 
-                    {/* Toggle */}
-                    <div className="w-20 flex justify-center">
-                      <button
-                        onClick={() => toggleMutation.mutate({ id: ex.id, isActive: !ex.is_active })}
-                        disabled={toggleMutation.isPending}
-                        className="transition-colors"
-                        title={ex.is_active ? 'Deactiveren' : 'Activeren'}
-                      >
-                        {ex.is_active ? (
-                          <ToggleRight className="w-8 h-8 text-emerald-500" />
-                        ) : (
-                          <ToggleLeft className="w-8 h-8 text-slate-300" />
-                        )}
-                      </button>
+                    {/* Active count + chevron */}
+                    <div className="w-20 flex items-center justify-center gap-1.5">
+                      <span className="text-sm font-semibold text-slate-600">
+                        {family.activeCount}/{family.totalCount}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-slate-300" />
                     </div>
-                  </motion.div>
+                  </motion.button>
                 );
               })
             )}

@@ -8,7 +8,8 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { COMPARE_OBJECTS_CONFIG, DEFAULT_COMPARE_OBJECTS } from '@/data/difficultyConfig';
+import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { DEFAULT_COMPARE_OBJECTS } from '@/data/difficultyConfig';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -119,10 +120,10 @@ export function ExerciseCompareObjects() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { key: difficultyKey, stage } = useDifficultyLevel();
+  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
-  const config = COMPARE_OBJECTS_CONFIG[difficultyKey] ?? DEFAULT_COMPARE_OBJECTS;
+  const config = useExerciseConfig(DEFAULT_COMPARE_OBJECTS);
 
   const [question, setQuestion] = useState<Question>(() =>
     generateQuestion(config.minObjects, config.maxObjects)
