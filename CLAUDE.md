@@ -91,8 +91,17 @@ npm test          # run all tests (Vitest)
 npm run lint      # ESLint
 ```
 
-**What has tests:** Math question generation, difficulty config values.  
-**What has NO tests:** Components, hooks, auth flow, navigation, Supabase integration, exercise interactions.
+**What has tests** (62 files under `src/test/`, ~510 cases):
+- All 14 exercise screens, plus `Exercise`, `Dashboard`, and the admin + parent portals
+- Auth flow (`Auth`, `AuthContext`, `ProtectedRoute`, `AdminRoute`, PIN session, password validation)
+- Data hooks (`useCompleteExercise`, `useDailyQuests`, `useStageExercises`, `useStageMastery`, `useChildInsights`, `useTrimesterProgress`, `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`)
+- Buddy care system (`buddyState`, `buddyCatalog`, `useBuddy`) — decay/illness/death rules, shop economy, catalog integrity, RPC plumbing
+- Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `worldThemes`, `dailyQuests`, `addChildLogic`)
+- E2E: `e2e/onboarding.spec.ts` (Playwright) — signup through first exercise only
+
+**What still has NO tests:** `BuddyRoom` / `BuddyShop` screens, `AvatarSelection`, `QuestMap`, `Progress`, badge screens, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the speech, online-status, install-prompt, greeting and exercise-config hooks.
+
+**Conventions:** shared helpers live in `src/test/testUtils.tsx` (`createTestQueryClient`, `queryWrapper`, `fakeSupabaseChain`). Mock Supabase/auth at the module boundary and assert on behaviour, not implementation. Anchor time-sensitive fixtures to `Date.now()` — hooks that tick against the real clock will decay a fixed past timestamp out from under the test.
 
 ## High-Risk Files
 | File | Why |
