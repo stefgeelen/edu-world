@@ -6,15 +6,7 @@ import { Plus, ChevronRight, GraduationCap, Zap, Flame, Loader2 } from 'lucide-r
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-
-const GRADE_LABELS: Record<number, string> = {
-  1: '1ste leerjaar',
-  2: '2de leerjaar',
-  3: '3de leerjaar',
-  4: '4de leerjaar',
-  5: '5de leerjaar',
-  6: '6de leerjaar',
-};
+import { GRADE_LABELS } from '@/lib/gradeFromAge';
 
 export function ParentChildren() {
   const navigate = useNavigate();

@@ -17,8 +17,6 @@ type GameContextType = {
   xp: number;
   streak: number;
   level: number;
-  unlockedLevels: number[];
-  completeLevel: (level: number) => void;
   badges: Badge[];
   updateBadgeProgress: (badgeId: string, progress: number) => void;
 };
@@ -33,7 +31,6 @@ function hexToColorClass(hex: string): string {
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const { data: child } = useCurrentChild();
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
-  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([1]);
   const [badges, setBadges] = useState<Badge[]>(badgesData);
 
   // Derive xp/level/streak from child data (single source of truth from DB)
@@ -95,12 +92,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [dbBadges]);
 
-  const completeLevel = (lvl: number) => {
-    if (!unlockedLevels.includes(lvl + 1)) {
-      setUnlockedLevels([...unlockedLevels, lvl + 1]);
-    }
-  };
-
   const updateBadgeProgress = (badgeId: string, progress: number) => {
     setBadges((prev) =>
       prev.map((badge) =>
@@ -112,7 +103,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <GameContext.Provider value={{ selectedAvatar, setSelectedAvatar, xp, streak, level, unlockedLevels, completeLevel, badges, updateBadgeProgress }}>
+    <GameContext.Provider value={{ selectedAvatar, setSelectedAvatar, xp, streak, level, badges, updateBadgeProgress }}>
       {children}
     </GameContext.Provider>
   );

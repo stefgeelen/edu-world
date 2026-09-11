@@ -48,6 +48,8 @@ interface CompleteExerciseResult {
   leveled_up?: boolean;
   new_level?: number;
   streak?: number;
+  munten_earned?: number;
+  munten_total?: number;
 }
 
 /**
@@ -92,6 +94,7 @@ export function useCompleteExercise() {
       queryClient.invalidateQueries({ queryKey: ['parent-children', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['game-badges'] });
       queryClient.invalidateQueries({ queryKey: ['child-insights'] });
+      queryClient.invalidateQueries({ queryKey: ['buddy-state'] });
 
       // Trigger celebrations
       if (data?.completed_rewards && data.completed_rewards.length > 0) {
@@ -99,6 +102,10 @@ export function useCompleteExercise() {
       }
       if (data?.all_trimesters_completed) {
         celebratePromotion();
+      }
+
+      if (data?.munten_earned) {
+        buddyToast.cheer(`🪙 +${data.munten_earned} Munten voor je Buddy!`, { duration: 3500 });
       }
 
       // Buddy reactions to milestones

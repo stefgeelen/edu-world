@@ -1,28 +1,17 @@
 import { describe, it, expect } from 'vitest';
+import { gradeForAge, getGradeAssignment, GRADE_LABELS } from '@/lib/gradeFromAge';
 
-// getStudyYear/getGrade live inline inside src/screens/AddChild.tsx and aren't
-// exported, so — following the same pattern as generateMathQuestion.test.ts —
-// the logic is copied here for testing. If you touch age->grade mapping in
-// AddChild.tsx, update this copy too, or better: extract both functions to
-// src/lib/ so this file (and the component) can import the real thing.
+// gradeForAge/getGradeAssignment used to be copy-pasted separately inside
+// AddChild.tsx and ParentAddChild.tsx (with a matching copy of this test file's
+// logic) — now extracted to src/lib/gradeFromAge.ts so both screens and this
+// test import the real thing.
+
 function getStudyYear(ageValue: number | '') {
   if (ageValue === '') return null;
-  if (ageValue <= 6) return '1ste leerjaar';
-  if (ageValue === 7) return '2de leerjaar';
-  if (ageValue === 8) return '3de leerjaar';
-  if (ageValue === 9) return '4de leerjaar';
-  if (ageValue === 10) return '5de leerjaar';
-  if (ageValue >= 11) return '6de leerjaar';
-  return null;
+  return GRADE_LABELS[gradeForAge(ageValue)] ?? null;
 }
 
-function getGrade(ageValue: number | ''): number {
-  if (ageValue === '' || ageValue <= 6) return 1;
-  if (ageValue >= 11) return 6;
-  return ageValue - 5;
-}
-
-describe('getStudyYear', () => {
+describe('getStudyYear (age-appropriate label, uncapped)', () => {
   it('returns null when age is not yet entered', () => {
     expect(getStudyYear('')).toBeNull();
   });
@@ -47,24 +36,24 @@ describe('getStudyYear', () => {
   });
 });
 
-describe('getGrade', () => {
+describe('gradeForAge (uncapped)', () => {
   it('defaults to grade 1 when age is not yet entered', () => {
-    expect(getGrade('')).toBe(1);
+    expect(gradeForAge('')).toBe(1);
   });
 
   it('caps young children at grade 1', () => {
-    expect(getGrade(4)).toBe(1);
-    expect(getGrade(6)).toBe(1);
+    expect(gradeForAge(4)).toBe(1);
+    expect(gradeForAge(6)).toBe(1);
   });
 
   it('maps ages 7-10 to grades 2-5', () => {
-    expect(getGrade(7)).toBe(2);
-    expect(getGrade(10)).toBe(5);
+    expect(gradeForAge(7)).toBe(2);
+    expect(gradeForAge(10)).toBe(5);
   });
 
   it('caps older children at grade 6', () => {
-    expect(getGrade(11)).toBe(6);
-    expect(getGrade(14)).toBe(6);
+    expect(gradeForAge(11)).toBe(6);
+    expect(gradeForAge(14)).toBe(6);
   });
 
   it('stays consistent with getStudyYear for every age in the input range (4-14)', () => {
@@ -74,7 +63,35 @@ describe('getGrade', () => {
     };
     for (let age = 4; age <= 14; age++) {
       const year = getStudyYear(age)!;
-      expect(getGrade(age)).toBe(yearToGrade[year]);
+      expect(gradeForAge(age)).toBe(yearToGrade[year]);
     }
+  });
+});
+
+describe('getGradeAssignment (clamped to MAX_SUPPORTED_GRADE)', () => {
+  // These assert against the real, current MAX_SUPPORTED_GRADE (1) rather
+  // than a mocked value — this is the actual behavior onboarding has today,
+  // and it's exactly the mismatch this module was built to close: without
+  // clamping, a 9-year-old would get grade:4 written to children.grade even
+  // though every content/theme/promotion read path clamps to grade 1 anyway.
+
+  it('returns null while age is unset', () => {
+    expect(getGradeAssignment('')).toBeNull();
+  });
+
+  it('assigns grade 1 for an age that is already within the supported range', () => {
+    const result = getGradeAssignment(6)!;
+    expect(result.assignedGrade).toBe(1);
+    expect(result.suggestedGrade).toBe(1);
+    expect(result.wasClamped).toBe(false);
+  });
+
+  it('clamps an older child down to the highest supported grade, flagging that it was clamped', () => {
+    const result = getGradeAssignment(9)!;
+    expect(result.suggestedGrade).toBe(4);
+    expect(result.suggestedLabel).toBe('4de leerjaar');
+    expect(result.assignedGrade).toBe(1);
+    expect(result.assignedLabel).toBe('1ste leerjaar');
+    expect(result.wasClamped).toBe(true);
   });
 });

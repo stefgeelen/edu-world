@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, Map, Trophy } from 'lucide-react';
+import { Home, Map, Trophy, PawPrint } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function TabBar() {
@@ -11,6 +11,7 @@ export function TabBar() {
   const tabs = [
     { id: 'dashboard', label: 'Home', icon: Home, path: '/app/dashboard' },
     { id: 'map', label: 'Kaart', icon: Map, path: '/app/map' },
+    { id: 'buddy-room', label: 'Buddy', icon: PawPrint, path: '/app/buddy-room' },
     { id: 'badges', label: 'Badges', icon: Trophy, path: '/app/badges' },
   ];
 
@@ -28,7 +29,7 @@ export function TabBar() {
       <div className="bg-white/95 backdrop-blur-md border-t border-slate-200/50 shadow-[0_-20px_40px_rgba(0,0,0,0.08)] mx-auto max-w-7xl sm:max-w-md sm:mb-4 sm:rounded-[2.5rem] rounded-t-[2rem] pointer-events-auto overflow-hidden ring-1 ring-slate-900/5">
         <div className="flex items-center justify-around h-20 md:h-24 px-4 md:px-6 w-full relative z-10">
           {tabs.map((tab) => {
-            const isActive = location.pathname === tab.path;
+            const isActive = location.pathname === tab.path || location.pathname.startsWith(`${tab.path}/`);
             const Icon = tab.icon;
             
             return (

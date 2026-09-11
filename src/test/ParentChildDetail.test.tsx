@@ -31,6 +31,14 @@ vi.mock('@/hooks/useChildInsights', () => ({
   useChildInsights: (childId: string | undefined) => useChildInsightsMock(childId),
 }));
 
+// Pin MAX_SUPPORTED_GRADE to a fixed test value (2) rather than importing the
+// real one, so these tests exercise the promotion-cap logic itself and don't
+// silently change behavior whenever the real ceiling is raised for a launch.
+vi.mock('@/data/difficultyConfig', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/data/difficultyConfig')>();
+  return { ...actual, MAX_SUPPORTED_GRADE: 2 };
+});
+
 let childData: Record<string, unknown> | null = null;
 let progressData: unknown[] = [];
 let trimesterData: unknown[] = [];
@@ -151,7 +159,11 @@ describe('ParentChildDetail', () => {
     expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['my-child'] }));
   });
 
-  it('promotes the child to the next grade after confirming the dialog', async () => {
+  it('promotes the child to the next grade and resets trimester access, after confirming the dialog', async () => {
+    // grade 1 is below the mocked MAX_SUPPORTED_GRADE (2), so promotion is
+    // actually reachable here; max_unlocked_stage starts at 3 (all trimesters
+    // unlocked in the old grade) to verify it gets reset, not carried over.
+    childData = { ...CHILD, grade: 1, max_unlocked_stage: 3 };
     const { queryClient } = renderScreen();
     await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -160,9 +172,26 @@ describe('ParentChildDetail', () => {
     await waitFor(() => expect(screen.getByText('Leerjaar wijzigen?')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Bevestigen'));
 
-    await waitFor(() => expect(updateSpy).toHaveBeenCalledWith({ grade: 3, pending_promotion: false }));
-    expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is nu in 3de leerjaar!');
+    await waitFor(() =>
+      expect(updateSpy).toHaveBeenCalledWith({ grade: 2, pending_promotion: false, max_unlocked_stage: 1 })
+    );
+    expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is nu in 2de leerjaar!');
     expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['parent-children'] }));
+  });
+
+  it('disables "Volgend leerjaar" once the child is at the highest supported grade, without triggering a mutation', async () => {
+    // CHILD.grade is 2, equal to the mocked MAX_SUPPORTED_GRADE — there's no
+    // real next grade to promote into yet.
+    renderScreen();
+    await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
+
+    const button = screen.getByText('Volgend leerjaar').closest('button')!;
+    expect(button).toBeDisabled();
+
+    fireEvent.click(button);
+    expect(screen.queryByText('Leerjaar wijzigen?')).not.toBeInTheDocument();
+    expect(updateSpy).not.toHaveBeenCalled();
+    expect(screen.getByText('Volgend leerjaar is nog in ontwikkeling en daarom nog niet beschikbaar.')).toBeInTheDocument();
   });
 
   it('shows the pending-promotion banner when the child has completed all trimesters', async () => {
@@ -170,6 +199,15 @@ describe('ParentChildDetail', () => {
     renderScreen();
     await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
     expect(screen.getByText('Alle trimesters voltooid!')).toBeInTheDocument();
+  });
+
+  it('shows a "not ready yet" pending-promotion message when the child is already at the highest supported grade', async () => {
+    // grade 2 === mocked MAX_SUPPORTED_GRADE, so there's genuinely nowhere to
+    // promote to — the copy should say so instead of implying a real next grade.
+    childData = { ...CHILD, grade: 2, pending_promotion: true };
+    renderScreen();
+    await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
+    expect(screen.getByText(/heeft alle trimesters afgerond! Het volgende leerjaar is nog in ontwikkeling/)).toBeInTheDocument();
   });
 
   it('surfaces a mapped Supabase error via toast when the trimester unlock mutation fails', async () => {

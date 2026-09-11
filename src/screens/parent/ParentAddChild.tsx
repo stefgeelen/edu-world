@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
 import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 import { useQuery } from '@tanstack/react-query';
+import { getGradeAssignment } from '@/lib/gradeFromAge';
 
 export function ParentAddChild() {
   const navigate = useNavigate();
@@ -48,24 +49,7 @@ export function ParentAddChild() {
   const maxChildren = subscription?.max_children ?? 1;
   const canAdd = childrenCount < maxChildren;
 
-  const getStudyYear = (ageValue: number | '') => {
-    if (ageValue === '') return null;
-    if (ageValue <= 6) return '1ste leerjaar';
-    if (ageValue === 7) return '2de leerjaar';
-    if (ageValue === 8) return '3de leerjaar';
-    if (ageValue === 9) return '4de leerjaar';
-    if (ageValue === 10) return '5de leerjaar';
-    if (ageValue >= 11) return '6de leerjaar';
-    return null;
-  };
-
-  const getGrade = (ageValue: number | ''): number => {
-    if (ageValue === '' || ageValue <= 6) return 1;
-    if (ageValue >= 11) return 6;
-    return ageValue - 5;
-  };
-
-  const studyYear = getStudyYear(age);
+  const gradeAssignment = getGradeAssignment(age);
   const isFormValid = name.trim().length > 0 && age !== '' && age > 0 && canAdd;
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -77,7 +61,7 @@ export function ParentAddChild() {
       const { error } = await supabase.from('children').insert({
         name: name.trim(),
         age: age as number,
-        grade: getGrade(age),
+        grade: gradeAssignment?.assignedGrade ?? 1,
         parent_id: user.id,
       });
       if (error) throw error;
@@ -161,10 +145,15 @@ export function ParentAddChild() {
               placeholder="0"
               className="w-20 bg-slate-50 border-2 border-slate-200 rounded-xl px-3 py-3 text-center text-xl font-black text-slate-800 focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
             />
-            {studyYear && (
-              <span className="text-sm font-bold text-teal-600">→ {studyYear}</span>
+            {gradeAssignment && (
+              <span className="text-sm font-bold text-teal-600">→ {gradeAssignment.assignedLabel}</span>
             )}
           </div>
+          {gradeAssignment?.wasClamped && (
+            <p className="text-[11px] text-slate-400 font-medium mt-2">
+              Op basis van de leeftijd zou dit {gradeAssignment.suggestedLabel} zijn — dat leerjaar is nog niet beschikbaar in de app.
+            </p>
+          )}
         </div>
 
         <button

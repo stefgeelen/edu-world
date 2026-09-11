@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   ChevronLeft, GraduationCap, Zap, Flame, Calculator, BookOpen, PenTool,
-  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock,
+  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock, Heart,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -15,11 +15,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useChildInsights } from '@/hooks/useChildInsights';
-
-const GRADE_LABELS: Record<number, string> = {
-  1: '1ste leerjaar', 2: '2de leerjaar', 3: '3de leerjaar',
-  4: '4de leerjaar', 5: '5de leerjaar', 6: '6de leerjaar',
-};
+import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
+import { GRADE_LABELS } from '@/lib/gradeFromAge';
 
 const SUBJECT_CONFIG: Record<string, { label: string; icon: typeof Calculator; color: string; bg: string }> = {
   math: { label: 'Rekenen', icon: Calculator, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -101,6 +98,36 @@ export function ParentChildDetail() {
 
   const { data: insights = [], isLoading: insightsLoading } = useChildInsights(childId);
 
+  const { data: buddyState } = useQuery({
+    queryKey: ['parent-buddy-state', childId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('buddy_states')
+        .select('dead')
+        .eq('child_id', childId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!childId,
+  });
+
+  const [reviveConfirmOpen, setReviveConfirmOpen] = useState(false);
+
+  const reviveMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc('buddy_revive', { p_child_id: childId! });
+      if (error) throw error;
+      return data as unknown as { ok: boolean; message: string };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['parent-buddy-state', childId] });
+      queryClient.invalidateQueries({ queryKey: ['buddy-state', childId] });
+      if (data.ok) toast.success(data.message);
+    },
+    onError: (e) => toast.error(mapDbError(e)),
+  });
+
   const stageMutation = useMutation({
     mutationFn: async (maxStage: number) => {
       const { error } = await supabase
@@ -120,9 +147,12 @@ export function ParentChildDetail() {
 
   const promoteMutation = useMutation({
     mutationFn: async (newGrade: number) => {
+      // max_unlocked_stage is a single override column, not scoped per grade —
+      // reset it on any grade change so trimester access starts fresh instead
+      // of carrying over whatever was unlocked in the previous grade.
       const { error } = await supabase
         .from('children')
-        .update({ grade: newGrade, pending_promotion: false })
+        .update({ grade: newGrade, pending_promotion: false, max_unlocked_stage: 1 })
         .eq('id', childId!)
         .eq('parent_id', user!.id);
       if (error) throw error;
@@ -173,6 +203,23 @@ export function ParentChildDetail() {
           </p>
         </div>
       </div>
+
+      {buddyState?.dead && (
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
+          <Heart className="w-5 h-5 text-rose-500 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-rose-800">{child.name}'s Buddy is helaas overleden</p>
+            <p className="text-sm text-rose-700">Dit gebeurt na te lange verwaarlozing. Jij kan de Buddy nieuw leven geven.</p>
+          </div>
+          <button
+            onClick={() => setReviveConfirmOpen(true)}
+            disabled={reviveMutation.isPending}
+            className="shrink-0 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold px-4 py-2 rounded-xl disabled:opacity-50"
+          >
+            Nieuw leven geven
+          </button>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
@@ -375,7 +422,9 @@ export function ParentChildDetail() {
               <div>
                 <p className="font-bold text-amber-800 text-sm">Alle trimesters voltooid!</p>
                 <p className="text-xs text-amber-700 mt-0.5">
-                  {child.name} heeft alle trimesters afgerond en is klaar voor het volgende leerjaar.
+                  {child.grade < MAX_SUPPORTED_GRADE
+                    ? `${child.name} heeft alle trimesters afgerond en is klaar voor het volgende leerjaar.`
+                    : `${child.name} heeft alle trimesters afgerond! Het volgende leerjaar is nog in ontwikkeling — je kind kan de trimesters blijven herhalen voor extra oefening.`}
                 </p>
               </div>
             </div>
@@ -391,14 +440,20 @@ export function ParentChildDetail() {
               Vorig leerjaar
             </button>
             <button
-              onClick={() => { if (child.grade < 6) setPendingGrade(child.grade + 1); }}
-              disabled={child.grade >= 6 || promoteMutation.isPending}
+              onClick={() => { if (child.grade < MAX_SUPPORTED_GRADE) setPendingGrade(child.grade + 1); }}
+              disabled={child.grade >= MAX_SUPPORTED_GRADE || promoteMutation.isPending}
+              title={child.grade >= MAX_SUPPORTED_GRADE ? 'Nog niet beschikbaar — dit leerjaar is nog in ontwikkeling' : undefined}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
               <ArrowUp className="w-4 h-4" />
               Volgend leerjaar
             </button>
           </div>
+          {child.grade >= MAX_SUPPORTED_GRADE && (
+            <p className="text-xs text-slate-400 text-center -mt-1">
+              Volgend leerjaar is nog in ontwikkeling en daarom nog niet beschikbaar.
+            </p>
+          )}
         </div>
       </div>
 
@@ -423,6 +478,24 @@ export function ParentChildDetail() {
               }}
             >
               Bevestigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={reviveConfirmOpen} onOpenChange={setReviveConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Buddy nieuw leven geven?</AlertDialogTitle>
+            <AlertDialogDescription>
+              De Buddy komt terug, maar begint met deels herstelde Needs — niet volledig vol. {child.name} zal er
+              snel weer voor moeten zorgen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction onClick={() => reviveMutation.mutate()}>
+              Ja, nieuw leven geven
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

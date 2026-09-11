@@ -99,18 +99,32 @@ describe('ParentAddChild', () => {
     expect(submitButton).not.toBeDisabled();
   });
 
-  it('shows the computed study year hint as the age changes', async () => {
+  it('shows the assigned grade, clamped to what has real content, plus an honest note about the age-suggested grade', async () => {
+    // Age 8 suggests "3de leerjaar", but MAX_SUPPORTED_GRADE is 1 today, so
+    // the child is actually assigned grade 1 — the UI should say so plainly
+    // rather than showing "3de leerjaar" and silently assigning grade 1.
     renderScreen();
     await waitForFormReady();
 
     fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '8' } });
-    expect(screen.getByText('→ 3de leerjaar')).toBeInTheDocument();
+    expect(screen.getByText('→ 1ste leerjaar')).toBeInTheDocument();
+    expect(screen.getByText(/3de leerjaar zijn/)).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '11' } });
-    expect(screen.getByText('→ 6de leerjaar')).toBeInTheDocument();
+    expect(screen.getByText('→ 1ste leerjaar')).toBeInTheDocument();
+    expect(screen.getByText(/6de leerjaar zijn/)).toBeInTheDocument();
   });
 
-  it('inserts the new child, shows a success toast, and navigates back on submit', async () => {
+  it('does not show the clamp note for an age that is already within the supported range', async () => {
+    renderScreen();
+    await waitForFormReady();
+
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '6' } });
+    expect(screen.getByText('→ 1ste leerjaar')).toBeInTheDocument();
+    expect(screen.queryByText(/nog niet beschikbaar/)).not.toBeInTheDocument();
+  });
+
+  it('inserts the new child with the clamped grade (not the age-suggested one), shows a success toast, and navigates back', async () => {
     renderScreen();
     await waitForFormReady();
 
@@ -121,7 +135,7 @@ describe('ParentAddChild', () => {
     await waitFor(() => expect(insertSpy).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Test Child',
       age: 8,
-      grade: 3,
+      grade: 1,
       parent_id: 'parent-1',
     })));
     expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is toegevoegd!');
