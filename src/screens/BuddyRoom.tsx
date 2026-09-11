@@ -3,13 +3,21 @@ import { Sparkles } from 'lucide-react';
 import { NEED_IDS } from '@/lib/buddy/constants';
 import { buddyCue, isSleeping, moodOf } from '@/lib/buddy/state';
 import { buddyMessage, careActionMessage } from '@/lib/buddy/messages';
-import { useBuddy } from '@/hooks/useBuddy';
+import { BuddyFxProvider, useBuddy } from '@/hooks/useBuddy';
 import { NeedBar } from '@/components/buddy/NeedBar';
 import { CareActionBar } from '@/components/buddy/CareActionBar';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
 import forestScene from '@/assets/forest-scene.jpg';
 
 export function BuddyRoom() {
+  return (
+    <BuddyFxProvider>
+      <BuddyRoomContent />
+    </BuddyFxProvider>
+  );
+}
+
+function BuddyRoomContent() {
   const { buddy, loaded, careFx } = useBuddy();
   const [now, setNow] = useState(0);
   const [seed, setSeed] = useState(0);
