@@ -16,7 +16,7 @@ export function BuddyShop() {
   const { buddy, buy } = useBuddy();
 
   return (
-    <main className="min-h-screen pb-32">
+    <main className="h-full w-full overflow-y-auto pb-32">
       <div className="mx-auto w-full max-w-md px-4 pt-5">
         <header className="flex items-center justify-between">
           <Link

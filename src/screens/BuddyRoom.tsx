@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ShoppingBag, Sparkles } from 'lucide-react';
 import { NEED_IDS } from '@/lib/buddy/constants';
 import { buddyCue, isSleeping, moodOf } from '@/lib/buddy/state';
 import { buddyMessage, careActionMessage } from '@/lib/buddy/messages';
@@ -35,7 +36,7 @@ function BuddyRoomContent() {
     sleeping && buddy.sleepUntil ? Math.max(1, Math.ceil((buddy.sleepUntil - now) / 60000)) : 0;
 
   return (
-    <main className="relative min-h-screen pb-32">
+    <main className="relative h-full w-full overflow-y-auto pb-32">
       <div
         className="absolute inset-x-0 top-0 h-[52vh] bg-cover bg-center"
         style={{ backgroundImage: `url(${forestScene})` }}
@@ -49,12 +50,21 @@ function BuddyRoomContent() {
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Buddy Room</p>
             <h1 className="text-lg font-black leading-tight text-foreground">{buddy.name}</h1>
           </div>
-          <div className="flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
-            <span className="text-xl" aria-hidden>
-              🪙
-            </span>
-            <span className="text-lg font-black text-foreground">{buddy.munten}</span>
-            <span className="text-[11px] font-bold text-muted-foreground">Munten</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
+              <span className="text-xl" aria-hidden>
+                🪙
+              </span>
+              <span className="text-lg font-black text-foreground">{buddy.munten}</span>
+              <span className="text-[11px] font-bold text-muted-foreground">Munten</span>
+            </div>
+            <Link
+              to="/app/buddy-room/shop"
+              aria-label="Naar de Shop"
+              className="flex items-center justify-center rounded-2xl bg-edu-green p-2.5 text-white shadow-sm active:scale-95"
+            >
+              <ShoppingBag className="h-5 w-5" />
+            </Link>
           </div>
         </header>
 
