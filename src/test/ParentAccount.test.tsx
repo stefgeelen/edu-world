@@ -178,7 +178,7 @@ describe('ParentAccount', () => {
     expect(deleteButton).not.toBeDisabled();
     fireEvent.click(deleteButton);
 
-    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith('delete-account', { body: { confirm: 'VERWIJDER' } }));
+    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith('delete-account', { body: { confirm: 'VERWIJDER' }, timeout: 30_000 }));
     expect(lockMock).toHaveBeenCalled();
     expect(signOutMock).toHaveBeenCalled();
     await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/'));

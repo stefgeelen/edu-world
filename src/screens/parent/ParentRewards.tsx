@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { mapDbError } from '@/lib/errorMessages';
+import { useParentChildren } from '@/hooks/useParentChildren';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -25,18 +26,7 @@ export function ParentRewards() {
   const [editing, setEditing] = useState<any | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: children = [] } = useQuery({
-    queryKey: ['parent-children', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('children')
-        .select('id, name')
-        .eq('parent_id', user!.id);
-      if (error) throw error;
-      return data ?? [];
-    },
-    enabled: !!user,
-  });
+  const { data: children = [] } = useParentChildren();
 
   const { data: rewards = [], isLoading } = useQuery({
     queryKey: ['parent-rewards', user?.id],

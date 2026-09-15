@@ -3,6 +3,7 @@ import { Navigate, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Layout } from '@/components/Layout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const AvatarSelection = lazy(() => import('@/screens/AvatarSelection').then(m => ({ default: m.AvatarSelection })));
 const AddChild = lazy(() => import('@/screens/AddChild').then(m => ({ default: m.AddChild })));
@@ -38,7 +39,10 @@ const S = ({ children }: { children: React.ReactNode }) => (
 );
 
 export const appRoutes = (
-  <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+  // The boundary sits inside the guard so a broken gameplay screen shows the
+  // forest fallback for /app only, instead of taking down the whole app the way
+  // the single root boundary would. Parent/admin trees already do this.
+  <Route path="/app" element={<ProtectedRoute><ErrorBoundary><Layout /></ErrorBoundary></ProtectedRoute>}>
     <Route index element={<S><AvatarSelection /></S>} />
     <Route path="add-child" element={<S><AddChild /></S>} />
     <Route path="dashboard" element={<S><Dashboard /></S>} />

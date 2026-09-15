@@ -50,22 +50,31 @@ function rowToState(row: BuddyStateRow): BuddyState {
   };
 }
 
+/** How often the shared clock advances, driving countdowns and live decay. */
+const TICK_MS = 5_000;
+
 interface BuddyFxValue {
   careFx: CareFx | null;
   playCareFx: (action: CareActionId, emoji?: string) => void;
+  /** Shared clock — see BuddyFxProvider. */
+  now: number;
 }
 
 const BuddyFxContext = createContext<BuddyFxValue | null>(null);
 
 /**
- * Shares the Care Action celebration animation between BuddyStage and
- * CareActionBar (siblings on BuddyRoom, each calling `useBuddy()`
- * independently) — without this, the animation trigger set by CareActionBar's
- * `care()` call would live in CareActionBar's own hook instance and never
- * reach the BuddyStage that's supposed to render it.
+ * Shares two things across everything Buddy-related on a screen:
+ *
+ * - the Care Action celebration, between BuddyStage and CareActionBar (siblings
+ *   that each call `useBuddy()` independently — without this, the trigger set by
+ *   CareActionBar's `care()` would live in its own hook instance and never reach
+ *   the BuddyStage meant to render it);
+ * - one ticking clock, so N Buddy consumers on a screen cost one timer rather
+ *   than one each.
  */
 export function BuddyFxProvider({ children }: { children: ReactNode }) {
   const [careFx, setCareFx] = useState<CareFx | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const fxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const playCareFx = useCallback((action: CareActionId, emoji?: string) => {
@@ -78,14 +87,20 @@ export function BuddyFxProvider({ children }: { children: ReactNode }) {
     if (fxTimer.current) clearTimeout(fxTimer.current);
   }, []);
 
-  const value = useMemo(() => ({ careFx, playCareFx }), [careFx, playCareFx]);
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const value = useMemo(() => ({ careFx, playCareFx, now }), [careFx, playCareFx, now]);
   return <BuddyFxContext.Provider value={value}>{children}</BuddyFxContext.Provider>;
 }
 
 // Screens that don't render BuddyStage (e.g. BuddyShop) call useBuddy() without
 // a BuddyFxProvider ancestor — fall back to an inert no-op rather than forcing
-// every route to wrap itself in a provider it has no use for.
-const NOOP_FX: BuddyFxValue = { careFx: null, playCareFx: () => {} };
+// every route to wrap itself in a provider it has no use for. Their `now` is
+// fixed at first render, which is fine: nothing they show decays.
+const NOOP_FX: BuddyFxValue = { careFx: null, playCareFx: () => {}, now: 0 };
 
 /**
  * Buddy Room state and Care Actions, backed by the `buddy_states` table and its
@@ -108,20 +123,16 @@ export function useBuddy() {
     enabled: !!childId,
   });
 
+  const { careFx, playCareFx, now: sharedNow } = useContext(BuddyFxContext) ?? NOOP_FX;
+
   // Drives the live countdown between server round-trips; the actual decay is
   // only ever committed server-side by the RPCs above.
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 5000);
-    return () => clearInterval(id);
-  }, []);
+  const now = sharedNow || Date.now();
 
   const buddy = useMemo<BuddyState>(() => {
     const base = row ? rowToState(row) : createBuddy(now);
     return tick(base, now);
   }, [row, now]);
-
-  const { careFx, playCareFx } = useContext(BuddyFxContext) ?? NOOP_FX;
 
   const careMutation = useMutation({
     mutationFn: async ({ action, itemId }: { action: CareActionId; itemId?: string }) => {
@@ -186,5 +197,6 @@ export function useBuddy() {
     reviveBuddy: () => reviveMutation.mutate(),
     careFx,
     playCareFx,
+    now,
   };
 }

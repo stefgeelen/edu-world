@@ -12,6 +12,7 @@ import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -180,10 +181,10 @@ export function ExerciseNumberLine() {
     if (!imageBase64) { setCheckStatus('idle'); return; }
 
     try {
-      const { data, error } = await supabase.functions.invoke('recognize-digit', {
-        body: { imageBase64, target: activeSlot },
-      });
-      if (error) throw error;
+      const data = await invokeFunction<{ isCorrect: boolean; recognized: number | null }>(
+        'recognize-digit',
+        { imageBase64, target: activeSlot }
+      );
 
       if (data.isCorrect) {
         setCheckStatus('correct');
@@ -215,7 +216,11 @@ export function ExerciseNumberLine() {
       }
     } catch (err) {
       console.error('Recognition error:', err);
-      setFeedbackText('Mijn ogen werken even niet — teken het getal nog eens!');
+      setFeedbackText(
+        err instanceof EdgeFunctionTimeoutError
+          ? 'Dat duurde te lang — probeer het nog eens!'
+          : 'Mijn ogen werken even niet — teken het getal nog eens!'
+      );
       setCheckStatus('idle');
     }
   };

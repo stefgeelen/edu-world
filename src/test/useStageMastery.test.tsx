@@ -15,8 +15,12 @@ vi.mock('@/hooks/useCompleteExercise', () => ({
 }));
 
 const fromMock = vi.fn();
+const rpcMock = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => fromMock(...args) },
+  supabase: {
+    from: (...args: unknown[]) => fromMock(...args),
+    rpc: (...args: unknown[]) => rpcMock(...args),
+  },
 }));
 
 import { useStageMastery } from '@/hooks/useStageMastery';
@@ -28,18 +32,18 @@ const EXERCISES = [
   { id: 'ex-3a', stage: 'stage-3' }, { id: 'ex-3b', stage: 'stage-3' },
 ];
 
-function mockAttempts(counts: Record<string, number>) {
-  const attempts: { exercise_id: string }[] = [];
-  for (const [id, count] of Object.entries(counts)) {
-    for (let i = 0; i < count; i++) attempts.push({ exercise_id: id });
-  }
-  return attempts;
-}
-
 function setupSupabase(attemptCounts: Record<string, number>) {
+  // Attempt counts arrive pre-aggregated from the child_exercise_stats RPC.
+  rpcMock.mockResolvedValue({
+    data: Object.entries(attemptCounts).map(([exercise_id, attempt_count]) => ({
+      exercise_id,
+      attempt_count,
+      best_stars: 0,
+    })),
+    error: null,
+  });
   fromMock.mockImplementation((table: string) => {
     if (table === 'exercises') return fakeSupabaseChain({ data: EXERCISES, error: null });
-    if (table === 'exercise_attempts') return fakeSupabaseChain({ data: mockAttempts(attemptCounts), error: null });
     throw new Error(`unexpected table ${table}`);
   });
 }

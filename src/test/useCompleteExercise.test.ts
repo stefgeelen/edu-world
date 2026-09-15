@@ -17,8 +17,12 @@ vi.mock('@/integrations/supabase/client', () => ({
     from: () => ({
       select: () => ({
         eq: () => ({
-          limit: () => ({
-            maybeSingle,
+          // useCurrentChild orders by created_at so a multi-child parent always
+          // resolves to the same child.
+          order: () => ({
+            limit: () => ({
+              maybeSingle,
+            }),
           }),
         }),
       }),

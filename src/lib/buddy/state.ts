@@ -2,8 +2,10 @@ import {
   CRITICAL_THRESHOLD,
   DEATH_AFTER_HOURS,
   DECAY_PER_HOUR,
+  ENERGY_PER_NIGHT_HOUR,
   MUNTEN_PER_EXERCISE,
   HEALTH_DROP_PER_HOUR,
+  HEALTH_REGEN_PER_HOUR,
   MS_PER_HOUR,
   NEED_IDS,
   REVIVAL_LEVEL,
@@ -12,6 +14,7 @@ import {
   type NeedId,
 } from "./constants";
 import { CARE_ACTIONS, getItem, type CareActionId } from "./catalog";
+import { elapsedWindows, isNightTime } from "./schedule";
 
 export interface BuddyState {
   name: string;
@@ -49,17 +52,24 @@ export type BuddyMood = "happy" | "neutral" | "sad" | "ill" | "sleeping" | "gone
 export function moodOf(s: BuddyState, now = Date.now()): BuddyMood {
   if (s.dead) return "gone";
   if (isIll(s)) return "ill";
-  if (isSleeping(s, now)) return "sleeping";
+  if (isSleeping(s, now) || isNightTime(now)) return "sleeping";
   const avg = (s.needs.hunger + s.needs.fun + s.needs.energy + s.needs.hygiene) / 4;
   if (avg >= 65) return "happy";
   if (avg >= 35) return "neutral";
   return "sad";
 }
 
-/** Past het tijdsverloop toe sinds lastTick: verval, slaapherstel, gezondheid en overlijden. */
+/**
+ * Past het tijdsverloop toe sinds lastTick: verval, slaapherstel, gezondheid en
+ * overlijden.
+ *
+ * Niet elk verstreken uur telt mee. Needs vervallen alleen tijdens actieve uren
+ * (schooldag, overdag), Energie laadt op tijdens nachturen, en weekenddagen
+ * overdag tellen voor geen van beide — zie schedule.ts.
+ */
 export function tick(state: BuddyState, now = Date.now()): BuddyState {
-  const elapsedH = (now - state.lastTick) / MS_PER_HOUR;
-  if (elapsedH <= 0) return state;
+  if (now <= state.lastTick) return state;
+  const { activeH, nightH } = elapsedWindows(state.lastTick, now);
 
   const next: BuddyState = {
     ...state,
@@ -72,9 +82,9 @@ export function tick(state: BuddyState, now = Date.now()): BuddyState {
 
   const sleeping = state.sleepUntil !== null && state.lastTick < state.sleepUntil;
 
-  next.needs.hunger = clamp(next.needs.hunger - DECAY_PER_HOUR.hunger * elapsedH);
-  next.needs.fun = clamp(next.needs.fun - DECAY_PER_HOUR.fun * elapsedH);
-  next.needs.hygiene = clamp(next.needs.hygiene - DECAY_PER_HOUR.hygiene * elapsedH);
+  next.needs.hunger = clamp(next.needs.hunger - DECAY_PER_HOUR.hunger * activeH);
+  next.needs.fun = clamp(next.needs.fun - DECAY_PER_HOUR.fun * activeH);
+  next.needs.hygiene = clamp(next.needs.hygiene - DECAY_PER_HOUR.hygiene * activeH);
 
   if (sleeping) {
     const sleptH = (Math.min(now, state.sleepUntil!) - state.lastTick) / MS_PER_HOUR;
@@ -85,7 +95,9 @@ export function tick(state: BuddyState, now = Date.now()): BuddyState {
       next.sleepUntil = null;
     }
   } else {
-    next.needs.energy = clamp(next.needs.energy - DECAY_PER_HOUR.energy * elapsedH);
+    next.needs.energy = clamp(
+      next.needs.energy - DECAY_PER_HOUR.energy * activeH + ENERGY_PER_NIGHT_HOUR * nightH
+    );
   }
 
   const criticalCount = (["hunger", "fun", "energy", "hygiene"] as const).filter(
@@ -94,13 +106,13 @@ export function tick(state: BuddyState, now = Date.now()): BuddyState {
 
   next.needs.health = clamp(
     criticalCount > 0
-      ? next.needs.health - HEALTH_DROP_PER_HOUR * criticalCount * elapsedH
-      : next.needs.health + 4 * elapsedH
+      ? next.needs.health - HEALTH_DROP_PER_HOUR * criticalCount * activeH
+      : next.needs.health + HEALTH_REGEN_PER_HOUR * activeH
   );
 
   if (next.needs.health <= 0) {
     next.healthZeroSince = next.healthZeroSince ?? now;
-    if ((now - next.healthZeroSince) / MS_PER_HOUR >= DEATH_AFTER_HOURS) {
+    if (elapsedWindows(next.healthZeroSince, now).activeH >= DEATH_AFTER_HOURS) {
       next.dead = true;
       next.sleepUntil = null;
     }
@@ -121,11 +133,18 @@ export type BuddyCue =
   | "hygiene"
   | "ok";
 
-/** Bepaalt het ene signaal dat de Buddy toont: prioriteit dood > slapen > ziek > laagste kritieke Need. */
+/**
+ * Bepaalt het ene signaal dat de Buddy toont: prioriteit dood > dutje > ziek >
+ * nacht > laagste kritieke Need.
+ *
+ * De vaste nacht staat onder Ziekte: 's nachts vervalt er niets meer, maar een
+ * zieke Buddy mag het kind wel om een Medicijn blijven vragen.
+ */
 export function buddyCue(s: BuddyState, now = Date.now()): BuddyCue {
   if (s.dead) return "gone";
   if (isSleeping(s, now)) return "sleeping";
   if (isIll(s)) return "ill";
+  if (isNightTime(now)) return "sleeping";
   const candidates = (["hunger", "energy", "hygiene", "fun"] as const)
     .filter((n) => s.needs[n] < CRITICAL_THRESHOLD)
     .sort((a, b) => s.needs[a] - s.needs[b]);

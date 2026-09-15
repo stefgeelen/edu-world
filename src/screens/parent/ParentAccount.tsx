@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { Mail, KeyRound, Lock, User, Trash2, Loader2, CreditCard, Calendar, Save, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { useAuth } from '@/context/AuthContext';
 import { mapAuthError, mapDbError } from '@/lib/errorMessages';
 import { parentPinSession } from '@/hooks/useParentPin';
@@ -129,17 +130,24 @@ export function ParentAccount() {
     if (deleteConfirm !== 'VERWIJDER') return;
     setDeleting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('delete-account', {
-        body: { confirm: 'VERWIJDER' },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
+      // Generous deadline: aborting here doesn't stop a deletion the server has
+      // already begun, so this only prevents the dialog hanging indefinitely.
+      const data = await invokeFunction<{ error?: string }>(
+        'delete-account',
+        { confirm: 'VERWIJDER' },
+        30_000
+      );
+      if (data?.error) throw new Error(data.error);
       parentPinSession.lock();
       await signOut();
       toast.success('Je account is verwijderd');
       navigate('/');
     } catch (e: any) {
-      toast.error(e?.message ?? 'Verwijderen mislukt');
+      toast.error(
+        e instanceof EdgeFunctionTimeoutError
+          ? 'Dit duurt langer dan verwacht. Ververs de pagina om te controleren of je account verwijderd is.'
+          : e?.message ?? 'Verwijderen mislukt'
+      );
       setDeleting(false);
     }
   };

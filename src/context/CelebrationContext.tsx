@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { RewardCompletedPopup } from '@/components/RewardCompletedPopup';
 import { PromotionPopup } from '@/components/PromotionPopup';
 
@@ -23,8 +23,13 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
     setPromotion(true);
   }, []);
 
+  const value = useMemo(
+    () => ({ celebrateRewards, celebratePromotion }),
+    [celebrateRewards, celebratePromotion]
+  );
+
   return (
-    <CelebrationContext.Provider value={{ celebrateRewards, celebratePromotion }}>
+    <CelebrationContext.Provider value={value}>
       {children}
       <RewardCompletedPopup rewards={rewards} onClose={() => setRewards([])} />
       <PromotionPopup show={promotion} onClose={() => setPromotion(false)} />

@@ -183,7 +183,7 @@ describe('AdminUsers', () => {
 
     fireEvent.click(confirmButton);
 
-    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith('admin-delete-user', { body: { userId: 'user-2' } }));
+    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith('admin-delete-user', { body: { userId: 'user-2' }, timeout: 30_000 }));
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Account permanent verwijderd'));
   });
 

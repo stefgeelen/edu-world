@@ -8,9 +8,13 @@ vi.mock('@/hooks/useCompleteExercise', () => ({
 }));
 
 const fromMock = vi.fn();
+const rpcMock = vi.fn();
 const eqSpy = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => fromMock(...args) },
+  supabase: {
+    from: (...args: unknown[]) => fromMock(...args),
+    rpc: (...args: unknown[]) => rpcMock(...args),
+  },
 }));
 
 import { useStageExercises, REQUIRED_COMPLETIONS } from '@/hooks/useStageExercises';
@@ -20,10 +24,15 @@ const EXERCISES = [
   { id: 'ex-2', display_order: 2, title: 'Lezen', subject: 'language', xp_reward: 10, route: '/exercise-b' },
 ];
 
-function setup(attempts: { exercise_id: string; stars: number }[]) {
+/**
+ * `stats` are the per-exercise aggregates returned by the child_exercise_stats
+ * RPC (one row per attempted exercise), not raw attempt rows.
+ */
+function setup(stats: { exercise_id: string; attempt_count: number; best_stars: number }[]) {
+  rpcMock.mockResolvedValue({ data: stats, error: null });
   fromMock.mockImplementation((table: string) => {
     const chain = fakeSupabaseChain(
-      table === 'exercises' ? { data: EXERCISES, error: null } : { data: attempts, error: null }
+      table === 'exercises' ? { data: EXERCISES, error: null } : { data: [], error: null }
     );
     // capture the eq() filter value used for the exercises table so we can assert on it
     if (table === 'exercises') {
@@ -52,11 +61,8 @@ describe('useStageExercises', () => {
   });
 
   it('merges each exercise with its completion count and best star rating', async () => {
-    setup([
-      { exercise_id: 'ex-1', stars: 2 },
-      { exercise_id: 'ex-1', stars: 3 },
-      { exercise_id: 'ex-1', stars: 1 },
-    ]);
+    // 3 attempts on ex-1, best of them 3 stars — already rolled up by the RPC.
+    setup([{ exercise_id: 'ex-1', attempt_count: 3, best_stars: 3 }]);
 
     const { result } = renderStage(1);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -95,7 +101,7 @@ describe('useStageExercises', () => {
   });
 
   it('returns zero completions for every exercise when there is no child yet', async () => {
-    setup([{ exercise_id: 'ex-1', stars: 3 }]); // would count if child existed
+    setup([{ exercise_id: 'ex-1', attempt_count: 1, best_stars: 3 }]); // would count if child existed
     const { result } = renderStage(1, null);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 

@@ -9,6 +9,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 
 
 function getRandomTarget() {
@@ -194,11 +195,10 @@ export function ExerciseWriteNumber() {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('recognize-digit', {
-        body: { imageBase64, target },
-      });
-
-      if (error) throw error;
+      const data = await invokeFunction<{ isCorrect: boolean; recognized: number | null }>(
+        'recognize-digit',
+        { imageBase64, target }
+      );
 
       if (data.isCorrect) {
         setStatus('correct');
@@ -242,7 +242,11 @@ export function ExerciseWriteNumber() {
       }
     } catch (err) {
       console.error('Recognition error:', err);
-      setFeedbackText('Mijn ogen werken even niet — teken het getal nog eens!');
+      setFeedbackText(
+        err instanceof EdgeFunctionTimeoutError
+          ? 'Dat duurde te lang — probeer het nog eens!'
+          : 'Mijn ogen werken even niet — teken het getal nog eens!'
+      );
       setStatus('drawn');
     }
   };

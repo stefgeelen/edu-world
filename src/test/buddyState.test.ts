@@ -20,6 +20,7 @@ import {
   REVIVAL_LEVEL,
   SLEEP_MINUTES,
 } from '@/lib/buddy/constants';
+import { elapsedWindows } from '@/lib/buddy/schedule';
 
 /**
  * The Buddy care rules (decay, illness, death, care actions, shop) are the
@@ -30,6 +31,11 @@ import {
  * later contradict.
  */
 
+/**
+ * Donderdag 1 januari 2026, 13:00 in Europe/Amsterdam — midden in het Care
+ * Window, met nog zes actieve uren voor de boeg. Tests die binnen die zes uur
+ * blijven zien dus verstreken tijd één-op-één terug als actieve uren.
+ */
 const T0 = Date.UTC(2026, 0, 1, 12, 0, 0);
 const MINUTE = 60_000;
 
@@ -70,21 +76,21 @@ describe('tick — decay', () => {
   it('decays hunger, fun, energy and hygiene at their per-hour rates', () => {
     const next = tick(makeBuddy(), T0 + 2 * MS_PER_HOUR);
 
-    expect(next.needs.hunger).toBe(64); // 80 - 8/h * 2h
-    expect(next.needs.fun).toBe(63); // 75 - 6/h * 2h
-    expect(next.needs.energy).toBe(75); // 85 - 5/h * 2h
-    expect(next.needs.hygiene).toBe(72); // 80 - 4/h * 2h
+    expect(next.needs.hunger).toBe(74); // 80 - 3/h * 2h
+    expect(next.needs.fun).toBe(70); // 75 - 2.5/h * 2h
+    expect(next.needs.energy).toBe(81); // 85 - 2/h * 2h
+    expect(next.needs.hygiene).toBe(77); // 80 - 1.5/h * 2h
   });
 
   it('decays proportionally for a partial hour', () => {
     const next = tick(makeBuddy(), T0 + 30 * MINUTE);
 
-    expect(next.needs.hunger).toBe(76); // 80 - 8 * 0.5
-    expect(next.needs.fun).toBe(72); // 75 - 6 * 0.5
+    expect(next.needs.hunger).toBe(78.5); // 80 - 3 * 0.5
+    expect(next.needs.fun).toBe(73.8); // 75 - 2.5 * 0.5
   });
 
   it('floors needs at 0 instead of going negative', () => {
-    const next = tick(makeBuddy({ needs: { ...createBuddy(T0).needs, hunger: 5 } }), T0 + 100 * MS_PER_HOUR);
+    const next = tick(makeBuddy({ needs: { ...createBuddy(T0).needs, hunger: 5 } }), T0 + 14 * 24 * MS_PER_HOUR);
 
     expect(next.needs.hunger).toBe(0);
     expect(next.needs.fun).toBe(0);
@@ -121,10 +127,10 @@ describe('tick — decay', () => {
 });
 
 describe('tick — health', () => {
-  it('regenerates health at 4/hour while no need is critical', () => {
+  it('regenerates health at 6/hour while no need is critical', () => {
     const next = tick(makeBuddy({ needs: { ...createBuddy(T0).needs, health: 50 } }), T0 + 2 * MS_PER_HOUR);
 
-    expect(next.needs.health).toBe(58); // 50 + 4/h * 2h
+    expect(next.needs.health).toBe(62); // 50 + 6/h * 2h
   });
 
   it('caps regenerated health at 100', () => {
@@ -132,21 +138,21 @@ describe('tick — health', () => {
     expect(next.needs.health).toBe(100);
   });
 
-  it('drops health by 6/hour for each critical need, measured after decay', () => {
-    // hunger 10 -> 2 after one hour of decay, so exactly one need is below the
+  it('drops health by 2/hour for each critical need, measured after decay', () => {
+    // hunger 10 -> 7 after one hour of decay, so exactly one need is below the
     // critical threshold when health is settled.
     const b = makeBuddy({ needs: { hunger: 10, fun: 80, energy: 80, hygiene: 80, health: 50 } });
     const next = tick(b, T0 + MS_PER_HOUR);
 
     expect(next.needs.hunger).toBeLessThan(CRITICAL_THRESHOLD);
-    expect(next.needs.health).toBe(44); // 50 - 6 * 1 critical
+    expect(next.needs.health).toBe(48); // 50 - 2 * 1 critical
   });
 
   it('stacks the health drop across multiple critical needs', () => {
     const b = makeBuddy({ needs: { hunger: 10, fun: 10, energy: 80, hygiene: 80, health: 50 } });
     const next = tick(b, T0 + MS_PER_HOUR);
 
-    expect(next.needs.health).toBe(38); // 50 - 6 * 2 critical
+    expect(next.needs.health).toBe(46); // 50 - 2 * 2 critical
   });
 
   it('ignores health itself when counting critical needs', () => {
@@ -155,7 +161,7 @@ describe('tick — health', () => {
     const b = makeBuddy({ needs: { hunger: 80, fun: 80, energy: 80, hygiene: 80, health: 5 } });
     const next = tick(b, T0 + MS_PER_HOUR);
 
-    expect(next.needs.health).toBe(9);
+    expect(next.needs.health).toBe(11);
   });
 
   it('stamps healthZeroSince the first time health bottoms out', () => {
@@ -173,16 +179,24 @@ describe('tick — health', () => {
     });
     const next = tick(b, T0 + MS_PER_HOUR);
 
-    expect(next.needs.health).toBe(4);
+    expect(next.needs.health).toBe(6);
     expect(next.healthZeroSince).toBeNull();
   });
 });
 
 describe('tick — death', () => {
+  it('counts the grace period in active hours, not in wall-clock hours', () => {
+    // Het respijt is twee volle schooldagen. Dat is 47 wandklokuren terug: de
+    // nachten ertussen tellen niet mee.
+    const zeroSince = T0 - 47 * MS_PER_HOUR;
+
+    expect(elapsedWindows(zeroSince, T0 + MS_PER_HOUR).activeH).toBe(DEATH_AFTER_HOURS);
+  });
+
   it('marks the buddy dead once health has been at 0 for the full grace period', () => {
     const b = makeBuddy({
       needs: { hunger: 0, fun: 0, energy: 0, hygiene: 0, health: 0 },
-      healthZeroSince: T0 - DEATH_AFTER_HOURS * MS_PER_HOUR,
+      healthZeroSince: T0 - 47 * MS_PER_HOUR,
       sleepUntil: T0 + MS_PER_HOUR,
     });
     const next = tick(b, T0 + MS_PER_HOUR);
@@ -194,11 +208,26 @@ describe('tick — death', () => {
   it('keeps the buddy alive while still inside the grace period', () => {
     const b = makeBuddy({
       needs: { hunger: 0, fun: 0, energy: 0, hygiene: 0, health: 0 },
-      healthZeroSince: T0 - (DEATH_AFTER_HOURS - 2) * MS_PER_HOUR,
+      healthZeroSince: T0 - 24 * MS_PER_HOUR,
     });
     const next = tick(b, T0 + MS_PER_HOUR);
 
     expect(next.dead).toBe(false);
+  });
+
+  it('does not let a weekend push a starving buddy over the edge', () => {
+    // Vrijdag 2 januari 2026, 18:00 lokaal: gezondheid staat al op 0 en het kind
+    // komt pas maandagochtend terug. Het weekend mag die 24 actieve uren niet
+    // vol maken.
+    const fridayEvening = Date.UTC(2026, 0, 2, 17, 0, 0);
+    const mondayMorning = Date.UTC(2026, 0, 5, 7, 0, 0);
+    const b = makeBuddy({
+      needs: { hunger: 0, fun: 0, energy: 0, hygiene: 0, health: 0 },
+      lastTick: fridayEvening,
+      healthZeroSince: fridayEvening,
+    });
+
+    expect(tick(b, mondayMorning).dead).toBe(false);
   });
 
   it('gives a returning child a grace period instead of dying on the first tick after a long absence', () => {
@@ -236,15 +265,60 @@ describe('tick — sleeping', () => {
     const b = makeBuddy({ sleepUntil: T0 + SLEEP_MINUTES * MINUTE });
     const next = tick(b, T0 + SLEEP_MINUTES * MINUTE);
 
-    expect(next.needs.hunger).toBe(76); // 80 - 8 * 0.5h
-    expect(next.needs.hygiene).toBe(78); // 80 - 4 * 0.5h
+    expect(next.needs.hunger).toBe(78.5); // 80 - 3 * 0.5h
+    expect(next.needs.hygiene).toBe(79.3); // 80 - 1.5 * 0.5h
   });
 
   it('resumes normal energy decay after the buddy has woken up', () => {
     const b = makeBuddy({ needs: { ...createBuddy(T0).needs, energy: 60 }, sleepUntil: T0 - MS_PER_HOUR });
     const next = tick(b, T0 + 2 * MS_PER_HOUR);
 
-    expect(next.needs.energy).toBe(50); // 60 - 5/h * 2h
+    expect(next.needs.energy).toBe(56); // 60 - 2/h * 2h
+  });
+});
+
+/**
+ * De afspraak met het kind: één bezoek per schooldag is genoeg, en een
+ * vergeten woensdag of een heel weekend mag geen Buddy kosten. Deze tests
+ * bewaken die belofte in plaats van de losse tarieven.
+ */
+describe('tick — het ritme van een schoolweek', () => {
+  const FULL = { hunger: 100, fun: 100, energy: 100, hygiene: 100, health: 100 };
+  const MONDAY_MORNING = Date.UTC(2026, 0, 5, 7, 0, 0); // maandag 08:00 lokaal
+
+  it('houdt een Buddy comfortabel tot het bezoek van de volgende schooldag', () => {
+    const b = makeBuddy({ needs: FULL, lastTick: MONDAY_MORNING });
+    const next = tick(b, MONDAY_MORNING + 24 * MS_PER_HOUR);
+
+    expect(next.needs.hunger).toBe(64); // 100 - 3/h * 12 actieve uren
+    expect(moodOf(next, MONDAY_MORNING + 24 * MS_PER_HOUR)).toBe('happy');
+  });
+
+  it('laat een overgeslagen weekdag geen enkele Need kritiek maken', () => {
+    const b = makeBuddy({ needs: FULL, lastTick: MONDAY_MORNING });
+    const next = tick(b, MONDAY_MORNING + 48 * MS_PER_HOUR);
+
+    for (const need of ['hunger', 'fun', 'energy', 'hygiene'] as const) {
+      expect(next.needs[need]).toBeGreaterThan(CRITICAL_THRESHOLD);
+    }
+    expect(next.needs.health).toBe(100);
+  });
+
+  it('kost een heel weekend vrijwel niets', () => {
+    const fridayEvening = Date.UTC(2026, 0, 2, 17, 0, 0); // vrijdag 18:00 lokaal
+    const b = makeBuddy({ needs: FULL, lastTick: fridayEvening });
+    const next = tick(b, MONDAY_MORNING);
+
+    expect(next.needs.hunger).toBe(94); // alleen het laatste schooluur van vrijdag en het eerste van maandag
+    expect(next.needs.health).toBe(100);
+  });
+
+  it('laadt Energie op tijdens de nacht in plaats van hem te laten doorzakken', () => {
+    const b = makeBuddy({ needs: { ...FULL, energy: 30 }, lastTick: MONDAY_MORNING });
+    const next = tick(b, MONDAY_MORNING + 24 * MS_PER_HOUR);
+
+    // 12 actieve uren kosten 24 punten, de nacht van 12 uur levert er 48 op.
+    expect(next.needs.energy).toBe(54);
   });
 });
 
@@ -369,8 +443,8 @@ describe('applyCare — guards', () => {
   it('applies elapsed decay before running the action', () => {
     const res = applyCare(makeBuddy(), 'feed', 'bes', T0 + 2 * MS_PER_HOUR);
 
-    // 80 decays to 64 over two hours, then the berry adds 15.
-    expect(res.state.needs.hunger).toBe(79);
+    // 80 decays to 74 over two active hours, then the berry adds 15.
+    expect(res.state.needs.hunger).toBe(89);
   });
 });
 
@@ -522,7 +596,7 @@ describe('earnMunten', () => {
     const next = earnMunten(makeBuddy(), 20, T0 + MS_PER_HOUR);
 
     expect(next.munten).toBe(60);
-    expect(next.needs.hunger).toBe(72); // 80 - 8
+    expect(next.needs.hunger).toBe(77); // 80 - 3
   });
 });
 

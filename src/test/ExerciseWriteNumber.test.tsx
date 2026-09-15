@@ -104,7 +104,7 @@ describe('ExerciseWriteNumber', () => {
 
     await waitFor(() => expect(triggerConfettiMock).toHaveBeenCalled());
     expect(screen.getByText(/Geweldig!/)).toBeInTheDocument();
-    expect(invokeMock).toHaveBeenCalledWith('recognize-digit', { body: { imageBase64: 'FAKE', target: 1 } });
+    expect(invokeMock).toHaveBeenCalledWith('recognize-digit', { body: { imageBase64: 'FAKE', target: 1 }, timeout: 12_000 });
 
     // Progress after 1 of 5 correct answers is 20% — not yet finished, so the
     // round resets rather than persisting/navigating.

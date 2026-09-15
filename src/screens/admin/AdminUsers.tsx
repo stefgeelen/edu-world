@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeFunction } from '@/lib/invokeFunction';
 import { motion } from 'framer-motion';
 import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown, Trash2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -86,10 +87,7 @@ export function AdminUsers() {
 
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
-      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
-        body: { userId },
-      });
-      if (error) throw error;
+      const data = await invokeFunction<{ error?: string }>('admin-delete-user', { userId }, 30_000);
       if (data?.error) throw new Error(data.error);
       return data;
     },

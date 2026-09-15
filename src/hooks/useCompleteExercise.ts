@@ -5,23 +5,35 @@ import { useQuery } from '@tanstack/react-query';
 import { useCelebration } from '@/context/CelebrationContext';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { buddyToast } from '@/components/feedback/BuddyToast';
+import type { Tables } from '@/integrations/supabase/types';
 
 const STREAK_MILESTONES = new Set([3, 5, 7, 10, 14, 30]);
 
+/** The columns of `children` the gameplay side reads. */
+export type CurrentChild = Pick<
+  Tables<'children'>,
+  'id' | 'name' | 'grade' | 'xp' | 'level' | 'pending_promotion' | 'avatar_id' | 'streak' | 'max_unlocked_stage'
+>;
+
 /**
- * Returns the current child's ID for the logged-in parent.
+ * Returns the current child for the logged-in parent.
  * Reused across exercise hooks.
+ *
+ * Ordered by created_at so that a parent with several children always resolves
+ * to the same one; without it "the" child was whichever row Postgres happened to
+ * return first and could change between sessions.
  */
 export function useCurrentChild() {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<CurrentChild | null>({
     queryKey: ['my-child', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
         .select('id, name, grade, xp, level, pending_promotion, avatar_id, streak, max_unlocked_stage')
         .eq('parent_id', user!.id)
+        .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
       if (error) throw error;

@@ -34,7 +34,7 @@ export function useBuddyMessage() {
     const idx = available[Math.floor(Math.random() * available.length)];
     shown.add(idx);
 
-    const childName = (child as any)?.name ?? 'Vriend';
+    const childName = child?.name ?? 'Vriend';
     const message = messages[idx].replace(/\{name\}/g, childName);
 
     return {

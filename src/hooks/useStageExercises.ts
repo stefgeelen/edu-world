@@ -29,24 +29,17 @@ export function useStageExercises(stage: number = 1) {
 
       if (error) throw error;
 
-      let attemptsByExercise: Record<string, { count: number; bestStars: number }> = {};
+      // Aggregated server-side — one row per attempted exercise rather than one
+      // row per attempt ever made.
+      const attemptsByExercise: Record<string, { count: number; bestStars: number }> = {};
       if (childId) {
-        const { data: attempts } = await supabase
-          .from('exercise_attempts')
-          .select('exercise_id, stars')
-          .eq('child_id', childId);
+        const { data: stats, error: statsError } = await supabase.rpc('child_exercise_stats', {
+          p_child_id: childId,
+        });
+        if (statsError) throw statsError;
 
-        if (attempts) {
-          for (const a of attempts) {
-            if (!attemptsByExercise[a.exercise_id]) {
-              attemptsByExercise[a.exercise_id] = { count: 0, bestStars: 0 };
-            }
-            attemptsByExercise[a.exercise_id].count++;
-            attemptsByExercise[a.exercise_id].bestStars = Math.max(
-              attemptsByExercise[a.exercise_id].bestStars,
-              a.stars
-            );
-          }
+        for (const s of stats ?? []) {
+          attemptsByExercise[s.exercise_id] = { count: s.attempt_count, bestStars: s.best_stars };
         }
       }
 

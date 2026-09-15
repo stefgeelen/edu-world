@@ -17,19 +17,32 @@ export const NEED_EMOJI: Record<NeedId, string> = {
   health: "💚",
 };
 
-/** Verval per uur, in Need-punten (0-100). Gezondheid heeft geen eigen timer. */
+/**
+ * Verval per actief uur, in Need-punten (0-100). Gezondheid heeft geen eigen timer.
+ *
+ * Alleen uren binnen het Care Window tellen (zie schedule.ts), dus zo'n 12 per
+ * schooldag. Per schooldag zakt Honger daarmee 36 punten, en vanaf vol duurt het
+ * ~27 actieve uren voordat Honger kritiek wordt. Eén bezoek per schooldag
+ * volstaat dus ruim, en één overgeslagen weekdag overleeft de Buddy zonder
+ * kritiek te worden — twee op rij niet.
+ */
 export const DECAY_PER_HOUR: Record<Exclude<NeedId, "health">, number> = {
-  hunger: 8,
-  fun: 6,
-  energy: 5,
-  hygiene: 4,
+  hunger: 3,
+  fun: 2.5,
+  energy: 2,
+  hygiene: 1.5,
 };
+
+/** Energieherstel per nachtelijk uur — een nacht geeft een flinke oplader, geen volle reset. */
+export const ENERGY_PER_NIGHT_HOUR = 4;
 
 /** Onder deze waarde is een Need kritiek. */
 export const CRITICAL_THRESHOLD = 20;
-/** Gezondheidsverlies per uur per kritieke Need. */
-export const HEALTH_DROP_PER_HOUR = 6;
-/** Uren dat Gezondheid op 0 mag staan voordat Overlijden intreedt. */
+/** Gezondheidsverlies per actief uur per kritieke Need. */
+export const HEALTH_DROP_PER_HOUR = 2;
+/** Gezondheidsherstel per actief uur zolang geen Need kritiek is. */
+export const HEALTH_REGEN_PER_HOUR = 6;
+/** Actieve uren dat Gezondheid op 0 mag staan voordat Overlijden intreedt (= 2 schooldagen). */
 export const DEATH_AFTER_HOURS = 24;
 /** Normale slaapduur in minuten (zonder slaapcomfort-item). */
 export const SLEEP_MINUTES = 30;

@@ -29,7 +29,7 @@ export function useChildGreeting() {
   return useMemo(() => {
     const hour = new Date().getHours();
     const timeOfDay = getTimeOfDay(hour);
-    const childName = (child as any)?.name ?? 'Vriend';
+    const childName = child?.name ?? 'Vriend';
     const buddyName = selectedAvatar?.name ?? 'je studiemaatje';
     const greeting = `${TIME_LABEL[timeOfDay]}, ${childName}!`;
 

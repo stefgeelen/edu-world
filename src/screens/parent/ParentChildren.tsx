@@ -7,24 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
+import { useParentChildren } from '@/hooks/useParentChildren';
 
 export function ParentChildren() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data: children = [], isLoading } = useQuery({
-    queryKey: ['parent-children', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('children')
-        .select('id, name, age, grade, xp, level, streak, avatar_url, avatar_id, pending_promotion')
-        .eq('parent_id', user!.id)
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
-    enabled: !!user,
-  });
+  const { data: children = [], isLoading } = useParentChildren();
 
   const { data: subscription } = useQuery({
     queryKey: ['parent-subscription', user?.id],

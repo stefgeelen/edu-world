@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Sparkles } from 'lucide-react';
 import { NEED_IDS } from '@/lib/buddy/constants';
@@ -19,15 +19,10 @@ export function BuddyRoom() {
 }
 
 function BuddyRoomContent() {
-  const { buddy, loaded, careFx } = useBuddy();
-  const [now, setNow] = useState(0);
+  // `now` comes from the shared clock in BuddyFxProvider, so this screen and the
+  // CareActionBar below it tick together off a single timer.
+  const { buddy, loaded, careFx, now } = useBuddy();
   const [seed, setSeed] = useState(0);
-
-  useEffect(() => {
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 5000);
-    return () => clearInterval(id);
-  }, []);
 
   const mood = loaded && now ? moodOf(buddy, now) : 'neutral';
   const cue = loaded && now ? buddyCue(buddy, now) : 'ok';

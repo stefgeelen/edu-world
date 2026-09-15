@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeFunction } from '@/lib/invokeFunction';
 
 /**
  * ElevenLabs-backed Dutch (Flemish) TTS hook.
@@ -37,11 +38,11 @@ export async function speakText(text: string): Promise<void> {
   if (!text) return;
 
   try {
-    const { data, error } = await supabase.functions.invoke('synthesize-speech', {
-      body: { text },
-    });
+    // Speech is an enhancement, not a blocker — fail fast and let the caller
+    // fall back rather than leaving a child waiting on audio that never arrives.
+    const data = await invokeFunction<{ audioBase64?: string }>('synthesize-speech', { text }, 8_000);
 
-    if (error || !data?.audioBase64) throw new Error(error?.message ?? 'No audio returned');
+    if (!data?.audioBase64) throw new Error('No audio returned');
 
     const binary = atob(data.audioBase64);
     const bytes = new Uint8Array(binary.length);

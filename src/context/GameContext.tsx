@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -41,7 +41,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   // Sync avatar from child data
   useEffect(() => {
     if (child) {
-      const found = avatars.find(a => a.id === (child as any).avatar_id);
+      const found = avatars.find(a => a.id === child.avatar_id);
       if (found) setSelectedAvatar(found);
     }
   }, [child]);
@@ -92,7 +92,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [dbBadges]);
 
-  const updateBadgeProgress = (badgeId: string, progress: number) => {
+  const updateBadgeProgress = useCallback((badgeId: string, progress: number) => {
     setBadges((prev) =>
       prev.map((badge) =>
         badge.id === badgeId
@@ -100,13 +100,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           : badge
       )
     );
-  };
+  }, []);
 
-  return (
-    <GameContext.Provider value={{ selectedAvatar, setSelectedAvatar, xp, streak, level, badges, updateBadgeProgress }}>
-      {children}
-    </GameContext.Provider>
+  const value = useMemo(
+    () => ({ selectedAvatar, setSelectedAvatar, xp, streak, level, badges, updateBadgeProgress }),
+    [selectedAvatar, xp, streak, level, badges, updateBadgeProgress]
   );
+
+  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };
 
 export const useGame = () => {

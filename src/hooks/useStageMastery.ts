@@ -33,15 +33,15 @@ export function useStageMastery() {
         .eq('is_active', true);
       if (error) throw error;
 
-      // Per-child attempt counts
+      // Per-child attempt counts, aggregated server-side.
       const counts: Record<string, number> = {};
       if (childId) {
-        const { data: attempts } = await supabase
-          .from('exercise_attempts')
-          .select('exercise_id')
-          .eq('child_id', childId);
-        for (const a of attempts ?? []) {
-          counts[a.exercise_id] = (counts[a.exercise_id] ?? 0) + 1;
+        const { data: stats, error: statsError } = await supabase.rpc('child_exercise_stats', {
+          p_child_id: childId,
+        });
+        if (statsError) throw statsError;
+        for (const s of stats ?? []) {
+          counts[s.exercise_id] = s.attempt_count;
         }
       }
 
