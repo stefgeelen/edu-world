@@ -92,6 +92,9 @@ const fakeCtx = {
   beginPath: vi.fn(), arc: vi.fn(), fill: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
   stroke: vi.fn(), clearRect: vi.fn(), set fillStyle(_v: string) {}, set strokeStyle(_v: string) {},
   set lineWidth(_v: number) {}, set lineCap(_v: string) {}, set lineJoin(_v: string) {},
+  // The canvas is downscaled before recognition (src/lib/canvasRecognition.ts),
+  // which draws the source onto an offscreen canvas.
+  drawImage: vi.fn(), set imageSmoothingEnabled(_v: boolean) {}, set imageSmoothingQuality(_v: string) {},
 };
 
 function drawOnCanvas() {
@@ -170,11 +173,10 @@ describe('ExerciseNumberLine component', () => {
     expect(screen.getByText(/Geweldig gedaan!/)).toBeInTheDocument();
   }, 15000);
 
-  it('recovers from a recognition error by re-enabling retry (same display gap as ExerciseWriteNumber)', async () => {
-    // Same possible bug as ExerciseWriteNumber.test.tsx: the catch block sets
-    // checkStatus back to 'idle' and feedbackText to a friendly message, but
-    // the feedback banner only renders for checkStatus 'correct'/'incorrect'
-    // — so the message is set yet never actually shown to the child.
+  // Was the twin of the ExerciseWriteNumber case: both asserted the failure
+  // message was absent. The error now lives in its own state so it survives
+  // checkStatus dropping back to 'idle' for the retry, and is rendered.
+  it('shows the child why a recognition failure happened, and re-enables retry', async () => {
     invokeMock.mockRejectedValue(new Error('down'));
     render(<ExerciseNumberLine />);
 
@@ -184,7 +186,7 @@ describe('ExerciseNumberLine component', () => {
     fireEvent.click(screen.getByText('Controleer'));
 
     await waitFor(() => expect(screen.getByText('Controleer').closest('button')).toBeEnabled());
-    expect(screen.queryByText(/Mijn ogen werken even niet/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Mijn ogen werken even niet/)).toBeInTheDocument();
     expect(triggerConfettiMock).not.toHaveBeenCalled();
   });
 });

@@ -13,6 +13,7 @@ import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
+import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -73,6 +74,12 @@ export function ExerciseNumberLine() {
   const [hasDrawn, setHasDrawn] = useState(false);
   const [checkStatus, setCheckStatus] = useState<'idle' | 'checking' | 'correct' | 'incorrect'>('idle');
   const [feedbackText, setFeedbackText] = useState('');
+  // Kept apart from feedbackText: a recognition failure is a system error, not
+  // answer feedback, and it has to stay readable while checkStatus returns to
+  // 'idle' so the child can draw again. Writing it into feedbackText meant it
+  // was never rendered at all — the render below only shows that on a
+  // correct/incorrect verdict, so pressing Controleer looked like a no-op.
+  const [errorText, setErrorText] = useState('');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
@@ -92,6 +99,7 @@ export function ExerciseNumberLine() {
     setHasDrawn(false);
     setCheckStatus('idle');
     setFeedbackText('');
+    setErrorText('');
 
     if (activeSlot !== null) {
       const t = setTimeout(() => {
@@ -113,6 +121,7 @@ export function ExerciseNumberLine() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     isDrawing.current = true;
+    setErrorText('');
     const pos = getPosFromPointer(e, canvas);
     lastPt.current = pos;
     ctx.beginPath();
@@ -163,19 +172,21 @@ export function ExerciseNumberLine() {
     setHasDrawn(false);
     setCheckStatus('idle');
     setFeedbackText('');
+    setErrorText('');
   }, []);
 
 
   const getCanvasBase64 = (): string | null => {
     const c = canvasRef.current;
     if (!c) return null;
-    return c.toDataURL('image/png').split(',')[1];
+    return canvasToRecognitionBase64(c);
   };
 
   const handleConfirmDraw = async () => {
     if (!hasDrawn || checkStatus === 'checking' || activeSlot === null) return;
     setCheckStatus('checking');
     setFeedbackText('');
+    setErrorText('');
 
     const imageBase64 = getCanvasBase64();
     if (!imageBase64) { setCheckStatus('idle'); return; }
@@ -216,7 +227,7 @@ export function ExerciseNumberLine() {
       }
     } catch (err) {
       console.error('Recognition error:', err);
-      setFeedbackText(
+      setErrorText(
         err instanceof EdgeFunctionTimeoutError
           ? 'Dat duurde te lang — probeer het nog eens!'
           : 'Mijn ogen werken even niet — teken het getal nog eens!'
@@ -573,7 +584,7 @@ export function ExerciseNumberLine() {
 
                 {/* Feedback text */}
                 <AnimatePresence>
-                  {feedbackText && (checkStatus === 'correct' || checkStatus === 'incorrect') && (
+                  {(errorText || (feedbackText && (checkStatus === 'correct' || checkStatus === 'incorrect'))) && (
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -584,7 +595,7 @@ export function ExerciseNumberLine() {
                       )}
                     >
                       <p className={cn('text-xs font-black', checkStatus === 'correct' ? 'text-emerald-400' : 'text-orange-300')}>
-                        {feedbackText}
+                        {errorText || feedbackText}
                       </p>
                     </motion.div>
                   )}

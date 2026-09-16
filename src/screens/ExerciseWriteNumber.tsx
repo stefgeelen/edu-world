@@ -10,6 +10,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
+import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
 
 
 function getRandomTarget() {
@@ -69,6 +70,11 @@ export function ExerciseWriteNumber() {
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
   const [feedbackText, setFeedbackText] = useState('');
+  // Separate from feedbackText for the same reason as ExerciseNumberLine: a
+  // recognition failure must stay visible while status drops back to 'drawn' so
+  // the child can retry, and the feedback banner below only renders on a
+  // correct/incorrect verdict — so the catch's message never appeared.
+  const [errorText, setErrorText] = useState('');
 
   const getPos = (e: MouseEvent | TouchEvent, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -128,6 +134,8 @@ export function ExerciseWriteNumber() {
       hasDrawnRef.current = true;
       setHasDrawn(true);
     }
+    // Drawing again means the child is retrying — drop the stale failure notice.
+    setErrorText('');
   }, []);
 
   const endDraw = useCallback(() => {
@@ -167,6 +175,7 @@ export function ExerciseWriteNumber() {
     setHasDrawn(false);
     setStatus('idle');
     setFeedbackText('');
+    setErrorText('');
   };
 
   const generateNew = () => {
@@ -174,19 +183,20 @@ export function ExerciseWriteNumber() {
     setTarget(getRandomTarget());
     setStatus('idle');
     setFeedbackText('');
+    setErrorText('');
   };
 
   const getCanvasBase64 = (): string | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
-    const dataUrl = canvas.toDataURL('image/png');
-    return dataUrl.split(',')[1]; // strip "data:image/png;base64,"
+    return canvasToRecognitionBase64(canvas);
   };
 
   const handleConfirm = async () => {
     if (!hasDrawn || status === 'checking') return;
     setStatus('checking');
     setFeedbackText('');
+    setErrorText('');
 
     const imageBase64 = getCanvasBase64();
     if (!imageBase64) {
@@ -242,7 +252,7 @@ export function ExerciseWriteNumber() {
       }
     } catch (err) {
       console.error('Recognition error:', err);
-      setFeedbackText(
+      setErrorText(
         err instanceof EdgeFunctionTimeoutError
           ? 'Dat duurde te lang — probeer het nog eens!'
           : 'Mijn ogen werken even niet — teken het getal nog eens!'
@@ -368,7 +378,7 @@ export function ExerciseWriteNumber() {
 
         {/* Feedback banners */}
         <AnimatePresence>
-          {feedbackText && (status === 'incorrect' || status === 'correct') && (
+          {(errorText || (feedbackText && (status === 'incorrect' || status === 'correct'))) && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -389,7 +399,7 @@ export function ExerciseWriteNumber() {
                 'text-sm font-bold',
                 status === 'correct' ? 'text-emerald-400' : 'text-orange-300'
               )}>
-                {feedbackText}
+                {errorText || feedbackText}
               </p>
             </motion.div>
           )}

@@ -41,6 +41,9 @@ const fakeCtx = {
   beginPath: vi.fn(), arc: vi.fn(), fill: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
   stroke: vi.fn(), clearRect: vi.fn(), set fillStyle(_v: string) {}, set strokeStyle(_v: string) {},
   set lineWidth(_v: number) {}, set lineCap(_v: string) {}, set lineJoin(_v: string) {},
+  // The canvas is downscaled before recognition (src/lib/canvasRecognition.ts),
+  // which draws the source onto an offscreen canvas.
+  drawImage: vi.fn(), set imageSmoothingEnabled(_v: boolean) {}, set imageSmoothingQuality(_v: string) {},
 };
 
 function draw(canvas: HTMLCanvasElement) {
@@ -162,15 +165,13 @@ describe('ExerciseWriteNumber', () => {
     expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos');
   }, 15000);
 
-  it('recovers from an edge-function failure by unsticking "checking" so the child can retry', async () => {
-    // POSSIBLE BUG: the catch block sets status to 'drawn' and feedbackText
-    // to a friendly message, but the feedback banner only renders when
-    // status is 'incorrect' or 'correct' (see the JSX below handleConfirm).
-    // So today, a recognize-digit failure silently re-enables the button
-    // without ever showing the child *any* message explaining why — worth a
-    // fix (e.g. treat 'drawn' as displayable too, or add a dedicated 'error'
-    // status). This test asserts the current, actually-observable behavior:
-    // the button un-sticks, but the message is asserted absent, not present.
+  // This previously asserted the message was ABSENT, documenting the display gap
+  // rather than fixing it: the catch wrote to feedbackText, which only renders on
+  // a correct/incorrect verdict, so a recognize-digit failure re-enabled the
+  // button with nothing on screen. That is what "ik duw op controleer en er
+  // gebeurt niets" looked like in production. The error now has its own state and
+  // must actually be visible.
+  it('shows the child why a recognition failure happened, and re-enables retry', async () => {
     invokeMock.mockRejectedValue(new Error('network down'));
     render(<ExerciseWriteNumber />);
 
@@ -178,7 +179,7 @@ describe('ExerciseWriteNumber', () => {
     fireEvent.click(screen.getByText('Controleer'));
 
     await waitFor(() => expect(screen.getByText('Controleer').closest('button')).toBeEnabled());
-    expect(screen.queryByText('Mijn ogen werken even niet — teken het getal nog eens!')).not.toBeInTheDocument();
+    expect(screen.getByText('Mijn ogen werken even niet — teken het getal nog eens!')).toBeInTheDocument();
     expect(triggerConfettiMock).not.toHaveBeenCalled();
     expect(mutateMock).not.toHaveBeenCalled();
   });
