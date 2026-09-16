@@ -7,7 +7,7 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; needsEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithOAuth: (provider: 'google') => Promise<{ error: Error | null }>;
   resetPasswordForEmail: (email: string) => Promise<{ error: Error | null }>;
@@ -55,15 +55,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: window.location.origin,
+        // The confirmation link has to land on /auth/callback, not the marketing
+        // page: that's the only screen that picks the session up and routes on to
+        // PIN setup / add-child. Sending it to the origin left confirmed parents
+        // on the landing page with no way into onboarding.
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
-    return { error: error as Error | null };
+    // With email confirmation enabled (mailer_autoconfirm off) signUp resolves
+    // with no session — nothing is authenticated yet. The caller must not push
+    // the user into the authenticated onboarding flow in that case.
+    return {
+      error: error as Error | null,
+      needsEmailConfirmation: !error && !data.session,
+    };
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {

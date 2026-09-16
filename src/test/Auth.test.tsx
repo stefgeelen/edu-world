@@ -135,8 +135,8 @@ describe('Auth screen', () => {
     });
   });
 
-  it('signs up and redirects straight into mandatory PIN setup', async () => {
-    signUp.mockResolvedValue({ error: null });
+  it('signs up and redirects straight into mandatory PIN setup when a session was returned', async () => {
+    signUp.mockResolvedValue({ error: null, needsEmailConfirmation: false });
     renderAuth();
     fireEvent.click(screen.getByRole('button', { name: 'Registreren' }));
 
@@ -149,6 +149,24 @@ describe('Auth screen', () => {
     await waitFor(() =>
       expect(navigateMock).toHaveBeenCalledWith('/auth/setup-pin?redirect=/app/add-child', { replace: true })
     );
+  });
+
+  // With email confirmation enabled, signUp resolves without a session. Every
+  // screen past this point (PIN setup, add-child) needs auth.uid(), so navigating
+  // there stranded the new parent on a PIN form that could only ever fail — and
+  // left them without a child profile, hence without any exercises to open.
+  it('waits for the confirmation mail instead of navigating when signup returns no session', async () => {
+    signUp.mockResolvedValue({ error: null, needsEmailConfirmation: true });
+    renderAuth();
+    fireEvent.click(screen.getByRole('button', { name: 'Registreren' }));
+
+    fireEvent.change(screen.getByPlaceholderText('Volledige naam'), { target: { value: 'Stef Geelen' } });
+    fireEvent.change(screen.getByPlaceholderText('E-mailadres'), { target: { value: 'parent@example.com' } });
+    fireEvent.change(screen.getByPlaceholderText('Wachtwoord'), { target: { value: 'StrongPassword1' } });
+    fireEvent.click(screen.getByRole('button', { name: /account aanmaken/i }));
+
+    await waitFor(() => expect(screen.getByText(/bevestigen/i)).toBeTruthy());
+    expect(navigateMock).not.toHaveBeenCalledWith('/auth/setup-pin?redirect=/app/add-child', { replace: true });
   });
 
   it('redirects an already-logged-in user straight to /app', () => {

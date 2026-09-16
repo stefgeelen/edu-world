@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, ArrowRight, Lock } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useSetParentPin, useHasParentPin } from '@/hooks/useParentPin';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -21,8 +23,27 @@ export function SetupParentPin() {
   const redirectTo = params.get('redirect') ?? '/app/add-child';
   const isChange = params.get('change') === '1';
 
+  const { user, loading: authLoading } = useAuth();
   const { data: hasPin, isLoading } = useHasParentPin();
   const setPin = useSetParentPin();
+
+  // This route is public (the signup flow links straight into it), so it can be
+  // reached with no session at all. set_parent_pin needs auth.uid() and raises
+  // otherwise, which turned this screen into a dead end: the form resets on
+  // every submit and there's no way forward. Bounce back to /auth instead.
+  //
+  // Asks Supabase rather than trusting `user`: with autoconfirm on, signUp
+  // resolves with a session and navigates here in the same tick the SIGNED_IN
+  // event is still propagating through context, so `user` can read null for a
+  // render. Bouncing on that would throw out a perfectly good session.
+  useEffect(() => {
+    if (authLoading || user) return;
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && !data.session) navigate('/auth', { replace: true });
+    });
+    return () => { cancelled = true; };
+  }, [authLoading, user, navigate]);
 
   const [step, setStep] = useState<Step>('choose');
   const [first, setFirst] = useState('');
@@ -81,7 +102,7 @@ export function SetupParentPin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [second]);
 
-  if (isLoading) return <LoadingSpinner />;
+  if (authLoading || !user || isLoading) return <LoadingSpinner />;
 
   const isConfirm = step === 'confirm';
   const value = isConfirm ? second : first;

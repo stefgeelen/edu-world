@@ -30,6 +30,7 @@ export function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [confirmSent, setConfirmSent] = useState(false);
 
   // Redirect if already logged in
   React.useEffect(() => {
@@ -46,6 +47,7 @@ export function Auth() {
   const switchMode = (m: 'login' | 'signup') => {
     setMode(m);
     setResetSent(false);
+    setConfirmSent(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,9 +70,15 @@ export function Auth() {
         setResetSent(true);
       }
     } else if (mode === 'signup') {
-      const { error } = await signUp(email.trim(), password, fullName.trim());
+      const { error, needsEmailConfirmation } = await signUp(email.trim(), password, fullName.trim());
       if (error) {
         toast.error(mapAuthError(error));
+      } else if (needsEmailConfirmation) {
+        // No session yet — every screen behind this point (PIN setup, add-child)
+        // needs auth.uid(), so sending them there strands them on a form that
+        // can only ever fail. Wait for the confirmation link instead; it comes
+        // back through /auth/callback, which resumes onboarding from there.
+        setConfirmSent(true);
       } else {
         toast.success('Account aangemaakt! Stel nu je toegangscode in.');
         navigate('/auth/setup-pin?redirect=/app/add-child', { replace: true });
@@ -184,13 +192,15 @@ export function Auth() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm space-y-4"
       >
-        {mode === 'forgot' && resetSent ? (
+        {(mode === 'forgot' && resetSent) || (mode === 'signup' && confirmSent) ? (
           <div className="bg-white rounded-2xl border-2 border-emerald-200 p-6 text-center space-y-4">
             <div className="w-12 h-12 mx-auto bg-emerald-100 rounded-full flex items-center justify-center">
               <Check className="w-6 h-6 text-emerald-600" strokeWidth={3} />
             </div>
             <p className="text-slate-600 font-medium text-sm">
-              Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een e-mail met een link om je wachtwoord opnieuw in te stellen.
+              {confirmSent
+                ? 'Je account is aangemaakt. We hebben je een e-mail gestuurd — klik op de link daarin om je adres te bevestigen. Daarna stel je je toegangscode in en voeg je je kind toe.'
+                : 'Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een e-mail met een link om je wachtwoord opnieuw in te stellen.'}
             </p>
             <button
               type="button"
