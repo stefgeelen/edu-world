@@ -97,15 +97,42 @@ const speakMock = vi.fn();
 vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) }));
 
 import { ExerciseSentenceDoctor } from '@/screens/ExerciseSentenceDoctor';
+import { BUILD_SENTENCES_GRADE_1, FIX_SENTENCES_GRADE_1 } from '@/data/sentenceDoctorSentences';
 
-// With Math.random() pinned to 0.1: mode = 0.1 < 0.5 -> 'build';
-// pickRandom(BUILD_SENTENCES) = index floor(0.1*10)=1 -> ['ik','ga','naar','school'].
-const BUILD_CORRECT_ORDER = [
-  { id: '0-ik', word: 'ik' },
-  { id: '1-ga', word: 'ga' },
-  { id: '2-naar', word: 'naar' },
-  { id: '3-school', word: 'school' },
-];
+// These fixtures are DERIVED from the real sentence pools, not hard-coded.
+//
+// The component picks with `available[floor(random * available.length)]`, and on
+// the first question every index is still available — so a pinned Math.random of
+// R selects index floor(R * pool.length). An earlier version of this file wrote
+// those indices out literally ("floor(0.1*10)=1"), which silently became wrong
+// when the pools grew from 10 to 30 (build) and 8 to 23 (fix) for second grade.
+// Deriving them keeps the tests honest as content is added.
+const PINNED_BUILD = 0.1;
+const PINNED_FIX = 0.9;
+
+const BUILD_WORDS = BUILD_SENTENCES_GRADE_1[Math.floor(PINNED_BUILD * BUILD_SENTENCES_GRADE_1.length)];
+const BUILD_CORRECT_ORDER = BUILD_WORDS.map((word, i) => ({ id: `${i}-${word}`, word }));
+
+const FIX_QUESTION = FIX_SENTENCES_GRADE_1[Math.floor(PINNED_FIX * FIX_SENTENCES_GRADE_1.length)];
+
+/**
+ * Mirrors the component's `pickUnused`, which excludes already-seen indices so a
+ * child never gets the same sentence twice in a run. A pinned Math.random does
+ * NOT therefore mean a pinned sentence: each round draws from a shrinking pool
+ * and lands somewhere new. Submitting round 1's word order five times fails
+ * rounds 2-5, which is precisely what this test used to do.
+ */
+function buildSentenceSequence(rounds: number): string[][] {
+  const used = new Set<number>();
+  const out: string[][] = [];
+  for (let r = 0; r < rounds; r++) {
+    const available = BUILD_SENTENCES_GRADE_1.map((_, i) => i).filter((i) => !used.has(i));
+    const idx = available[Math.floor(PINNED_BUILD * available.length)];
+    used.add(idx);
+    out.push(BUILD_SENTENCES_GRADE_1[idx]);
+  }
+  return out;
+}
 
 function submitBuildAnswer(correct: boolean) {
   if (correct) {
@@ -149,8 +176,11 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
   it('completes the exercise after 5 correct rounds and persists score/stars', () => {
     render(<ExerciseSentenceDoctor />);
 
+    const sentences = buildSentenceSequence(5);
     for (let round = 0; round < 5; round++) {
-      submitBuildAnswer(true);
+      const order = sentences[round].map((word, i) => ({ id: `${i}-${word}`, word }));
+      act(() => reorderHandlers.onReorder?.(order));
+      fireEvent.pointerDown(screen.getByText('Controleer ✓'));
       act(() => vi.advanceTimersByTime(1800));
     }
 
@@ -167,11 +197,10 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
 });
 
 describe('ExerciseSentenceDoctor component — fix mode (Math.random pinned to 0.9)', () => {
-  // mode = 0.9 < 0.5 -> false -> 'fix'; pickRandom(FIX_SENTENCES) index
-  // floor(0.9*8)=7 -> {sentence:['de','baby','kookt','in','de','wieg'],
-  // wrongIndex:2, wrongWord:'kookt', correctWord:'slaapt', distractors:
-  // ['rijdt','leest']}. shuffle(['slaapt','rijdt','leest']) with a constant
-  // 0.9 draw resolves to two self-swaps, so alternatives stay in that order.
+  // 0.9 is not < 0.5, so the mode is 'fix'; the selected question is FIX_QUESTION
+  // above. shuffle([correctWord, ...distractors]) with a constant 0.9 draw
+  // resolves to two self-swaps for a 3-element array, so the alternatives keep
+  // their declared order and can be found by their exact text.
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -188,8 +217,8 @@ describe('ExerciseSentenceDoctor component — fix mode (Math.random pinned to 0
     render(<ExerciseSentenceDoctor />);
     expect(screen.getByText('Genees de zin!')).toBeInTheDocument();
 
-    fireEvent.pointerDown(screen.getByText(/kookt/));
-    fireEvent.pointerDown(screen.getByText('slaapt'));
+    fireEvent.pointerDown(screen.getByText(new RegExp(FIX_QUESTION.wrongWord)));
+    fireEvent.pointerDown(screen.getByText(FIX_QUESTION.correctWord));
 
     expect(triggerConfettiMock).toHaveBeenCalled();
     expect(screen.getByText('Goed gedaan!')).toBeInTheDocument();
@@ -198,12 +227,12 @@ describe('ExerciseSentenceDoctor component — fix mode (Math.random pinned to 0
   it('picking a wrong distractor shows it in place and the "try again" banner, without confetti', () => {
     render(<ExerciseSentenceDoctor />);
 
-    fireEvent.pointerDown(screen.getByText(/kookt/));
-    fireEvent.pointerDown(screen.getByText('rijdt'));
+    fireEvent.pointerDown(screen.getByText(new RegExp(FIX_QUESTION.wrongWord)));
+    fireEvent.pointerDown(screen.getByText(FIX_QUESTION.distractors[0]));
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
     expect(screen.getByText('Probeer opnieuw!')).toBeInTheDocument();
     // The wrong pick still replaces the broken slot's displayed word.
-    expect(screen.queryByText(/kookt/)).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(FIX_QUESTION.wrongWord))).not.toBeInTheDocument();
   });
 });

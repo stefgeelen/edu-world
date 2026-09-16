@@ -88,7 +88,12 @@ const DEFAULT_QUESTS = [
 function setDefaults(overrides: Partial<{ isAdmin: boolean; streak: number; badges: unknown[]; dailyQuests: typeof DEFAULT_QUESTS }> = {}) {
   useGameMock.mockReturnValue({
     selectedAvatar: { name: 'Milo', imageUrlHead: '/milo.png' },
-    xp: 250,
+    // Level 3 means 2000 XP has already been banked (complete_exercise derives
+    // level as FLOOR(xp/1000)+1), so a child sitting 250 XP into level 3 has a
+    // total of 2250. The old fixture paired xp:250 with level:3 — a state the
+    // app cannot produce — and the card, which shows XP *within* the level,
+    // correctly rendered 250-2000 = -1750.
+    xp: 2250,
     streak: overrides.streak ?? 2,
     level: 3,
     badges: overrides.badges ?? [],

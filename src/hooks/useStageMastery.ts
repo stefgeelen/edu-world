@@ -101,6 +101,12 @@ export function useStageMastery() {
     totalMastered,
     overallPct,
     isLoading: query.isLoading,
+    // Surfaced so callers can tell "no stages yet" apart from "the stage query
+    // failed". Without it `stages` falls back to [] on error, which reads as
+    // every stage being locked — a backend outage looked like dead UI.
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
     child,
   };
 }

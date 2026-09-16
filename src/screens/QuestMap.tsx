@@ -35,11 +35,20 @@ function getButtonClass(status: "completed" | "current" | "locked") {
 }
 
 
+/** Full-screen, themed shell for the map's loading and error states. */
+function MapMessage({ theme, children }: { theme: ReturnType<typeof getWorldTheme>; children: React.ReactNode }) {
+  return (
+    <div className={cn("h-full w-full flex flex-col items-center justify-center gap-4 px-6 relative overflow-hidden font-sans", theme.classes.pageBackground)}>
+      {children}
+    </div>
+  );
+}
+
 export function QuestMap() {
   const navigate = useNavigate();
   const { selectedAvatar } = useGame();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { stages, overallPct, child } = useStageMastery();
+  const { stages, overallPct, child, isLoading, isError, error, refetch } = useStageMastery();
   const { getMessage, hasAvatar } = useBuddyMessage();
   const { childName } = useChildGreeting();
   const theme = getWorldTheme(child?.grade);
@@ -55,14 +64,81 @@ export function QuestMap() {
     }
   }, [hasAvatar]);
 
+  // Depends on the render state, not just mount: the container doesn't exist
+  // while the loading/error screens are up, so a mount-only effect would scroll
+  // nothing and leave the map parked at the top. The timer is cleared on unmount
+  // so it can't fire into a screen that has already navigated away.
   useEffect(() => {
-    if (containerRef.current) {
-      const targetScroll = containerRef.current.scrollHeight * 0.3;
-      setTimeout(() => {
-        containerRef.current?.scrollTo({ top: targetScroll, behavior: "smooth" });
-      }, 100);
-    }
-  }, []);
+    if (isLoading || isError) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const targetScroll = el.scrollHeight * 0.3;
+    const timer = setTimeout(() => {
+      containerRef.current?.scrollTo({ top: targetScroll, behavior: "smooth" });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isLoading, isError]);
+
+  const starfield = useMemo(() => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {[...Array(60)].map((_, i) => {
+        const top = `${Math.random() * 100}%`;
+        const left = `${Math.random() * 100}%`;
+        const size = `${Math.random() * 4 + 1}px`;
+        const anim = `pulse ${Math.random() * 2 + 2}s infinite ${Math.random() * 3}s`;
+        return (
+          <div key={i} className="absolute rounded-full bg-white opacity-20" style={{ top, left, width: size, height: size, animation: anim }} />
+        );
+      })}
+    </div>
+  ), []);
+
+  // Everything below this line is past the last hook, so early returns are safe.
+  //
+  // These two states used to fall through to the map itself: `stages` defaults
+  // to [] while loading and on failure alike, and getCheckpointStatus reads a
+  // missing stage as "locked". So a slow — or dead — stage query rendered a
+  // complete map with all three checkpoints locked and every click a no-op,
+  // with nothing on screen to say why.
+  if (isLoading) {
+    return (
+      <MapMessage theme={theme}>
+        <div className="w-14 h-14 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin" />
+        <p className={cn("font-black tracking-wide", theme.classes.accentMutedText)}>
+          De kaart wordt geladen...
+        </p>
+      </MapMessage>
+    );
+  }
+
+  if (isError) {
+    console.error('QuestMap: stage mastery query failed', error);
+    return (
+      <MapMessage theme={theme}>
+        <div className={cn("w-full max-w-sm text-center space-y-4 rounded-3xl border-2 p-8 backdrop-blur-xl", theme.classes.navBg, theme.classes.borderAccent)}>
+          <span className="text-5xl block">🧭</span>
+          <h2 className="text-xl font-black text-white">De kaart kon niet geladen worden</h2>
+          <p className={cn("text-sm font-medium", theme.classes.accentMutedText)}>
+            Controleer je internetverbinding en probeer het opnieuw.
+          </p>
+          <div className="flex flex-col gap-3 pt-1">
+            <button
+              onClick={() => refetch()}
+              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-black rounded-2xl border-b-4 border-emerald-700 active:border-b-0 active:translate-y-1 transition-all"
+            >
+              Opnieuw proberen
+            </button>
+            <button
+              onClick={() => navigate('/app/dashboard')}
+              className={cn("w-full py-3 font-bold rounded-2xl border-2 transition-colors", theme.classes.borderAccent, theme.classes.accentMutedText)}
+            >
+              Terug naar start
+            </button>
+          </div>
+        </div>
+      </MapMessage>
+    );
+  }
 
   // Build checkpoints from theme + position config + real stage mastery data
   const checkpoints = CHECKPOINT_POSITIONS.map((pos) => {
@@ -79,20 +155,9 @@ export function QuestMap() {
 
   return (
     <div className={cn("h-full w-full flex flex-col relative overflow-hidden font-sans", theme.classes.pageBackground)}>
-      {/* Starry Background (memoized) */}
-      {useMemo(() => (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          {[...Array(60)].map((_, i) => {
-            const top = `${Math.random() * 100}%`;
-            const left = `${Math.random() * 100}%`;
-            const size = `${Math.random() * 4 + 1}px`;
-            const anim = `pulse ${Math.random() * 2 + 2}s infinite ${Math.random() * 3}s`;
-            return (
-              <div key={i} className="absolute rounded-full bg-white opacity-20" style={{ top, left, width: size, height: size, animation: anim }} />
-            );
-          })}
-        </div>
-      ), [])}
+      {/* Starry Background (memoized above — a hook can't live inside JSX that
+          sits after an early return) */}
+      {starfield}
 
       {/* Decorations */}
       {theme.decorativeElements.map((el, i) => (

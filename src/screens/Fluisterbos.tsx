@@ -78,12 +78,53 @@ const SUBJECTS: SubjectConfig[] = [
   },
 ];
 
+/* ── Full-screen status panel (error / empty) ───────── */
+function StageMessage({
+  emoji,
+  title,
+  body,
+  onRetry,
+  onBack,
+}: {
+  emoji: string;
+  title: string;
+  body: string;
+  onRetry?: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="h-full w-full bg-slate-50 flex items-center justify-center px-6">
+      <div className="w-full max-w-sm text-center space-y-4 bg-white rounded-3xl border-2 border-slate-200 p-8 shadow-xl shadow-slate-200/40">
+        <span className="text-5xl block">{emoji}</span>
+        <h2 className="text-xl font-black text-slate-800">{title}</h2>
+        <p className="text-sm font-medium text-slate-500">{body}</p>
+        <div className="flex flex-col gap-3 pt-1">
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="w-full py-3 bg-gradient-to-r from-teal-500 to-teal-400 text-white font-black rounded-2xl border-b-4 border-teal-600 active:border-b-0 active:translate-y-1 transition-all"
+            >
+              Opnieuw proberen
+            </button>
+          )}
+          <button
+            onClick={onBack}
+            className="w-full py-3 font-bold rounded-2xl border-2 border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+          >
+            Terug naar de kaart
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main component ─────────────────────────────────── */
 export function Fluisterbos() {
   const navigate = useNavigate();
   const { stage: stageParam } = useParams<{ stage?: string }>();
   const stage = Math.max(1, Math.min(3, Number(stageParam) || 1));
-  const { data: allExercises = [], isLoading } = useStageExercises(stage);
+  const { data: allExercises = [], isLoading, isError, error, refetch } = useStageExercises(stage);
   const { stages, isLoading: masteryLoading, child } = useStageMastery();
   const theme = getWorldTheme(child?.grade);
 
@@ -111,6 +152,35 @@ export function Fluisterbos() {
       <div className="h-full w-full bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
       </div>
+    );
+  }
+
+  // Both of the states below used to fall through to the normal screen. With
+  // `allExercises` defaulting to [], a failed query and an unseeded stage both
+  // rendered a perfectly healthy-looking page showing "0 / 0 voltooid" and no
+  // exercises — indistinguishable from each other, and from genuinely having
+  // nothing to do. Say which one it is.
+  if (isError) {
+    console.error('Fluisterbos: stage exercises query failed', error);
+    return (
+      <StageMessage
+        emoji="🧭"
+        title="De oefeningen konden niet geladen worden"
+        body="Controleer je internetverbinding en probeer het opnieuw."
+        onRetry={() => refetch()}
+        onBack={() => navigate('/app/map')}
+      />
+    );
+  }
+
+  if (allExercises.length === 0) {
+    return (
+      <StageMessage
+        emoji="🌱"
+        title="Hier staan nog geen oefeningen"
+        body="Deze stage wordt nog gemaakt. Kom later nog eens terug!"
+        onBack={() => navigate('/app/map')}
+      />
     );
   }
 
