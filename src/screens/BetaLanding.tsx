@@ -11,7 +11,7 @@ import { SEO } from '@/components/SEO';
 const FAQ_ITEMS = [
   {
     q: 'Wanneer start de beta?',
-    a: 'De beta opent begin augustus 2026. Je krijgt een mailtje zodra je toegang hebt.',
+    a: 'We nodigen in kleine golven uit, zodat we elk gezin goed kunnen opvolgen. Je krijgt een mailtje zodra je aan de beurt bent.',
   },
   {
     q: 'Wat kost Leapio na de beta?',
@@ -141,7 +141,7 @@ export default function BetaLanding() {
               <span className="text-xl font-black tracking-tight">Leapio</span>
             </div>
             <span className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-xs font-bold">
-              <Clock className="w-3.5 h-3.5" /> Lancering augustus 2026
+              <Clock className="w-3.5 h-3.5" /> Beta start binnenkort
             </span>
           </div>
 
