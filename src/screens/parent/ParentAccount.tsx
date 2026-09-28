@@ -6,7 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Mail, KeyRound, Lock, User, Trash2, Loader2, CreditCard, Calendar, Save, AlertTriangle } from 'lucide-react';
+import { Mail, KeyRound, Lock, User, Trash2, Loader2, CreditCard, Calendar, Save, AlertTriangle, Smartphone, CheckCircle2 } from 'lucide-react';
+import { useInstallPrompt } from '@/hooks/useInstallPrompt';
+import { AddToHomeScreen } from '@/components/AddToHomeScreen';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { useAuth } from '@/context/AuthContext';
@@ -47,6 +49,8 @@ export function ParentAccount() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [showInstall, setShowInstall] = useState(false);
+  const install = useInstallPrompt();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['parent-profile', user?.id],
@@ -162,6 +166,8 @@ export function ParentAccount() {
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-3xl mx-auto w-full space-y-5 pb-24">
+      <AddToHomeScreen open={showInstall} onOpenChange={setShowInstall} mode={install.mode} />
+
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-2xl font-black text-slate-900 mb-1">Mijn account</h2>
         <p className="text-sm text-slate-500">Beheer hier je persoonlijke gegevens en beveiliging.</p>
@@ -295,6 +301,33 @@ export function ParentAccount() {
               </button>
             </div>
           </form>
+        )}
+      </Card>
+
+      {/* Home screen — a permanent home for the offer the banner only makes once */}
+      <Card title="Leapio op je beginscherm" icon={Smartphone}>
+        {install.isInstalled ? (
+          <p className="text-sm text-slate-500 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            Je gebruikt Leapio al als app.
+          </p>
+        ) : install.mode === 'none' ? (
+          <p className="text-sm text-slate-500">
+            Open Leapio op je telefoon of tablet om hem aan het beginscherm toe te voegen.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-slate-500 mb-3">
+              Dan opent Leapio als een echte app: eigen icoon, geen adresbalk, en je kind vindt hem
+              zelf terug.
+            </p>
+            <button
+              onClick={() => (install.mode === 'native' ? void install.promptInstall() : setShowInstall(true))}
+              className="text-sm font-bold text-blue-600 hover:text-blue-700"
+            >
+              {install.mode === 'native' ? 'Nu installeren →' : 'Laat zien hoe →'}
+            </button>
+          </>
         )}
       </Card>
 
