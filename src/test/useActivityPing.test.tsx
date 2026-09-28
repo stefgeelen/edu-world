@@ -16,6 +16,9 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 vi.mock('@/context/AuthContext', () => ({ useAuth: () => ({ user: authUser }) }));
 vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: child }) }));
+vi.mock('@/lib/platform', () => ({ isStandalone: () => standalone }));
+
+let standalone = false;
 
 import { useActivityPing, __resetActivityPing } from '@/hooks/useActivityPing';
 
@@ -25,13 +28,17 @@ describe('useActivityPing', () => {
     __resetActivityPing();
     authUser = { id: 'parent-1' };
     child = { id: 'child-1' };
+    standalone = false;
   });
 
   it('records activity for the account and the selected child on mount', () => {
     renderHook(() => useActivityPing());
 
     expect(rpcMock).toHaveBeenCalledTimes(1);
-    expect(rpcMock).toHaveBeenCalledWith('touch_activity', { p_child_id: 'child-1' });
+    expect(rpcMock).toHaveBeenCalledWith('touch_activity', {
+      p_child_id: 'child-1',
+      p_standalone: false,
+    });
   });
 
   it('does not ping again while the throttle window is open', () => {
@@ -51,14 +58,30 @@ describe('useActivityPing', () => {
     renderHook(() => useActivityPing());
 
     expect(rpcMock).toHaveBeenCalledTimes(2);
-    expect(rpcMock).toHaveBeenLastCalledWith('touch_activity', { p_child_id: 'child-2' });
+    expect(rpcMock).toHaveBeenLastCalledWith('touch_activity', {
+      p_child_id: 'child-2',
+      p_standalone: false,
+    });
   });
 
   it('sends a null child id when no child is selected yet', () => {
     child = null;
     renderHook(() => useActivityPing());
 
-    expect(rpcMock).toHaveBeenCalledWith('touch_activity', { p_child_id: null });
+    expect(rpcMock).toHaveBeenCalledWith('touch_activity', {
+      p_child_id: null,
+      p_standalone: false,
+    });
+  });
+
+  it('reports a home-screen session, which is how installs are counted', () => {
+    standalone = true;
+    renderHook(() => useActivityPing());
+
+    expect(rpcMock).toHaveBeenCalledWith('touch_activity', {
+      p_child_id: 'child-1',
+      p_standalone: true,
+    });
   });
 
   it('does nothing at all when nobody is signed in', () => {

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { isStandalone } from '@/lib/platform';
 
 /**
  * Records that this account — and, when one is selected, this child — had the
@@ -43,7 +44,12 @@ export function useActivityPing() {
       lastChildId = childId;
 
       void supabase
-        .rpc('touch_activity', { p_child_id: childId ?? null })
+        .rpc('touch_activity', {
+          p_child_id: childId ?? null,
+          // Read per ping rather than once: a home-screen launch and a browser
+          // tab are different sessions of the same account.
+          p_standalone: isStandalone(),
+        })
         .then(() => undefined, () => undefined);
     };
 

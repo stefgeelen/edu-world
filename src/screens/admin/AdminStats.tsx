@@ -175,6 +175,55 @@ function Funnel({ activation }: { activation: EngagementStats['activation'] }) {
   );
 }
 
+/**
+ * Home-screen adoption. Two numbers, because they answer different questions:
+ * how many families got Leapio onto the home screen at all, and how many still
+ * open it from there rather than from a browser tab.
+ */
+function InstallAdoption({ install }: { install: EngagementStats['install'] }) {
+  const share = pct(install.installed, install.accounts);
+  const stillUsing = pct(install.standalone_7d, install.installed);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-baseline gap-3">
+        <span className="text-4xl font-black text-slate-900 tabular-nums">{share}%</span>
+        <span className="text-sm font-bold text-slate-500">
+          {install.installed} van {install.accounts} gezinnen
+        </span>
+      </div>
+
+      <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className={cn('h-full rounded-full', BAR)} style={{ width: `${share}%` }} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 pt-1">
+        <div>
+          <p className="text-xl font-black text-slate-900 tabular-nums">{install.installed_7d}</p>
+          <p className="text-xs font-bold text-slate-500 mt-0.5">nieuw deze week</p>
+        </div>
+        <div>
+          <p className="text-xl font-black text-slate-900 tabular-nums">{install.standalone_7d}</p>
+          <p className="text-xs font-bold text-slate-500 mt-0.5">
+            openden hem deze week als app
+            {install.installed > 0 && <span className="text-slate-400"> · {stillUsing}% van de installaties</span>}
+          </p>
+        </div>
+      </div>
+
+      {install.installed === 0 && install.accounts > 0 && (
+        <div className="flex items-start gap-2 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-px" />
+          <span>
+            Nog niemand heeft Leapio op het beginscherm gezet. Zonder icoontje moet een kind via de
+            browser terugkomen, en dat gebeurt zelden uit zichzelf.
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Sequential single hue: darker cell = larger share of the cohort retained. */
 function retentionTone(value: number | null) {
   if (value === null) return 'bg-white text-slate-300';
@@ -331,6 +380,13 @@ export function AdminStats() {
         hint="Hoeveel aangemaakte kinderprofielen het tot een eerste afgeronde oefening brengen."
       >
         <Funnel activation={stats.activation} />
+      </Section>
+
+      <Section
+        title="Op het beginscherm"
+        hint="Een geïnstalleerde app is één tik; een browsertabblad moet je kind terugvinden."
+      >
+        <InstallAdoption install={stats.install} />
       </Section>
 
       <Section

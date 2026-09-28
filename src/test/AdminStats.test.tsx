@@ -31,6 +31,7 @@ function baseStats(): EngagementStats {
     new_signups: { accounts_7d: 3, accounts_30d: 9, children_7d: 2 },
     active_children: { d1: 4, d7: 6, d30: 7 },
     active_accounts: { d1: 3, d7: 5, d30: 9 },
+    install: { accounts: 12, installed: 3, installed_7d: 1, standalone_7d: 2 },
     activation: {
       children_total: 8,
       children_opened: 7,
@@ -120,6 +121,24 @@ describe('AdminStats', () => {
     expect(within(funnel).getByText('88%')).toBeInTheDocument();
     expect(within(funnel).getByText('63%')).toBeInTheDocument();
     expect(within(funnel).getByText(/nog nooit een oefening/)).toBeInTheDocument();
+  });
+
+  it('shows home-screen adoption as a share of all families', async () => {
+    renderStats();
+    await waitFor(() => expect(screen.getByText('Statistieken')).toBeInTheDocument());
+
+    const block = section('Op het beginscherm');
+    expect(within(block).getByText('25%')).toBeInTheDocument(); // 3 of 12
+    expect(within(block).getByText('3 van 12 gezinnen')).toBeInTheDocument();
+    expect(within(block).getByText(/67% van de installaties/)).toBeInTheDocument(); // 2 of 3
+  });
+
+  it('flags it plainly when nobody has installed the app yet', async () => {
+    engagement.install = { accounts: 12, installed: 0, installed_7d: 0, standalone_7d: 0 };
+    renderStats();
+    await waitFor(() => expect(screen.getByText('Statistieken')).toBeInTheDocument());
+
+    expect(screen.getByText(/Nog niemand heeft Leapio op het beginscherm/)).toBeInTheDocument();
   });
 
   it('shows retention as a share of the cohort, and blanks buckets that are not mature yet', async () => {

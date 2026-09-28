@@ -522,7 +522,9 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          installed_at: string | null
           last_seen_at: string | null
+          last_standalone_at: string | null
           locale: string
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
@@ -533,7 +535,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          installed_at?: string | null
           last_seen_at?: string | null
+          last_standalone_at?: string | null
           locale?: string
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
@@ -544,7 +548,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          installed_at?: string | null
           last_seen_at?: string | null
+          last_standalone_at?: string | null
           locale?: string
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
@@ -829,7 +835,7 @@ export type Database = {
         Returns: boolean
       }
       set_parent_pin: { Args: { p_pin: string }; Returns: undefined }
-      touch_activity: { Args: { p_child_id?: string }; Returns: undefined }
+      touch_activity: { Args: { p_child_id?: string; p_standalone?: boolean }; Returns: undefined }
       verify_parent_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {

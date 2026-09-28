@@ -15,6 +15,14 @@ export interface EngagementStats {
   new_signups: { accounts_7d: number; accounts_30d: number; children_7d: number };
   active_children: { d1: number; d7: number; d30: number };
   active_accounts: { d1: number; d7: number; d30: number };
+  install: {
+    accounts: number;
+    /** Ever opened Leapio from the home screen. */
+    installed: number;
+    installed_7d: number;
+    /** Still opening it from the home screen. */
+    standalone_7d: number;
+  };
   activation: {
     children_total: number;
     children_opened: number;
