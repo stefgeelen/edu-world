@@ -835,7 +835,10 @@ export type Database = {
         Returns: boolean
       }
       set_parent_pin: { Args: { p_pin: string }; Returns: undefined }
-      touch_activity: { Args: { p_child_id?: string; p_standalone?: boolean }; Returns: undefined }
+      touch_activity: {
+        Args: { p_child_id?: string; p_standalone?: boolean }
+        Returns: undefined
+      }
       verify_parent_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
