@@ -1,6 +1,13 @@
 # SEO Audit: Leapio
 
-**Platform:** Flemish educational SaaS for children aged 6-8 (1ste & 2de leerjaar)
+**Platform:** Flemish educational SaaS for children aged 6-7 (1ste leerjaar; 2de leerjaar not yet served)
+
+> **Status note (2026-09-28):** the beta page no longer targets the 2de leerjaar.
+> Content is clamped to grade 1 (`MAX_SUPPORTED_GRADE = 1`), so the titles,
+> descriptions and structured data quoted below have been narrowed to the 1ste
+> leerjaar. The grade-2 keyword research is kept as future opportunity, not as a
+> description of what the pages currently claim.
+
 **Target audience for SEO:** Parents, teachers in Flanders/Belgium
 **Curriculum:** Vlaamse leerplan (Flemish trimester system)
 **Domain:** `leapio.lovable.app` (currently on Lovable subdomain)
