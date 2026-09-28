@@ -10,7 +10,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -222,6 +247,7 @@ export type Database = {
           grade: number
           id: string
           last_active_date: string | null
+          last_opened_at: string | null
           level: number
           max_unlocked_stage: number
           name: string
@@ -240,6 +266,7 @@ export type Database = {
           grade?: number
           id?: string
           last_active_date?: string | null
+          last_opened_at?: string | null
           level?: number
           max_unlocked_stage?: number
           name: string
@@ -258,6 +285,7 @@ export type Database = {
           grade?: number
           id?: string
           last_active_date?: string | null
+          last_opened_at?: string | null
           level?: number
           max_unlocked_stage?: number
           name?: string
@@ -494,6 +522,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          last_seen_at: string | null
           locale: string
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
@@ -504,6 +533,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          last_seen_at?: string | null
           locale?: string
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
@@ -514,6 +544,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          last_seen_at?: string | null
           locale?: string
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
@@ -729,6 +760,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      _buddy_window_hours: {
+        Args: { p_from: string; p_to: string }
+        Returns: Record<string, unknown>
+      }
+      admin_engagement_stats: { Args: never; Returns: Json }
       buddy_buy: {
         Args: { p_child_id: string; p_item_id: string }
         Returns: Json
@@ -760,6 +796,18 @@ export type Database = {
         }
       }
       buddy_revive: { Args: { p_child_id: string }; Returns: Json }
+      child_exercise_stats: {
+        Args: { p_child_id: string }
+        Returns: {
+          attempt_count: number
+          avg_score_pct: number
+          best_stars: number
+          exercise_id: string
+          stage: string
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+        }[]
+      }
       complete_exercise: {
         Args: {
           p_answers?: Json
@@ -781,6 +829,7 @@ export type Database = {
         Returns: boolean
       }
       set_parent_pin: { Args: { p_pin: string }; Returns: undefined }
+      touch_activity: { Args: { p_child_id?: string }; Returns: undefined }
       verify_parent_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
@@ -921,6 +970,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],

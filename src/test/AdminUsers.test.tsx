@@ -9,10 +9,15 @@ import { createTestQueryClient, queryWrapper, fakeSupabaseChain } from './testUt
 // type-to-confirm dialog. Covers: loading, joined row rendering, search,
 // self-delete protection, and both mutations' success/error paths.
 
+// last_seen_at is anchored to Date.now(): the screen renders it as relative
+// time, so a fixed past timestamp would drift out of its bucket over time.
+const DAY = 86_400_000;
 const PROFILES = [
-  { id: 'user-1', full_name: 'Test Parent One', email: 'parent1@example.test', user_type: 'parent', created_at: '2026-01-01T00:00:00Z' },
-  { id: 'user-2', full_name: 'Test Parent Two', email: 'parent2@example.test', user_type: 'parent', created_at: '2026-01-02T00:00:00Z' },
+  { id: 'user-1', full_name: 'Test Parent One', email: 'parent1@example.test', user_type: 'parent', created_at: '2026-01-01T00:00:00Z', last_seen_at: null as string | null },
+  { id: 'user-2', full_name: 'Test Parent Two', email: 'parent2@example.test', user_type: 'parent', created_at: '2026-01-02T00:00:00Z', last_seen_at: null as string | null },
 ];
+PROFILES[0].last_seen_at = new Date(Date.now() - 2 * DAY).toISOString();
+
 const ROLES = [{ id: 'r1', user_id: 'user-2', role: 'admin' }];
 const SUBSCRIPTIONS = [{ id: 'sub-1', user_id: 'user-1', plan: 'family', status: 'active' }];
 const CHILDREN = [{ id: 'child-1', parent_id: 'user-1' }];
@@ -94,6 +99,9 @@ describe('AdminUsers', () => {
 
   afterEach(() => {
     confirmSpy.mockRestore();
+    // PROFILES is mutated by the sort test; restore the shared baseline.
+    PROFILES[0].last_seen_at = new Date(Date.now() - 2 * DAY).toISOString();
+    PROFILES[1].last_seen_at = null;
   });
 
   it('shows a loading spinner while profiles are being fetched', () => {
@@ -105,12 +113,40 @@ describe('AdminUsers', () => {
     renderScreen();
     await waitFor(() => expect(screen.getByText('Test Parent One')).toBeInTheDocument());
 
-    expect(screen.getByText('2 geregistreerde gebruikers')).toBeInTheDocument();
+    expect(screen.getByText(/2 geregistreerde gebruikers/)).toBeInTheDocument();
     expect(screen.getByText('family · active')).toBeInTheDocument();
     expect(screen.getByText('1 kind')).toBeInTheDocument();
     // user-2 has an admin role -> the "Admin" badge is shown.
     const userTwoCard = screen.getByText('Test Parent Two').closest('div')?.parentElement as HTMLElement;
     expect(userTwoCard).toBeTruthy();
+  });
+
+  it('shows when each account was last seen, and says so plainly when it never was', async () => {
+    renderScreen();
+    await waitFor(() => expect(screen.getByText('Test Parent One')).toBeInTheDocument());
+
+    expect(screen.getByText('2 dagen geleden')).toBeInTheDocument();
+    expect(screen.getByText('nooit')).toBeInTheDocument();
+    // Only user-1 has been seen inside the window.
+    expect(screen.getByText(/1 actief in de laatste 7 dagen/)).toBeInTheDocument();
+  });
+
+  it('sorts never-seen accounts last when sorting by last activity', async () => {
+    // Newest-first lists One before Two; only the activity sort moves the
+    // account that has never opened the app to the bottom.
+    PROFILES[0].last_seen_at = null;
+    PROFILES[1].last_seen_at = new Date(Date.now() - 3600_000).toISOString();
+
+    renderScreen();
+    await waitFor(() => expect(screen.getByText('Test Parent One')).toBeInTheDocument());
+
+    expect(screen.getAllByRole('heading', { level: 3 }).map(h => h.textContent))
+      .toEqual(['Test Parent One', 'Test Parent Two']);
+
+    fireEvent.click(screen.getByText('Laatst actief'));
+
+    expect(screen.getAllByRole('heading', { level: 3 }).map(h => h.textContent))
+      .toEqual(['Test Parent Two', 'Test Parent One']);
   });
 
   it('filters users by name or email via the search input', async () => {

@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ActivityTracker } from "@/hooks/useActivityPing";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Neither is needed for first paint, and both pull in framer-motion — importing
@@ -45,6 +46,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <ActivityTracker />
             <Suspense fallback={null}>
               <OfflineBanner />
             </Suspense>

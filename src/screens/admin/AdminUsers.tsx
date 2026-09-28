@@ -3,11 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction } from '@/lib/invokeFunction';
 import { motion } from 'framer-motion';
-import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown, Trash2, AlertTriangle } from 'lucide-react';
+import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown, Trash2, AlertTriangle, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/context/AuthContext';
+import { timeAgoNl, daysSince } from '@/lib/relativeTime';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -20,10 +21,24 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type Profile = Tables<'profiles'>;
+
+/**
+ * Green while the account is still showing up, amber once a fortnight has
+ * passed, red once it has effectively gone quiet. Never-seen stays neutral —
+ * it is a gap in the funnel, not a lapsed user.
+ */
+function lastSeenTone(lastSeenAt: string | null) {
+  const days = daysSince(lastSeenAt);
+  if (days === null) return 'text-slate-400';
+  if (days <= 7) return 'text-emerald-600';
+  if (days <= 14) return 'text-amber-600';
+  return 'text-red-500';
+}
 type UserRole = Tables<'user_roles'>;
 
 export function AdminUsers() {
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<'recent' | 'seen'>('recent');
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
   const [confirmText, setConfirmText] = useState('');
   const queryClient = useQueryClient();
@@ -107,11 +122,26 @@ export function AdminUsers() {
   const getUserSub = (userId: string) => subscriptions.find(s => s.user_id === userId);
   const getUserChildren = (userId: string) => children.filter(c => c.parent_id === userId);
 
-  const filtered = profiles.filter(p =>
-    !search ||
-    p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = profiles
+    .filter(p =>
+      !search ||
+      p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      p.email?.toLowerCase().includes(search.toLowerCase())
+    )
+    // "Laatst actief" sorts never-seen accounts last rather than first: an
+    // account that has never opened the app is a different problem from one
+    // that opened it and stopped.
+    .sort((a, b) => {
+      if (sort === 'recent') return 0;
+      const av = a.last_seen_at ? new Date(a.last_seen_at).getTime() : -Infinity;
+      const bv = b.last_seen_at ? new Date(b.last_seen_at).getTime() : -Infinity;
+      return bv - av;
+    });
+
+  const seenLast7d = profiles.filter(p => {
+    const d = daysSince(p.last_seen_at);
+    return d !== null && d <= 7;
+  }).length;
 
   if (loadingProfiles) {
     return (
@@ -129,7 +159,24 @@ export function AdminUsers() {
             <Users className="w-6 h-6 text-indigo-600" />
             Gebruikers
           </h2>
-          <p className="text-sm text-slate-500 font-medium mt-1">{profiles.length} geregistreerde gebruikers</p>
+          <p className="text-sm text-slate-500 font-medium mt-1">
+            {profiles.length} geregistreerde gebruikers · {seenLast7d} actief in de laatste 7 dagen
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+          {([['recent', 'Nieuwste'], ['seen', 'Laatst actief']] as const).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setSort(key)}
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+                sort === key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -185,6 +232,16 @@ export function AdminUsers() {
                   <span className="flex items-center gap-1">
                     <UserCheck className="w-3 h-3" />
                     {profile.user_type}
+                  </span>
+                  <span
+                    className={cn(
+                      'flex items-center gap-1 font-bold',
+                      lastSeenTone(profile.last_seen_at)
+                    )}
+                    title={profile.last_seen_at ? new Date(profile.last_seen_at).toLocaleString('nl-BE') : 'Nog nooit ingelogd'}
+                  >
+                    <Activity className="w-3 h-3" />
+                    {timeAgoNl(profile.last_seen_at)}
                   </span>
                 </div>
               </div>
