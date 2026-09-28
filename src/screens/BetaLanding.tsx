@@ -76,7 +76,7 @@ const STEPS = [
 
 export default function BetaLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const canonical = typeof window !== 'undefined' ? `${window.location.origin}/beta` : 'https://leapio.lovable.app/beta';
+  const canonical = typeof window !== 'undefined' ? `${window.location.origin}/beta` : 'https://leapio.app/beta';
 
   const jsonLd = [
     {
