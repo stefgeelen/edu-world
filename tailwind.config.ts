@@ -196,6 +196,14 @@ export default {
           "70%": { transform: "rotate(-5deg) translateX(-5px)" },
           "85%": { transform: "rotate(4deg) translateX(4px)" },
         },
+        // Buddy Room: nudges the Care Action the Buddy needs right now (CareActionBar).
+        "care-nudge": {
+          "0%, 55%, 100%": { transform: "scale(1) rotate(0deg)" },
+          "10%": { transform: "scale(1.1) rotate(-6deg)" },
+          "20%": { transform: "scale(1.1) rotate(6deg)" },
+          "30%": { transform: "scale(1.1) rotate(-4deg)" },
+          "40%": { transform: "scale(1.05) rotate(0deg)" },
+        },
         // Buddy Room: Care Action effect particles (BuddyStage).
         "fx-rise": {
           "0%": { opacity: "0", transform: "translateY(10px) scale(0.6)" },
@@ -236,6 +244,7 @@ export default {
         "buddy-doze": "buddy-doze 1.6s ease-in-out forwards",
         "buddy-heal": "buddy-heal 1.6s ease-in-out",
         "buddy-wash": "buddy-wash 1.6s ease-in-out",
+        "care-nudge": "care-nudge 1.8s ease-in-out infinite",
         "fx-rise": "fx-rise 1.4s ease-out forwards",
         "fx-pop": "fx-pop 1.2s ease-out forwards",
         "fx-bubble": "fx-bubble 1.5s ease-out forwards",

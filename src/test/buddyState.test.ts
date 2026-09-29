@@ -367,6 +367,12 @@ describe('moodOf', () => {
   it('shows sleeping for a healthy buddy inside its sleep window', () => {
     expect(moodOf(makeBuddy({ sleepUntil: T0 + 10 * MINUTE }), T0)).toBe('sleeping');
   });
+
+  it('keeps the Buddy awake in the evening, when it may still be cared for', () => {
+    const evening = Date.UTC(2026, 0, 1, 20, 0, 0); // 21:00 lokaal
+    expect(moodOf(makeBuddy(), evening)).not.toBe('sleeping');
+    expect(buddyCue(makeBuddy({ needs: { ...makeBuddy().needs, hunger: 5 } }), evening)).toBe('hunger');
+  });
 });
 
 describe('buddyCue', () => {

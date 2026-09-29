@@ -1,14 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Sparkles } from 'lucide-react';
+import { ChevronRight, ShoppingBag, Sparkles } from 'lucide-react';
 import { NEED_IDS } from '@/lib/buddy/constants';
-import { buddyCue, isSleeping, moodOf } from '@/lib/buddy/state';
+import { buddyCue, isSleeping, moodOf, type BuddyCue } from '@/lib/buddy/state';
+import type { CareActionId } from '@/lib/buddy/catalog';
 import { buddyMessage, careActionMessage } from '@/lib/buddy/messages';
 import { BuddyFxProvider, useBuddy } from '@/hooks/useBuddy';
 import { NeedBar } from '@/components/buddy/NeedBar';
 import { CareActionBar } from '@/components/buddy/CareActionBar';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
 import forestScene from '@/assets/forest-scene.jpg';
+
+/** Welke Care Action de Buddy nu vraagt — die knop wiebelt als hint voor het kind. */
+const CUE_ACTION: Partial<Record<BuddyCue, CareActionId>> = {
+  hunger: 'feed',
+  fun: 'play',
+  energy: 'sleep',
+  hygiene: 'wash',
+  ill: 'medicine',
+};
 
 export function BuddyRoom() {
   return (
@@ -42,7 +52,7 @@ function BuddyRoomContent() {
       <div className="relative mx-auto w-full max-w-md px-4 pt-5">
         <header className="flex items-center justify-between">
           <div className="rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Buddy Room</p>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Jouw Buddy</p>
             <h1 className="text-lg font-black leading-tight text-foreground">{buddy.name}</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -50,15 +60,16 @@ function BuddyRoomContent() {
               <span className="text-xl" aria-hidden>
                 🪙
               </span>
-              <span className="text-lg font-black text-foreground">{buddy.munten}</span>
-              <span className="text-[11px] font-bold text-muted-foreground">Munten</span>
+              <span className="text-lg font-black text-foreground" aria-label={`${buddy.munten} Munten`}>
+                {buddy.munten}
+              </span>
             </div>
             <Link
               to="/app/buddy-room/shop"
-              aria-label="Naar de Shop"
-              className="flex items-center justify-center rounded-2xl bg-edu-green p-2.5 text-white shadow-sm active:scale-95"
+              className="flex min-h-12 items-center justify-center gap-1.5 rounded-2xl bg-edu-green px-3 py-2 text-base font-black text-white shadow-md active:scale-95"
             >
-              <ShoppingBag className="h-5 w-5" />
+              <ShoppingBag className="h-5 w-5" aria-hidden />
+              Winkel
             </Link>
           </div>
         </header>
@@ -80,9 +91,11 @@ function BuddyRoomContent() {
 
         {buddy.dead && (
           <div className="mt-2 rounded-3xl bg-white p-4 text-center shadow-lg ring-1 ring-destructive/20">
-            <p className="text-sm font-extrabold text-foreground">Je Buddy rust uit na te lange verwaarlozing.</p>
+            <p className="text-sm font-extrabold text-foreground">
+              Je Buddy is heel moe en rust uit. Vraag hulp aan mama of papa.
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Een ouder kan je Buddy terugbrengen via het Ouderportaal. De Needs komen dan gedeeltelijk terug.
+              Voor ouders: je kan de Buddy terugbrengen via het Ouderportaal.
             </p>
           </div>
         )}
@@ -90,7 +103,7 @@ function BuddyRoomContent() {
         {!buddy.dead && buddy.needs.health <= 0 && (
           <div className="mt-2 rounded-3xl bg-white p-3 text-center shadow-md ring-1 ring-edu-teal/30">
             <p className="text-sm font-extrabold text-foreground">
-              Ziekte! Gebruik de Care Action Medicijn om je Buddy meteen te genezen.
+              Je Buddy is ziek! Tik op 💊 Medicijn om je Buddy beter te maken.
             </p>
           </div>
         )}
@@ -104,14 +117,23 @@ function BuddyRoomContent() {
         </section>
 
         <section className="mt-4">
-          <h2 className="mb-2 px-1 text-sm font-black text-foreground">Care Actions</h2>
-          <CareActionBar disabled={buddy.dead || careFx !== null} />
+          <h2 className="mb-2 px-1 text-sm font-black text-foreground">
+            {sleeping ? `💤 ${buddy.name} slaapt nog ${minutesLeft} min` : `Zorg voor ${buddy.name}`}
+          </h2>
+          <CareActionBar
+            disabled={buddy.dead || sleeping || careFx !== null}
+            highlight={careFx || sleeping ? undefined : CUE_ACTION[cue]}
+          />
         </section>
 
-        <div className="mt-4 flex w-full items-center justify-center gap-2 rounded-3xl bg-edu-yellow/60 px-4 py-3 text-sm font-black text-foreground shadow-lg">
-          <Sparkles className="h-4 w-4" />
-          Verdien Munten door oefeningen te maken
-        </div>
+        <Link
+          to="/app/map"
+          className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-edu-yellow px-4 py-3 text-base font-black text-foreground shadow-lg active:scale-[0.98]"
+        >
+          <Sparkles className="h-5 w-5" aria-hidden />
+          Oefenen en 🪙 verdienen
+          <ChevronRight className="h-5 w-5" aria-hidden />
+        </Link>
       </div>
     </main>
   );

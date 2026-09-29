@@ -234,16 +234,16 @@ describe('useBuddy — care()', () => {
     await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey: ['buddy-state', 'child-1'] }));
   });
 
-  it('celebrates a successful care action with its toast and animation', async () => {
+  it('celebrates a successful care action with its animation instead of a toast', async () => {
     const { result } = renderUseBuddy();
     await waitFor(() => expect(result.current.loaded).toBe(true));
 
     setRpcResult('buddy_care', { ok: true, message: 'Bosbes gebruikt.', state: makeRow() });
     await act(async () => result.current.care('feed', 'bes'));
 
-    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Bosbes gebruikt.'));
+    await waitFor(() => expect(result.current.careFx).toMatchObject({ action: 'feed', emoji: '🫐' }));
+    expect(toastSuccess).not.toHaveBeenCalled();
     expect(toastError).not.toHaveBeenCalled();
-    expect(result.current.careFx).toMatchObject({ action: 'feed', emoji: '🫐' });
   });
 
   it('plays the animation without an emoji for an item-less action', async () => {

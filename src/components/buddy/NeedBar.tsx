@@ -18,11 +18,20 @@ export function NeedBar({ id, value }: { id: NeedId; value: number }) {
           <span aria-hidden>{NEED_EMOJI[id]}</span>
           {NEED_LABEL[id]}
         </span>
-        <span className={cn(critical ? 'text-destructive' : 'text-muted-foreground')}>
-          {Math.round(value)}%
-        </span>
+        {critical && (
+          <span className="text-base leading-none" role="img" aria-label="Bijna leeg">
+            ❗
+          </span>
+        )}
       </div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
+      <div
+        className="h-3 w-full overflow-hidden rounded-full bg-muted"
+        role="meter"
+        aria-label={NEED_LABEL[id]}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(value)}
+      >
         <div
           className={cn('h-full rounded-full transition-all duration-500', COLOR[id], critical && 'animate-pulse')}
           style={{ width: `${Math.max(2, value)}%` }}

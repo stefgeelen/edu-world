@@ -14,7 +14,7 @@ import {
   type NeedId,
 } from "./constants";
 import { CARE_ACTIONS, getItem, type CareActionId } from "./catalog";
-import { elapsedWindows, isNightTime } from "./schedule";
+import { elapsedWindows } from "./schedule";
 
 export interface BuddyState {
   name: string;
@@ -52,7 +52,10 @@ export type BuddyMood = "happy" | "neutral" | "sad" | "ill" | "sleeping" | "gone
 export function moodOf(s: BuddyState, now = Date.now()): BuddyMood {
   if (s.dead) return "gone";
   if (isIll(s)) return "ill";
-  if (isSleeping(s, now) || isNightTime(now)) return "sleeping";
+  // Alleen een echt dutje telt als slapen. 's Avonds (de vaste nacht in
+  // schedule.ts) vervalt er niets, maar het kind mag de Buddy dan gewoon
+  // verzorgen — een slapend plaatje zou zeggen dat dat niet kan.
+  if (isSleeping(s, now)) return "sleeping";
   const avg = (s.needs.hunger + s.needs.fun + s.needs.energy + s.needs.hygiene) / 4;
   if (avg >= 65) return "happy";
   if (avg >= 35) return "neutral";
@@ -135,16 +138,15 @@ export type BuddyCue =
 
 /**
  * Bepaalt het ene signaal dat de Buddy toont: prioriteit dood > dutje > ziek >
- * nacht > laagste kritieke Need.
+ * laagste kritieke Need.
  *
- * De vaste nacht staat onder Ziekte: 's nachts vervalt er niets meer, maar een
- * zieke Buddy mag het kind wel om een Medicijn blijven vragen.
+ * De vaste nacht telt hier niet mee: 's avonds mag het kind de Buddy gewoon
+ * verzorgen, dus hij blijft ook dan om eten, spelen of een bad vragen.
  */
 export function buddyCue(s: BuddyState, now = Date.now()): BuddyCue {
   if (s.dead) return "gone";
   if (isSleeping(s, now)) return "sleeping";
   if (isIll(s)) return "ill";
-  if (isNightTime(now)) return "sleeping";
   const candidates = (["hunger", "energy", "hygiene", "fun"] as const)
     .filter((n) => s.needs[n] < CRITICAL_THRESHOLD)
     .sort((a, b) => s.needs[a] - s.needs[b]);

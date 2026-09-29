@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { CATEGORY_LABEL, itemsByCategory, type CareItemCategory } from '@/lib/buddy/catalog';
 import { useBuddy } from '@/hooks/useBuddy';
 import { cn } from '@/lib/utils';
@@ -21,9 +21,9 @@ export function BuddyShop() {
         <header className="flex items-center justify-between">
           <Link
             to="/app/buddy-room"
-            className="flex items-center gap-1.5 rounded-2xl bg-white px-3 py-2 text-sm font-extrabold text-foreground shadow-sm"
+            className="flex min-h-12 items-center gap-1.5 rounded-2xl bg-white px-4 py-2 text-base font-extrabold text-foreground shadow-sm active:scale-95"
           >
-            <ArrowLeft className="h-4 w-4" /> Buddy Room
+            <ArrowLeft className="h-5 w-5" /> Terug
           </Link>
           <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 shadow-sm">
             <span className="text-xl" aria-hidden>
@@ -33,10 +33,18 @@ export function BuddyShop() {
           </div>
         </header>
 
-        <h1 className="mt-4 text-2xl font-black text-foreground">Shop</h1>
+        <h1 className="mt-4 text-2xl font-black text-foreground">Winkel</h1>
         <p className="text-sm text-muted-foreground">
-          Care Items zijn eenmalig: je gebruikt ze bij één Care Action.
+          Koop iets en geef het aan je Buddy. Elk ding gebruik je één keer.
         </p>
+        <Link
+          to="/app/map"
+          className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-3xl bg-edu-yellow px-4 py-2.5 text-base font-black text-foreground shadow-md active:scale-[0.98]"
+        >
+          <Sparkles className="h-5 w-5" aria-hidden />
+          Oefenen en 🪙 verdienen
+          <ChevronRight className="h-5 w-5" aria-hidden />
+        </Link>
 
         <div className="mt-4 space-y-6">
           {CATEGORIES.map((cat) => (
@@ -49,6 +57,7 @@ export function BuddyShop() {
                 {itemsByCategory(cat.id).map((item) => {
                   const owned = buddy.inventory[item.id] ?? 0;
                   const affordable = buddy.munten >= item.price;
+                  const shortBy = item.price - buddy.munten;
                   return (
                     <div
                       key={item.id}
@@ -72,7 +81,11 @@ export function BuddyShop() {
                         type="button"
                         onClick={() => buy(item.id)}
                         disabled={!affordable}
-                        aria-label={`Koop ${item.name} voor ${item.price} Munten`}
+                        aria-label={
+                          affordable
+                            ? `Koop ${item.name} voor ${item.price} Munten`
+                            : `${item.name} kost ${item.price} Munten, je hebt er nog ${shortBy} nodig`
+                        }
                         className={cn(
                           'mt-2 flex w-full items-center justify-center gap-1.5 rounded-2xl px-3 py-2.5 text-base font-black shadow-md transition active:scale-95',
                           affordable
@@ -80,8 +93,16 @@ export function BuddyShop() {
                             : 'bg-muted text-muted-foreground shadow-none'
                         )}
                       >
-                        <span className="text-lg" aria-hidden>🪙</span>
-                        <span className="tabular-nums">{item.price}</span>
+                        {affordable ? (
+                          <>
+                            <span className="text-lg" aria-hidden>🪙</span>
+                            <span className="tabular-nums">{item.price}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm">
+                            Nog <span className="tabular-nums">{shortBy}</span> 🪙
+                          </span>
+                        )}
                       </button>
                     </div>
                   );

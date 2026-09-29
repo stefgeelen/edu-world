@@ -148,8 +148,9 @@ export function useBuddy() {
     onSuccess: (res, { action, itemId }) => {
       queryClient.setQueryData(queryKey, res.state);
       queryClient.invalidateQueries({ queryKey });
+      // Een geslaagde Care Action krijgt geen toast: de animatie en de tekstballon
+      // ("Mmm, lekker!") vertellen het al, en jonge kinderen lezen toasts niet.
       if (res.ok) {
-        toast.success(res.message);
         const emoji = itemId ? CARE_ITEMS.find((i) => i.id === itemId)?.emoji : undefined;
         playCareFx(action, emoji);
       } else {
