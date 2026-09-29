@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, ShoppingBag, Sparkles } from 'lucide-react';
-import { NEED_IDS } from '@/lib/buddy/constants';
 import { buddyCue, isSleeping, moodOf, type BuddyCue } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import { buddyMessage, careActionMessage } from '@/lib/buddy/messages';
 import { BuddyFxProvider, useBuddy } from '@/hooks/useBuddy';
-import { NeedBar } from '@/components/buddy/NeedBar';
-import { CareActionBar } from '@/components/buddy/CareActionBar';
+import { CarePanel } from '@/components/buddy/CarePanel';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
 import forestScene from '@/assets/forest-scene.jpg';
 
@@ -30,7 +28,7 @@ export function BuddyRoom() {
 
 function BuddyRoomContent() {
   // `now` comes from the shared clock in BuddyFxProvider, so this screen and the
-  // CareActionBar below it tick together off a single timer.
+  // CarePanel below it tick together off a single timer.
   const { buddy, loaded, careFx, now } = useBuddy();
   const [seed, setSeed] = useState(0);
 
@@ -49,7 +47,7 @@ function BuddyRoomContent() {
       />
       <div className="absolute inset-x-0 top-0 h-[52vh] bg-gradient-to-b from-transparent via-transparent to-background" aria-hidden />
 
-      <div className="relative mx-auto w-full max-w-md px-4 pt-5">
+      <div className="relative mx-auto w-full max-w-md px-4 pt-5 md:max-w-xl">
         <header className="flex items-center justify-between">
           <div className="rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Jouw Buddy</p>
@@ -108,19 +106,11 @@ function BuddyRoomContent() {
           </div>
         )}
 
-        <section className="mt-4 grid grid-cols-2 gap-2">
-          {NEED_IDS.map((id) => (
-            <div key={id} className={id === 'health' ? 'col-span-2' : ''}>
-              <NeedBar id={id} value={buddy.needs[id]} />
-            </div>
-          ))}
-        </section>
-
         <section className="mt-4">
           <h2 className="mb-2 px-1 text-sm font-black text-foreground">
             {sleeping ? `💤 ${buddy.name} slaapt nog ${minutesLeft} min` : `Zorg voor ${buddy.name}`}
           </h2>
-          <CareActionBar
+          <CarePanel
             disabled={buddy.dead || sleeping || careFx !== null}
             highlight={careFx || sleeping ? undefined : CUE_ACTION[cue]}
           />

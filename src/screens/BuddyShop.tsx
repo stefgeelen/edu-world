@@ -17,7 +17,7 @@ export function BuddyShop() {
 
   return (
     <main className="h-full w-full overflow-y-auto pb-32">
-      <div className="mx-auto w-full max-w-md px-4 pt-5">
+      <div className="mx-auto w-full max-w-md px-4 pt-5 md:max-w-2xl">
         <header className="flex items-center justify-between">
           <Link
             to="/app/buddy-room"
@@ -53,7 +53,7 @@ export function BuddyShop() {
                 <span className={cn('rounded-xl px-2 py-1 text-white', cat.accent)}>{cat.emoji}</span>
                 {CATEGORY_LABEL[cat.id]}
               </h2>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
                 {itemsByCategory(cat.id).map((item) => {
                   const owned = buddy.inventory[item.id] ?? 0;
                   const affordable = buddy.munten >= item.price;

@@ -402,7 +402,7 @@ describe('useBuddy — reviveBuddy()', () => {
 
 describe('BuddyFxProvider', () => {
   it('shares one animation between sibling consumers of useBuddy', async () => {
-    // BuddyStage renders the animation that CareActionBar triggers; they are
+    // BuddyStage renders the animation that CarePanel triggers; they are
     // siblings, each with its own useBuddy(), so the fx has to live in the
     // provider or the animation never reaches the stage.
     const queryClient = createTestQueryClient();
@@ -462,5 +462,64 @@ describe('BuddyFxProvider', () => {
 
     expect(() => act(() => result.current.playCareFx('feed', '🫐'))).not.toThrow();
     expect(result.current.careFx).toBeNull();
+  });
+});
+
+describe('useBuddy — buyAndCare()', () => {
+  it('buys the item and uses it straight away, celebrating without a toast', async () => {
+    const { result } = renderUseBuddy();
+    await waitFor(() => expect(result.current.loaded).toBe(true));
+
+    rpcResponses.buddy_buy = {
+      data: { ok: true, message: 'Hazelnoot gekocht.', state: makeRow({ munten: 28, inventory: { bes: 2, noot: 1 } }) },
+      error: null,
+    };
+    setRpcResult('buddy_care', {
+      ok: true,
+      message: 'Hazelnoot gebruikt.',
+      state: makeRow({ munten: 28, inventory: { bes: 2, noot: 0 } }),
+    });
+    await act(async () => result.current.buyAndCare('feed', 'noot'));
+
+    await waitFor(() => expect(result.current.careFx).toMatchObject({ action: 'feed', emoji: '🌰' }));
+    const calls = rpcMock.mock.calls.map(([name]) => name).filter((n) => n !== 'buddy_get_or_create');
+    expect(calls).toEqual(['buddy_buy', 'buddy_care']);
+    expect(rpcMock).toHaveBeenCalledWith('buddy_care', { p_child_id: 'child-1', p_action: 'feed', p_item_id: 'noot' });
+    expect(result.current.buddy.munten).toBe(28);
+    expect(toastSuccess).not.toHaveBeenCalled();
+  });
+
+  it('stops after a refused purchase and never calls the Care Action', async () => {
+    const { result } = renderUseBuddy();
+    await waitFor(() => expect(result.current.loaded).toBe(true));
+
+    setRpcResult('buddy_buy', { ok: false, message: 'Niet genoeg Munten.', state: makeRow() });
+    await act(async () => result.current.buyAndCare('feed', 'taart'));
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('Niet genoeg Munten.'));
+    expect(rpcMock).not.toHaveBeenCalledWith('buddy_care', expect.anything());
+    expect(result.current.careFx).toBeNull();
+  });
+
+  it('keeps the bought item when the Care Action is refused afterwards', async () => {
+    const { result, queryClient } = renderUseBuddy();
+    await waitFor(() => expect(result.current.loaded).toBe(true));
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    rpcResponses.buddy_buy = {
+      data: { ok: true, message: 'Bosbes gekocht.', state: makeRow({ munten: 35, inventory: { bes: 3 } }) },
+      error: null,
+    };
+    setRpcResult('buddy_care', {
+      ok: false,
+      message: 'Je Buddy slaapt nu — wacht even.',
+      state: makeRow({ munten: 35, inventory: { bes: 3 } }),
+    });
+    await act(async () => result.current.buyAndCare('feed', 'bes'));
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('Je Buddy slaapt nu — wacht even.'));
+    expect(result.current.buddy.inventory.bes).toBe(3);
+    expect(result.current.careFx).toBeNull();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['buddy-state', 'child-1'] });
   });
 });

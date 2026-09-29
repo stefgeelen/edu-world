@@ -116,14 +116,14 @@ export function BuddyStage({
   const animation = fx ? ACTION_ANIMATION[fx.action] : CUE_ANIMATION[cue];
 
   return (
-    <div className="relative flex h-60 w-full items-center justify-center">
+    <div className="relative flex h-60 w-full items-center justify-center md:h-80">
       <img
         key={fx ? `fx-${fx.at}` : `cue-${cue}`}
         src={BUDDY_ART[mood]}
         alt={`Je Buddy ${name}`}
         width={768}
         height={768}
-        className={`h-56 w-56 drop-shadow-2xl ${animation}`}
+        className={`h-56 w-56 drop-shadow-2xl md:h-72 md:w-72 ${animation}`}
       />
 
       {fx && (
@@ -149,7 +149,7 @@ export function BuddyStage({
           loading="lazy"
           width={512}
           height={512}
-          className="pointer-events-none absolute bottom-2 right-0 h-28 w-28 animate-fade-in animate-buddy-hint drop-shadow-lg"
+          className="pointer-events-none absolute bottom-2 right-0 h-28 w-28 animate-fade-in md:h-36 md:w-36 animate-buddy-hint drop-shadow-lg"
         />
       )}
     </div>

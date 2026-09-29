@@ -65,9 +65,9 @@ const BuddyFxContext = createContext<BuddyFxValue | null>(null);
 /**
  * Shares two things across everything Buddy-related on a screen:
  *
- * - the Care Action celebration, between BuddyStage and CareActionBar (siblings
+ * - the Care Action celebration, between BuddyStage and CarePanel (siblings
  *   that each call `useBuddy()` independently — without this, the trigger set by
- *   CareActionBar's `care()` would live in its own hook instance and never reach
+ *   CarePanel's `care()` would live in its own hook instance and never reach
  *   the BuddyStage meant to render it);
  * - one ticking clock, so N Buddy consumers on a screen cost one timer rather
  *   than one each.
@@ -134,39 +134,66 @@ export function useBuddy() {
     return tick(base, now);
   }, [row, now]);
 
+  const callCare = async (action: CareActionId, itemId?: string) => {
+    if (!childId) throw new Error('No child found');
+    const { data, error } = await supabase.rpc('buddy_care', {
+      p_child_id: childId,
+      p_action: action,
+      p_item_id: itemId ?? null,
+    });
+    if (error) throw error;
+    return data as unknown as CareRpcResult;
+  };
+
+  const callBuy = async (itemId: string) => {
+    if (!childId) throw new Error('No child found');
+    const { data, error } = await supabase.rpc('buddy_buy', { p_child_id: childId, p_item_id: itemId });
+    if (error) throw error;
+    return data as unknown as CareRpcResult;
+  };
+
+  const onCareResult = (res: CareRpcResult, { action, itemId }: { action: CareActionId; itemId?: string }) => {
+    queryClient.setQueryData(queryKey, res.state);
+    // Een geslaagde Care Action krijgt geen toast: de animatie en de tekstballon
+    // ("Mmm, lekker!") vertellen het al, en jonge kinderen lezen toasts niet.
+    if (res.ok) {
+      const emoji = itemId ? CARE_ITEMS.find((i) => i.id === itemId)?.emoji : undefined;
+      playCareFx(action, emoji);
+    } else {
+      toast.error(res.message);
+    }
+  };
+
   const careMutation = useMutation({
-    mutationFn: async ({ action, itemId }: { action: CareActionId; itemId?: string }) => {
-      if (!childId) throw new Error('No child found');
-      const { data, error } = await supabase.rpc('buddy_care', {
-        p_child_id: childId,
-        p_action: action,
-        p_item_id: itemId ?? null,
-      });
-      if (error) throw error;
-      return data as unknown as CareRpcResult;
-    },
-    onSuccess: (res, { action, itemId }) => {
-      queryClient.setQueryData(queryKey, res.state);
+    mutationFn: ({ action, itemId }: { action: CareActionId; itemId?: string }) => callCare(action, itemId),
+    onSuccess: (res, vars) => {
+      onCareResult(res, vars);
       queryClient.invalidateQueries({ queryKey });
-      // Een geslaagde Care Action krijgt geen toast: de animatie en de tekstballon
-      // ("Mmm, lekker!") vertellen het al, en jonge kinderen lezen toasts niet.
-      if (res.ok) {
-        const emoji = itemId ? CARE_ITEMS.find((i) => i.id === itemId)?.emoji : undefined;
-        playCareFx(action, emoji);
-      } else {
-        toast.error(res.message);
-      }
     },
     onError: (error) => toast.error(mapDbError(error)),
   });
 
-  const buyMutation = useMutation({
-    mutationFn: async (itemId: string) => {
-      if (!childId) throw new Error('No child found');
-      const { data, error } = await supabase.rpc('buddy_buy', { p_child_id: childId, p_item_id: itemId });
-      if (error) throw error;
-      return data as unknown as CareRpcResult;
+  /**
+   * Koopt een Care Item en gebruikt het meteen: één tik voor het kind in plaats
+   * van Winkel → terug → Care Action → item. Het blijven twee RPC's, zodat prijs
+   * en voorraad server-side op precies dezelfde manier gecontroleerd worden.
+   * Weigert de Care Action na een geslaagde aankoop, dan blijft het item gewoon
+   * in de voorraad.
+   */
+  const buyAndCareMutation = useMutation({
+    mutationFn: async ({ action, itemId }: { action: CareActionId; itemId: string }) => {
+      const bought = await callBuy(itemId);
+      if (!bought.ok) return bought;
+      return callCare(action, itemId);
     },
+    onSuccess: onCareResult,
+    onError: (error) => toast.error(mapDbError(error)),
+    // Ook bij een netwerkfout halverwege: de aankoop kan al gelukt zijn.
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  const buyMutation = useMutation({
+    mutationFn: callBuy,
     onSuccess: (res) => {
       queryClient.setQueryData(queryKey, res.state);
       queryClient.invalidateQueries({ queryKey });
@@ -195,6 +222,9 @@ export function useBuddy() {
     loaded: !isLoading && !!row,
     care: (action: CareActionId, itemId?: string) => careMutation.mutate({ action, itemId }),
     buy: (itemId: string) => buyMutation.mutate(itemId),
+    buyAndCare: (action: CareActionId, itemId: string) => buyAndCareMutation.mutate({ action, itemId }),
+    /** Een Care Action of koop-en-geef is onderweg; knoppen wachten tot die klaar is. */
+    careBusy: careMutation.isPending || buyAndCareMutation.isPending,
     reviveBuddy: () => reviveMutation.mutate(),
     careFx,
     playCareFx,
