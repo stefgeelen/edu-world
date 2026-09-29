@@ -99,7 +99,7 @@ npm run lint      # ESLint
 - Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `worldThemes`, `dailyQuests`, `addChildLogic`)
 - E2E: `e2e/onboarding.spec.ts` (Playwright) — signup through first exercise only
 
-**What still has NO tests:** `BuddyShop` screen, `AvatarSelection`, `QuestMap`, `Progress`, badge screens, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the speech, online-status, install-prompt, greeting and exercise-config hooks.
+**What still has NO tests:** `BuddyShop` screen, `AvatarSelection`, `QuestMap`, `Progress`, badge screens, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt, greeting and exercise-config hooks.
 
 **Conventions:** shared helpers live in `src/test/testUtils.tsx` (`createTestQueryClient`, `queryWrapper`, `fakeSupabaseChain`). Mock Supabase/auth at the module boundary and assert on behaviour, not implementation. Anchor time-sensitive fixtures to `Date.now()` — hooks that tick against the real clock will decay a fixed past timestamp out from under the test.
 

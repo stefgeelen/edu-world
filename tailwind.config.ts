@@ -196,6 +196,14 @@ export default {
           "70%": { transform: "rotate(-5deg) translateX(-5px)" },
           "85%": { transform: "rotate(4deg) translateX(4px)" },
         },
+        // Buddy Room: the Buddy's reaction when a child taps it (BuddyStage).
+        "buddy-boop": {
+          "0%, 100%": { transform: "translateY(0) scale(1)" },
+          "15%": { transform: "translateY(0) scaleX(1.12) scaleY(0.86)" },
+          "40%": { transform: "translateY(-22px) scaleX(0.94) scaleY(1.08)" },
+          "65%": { transform: "translateY(0) scaleX(1.06) scaleY(0.94)" },
+          "82%": { transform: "translateY(-6px) scale(1)" },
+        },
         // Buddy Room: nudges the Care Action the Buddy needs right now (CareActionBar).
         "care-nudge": {
           "0%, 55%, 100%": { transform: "scale(1) rotate(0deg)" },
@@ -244,6 +252,7 @@ export default {
         "buddy-doze": "buddy-doze 1.6s ease-in-out forwards",
         "buddy-heal": "buddy-heal 1.6s ease-in-out",
         "buddy-wash": "buddy-wash 1.6s ease-in-out",
+        "buddy-boop": "buddy-boop 0.7s ease-out",
         "care-nudge": "care-nudge 1.8s ease-in-out infinite",
         "fx-rise": "fx-rise 1.4s ease-out forwards",
         "fx-pop": "fx-pop 1.2s ease-out forwards",

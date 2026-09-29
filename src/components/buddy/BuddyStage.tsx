@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { BuddyCue, BuddyMood } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import type { CareFx } from '@/hooks/useBuddy';
@@ -53,6 +54,15 @@ const ACTION_ANIMATION: Record<CareActionId, string> = {
 
 type Particle = { emoji: string; className: string; style: React.CSSProperties };
 
+/** Duur van de reactie als het kind de Buddy aantikt. */
+const BOOP_MS = 700;
+
+const BOOP_PARTICLES: Particle[] = ['💛', '✨', '💛'].map((emoji, i) => ({
+  emoji,
+  className: 'animate-fx-pop',
+  style: { left: `${30 + i * 20}%`, bottom: '62%', animationDelay: `${i * 0.08}s` },
+}));
+
 function particlesFor(fx: CareFx): Particle[] {
   const spread = (i: number, total: number) => `${20 + (i * 60) / Math.max(1, total - 1)}%`;
 
@@ -106,25 +116,62 @@ export function BuddyStage({
   mood,
   cue,
   fx,
+  onPoke,
 }: {
   name: string;
   mood: BuddyMood;
   cue: BuddyCue;
   fx?: CareFx | null;
+  /** Het kind tikt de Buddy aan; de Buddy springt op en de ouder-component laat hem iets zeggen. */
+  onPoke?: () => void;
 }) {
-  const hint = fx ? undefined : CUE_HINT[cue];
-  const animation = fx ? ACTION_ANIMATION[fx.action] : CUE_ANIMATION[cue];
+  const [boopAt, setBoopAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (boopAt === null) return;
+    const id = setTimeout(() => setBoopAt(null), BOOP_MS);
+    return () => clearTimeout(id);
+  }, [boopAt]);
+
+  // Een Care Action-animatie gaat altijd voor; een tik speelt daar niet doorheen.
+  const boop = !fx && boopAt !== null;
+  const hint = fx || boop ? undefined : CUE_HINT[cue];
+  const animation = fx ? ACTION_ANIMATION[fx.action] : boop ? 'animate-buddy-boop' : CUE_ANIMATION[cue];
+  const imgKey = fx ? `fx-${fx.at}` : boop ? `boop-${boopAt}` : `cue-${cue}`;
 
   return (
     <div className="relative flex h-60 w-full items-center justify-center md:h-80">
-      <img
-        key={fx ? `fx-${fx.at}` : `cue-${cue}`}
-        src={BUDDY_ART[mood]}
-        alt={`Je Buddy ${name}`}
-        width={768}
-        height={768}
-        className={`h-56 w-56 drop-shadow-2xl md:h-72 md:w-72 ${animation}`}
-      />
+      <button
+        type="button"
+        onClick={() => {
+          // Tijdens de sprong telt een nieuwe tik niet: anders praat de Buddy over zichzelf heen.
+          if (fx || boopAt !== null) return;
+          setBoopAt(Date.now());
+          onPoke?.();
+        }}
+        aria-label={`Tik op ${name}`}
+        className="rounded-full outline-none focus-visible:ring-4 focus-visible:ring-white/80"
+      >
+        <img
+          key={imgKey}
+          src={BUDDY_ART[mood]}
+          alt=""
+          width={768}
+          height={768}
+          draggable={false}
+          className={`h-56 w-56 select-none drop-shadow-2xl md:h-72 md:w-72 ${animation}`}
+        />
+      </button>
+
+      {boop && (
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          {BOOP_PARTICLES.map((p, i) => (
+            <span key={`${boopAt}-${i}`} className={`absolute text-3xl drop-shadow ${p.className}`} style={p.style}>
+              {p.emoji}
+            </span>
+          ))}
+        </div>
+      )}
 
       {fx && (
         <div className="pointer-events-none absolute inset-0" aria-hidden>

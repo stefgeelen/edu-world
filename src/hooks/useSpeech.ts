@@ -34,31 +34,54 @@ function browserSpeak(text: string) {
   }
 }
 
+/**
+ * Recently spoken lines, as object URLs. The Buddy repeats a small set of
+ * sentences (and a child taps it a lot), so replaying from memory saves an
+ * ElevenLabs call each time. Oldest entries are dropped past the limit.
+ */
+const AUDIO_CACHE_LIMIT = 60;
+const audioCache = new Map<string, string>();
+
+async function audioUrlFor(text: string): Promise<string> {
+  const cached = audioCache.get(text);
+  if (cached) {
+    // Re-insert so the Map's insertion order doubles as least-recently-used.
+    audioCache.delete(text);
+    audioCache.set(text, cached);
+    return cached;
+  }
+
+  // Speech is an enhancement, not a blocker — fail fast and let the caller
+  // fall back rather than leaving a child waiting on audio that never arrives.
+  const data = await invokeFunction<{ audioBase64?: string }>('synthesize-speech', { text }, 8_000);
+
+  if (!data?.audioBase64) throw new Error('No audio returned');
+
+  const binary = atob(data.audioBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+
+  audioCache.set(text, url);
+  if (audioCache.size > AUDIO_CACHE_LIMIT) {
+    const [oldestText, oldestUrl] = audioCache.entries().next().value as [string, string];
+    audioCache.delete(oldestText);
+    if (currentAudio?.src !== oldestUrl) URL.revokeObjectURL(oldestUrl);
+  }
+  return url;
+}
+
 export async function speakText(text: string): Promise<void> {
   if (!text) return;
 
   try {
-    // Speech is an enhancement, not a blocker — fail fast and let the caller
-    // fall back rather than leaving a child waiting on audio that never arrives.
-    const data = await invokeFunction<{ audioBase64?: string }>('synthesize-speech', { text }, 8_000);
+    const url = await audioUrlFor(text);
 
-    if (!data?.audioBase64) throw new Error('No audio returned');
-
-    const binary = atob(data.audioBase64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob = new Blob([bytes], { type: 'audio/mpeg' });
-    const url = URL.createObjectURL(blob);
-
-    if (currentAudio) {
-      currentAudio.pause();
-      try { URL.revokeObjectURL(currentAudio.src); } catch { /* noop */ }
-    }
+    // Cached URLs are reused, so they're only revoked on eviction, never on stop.
+    currentAudio?.pause();
 
     const audio = new Audio(url);
     currentAudio = audio;
-    audio.addEventListener('ended', () => URL.revokeObjectURL(url), { once: true });
-    audio.addEventListener('error', () => URL.revokeObjectURL(url), { once: true });
     await audio.play();
   } catch {
     browserSpeak(text);

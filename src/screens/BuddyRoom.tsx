@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ShoppingBag, Sparkles } from 'lucide-react';
+import { ChevronRight, ShoppingBag, Sparkles, Volume2 } from 'lucide-react';
 import { buddyCue, isSleeping, moodOf, type BuddyCue } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import { buddyMessage, careActionMessage } from '@/lib/buddy/messages';
 import { BuddyFxProvider, useBuddy } from '@/hooks/useBuddy';
+import { useSpeech } from '@/hooks/useSpeech';
 import { CarePanel } from '@/components/buddy/CarePanel';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
 import forestScene from '@/assets/forest-scene.jpg';
@@ -37,6 +38,39 @@ function BuddyRoomContent() {
   const sleeping = loaded && now ? isSleeping(buddy, now) : false;
   const minutesLeft =
     sleeping && buddy.sleepUntil ? Math.max(1, Math.ceil((buddy.sleepUntil - now) / 60000)) : 0;
+
+  const messageFor = (s: number) =>
+    careFx
+      ? careActionMessage(careFx.action)
+      : sleeping
+        ? `Zzz... nog ${minutesLeft} minuten rust.`
+        : buddyMessage(mood, s, cue);
+  const message = messageFor(seed);
+
+  // Veel kinderen van 5-7 lezen nog niet: de Buddy zegt zijn tekstballon ook hardop.
+  const { speak } = useSpeech();
+
+  // Eén keer bij binnenkomen, zodra de echte toestand geladen is.
+  const greeted = useRef(false);
+  useEffect(() => {
+    if (!loaded || greeted.current) return;
+    greeted.current = true;
+    speak(message);
+  }, [loaded, message, speak]);
+
+  // En bij elke Care Action ("Mmm, lekker!").
+  const careFxAt = careFx?.at;
+  useEffect(() => {
+    if (careFx) speak(careActionMessage(careFx.action));
+    // Alleen afgaan op een nieuwe Care Action, niet op elke render tijdens de animatie.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [careFxAt]);
+
+  const poke = () => {
+    const next = seed + 1;
+    setSeed(next);
+    speak(messageFor(next));
+  };
 
   return (
     <main className="relative h-full w-full overflow-y-auto pb-32">
@@ -75,16 +109,16 @@ function BuddyRoomContent() {
         <section className="mt-2 flex flex-col items-center">
           <button
             type="button"
-            onClick={() => setSeed((s) => s + 1)}
-            className="mb-1 max-w-[17rem] rounded-3xl rounded-bl-md bg-white/95 px-4 py-3 text-center text-sm font-bold text-foreground shadow-lg backdrop-blur"
+            onClick={() => speak(message)}
+            aria-label={`Lees voor: ${message}`}
+            className="mb-1 flex max-w-[19rem] items-center gap-2.5 rounded-3xl rounded-bl-md bg-white/95 py-2.5 pl-4 pr-2.5 text-left text-base font-bold text-foreground shadow-lg backdrop-blur active:scale-[0.98] md:max-w-sm md:text-lg"
           >
-            {careFx
-              ? careActionMessage(careFx.action)
-              : sleeping
-                ? `Zzz... nog ${minutesLeft} min rust.`
-                : buddyMessage(mood, seed, cue)}
+            <span className="flex-1">{message}</span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-edu-blue text-white shadow-md" aria-hidden>
+              <Volume2 className="h-5 w-5" />
+            </span>
           </button>
-          <BuddyStage name={buddy.name} mood={mood} cue={cue} fx={careFx} />
+          <BuddyStage name={buddy.name} mood={mood} cue={cue} fx={careFx} onPoke={poke} />
         </section>
 
         {buddy.dead && (

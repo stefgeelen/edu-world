@@ -24,6 +24,9 @@ vi.mock('@/hooks/useBuddy', () => ({
   }),
 }));
 
+const speak = vi.fn();
+vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
+
 import { BuddyRoom } from '@/screens/BuddyRoom';
 
 function makeBuddy(overrides: Record<string, unknown> = {}) {
@@ -102,5 +105,38 @@ describe('BuddyRoom', () => {
     renderRoom();
     expect(screen.getByRole('button', { name: /Voeren/ })).toBeDisabled();
     expect(screen.getByText(/Nootje slaapt nog 10 min/)).toBeInTheDocument();
+  });
+
+  it('says its speech bubble out loud once on arrival', () => {
+    buddyFixture = makeBuddy({ needs: { hunger: 5, fun: 75, energy: 85, hygiene: 80, health: 100 } });
+    const { rerender } = renderRoom();
+    rerender(
+      <MemoryRouter>
+        <BuddyRoom />
+      </MemoryRouter>
+    );
+    expect(speak).toHaveBeenCalledTimes(1);
+    expect(speak).toHaveBeenCalledWith('Mijn buik knort... heb je iets te eten?');
+  });
+
+  it('reads the bubble aloud again when the child taps it', () => {
+    renderRoom();
+    speak.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: /Lees voor/ }));
+    expect(speak).toHaveBeenCalledTimes(1);
+    expect(speak.mock.calls[0][0]).toBe(screen.getByRole('button', { name: /Lees voor/ }).textContent);
+  });
+
+  it('jumps and says something new when the child taps the Buddy', () => {
+    renderRoom();
+    const before = screen.getByRole('button', { name: /Lees voor/ }).textContent;
+    speak.mockClear();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tik op Nootje' }));
+
+    const after = screen.getByRole('button', { name: /Lees voor/ }).textContent;
+    expect(after).not.toBe(before);
+    expect(speak).toHaveBeenCalledWith(after);
+    expect(document.querySelector('.animate-buddy-boop')).not.toBeNull();
   });
 });
