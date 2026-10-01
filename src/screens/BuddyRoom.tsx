@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronRight, ShoppingBag, Sparkles, Volume2 } from 'lucide-react';
+import { Shield, ShoppingBag, Sparkles, Trophy, Users, Volume2 } from 'lucide-react';
 import { buddyCue, isSleeping, moodOf, type BuddyCue } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
-import { buddyMessage, careActionMessage } from '@/lib/buddy/messages';
+import { buddyMessage, careActionMessage, growthCountdown } from '@/lib/buddy/messages';
 import { BuddyFxProvider, useBuddy } from '@/hooks/useBuddy';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { useBuddyTour, type BuddyTourStep } from '@/hooks/useBuddyTour';
 import { CarePanel } from '@/components/buddy/CarePanel';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
+import { WishesCard } from '@/components/buddy/WishesCard';
+import { RewardTeller } from '@/components/buddy/RewardTeller';
+import { GrowthMoment } from '@/components/buddy/GrowthMoment';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { useGrowthMoment } from '@/hooks/useGrowthMoment';
+import { daysUntilNextGrowth, growthForm } from '@/lib/buddy/growth';
+import { APP_PATHS } from '@/routes/paths';
 import forestScene from '@/assets/forest-scene.jpg';
 
 /** Welke Care Action de Buddy nu vraagt — die knop wiebelt als hint voor het kind. */
@@ -50,6 +57,10 @@ function BuddyRoomContent() {
   const tour = useBuddyTour(child?.id);
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin } = useAdminRole();
+  const form = growthForm(buddy.growthStage);
+  const growthMoment = useGrowthMoment(child?.id, buddy.growthStage, loaded);
+  const countdown = loaded && now ? growthCountdown(buddy.name, daysUntilNextGrowth(now)) : null;
 
   const mood = loaded && now ? moodOf(buddy, now) : 'neutral';
   const cue = loaded && now ? buddyCue(buddy, now) : 'ok';
@@ -126,7 +137,7 @@ function BuddyRoomContent() {
   };
 
   return (
-    <main className="relative h-full w-full overflow-y-auto pb-32">
+    <main className="relative h-full w-full overflow-y-auto pb-12">
       <div
         className="absolute inset-x-0 top-0 h-[52vh] bg-cover bg-center"
         style={{ backgroundImage: `url(${forestScene})` }}
@@ -135,27 +146,55 @@ function BuddyRoomContent() {
       <div className="absolute inset-x-0 top-0 h-[52vh] bg-gradient-to-b from-transparent via-transparent to-background" aria-hidden />
 
       <div className="relative mx-auto w-full max-w-md px-4 pt-5 md:max-w-xl">
-        <header className="flex items-center justify-between">
-          <div className="rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
+        <header className="flex items-start justify-between gap-2">
+          <div className="min-w-0 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Jouw Buddy</p>
-            <h1 className="text-lg font-black leading-tight text-foreground">{buddy.name}</h1>
+            <h1 className="text-lg font-black leading-tight text-foreground">{form.title}</h1>
+            {countdown && <p className="mt-0.5 text-xs font-extrabold text-edu-green">🌱 {countdown}</p>}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
-              <span className="text-xl" aria-hidden>
-                🪙
-              </span>
-              <span className="text-lg font-black text-foreground" aria-label={`${buddy.munten} Munten`}>
-                {buddy.munten}
-              </span>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
+                <span className="text-xl" aria-hidden>
+                  🪙
+                </span>
+                <span className="text-lg font-black text-foreground" aria-label={`${buddy.munten} Munten`}>
+                  {buddy.munten}
+                </span>
+              </div>
+              <Link
+                to={APP_PATHS.shop}
+                className="flex min-h-12 items-center justify-center gap-1.5 rounded-2xl bg-edu-green px-3 py-2 text-base font-black text-white shadow-md active:scale-95"
+              >
+                <ShoppingBag className="h-5 w-5" aria-hidden />
+                Winkel
+              </Link>
             </div>
-            <Link
-              to="/app/buddy-room/shop"
-              className="flex min-h-12 items-center justify-center gap-1.5 rounded-2xl bg-edu-green px-3 py-2 text-base font-black text-white shadow-md active:scale-95"
-            >
-              <ShoppingBag className="h-5 w-5" aria-hidden />
-              Winkel
-            </Link>
+            <nav className="flex items-center gap-2" aria-label="Meer">
+              <Link
+                to={APP_PATHS.badges}
+                aria-label="Prijzenkast"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-amber-500 shadow-sm backdrop-blur active:scale-95"
+              >
+                <Trophy className="h-5 w-5" aria-hidden />
+              </Link>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  aria-label="Admin"
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-muted-foreground shadow-sm backdrop-blur active:scale-95"
+                >
+                  <Shield className="h-5 w-5" aria-hidden />
+                </Link>
+              )}
+              <Link
+                to={APP_PATHS.parent}
+                aria-label="Ouderportaal"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-muted-foreground shadow-sm backdrop-blur active:scale-95"
+              >
+                <Users className="h-5 w-5" aria-hidden />
+              </Link>
+            </nav>
           </div>
         </header>
 
@@ -178,6 +217,7 @@ function BuddyRoomContent() {
             fx={careFx}
             onPoke={poke}
             pointer={tourStep === 'poke'}
+            growth={form}
           />
 
           {tourStep === 'done' && (
@@ -233,14 +273,20 @@ function BuddyRoomContent() {
         </section>
 
         <Link
-          to="/app/map"
-          className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-edu-yellow px-4 py-3 text-base font-black text-foreground shadow-lg active:scale-[0.98]"
+          to={APP_PATHS.practice}
+          className="mt-5 flex min-h-20 w-full items-center justify-center gap-3 rounded-3xl bg-edu-yellow px-4 py-4 text-2xl font-black text-foreground shadow-lg ring-4 ring-white/70 active:scale-[0.98]"
         >
-          <Sparkles className="h-5 w-5" aria-hidden />
-          Oefenen en 🪙 verdienen
-          <ChevronRight className="h-5 w-5" aria-hidden />
+          <Sparkles className="h-7 w-7" aria-hidden />
+          Oefenen!
         </Link>
+
+        <WishesCard buddyName={buddy.name} />
+        <RewardTeller />
       </div>
+
+      {growthMoment.grew && (
+        <GrowthMoment name={buddy.name} form={form} onDone={growthMoment.dismiss} />
+      )}
     </main>
   );
 }

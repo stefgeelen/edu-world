@@ -180,7 +180,7 @@ describe('ExerciseMoney component', () => {
         stars: 0,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos/1');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
     expect(triggerConfettiMock).not.toHaveBeenCalled();
   });
 
@@ -212,6 +212,6 @@ describe('ExerciseMoney component', () => {
         stars: 3,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos/1');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   });
 });

@@ -137,7 +137,7 @@ describe('ExercisePictureWord component', () => {
       }),
     );
     act(() => vi.advanceTimersByTime(800));
-    expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos/1');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   });
 
   it('ends the exercise after losing all 3 lives, persisting a 0-star result', () => {

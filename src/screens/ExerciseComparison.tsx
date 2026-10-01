@@ -9,10 +9,10 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARISON } from '@/data/difficultyConfig';
 import { KwadraatGrid } from '@/components/exercise/KwadraatGrid';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -112,7 +112,6 @@ export function ExerciseComparison() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const compConfig = useExerciseConfig(DEFAULT_COMPARISON);
@@ -151,7 +150,7 @@ export function ExerciseComparison() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else generateNext();
       }, 1800);
     } else {
@@ -164,7 +163,7 @@ export function ExerciseComparison() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: 0, timeSpent });
           }
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else generateNext();
       }, 1600);
     }
@@ -302,7 +301,7 @@ export function ExerciseComparison() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}
@@ -342,7 +341,7 @@ export function ExerciseComparison() {
                 )}
                 {status === 'correct' && needsNumber && (
                   <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-center mt-4 text-sm font-bold text-emerald-400">
-                    ✓ Helemaal goed! +10 XP
+                    ✓ Helemaal goed!
                   </motion.p>
                 )}
                 {status === 'incorrect' && needsNumber && (

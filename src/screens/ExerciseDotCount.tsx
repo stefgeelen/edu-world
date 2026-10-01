@@ -7,9 +7,9 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 
 interface Dot {
@@ -22,7 +22,6 @@ export function ExerciseDotCount() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const areaRef = useRef<HTMLDivElement>(null);
@@ -86,7 +85,7 @@ export function ExerciseDotCount() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           generateNew();
         }
@@ -99,7 +98,7 @@ export function ExerciseDotCount() {
       setLives(nextLives);
       setTimeout(() => {
         if (nextLives <= 0) {
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           setDots([]);
           setStatus('idle');
@@ -116,7 +115,7 @@ export function ExerciseDotCount() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
     >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
@@ -262,7 +261,7 @@ export function ExerciseDotCount() {
             >
               <span className="text-lg">🎉</span>
               <p className="text-sm font-bold text-emerald-400">
-                Super goed! Precies {target} {target === 1 ? 'stip' : 'stippen'}! +15 XP
+                Super goed! Precies {target} {target === 1 ? 'stip' : 'stippen'}!
               </p>
             </motion.div>
           )}

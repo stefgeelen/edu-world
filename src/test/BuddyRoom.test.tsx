@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { createTestQueryClient, fakeSupabaseChain, queryWrapper } from './testUtils';
 
 // The Buddy Room is judged on what a young child sees and taps: one row per
 // Need with its own action button, a hint on the one the Buddy needs, and a
@@ -28,6 +29,20 @@ vi.mock('@/hooks/useBuddy', () => ({
 vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: { id: 'child-1' } }) }));
 
 const TOUR_KEY = 'leapio:buddy-tour-done:child-1';
+const GROWTH_KEY = 'leapio:buddy-growth-seen:child-1';
+
+let menuFixture: unknown;
+vi.mock('@/hooks/usePracticeMenu', () => ({ usePracticeMenu: () => ({ data: menuFixture }) }));
+
+let isAdminFixture = false;
+vi.mock('@/hooks/useAdminRole', () => ({ useAdminRole: () => ({ isAdmin: isAdminFixture }) }));
+
+let rewardsFixture: unknown[] = [];
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: { from: () => fakeSupabaseChain(() => ({ data: rewardsFixture, error: null })) },
+}));
+
+vi.mock('@/lib/confetti', () => ({ triggerConfetti: vi.fn() }));
 
 const speak = vi.fn();
 vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
@@ -44,15 +59,18 @@ function makeBuddy(overrides: Record<string, unknown> = {}) {
     sleepUntil: null,
     healthZeroSince: null,
     dead: false,
+    growthStage: 2,
     ...overrides,
   };
 }
 
 const renderRoom = (state?: unknown) =>
   render(
-    <MemoryRouter initialEntries={[{ pathname: '/app/buddy-room', state }]}>
+    <MemoryRouter initialEntries={[{ pathname: '/app/home', state }]}>
       <BuddyRoom />
-    </MemoryRouter>
+    </MemoryRouter>,
+    // Kept across rerender(), which the tests below use to simulate a re-render.
+    { wrapper: queryWrapper(createTestQueryClient()) }
   );
 
 // This jsdom setup has no working localStorage, so give each test a fresh in-memory one.
@@ -71,6 +89,9 @@ beforeEach(() => {
   vi.stubGlobal('localStorage', memoryStorage());
   buddyFixture = makeBuddy();
   careFxFixture = null;
+  menuFixture = undefined;
+  rewardsFixture = [];
+  isAdminFixture = false;
   // De rondleiding heeft een eigen describe; de andere tests zien de gewone kamer.
   localStorage.setItem(TOUR_KEY, '1');
 });
@@ -214,5 +235,93 @@ describe('BuddyRoom — first-visit tour', () => {
     renderRoom();
     expect(bubble()).not.toHaveTextContent(/Tik eens op mij/);
     expect(screen.queryByRole('button', { name: 'Overslaan' })).not.toBeInTheDocument();
+  });
+});
+
+describe('BuddyRoom — home of the app', () => {
+  const menu = (wishes: { title: string; fulfilled: boolean }[]) => ({
+    day: '2026-01-05',
+    wish_bonus: 5,
+    full_munten: 8,
+    exercises: [],
+    wishes: wishes.map((w, i) => ({
+      type_key: `/exercises/type-${i}`,
+      title: w.title,
+      subject: 'math',
+      route: `/exercises/type-${i}/1`,
+      fulfilled: w.fulfilled,
+    })),
+  });
+
+  it('sends the child to the exercise list with one big button', () => {
+    renderRoom();
+    expect(screen.getByRole('link', { name: /Oefenen!/ })).toHaveAttribute('href', '/app/oefenen');
+  });
+
+  it('reaches the shop, the trophy cabinet and the parent portal from the room', () => {
+    renderRoom();
+    expect(screen.getByRole('link', { name: /Winkel/ })).toHaveAttribute('href', '/app/shop');
+    expect(screen.getByRole('link', { name: 'Prijzenkast' })).toHaveAttribute('href', '/app/badges');
+    expect(screen.getByRole('link', { name: 'Ouderportaal' })).toHaveAttribute('href', '/app/parent');
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+  });
+
+  it('shows the admin shortcut only to admins', () => {
+    isAdminFixture = true;
+    renderRoom();
+    expect(screen.getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin');
+  });
+
+  it('lists the Buddy’s wishes with their bonus, and ticks off the fulfilled ones', () => {
+    menuFixture = menu([
+      { title: 'Klok lezen', fulfilled: false },
+      { title: 'Geld tellen', fulfilled: true },
+    ]);
+    renderRoom();
+    expect(screen.getByRole('heading', { name: /Wensen van Nootje/ })).toBeInTheDocument();
+    const open = screen.getByRole('button', { name: /Klok lezen/ });
+    expect(open).toBeEnabled();
+    expect(open).toHaveTextContent('+5 🪙');
+    expect(screen.getByRole('button', { name: /Geld tellen/ })).toBeDisabled();
+  });
+
+  it('celebrates when every wish is fulfilled', () => {
+    menuFixture = menu([{ title: 'Klok lezen', fulfilled: true }]);
+    renderRoom();
+    expect(screen.getByRole('heading', { name: /Alle wensen vervuld/ })).toBeInTheDocument();
+  });
+
+  it('counts down to a parent’s reward in exercises still to do', async () => {
+    rewardsFixture = [
+      { id: 'r1', title: 'IJsje', subject: 'math', required_exercises: 10, current_progress: 3 },
+      { id: 'r2', title: 'Filmavond', subject: 'reading', required_exercises: 5, current_progress: 4 },
+    ];
+    renderRoom();
+    expect(await screen.findByText(/Nog 7 rekenoefeningen tot: IJsje/)).toBeInTheDocument();
+    expect(screen.getByText(/Nog 1 leesoefening tot: Filmavond/)).toBeInTheDocument();
+  });
+
+  it('names the Buddy after its growth form and counts down to the next growth', () => {
+    // growthStage 2 = 1ste leerjaar, 2de trimester. "Nu" is 5 januari: 86 dagen tot 1 april.
+    renderRoom();
+    expect(screen.getByRole('heading', { name: 'Baby Nootje' })).toBeInTheDocument();
+    expect(screen.getByText(/Nog 86 dagen tot Nootje groeit/)).toBeInTheDocument();
+  });
+
+  it('does not throw a growth party on the very first visit', () => {
+    renderRoom();
+    expect(screen.queryByRole('dialog', { name: /gegroeid/ })).not.toBeInTheDocument();
+    expect(localStorage.getItem(GROWTH_KEY)).toBe('2');
+  });
+
+  it('throws a growth party once when the Buddy has grown since the last visit', () => {
+    localStorage.setItem(GROWTH_KEY, '1');
+    renderRoom();
+    const party = screen.getByRole('dialog', { name: /Nootje is gegroeid/ });
+    expect(speak).toHaveBeenCalledWith(expect.stringContaining('ik ben gegroeid'));
+
+    fireEvent.click(within(party).getByRole('button', { name: /Joepie/ }));
+    expect(screen.queryByRole('dialog', { name: /gegroeid/ })).not.toBeInTheDocument();
+    expect(localStorage.getItem(GROWTH_KEY)).toBe('2');
   });
 });

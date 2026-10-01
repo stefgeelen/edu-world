@@ -26,6 +26,8 @@ export interface BuddyState {
   sleepUntil: number | null;
   healthZeroSince: number | null;
   dead: boolean;
+  /** Groeistap 1..18, zie growth.ts. */
+  growthStage: number;
 }
 
 const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v * 10) / 10));
@@ -40,6 +42,7 @@ export function createBuddy(now = Date.now()): BuddyState {
     sleepUntil: null,
     healthZeroSince: null,
     dead: false,
+    growthStage: 1,
   };
 }
 

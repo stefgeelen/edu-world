@@ -140,6 +140,8 @@ export function ParentChildDetail() {
     onSuccess: (_, maxStage) => {
       queryClient.invalidateQueries({ queryKey: ['parent-child', childId] });
       queryClient.invalidateQueries({ queryKey: ['my-child'] });
+      // A newly opened trimester changes which exercises the child can pick.
+      queryClient.invalidateQueries({ queryKey: ['practice-menu', childId] });
       toast.success(`${child?.name} heeft nu toegang tot trimester 1${maxStage > 1 ? ` t/m ${maxStage}` : ''}.`);
     },
     onError: (e) => toast.error(mapDbError(e)),
@@ -161,6 +163,11 @@ export function ParentChildDetail() {
       queryClient.invalidateQueries({ queryKey: ['parent-child', childId] });
       queryClient.invalidateQueries({ queryKey: ['parent-children'] });
       queryClient.invalidateQueries({ queryKey: ['parent-child-trimesters', childId] });
+      // The child's own screens read the grade too: their exercise list, and
+      // the Buddy, which grows into the new grade's form.
+      queryClient.invalidateQueries({ queryKey: ['my-child'] });
+      queryClient.invalidateQueries({ queryKey: ['practice-menu', childId] });
+      queryClient.invalidateQueries({ queryKey: ['buddy-state', childId] });
       toast.success(`${child?.name} is nu in ${GRADE_LABELS[newGrade] ?? `groep ${newGrade}`}!`);
     },
     onError: (e) => toast.error(mapDbError(e)),

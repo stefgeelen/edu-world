@@ -14,9 +14,6 @@ export { avatars, badgesData };
 type GameContextType = {
   selectedAvatar: Avatar | null;
   setSelectedAvatar: (avatar: Avatar) => void;
-  xp: number;
-  streak: number;
-  level: number;
   badges: Badge[];
   updateBadgeProgress: (badgeId: string, progress: number) => void;
 };
@@ -32,11 +29,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const { data: child } = useCurrentChild();
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
   const [badges, setBadges] = useState<Badge[]>(badgesData);
-
-  // Derive xp/level/streak from child data (single source of truth from DB)
-  const xp = child?.xp ?? 0;
-  const level = child?.level ?? 1;
-  const streak = child?.streak ?? 0;
 
   // Sync avatar from child data
   useEffect(() => {
@@ -103,8 +95,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const value = useMemo(
-    () => ({ selectedAvatar, setSelectedAvatar, xp, streak, level, badges, updateBadgeProgress }),
-    [selectedAvatar, xp, streak, level, badges, updateBadgeProgress]
+    () => ({ selectedAvatar, setSelectedAvatar, badges, updateBadgeProgress }),
+    [selectedAvatar, badges, updateBadgeProgress]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

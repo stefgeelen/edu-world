@@ -30,8 +30,18 @@ src/
 1. `/auth` — sign up/login (email + password)
 2. `/auth/setup-pin` — set 4-digit parental PIN (stored via Supabase, verified via `useParentPin`)
 3. `/app/add-child` — create child profile (inserts to `children` table)
-4. `/app` — avatar selection (auto-redirects to `/app/dashboard` if avatar set, back to `/app/add-child` if no child)
-5. `/app/dashboard` — main game hub
+4. `/app` — avatar selection (auto-redirects to `/app/home` if avatar set, back to `/app/add-child` if no child)
+5. `/app/home` — the Buddy's room: the home screen of the app
+
+## Child App Model (since Oct 2026)
+Caring for the Buddy is the game; exercises are how you care for it. There is **no tab bar and no map**.
+- `/app/home` (`BuddyRoom`) — Buddy + Care Actions, big **Oefenen!** button, the Buddy's Wishes, parent rewards ("Nog 12 rekenoefeningen tot: IJsje"), growth countdown. Shop, trophy cabinet (`/app/badges`) and parent portal are reached from here.
+- `/app/oefenen` (`Practice`) — one tile per *type* of exercise (route family, e.g. `/exercises/clock`), grouped by subject. The child always picks.
+- **Munten** are the only currency. Repeating a type on the same day pays less: 8, 8, 4, 2, 1, 1… (resets daily). **Wishes**: up to 3 types per day, +5 the first time today.
+- **Growth**: `buddy_states.growth_stage` 1..18 = (grade − 1) × 3 + calendar trimester (sep–dec, jan–mar, apr–aug). Never goes back within a grade. Care has no influence.
+- XP, level and streak are **invisible to the child**. The columns stay: the parent portal (trimester progress, promotion) and badges still use them. Parent rewards count every exercise fully, repeats included.
+- All of this is decided server-side: `practice_menu` RPC (pickable exercises, payouts, wishes) and `complete_exercise` — see `supabase/migrations/20261001120000_buddy_centred_practice.sql`. The client only displays it.
+- Paths live in `src/routes/paths.ts` (`APP_PATHS`, `EXERCISE_DONE_PATH` → home, `EXERCISE_CLOSE_PATH` → practice). Old URLs (`/app/dashboard`, `/app/map`, `/app/stage/*`, `/app/buddy-room`, `/app/progress`) redirect.
 
 **Session:** Supabase handles localStorage persistence + auto token refresh.  
 **PIN:** Verified and stored in `sessionStorage` via `useParentPin`. Cleared on auth state change.  
@@ -91,15 +101,15 @@ npm test          # run all tests (Vitest)
 npm run lint      # ESLint
 ```
 
-**What has tests** (62 files under `src/test/`, ~510 cases):
-- All 14 exercise screens, plus `Exercise`, `Dashboard`, `BuddyRoom` (incl. first-visit tour), `BuddyShop`, and the admin + parent portals
+**What has tests** (70 files under `src/test/`, ~640 cases):
+- All 14 exercise screens, plus `Exercise`, `BuddyRoom` (incl. first-visit tour, wishes, rewards, growth), `Practice`, `BuddyShop`, `WishesCard`, app-route redirects, and the admin + parent portals
 - Auth flow (`Auth`, `AuthContext`, `ProtectedRoute`, `AdminRoute`, PIN session, password validation)
-- Data hooks (`useCompleteExercise`, `useDailyQuests`, `useStageExercises`, `useStageMastery`, `useChildInsights`, `useTrimesterProgress`, `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`)
+- Data hooks (`useCompleteExercise`, `usePracticeMenu`, `useChildInsights`, `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`)
 - Buddy care system (`buddyState`, `buddyCatalog`, `useBuddy`) — decay/illness/death rules, shop economy, catalog integrity, RPC plumbing
-- Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `worldThemes`, `dailyQuests`, `addChildLogic`)
+- Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `addChildLogic`, Buddy growth + payout copy)
 - E2E: `e2e/onboarding.spec.ts` (Playwright) — signup through first exercise only
 
-**What still has NO tests:** `AvatarSelection`, `QuestMap`, `Progress`, badge screens, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt, greeting and exercise-config hooks.
+**What still has NO tests:** `AvatarSelection`, badge screens, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt, greeting and exercise-config hooks.
 
 **Conventions:** shared helpers live in `src/test/testUtils.tsx` (`createTestQueryClient`, `queryWrapper`, `fakeSupabaseChain`). Mock Supabase/auth at the module boundary and assert on behaviour, not implementation. Anchor time-sensitive fixtures to `Date.now()` — hooks that tick against the real clock will decay a fixed past timestamp out from under the test.
 
@@ -108,7 +118,7 @@ npm run lint      # ESLint
 |------|-----|
 | `src/context/AuthContext.tsx` | Session state, auth gate for whole app |
 | `src/hooks/useCompleteExercise.ts` | Persists progress, triggers 13 query invalidations |
-| `src/screens/Dashboard.tsx` | 514 lines, multiple queries, complex state |
+| `supabase/migrations/20261001120000_buddy_centred_practice.sql` | `practice_menu` + `complete_exercise`: unlocking, payouts, wishes, growth — no local DB to test against |
 | `src/screens/ExerciseWriteNumber.tsx` | Canvas + edge function + complex state machine |
 | `src/screens/ExerciseNumberLine.tsx` | 618 lines, drag interactions, pointer events |
 | `src/screens/ExerciseClock.tsx` | Pointer drag, potential missing listener cleanup |

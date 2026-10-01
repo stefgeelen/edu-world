@@ -8,9 +8,9 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_SUBTRACT_BOX } from '@/data/difficultyConfig';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 type Status = 'idle' | 'incorrect' | 'correct';
 /**
@@ -39,7 +39,6 @@ export function ExerciseSubtractBox() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
@@ -123,7 +122,7 @@ export function ExerciseSubtractBox() {
               timeSpent,
             });
           }
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           generateQuestion();
         }
@@ -132,7 +131,7 @@ export function ExerciseSubtractBox() {
       setStatus('incorrect');
       setLives((l) => l - 1);
       if (lives - 1 <= 0) {
-        setTimeout(() => navigate(`/app/stage/fluisterbos/${stage}`), 1500);
+        setTimeout(() => navigate(EXERCISE_DONE_PATH), 1500);
       }
     }
   };
@@ -181,7 +180,7 @@ export function ExerciseSubtractBox() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
       onClick={() => setIsNumpadOpen(false)}
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">

@@ -4,9 +4,9 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // --- Mocks -----------------------------------------------------------------
-// useCompleteExercise pulls in auth, celebration, buddy messaging and Supabase.
+// useCompleteExercise pulls in auth, celebration, the Buddy toast and Supabase.
 // Each is mocked so this test can isolate the one thing CLAUDE.md flags as
-// high-risk: the mutation's 13 query invalidations + celebration side effects.
+// high-risk: the mutation's query invalidations + celebration side effects.
 
 const rpcMock = vi.fn();
 const maybeSingle = vi.fn();
@@ -35,14 +35,8 @@ vi.mock('@/context/AuthContext', () => ({
 }));
 
 const celebrateRewards = vi.fn();
-const celebratePromotion = vi.fn();
 vi.mock('@/context/CelebrationContext', () => ({
-  useCelebration: () => ({ celebrateRewards, celebratePromotion }),
-}));
-
-const getMessage = vi.fn(() => ({ message: 'Goed gedaan!', mood: 'happy', avatarUrl: null, avatarName: 'Milo' }));
-vi.mock('@/hooks/useBuddyMessage', () => ({
-  useBuddyMessage: () => ({ getMessage, hasAvatar: true }),
+  useCelebration: () => ({ celebrateRewards }),
 }));
 
 const buddyCheer = vi.fn();
@@ -53,16 +47,12 @@ vi.mock('@/components/feedback/BuddyToast', () => ({
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 
 const INVALIDATED_KEYS = [
-  'stage-exercises-progress',
-  'child-progress',
-  'trimester-progress',
-  'my-child',
-  'my-children',
-  'recent-attempts',
+  'practice-menu',
+  'buddy-state',
   'child-rewards',
-  'parent-rewards',
-  'parent-children',
   'game-badges',
+  'parent-children',
+  'parent-rewards',
   'child-insights',
 ];
 
@@ -167,63 +157,34 @@ describe('useCompleteExercise', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(celebrateRewards).toHaveBeenCalledWith(rewards);
-    expect(celebratePromotion).not.toHaveBeenCalled();
   });
 
-  it('triggers the promotion celebration when all trimesters are completed', async () => {
-    rpcMock.mockResolvedValue({
-      data: { attempt_id: 'a1', xp_earned: 10, all_trimesters_completed: true, completed_rewards: [] },
-      error: null,
-    });
-
+  const complete = async (data: Record<string, unknown>) => {
+    rpcMock.mockResolvedValue({ data: { attempt_id: 'a1', completed_rewards: [], ...data }, error: null });
     const { result } = renderHook(() => useCompleteExercise(), { wrapper: makeWrapper(queryClient) });
     await waitForChildQuery(queryClient);
     result.current.mutate({ exerciseId: 'ex-1', score: 1, maxScore: 1, stars: 1, timeSpent: 1 });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  };
 
-    expect(celebratePromotion).toHaveBeenCalled();
+  it('tells the child what the Buddy earned', async () => {
+    await complete({ munten_earned: 8, times_today: 1 });
+    expect(buddyCheer).toHaveBeenCalledWith('🪙 +8 Munten voor je Buddy!', expect.anything());
   });
 
-  it('shows a buddy cheer on level up', async () => {
-    rpcMock.mockResolvedValue({
-      data: { attempt_id: 'a1', xp_earned: 10, all_trimesters_completed: false, completed_rewards: [], leveled_up: true, new_level: 3 },
-      error: null,
-    });
-
-    const { result } = renderHook(() => useCompleteExercise(), { wrapper: makeWrapper(queryClient) });
-    await waitForChildQuery(queryClient);
-    result.current.mutate({ exerciseId: 'ex-1', score: 1, maxScore: 1, stars: 1, timeSpent: 1 });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    expect(getMessage).toHaveBeenCalledWith('level_up');
-    expect(buddyCheer).toHaveBeenCalled();
+  it('nudges towards something else once the same type is repeated', async () => {
+    await complete({ munten_earned: 4, times_today: 3 });
+    expect(buddyCheer).toHaveBeenCalledWith(expect.stringContaining('Deze ken ik al'), expect.anything());
   });
 
-  it('shows a buddy cheer only when the streak hits a milestone', async () => {
-    rpcMock.mockResolvedValue({
-      data: { attempt_id: 'a1', xp_earned: 10, all_trimesters_completed: false, completed_rewards: [], streak: 5 },
-      error: null,
-    });
-
-    const { result } = renderHook(() => useCompleteExercise(), { wrapper: makeWrapper(queryClient) });
-    await waitForChildQuery(queryClient);
-    result.current.mutate({ exerciseId: 'ex-1', score: 1, maxScore: 1, stars: 1, timeSpent: 1 });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    expect(buddyCheer).toHaveBeenCalledWith(expect.stringContaining('5 dagen'), expect.anything());
+  it('celebrates a fulfilled wish above everything else', async () => {
+    await complete({ munten_earned: 13, times_today: 1, wish_fulfilled: true, wish_bonus: 5 });
+    expect(buddyCheer).toHaveBeenCalledWith(expect.stringContaining('Wens vervuld! +13'), expect.anything());
   });
 
-  it('stays quiet on a non-milestone streak (e.g. 4 days)', async () => {
-    rpcMock.mockResolvedValue({
-      data: { attempt_id: 'a1', xp_earned: 10, all_trimesters_completed: false, completed_rewards: [], streak: 4 },
-      error: null,
-    });
-
-    const { result } = renderHook(() => useCompleteExercise(), { wrapper: makeWrapper(queryClient) });
-    await waitForChildQuery(queryClient);
-    result.current.mutate({ exerciseId: 'ex-1', score: 1, maxScore: 1, stars: 1, timeSpent: 1 });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
+  it('no longer reacts to XP, levels, streaks or finished trimesters', async () => {
+    // The RPC still returns these for the parent portal; the child never sees them.
+    await complete({ leveled_up: true, new_level: 3, streak: 5, all_trimesters_completed: true });
     expect(buddyCheer).not.toHaveBeenCalled();
   });
 });

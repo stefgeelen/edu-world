@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { mapDbError } from '@/lib/errorMessages';
+import { APP_PATHS } from '@/routes/paths';
 
 export function AvatarSelection() {
   const navigate = useNavigate();
@@ -19,14 +20,14 @@ export function AvatarSelection() {
   const { data: child, isLoading: childLoading } = useCurrentChild();
   const [selectedForDetails, setSelectedForDetails] = useState<Avatar | null>(null);
 
-  // Auto-redirect to dashboard if child already has avatar
+  // Auto-redirect to the Buddy's room if the child already has an avatar
   useEffect(() => {
     if (!childLoading && child?.avatar_id) {
-      navigate('/app/dashboard', { replace: true });
+      navigate(APP_PATHS.home, { replace: true });
     }
     // No child at all → send to add-child
     if (!childLoading && !child) {
-      navigate('/app/add-child', { replace: true });
+      navigate(APP_PATHS.addChild, { replace: true });
     }
   }, [child, childLoading, navigate]);
 
@@ -44,7 +45,7 @@ export function AvatarSelection() {
       setSelectedAvatar(avatar);
       queryClient.invalidateQueries({ queryKey: ['my-child'] });
       queryClient.invalidateQueries({ queryKey: ['parent-children'] });
-      navigate('/app/dashboard');
+      navigate(APP_PATHS.home);
     },
     onError: (e) => toast.error(mapDbError(e) || 'Kon studiemaatje niet opslaan.'),
   });
@@ -84,7 +85,7 @@ export function AvatarSelection() {
 
       {/* Parent Portal Button */}
       <button 
-        onClick={() => navigate('/app/parent')}
+        onClick={() => navigate(APP_PATHS.parent)}
         className="absolute top-6 right-6 md:top-8 md:right-8 z-50 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 text-white transition-all duration-300 flex items-center gap-2 group"
         aria-label="Naar ouderportaal"
       >
@@ -239,18 +240,6 @@ export function AvatarSelection() {
                     <Drawer.Description className="text-slate-400 text-lg font-medium leading-relaxed">
                       {selectedForDetails.description}
                     </Drawer.Description>
-                  </div>
-
-                  {/* Stats/Info Cards */}
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 text-center">
-                      <div className="text-2xl font-black text-white mb-1">XP Bonus</div>
-                      <div className={cn("text-sm font-bold", selectedForDetails.accentColor)}>+20% in {selectedForDetails.subject}</div>
-                    </div>
-                    <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 text-center">
-                      <div className="text-2xl font-black text-white mb-1">Niveau</div>
-                      <div className={cn("text-sm font-bold", selectedForDetails.accentColor)}>Beginner</div>
-                    </div>
                   </div>
 
                   {/* Action Button */}

@@ -11,6 +11,7 @@ import {
 } from '@/lib/buddy/catalog';
 import { useBuddy } from '@/hooks/useBuddy';
 import { cn } from '@/lib/utils';
+import { APP_PATHS } from '@/routes/paths';
 
 /** Tabbladen van de Winkel, met korte kinderwoorden in plaats van de catalogusnamen. */
 const CATEGORIES: { id: CareItemCategory; emoji: string; label: string; accent: string }[] = [
@@ -63,7 +64,7 @@ export function BuddyShop() {
       <div className="mx-auto w-full max-w-md px-4 pt-5 md:max-w-2xl">
         <header className="flex items-center justify-between">
           <Link
-            to="/app/buddy-room"
+            to={APP_PATHS.home}
             className="flex min-h-12 items-center gap-1.5 rounded-2xl bg-white px-4 py-2 text-base font-extrabold text-foreground shadow-sm active:scale-95"
           >
             <ArrowLeft className="h-5 w-5" /> Terug
@@ -156,7 +157,7 @@ export function BuddyShop() {
         </div>
 
         <Link
-          to="/app/map"
+          to={APP_PATHS.practice}
           className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-3xl bg-edu-yellow px-4 py-2.5 text-base font-black text-foreground shadow-md active:scale-[0.98]"
         >
           <Sparkles className="h-5 w-5" aria-hidden />
@@ -186,7 +187,7 @@ export function BuddyShop() {
                     <button
                       type="button"
                       onClick={() =>
-                        navigate('/app/buddy-room', {
+                        navigate(APP_PATHS.home, {
                           state: { give: { action: actionFor(chosen.category), itemId: chosen.id } },
                         })
                       }
@@ -226,7 +227,7 @@ export function BuddyShop() {
                       Je hebt nog <span className="tabular-nums">{chosen.price - buddy.munten}</span> 🪙 nodig.
                     </p>
                     <Link
-                      to="/app/map"
+                      to={APP_PATHS.practice}
                       className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-edu-yellow px-4 py-3 text-lg font-black text-foreground shadow-md"
                     >
                       <Sparkles className="h-5 w-5" aria-hidden />

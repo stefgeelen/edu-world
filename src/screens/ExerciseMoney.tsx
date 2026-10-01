@@ -18,10 +18,10 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_MONEY } from '@/data/difficultyConfig';
 import { randomInt } from '@/lib/random';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 /* ── Products ─────────────────────────────────────────────────── */
 const PRODUCTS = [
@@ -173,7 +173,6 @@ function Kassa({ droppedItems, totalCents, priceCents }: { droppedItems: { id: s
 
 export function ExerciseMoney() {
   const navigate = useNavigate();
-  const { stage } = useDifficultyLevel();
   const moneyCfg = useExerciseConfig(DEFAULT_MONEY);
 
   // Filter denominations based on trimester config
@@ -210,8 +209,7 @@ export function ExerciseMoney() {
     handleIncorrect,
   } = useExerciseState({
     totalQuestions: 5,
-    xpReward: 15,
-    returnPath: `/app/stage/fluisterbos/${stage}`,
+    returnPath: EXERCISE_DONE_PATH,
     exerciseId,
     onNextQuestion: nextQuestion,
   });
@@ -270,7 +268,7 @@ export function ExerciseMoney() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
     >
       <DndContext
         sensors={sensors}
@@ -321,7 +319,7 @@ export function ExerciseMoney() {
                 className="text-center"
               >
                 <p className="text-emerald-300 font-bold text-lg md:text-xl">
-                  Goed gedaan! 🎉 +15 XP
+                  Goed gedaan! 🎉
                 </p>
               </motion.div>
             )}

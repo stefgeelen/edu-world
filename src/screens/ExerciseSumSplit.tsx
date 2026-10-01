@@ -8,10 +8,10 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_SUM_SPLIT } from '@/data/difficultyConfig';
 import { randomInt } from '@/lib/random';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 type Slot = 'left' | 'right' | 'result';
 type SlotStatus = 'idle' | 'correct' | 'incorrect';
@@ -44,7 +44,6 @@ export function ExerciseSumSplit() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
@@ -155,7 +154,7 @@ export function ExerciseSumSplit() {
           timeSpent,
         });
       }
-      navigate(`/app/stage/fluisterbos/${stage}`);
+      navigate(EXERCISE_DONE_PATH);
       return true;
     }
     return false;
@@ -191,7 +190,7 @@ export function ExerciseSumSplit() {
       const nextLives = lives - 1;
       setLives(nextLives);
       if (nextLives <= 0) {
-        setTimeout(() => navigate(`/app/stage/fluisterbos/${stage}`), 1500);
+        setTimeout(() => navigate(EXERCISE_DONE_PATH), 1500);
       }
     }
   };
@@ -297,7 +296,7 @@ export function ExerciseSumSplit() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
       onClick={() => setIsNumpadOpen(false)}
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">

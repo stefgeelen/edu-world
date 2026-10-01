@@ -12,6 +12,7 @@ import { CARE_ACTIONS, itemsByCategory, type CareActionId } from '@/lib/buddy/ca
 import { CRITICAL_THRESHOLD, NEED_EMOJI, NEED_IDS, NEED_LABEL, type NeedId } from '@/lib/buddy/constants';
 import { useBuddy } from '@/hooks/useBuddy';
 import { cn } from '@/lib/utils';
+import { APP_PATHS } from '@/routes/paths';
 
 /** Elke Need staat op één rij met de Care Action die hem aanvult. */
 const NEED_ACTION: Record<NeedId, CareActionId> = {
@@ -249,7 +250,7 @@ export function CarePanel({
 
             {open && open !== 'sleep' && !canDoAnything ? (
               <Link
-                to="/app/map"
+                to={APP_PATHS.practice}
                 onClick={() => setOpen(null)}
                 className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-edu-yellow px-4 py-3 text-base font-black text-foreground shadow-md"
               >
@@ -259,7 +260,7 @@ export function CarePanel({
               </Link>
             ) : (
               <Link
-                to={`/app/buddy-room/shop?cat=${action?.category ?? 'food'}`}
+                to={`${APP_PATHS.shop}?cat=${action?.category ?? 'food'}`}
                 onClick={() => setOpen(null)}
                 className="block rounded-2xl bg-muted px-4 py-3 text-center text-sm font-extrabold text-foreground"
               >

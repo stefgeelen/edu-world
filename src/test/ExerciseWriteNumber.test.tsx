@@ -131,7 +131,7 @@ describe('ExerciseWriteNumber', () => {
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
       exerciseId: 'ex-write-number', score: 5, maxScore: 5, stars: 3,
     }));
-    expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   }, 15000);
 
   it('on a wrong recognition: shows what it saw, costs a life, and lets the child retry', async () => {
@@ -162,7 +162,7 @@ describe('ExerciseWriteNumber', () => {
       await new Promise((r) => setTimeout(r, 2250));
     }
 
-    expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   }, 15000);
 
   // This previously asserted the message was ABSENT, documenting the display gap

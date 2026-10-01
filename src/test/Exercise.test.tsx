@@ -75,7 +75,7 @@ describe('Exercise (math sums dispatcher) component', () => {
     fireEvent.click(optionButton(answer));
 
     expect(triggerConfettiMock).toHaveBeenCalled();
-    expect(screen.getByText('Goed gedaan! +10 XP')).toBeInTheDocument();
+    expect(screen.getByText('Goed gedaan!')).toBeInTheDocument();
   });
 
   it('selecting a wrong option shows the "try again" feedback and does not celebrate', () => {

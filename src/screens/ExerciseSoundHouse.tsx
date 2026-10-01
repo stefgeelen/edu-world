@@ -7,12 +7,12 @@ import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { useSpeech } from '@/hooks/useSpeech';
 import { DEFAULT_SOUND_HOUSE } from '@/data/difficultyConfig';
 import { generateSoundHouseRound, type SoundPosition, type SoundWord } from '@/data/soundHousePool';
 import type { BuddyMood } from '@/data/buddyMessages';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 const TOTAL_ROUNDS = 5;
 
@@ -31,7 +31,6 @@ export function ExerciseSoundHouse() {
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const { speak } = useSpeech();
-  const { stage } = useDifficultyLevel();
   const cfg = useExerciseConfig(DEFAULT_SOUND_HOUSE);
 
   const startTime = useRef(Date.now());
@@ -46,7 +45,6 @@ export function ExerciseSoundHouse() {
   const [buddyMood, setBuddyMood] = useState<BuddyMood | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const stageReturnPath = `/app/stage/fluisterbos/${stage}`;
   const current = questions[round];
 
   // Init round
@@ -87,8 +85,8 @@ export function ExerciseSoundHouse() {
         timeSpent,
       });
     }
-    navigate(stageReturnPath);
-  }, [exerciseId, lives, completeExercise, navigate, stageReturnPath]);
+    navigate(EXERCISE_DONE_PATH);
+  }, [exerciseId, lives, completeExercise, navigate]);
 
   const handleSelect = (pos: SoundPosition) => {
     if (!current || status !== 'idle') return;
@@ -139,7 +137,7 @@ export function ExerciseSoundHouse() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(stageReturnPath)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
       buddyMood={buddyMood}
       silenceBuddy
     >

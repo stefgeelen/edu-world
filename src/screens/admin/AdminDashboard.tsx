@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Users, CreditCard, BarChart3, Shield, ChevronLeft, LogOut, Sparkles, BookOpen, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { APP_PATHS } from '@/routes/paths';
 
 const NAV_ITEMS = [
   { path: '/admin/users', label: 'Gebruikers', icon: Users },
@@ -24,7 +25,7 @@ export function AdminDashboard() {
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/app/dashboard')}
+            onClick={() => navigate(APP_PATHS.home)}
             className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
           >
             <ChevronLeft className="w-5 h-5 text-slate-600" />

@@ -25,12 +25,12 @@ function RoomProbe() {
   return <p>room {JSON.stringify(location.state)}</p>;
 }
 
-const renderShop = (path = '/app/buddy-room/shop') =>
+const renderShop = (path = '/app/shop') =>
   render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/app/buddy-room/shop" element={<BuddyShop />} />
-        <Route path="/app/buddy-room" element={<RoomProbe />} />
+        <Route path="/app/shop" element={<BuddyShop />} />
+        <Route path="/app/home" element={<RoomProbe />} />
       </Routes>
     </MemoryRouter>
   );
@@ -52,7 +52,7 @@ describe('BuddyShop', () => {
   });
 
   it('opens the tab the care dialog linked to', () => {
-    renderShop('/app/buddy-room/shop?cat=hygiene');
+    renderShop('/app/shop?cat=hygiene');
     expect(screen.getByRole('tab', { name: /Wassen/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('button', { name: /Bronbad/ })).toBeInTheDocument();
   });
@@ -98,6 +98,6 @@ describe('BuddyShop', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveTextContent('Je hebt nog 5 🪙 nodig.');
     expect(within(dialog).queryByRole('button', { name: /Ja, kopen/ })).not.toBeInTheDocument();
-    expect(within(dialog).getByRole('link', { name: /Oefenen/ })).toHaveAttribute('href', '/app/map');
+    expect(within(dialog).getByRole('link', { name: /Oefenen/ })).toHaveAttribute('href', '/app/oefenen');
   });
 });

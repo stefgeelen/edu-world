@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { parentPinSession } from '@/hooks/useParentPin';
 import { toast } from 'sonner';
+import { APP_PATHS } from '@/routes/paths';
 
 const NAV_ITEMS = [
   { path: '/app/parent', label: 'Kinderen', icon: Users, exact: true },
@@ -59,7 +60,7 @@ export function ParentLayout() {
                 onClick={() => {
                   parentPinSession.lock();
                   toast.success('Ouderportaal vergrendeld');
-                  navigate('/app/dashboard');
+                  navigate(APP_PATHS.home);
                 }}
                 className="p-2.5 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200"
                 title="Vergrendelen"

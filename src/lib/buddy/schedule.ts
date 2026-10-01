@@ -83,6 +83,12 @@ function startOfZonedDay(ts: number): number {
   return zonedToUtc(p.year, p.month, p.day, 0);
 }
 
+/** De kalenderdag van het kind (Vlaamse tijd), los van de tijdzone van het toestel. */
+export function careCalendarDay(ts = Date.now()): { year: number; month: number; day: number } {
+  const { year, month, day } = zonedParts(ts);
+  return { year, month, day };
+}
+
 export interface ElapsedWindows {
   /** Uren in het Care Window (ma-vr, 07:00-19:00): hier vervallen de Needs. */
   activeH: number;

@@ -8,12 +8,12 @@ import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_PICTURE_WORD } from '@/data/difficultyConfig';
 import { useSpeech } from '@/hooks/useSpeech';
 import { generatePictureRound, type PictureItem } from '@/data/picturePool';
 import type { BuddyMood } from '@/data/buddyMessages';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 const TOTAL_ROUNDS = 5;
 
@@ -31,7 +31,6 @@ export function ExercisePictureWord() {
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const { speak } = useSpeech();
-  const { stage } = useDifficultyLevel();
 
   const picCfg = useExerciseConfig(DEFAULT_PICTURE_WORD);
   const optionCount = picCfg.optionCount;
@@ -54,7 +53,6 @@ export function ExercisePictureWord() {
 
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const stageReturnPath = `/app/stage/fluisterbos/${stage}`;
 
   // Generate first question
   useEffect(() => {
@@ -175,7 +173,7 @@ export function ExercisePictureWord() {
       });
     }
     setBuddyMood('complete');
-    setTimeout(() => navigate(stageReturnPath), 800);
+    setTimeout(() => navigate(EXERCISE_DONE_PATH), 800);
   };
 
   const dragItem = useMemo(
@@ -189,7 +187,7 @@ export function ExercisePictureWord() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(stageReturnPath)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
       buddyMood={buddyMood}
       silenceBuddy
     >

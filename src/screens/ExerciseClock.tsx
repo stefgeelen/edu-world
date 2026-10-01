@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_CLOCK } from '@/data/difficultyConfig';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClockTask {
@@ -255,7 +255,6 @@ function ClockFace({ hourAngle, minuteAngle, onHourChange, onMinuteChange, statu
 /* ── Main Exercise ──────────────────────────────────────────── */
 export function ExerciseClock() {
   const navigate = useNavigate();
-  const { stage } = useDifficultyLevel();
   const clockCfg = useExerciseConfig(DEFAULT_CLOCK);
 
   const [task, setTask] = useState<ClockTask>(() => generateTask(clockCfg.halfHours));
@@ -274,8 +273,7 @@ export function ExerciseClock() {
   const exerciseId = useExerciseId();
   const { lives, progress, status, handleCorrect, handleIncorrect } = useExerciseState({
     totalQuestions: 5,
-    xpReward: 10,
-    returnPath: '/app/map',
+    returnPath: EXERCISE_DONE_PATH,
     exerciseId,
     onNextQuestion: nextQuestion,
   });
@@ -308,7 +306,7 @@ export function ExerciseClock() {
   }, [status, hourAngle, minuteAngle, task, handleCorrect, handleIncorrect]);
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(EXERCISE_CLOSE_PATH)}>
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 z-10 max-w-2xl mx-auto w-full">
 
         {/* Task card */}

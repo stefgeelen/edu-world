@@ -2,12 +2,12 @@ import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
+import { EXERCISE_DONE_PATH } from '@/routes/paths';
 
 type ExerciseStatus = 'idle' | 'correct' | 'incorrect';
 
 interface UseExerciseStateOptions {
   totalQuestions?: number;
-  xpReward?: number;
   returnPath?: string;
   confettiColors?: string[];
   confettiIntensity?: 'small' | 'medium' | 'large';
@@ -24,8 +24,7 @@ interface UseExerciseStateOptions {
 export function useExerciseState(options: UseExerciseStateOptions = {}) {
   const {
     totalQuestions = 5,
-    xpReward = 10,
-    returnPath = '/map',
+    returnPath = EXERCISE_DONE_PATH,
     confettiColors,
     confettiIntensity = 'medium',
     exerciseId,

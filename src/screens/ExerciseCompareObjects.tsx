@@ -7,9 +7,9 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARE_OBJECTS } from '@/data/difficultyConfig';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -120,7 +120,6 @@ export function ExerciseCompareObjects() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const config = useExerciseConfig(DEFAULT_COMPARE_OBJECTS);
@@ -162,7 +161,7 @@ export function ExerciseCompareObjects() {
               timeSpent,
             });
           }
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           generateNext();
         }
@@ -183,7 +182,7 @@ export function ExerciseCompareObjects() {
               timeSpent,
             });
           }
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           generateNext();
         }
@@ -210,7 +209,7 @@ export function ExerciseCompareObjects() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
     >
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 

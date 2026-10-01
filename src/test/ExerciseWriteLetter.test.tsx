@@ -219,7 +219,7 @@ describe('ExerciseWriteLetter', () => {
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
       exerciseId: 'ex-write-letter', score: 5, maxScore: 5, stars: 3,
     }));
-    expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   }, 15000);
 
   it('on a wrong recognition: shows retry feedback, costs a life, and lets the child draw again', async () => {
@@ -248,6 +248,6 @@ describe('ExerciseWriteLetter', () => {
       await new Promise((r) => setTimeout(r, 2000));
     }
 
-    expect(navigateMock).toHaveBeenCalledWith('/app/stage/fluisterbos');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   }, 15000);
 });

@@ -11,6 +11,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 
 function getRandomTarget() {
@@ -217,14 +218,14 @@ export function ExerciseWriteNumber() {
         triggerConfetti('medium', { colors: ['#8b5cf6', '#a78bfa', '#fcd34d', '#60a5fa'] });
         const nextProgress = progress + 20;
         setProgress(nextProgress);
-        setFeedbackText(`Geweldig! Je hebt het getal ${target} geschreven! +15 XP`);
+        setFeedbackText(`Geweldig! Je hebt het getal ${target} geschreven!`);
         setTimeout(() => {
           if (nextProgress >= 100) {
             if (exerciseId) {
               const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
               completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
             }
-            navigate('/app/stage/fluisterbos');
+            navigate(EXERCISE_DONE_PATH);
           } else {
             generateNew();
           }
@@ -243,7 +244,7 @@ export function ExerciseWriteNumber() {
 
         setTimeout(() => {
           if (nextLives <= 0) {
-            navigate('/app/stage/fluisterbos');
+            navigate(EXERCISE_DONE_PATH);
           } else {
             clearCanvas();
             setStatus('idle');
@@ -265,7 +266,7 @@ export function ExerciseWriteNumber() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/stage/fluisterbos')}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
     >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">

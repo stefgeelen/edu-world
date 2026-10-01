@@ -10,6 +10,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
 import { LETTER_FILLED } from './letterFilledPaths';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 // ── Cursive-style letter SVG paths (100 × 130 normalized space) ────────────
 // Each path approximates a handwritten lowercase letter
@@ -418,7 +419,7 @@ export function ExerciseWriteLetter() {
             const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCountRef.current, maxScore: TOTAL_ITERATIONS, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate('/app/stage/fluisterbos');
+          navigate(EXERCISE_DONE_PATH);
         } else {
           setIteration(next);
           setCurrentLetter(pickRandomLetter());
@@ -428,7 +429,7 @@ export function ExerciseWriteLetter() {
     } else {
       setStatus('incorrect');
       const nextLives = lives - 1; setLives(nextLives);
-      setTimeout(() => { if (nextLives <= 0) navigate('/app/stage/fluisterbos'); else clearDrawing(); }, 1800);
+      setTimeout(() => { if (nextLives <= 0) navigate(EXERCISE_DONE_PATH); else clearDrawing(); }, 1800);
     }
   }, [cSize, pathStr, isFilledGlyph, hasDrawn, status, iteration, lives, navigate, clearDrawing, pickRandomLetter, exerciseId, completeExercise]);
 
@@ -436,7 +437,7 @@ export function ExerciseWriteLetter() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate('/app/stage/fluisterbos')}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
     >
       {/* ── Info bar ── */}
       <div className="px-4 pt-3 pb-2 max-w-md mx-auto w-full flex-shrink-0 z-10">
@@ -511,9 +512,6 @@ export function ExerciseWriteLetter() {
                 <p className={cn('font-black', status === 'correct' ? 'text-emerald-400' : 'text-red-400')} style={{ fontSize: 22 }}>
                   {status === 'correct' ? (iteration + 1 >= TOTAL_ITERATIONS ? 'Geweldig! Klaar!' : 'Super! Volgende letter!') : 'Probeer nog eens!'}
                 </p>
-                {status === 'correct' && (
-                  <motion.span initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="text-sm font-bold text-emerald-300">+15 XP</motion.span>
-                )}
               </motion.div>
             )}
           </AnimatePresence>

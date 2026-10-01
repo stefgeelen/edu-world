@@ -50,7 +50,7 @@ describe('AdminDashboard', () => {
     const backButton = header?.querySelectorAll('button')[0];
     expect(backButton).toBeTruthy();
     fireEvent.click(backButton as HTMLButtonElement);
-    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   });
 
   it('navigates to the clicked nav item\'s path', () => {

@@ -6,6 +6,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useHasParentPin, useVerifyParentPin, parentPinSession } from '@/hooks/useParentPin';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { toast } from 'sonner';
+import { APP_PATHS } from '@/routes/paths';
 
 const MAX_ATTEMPTS = 5;
 const LOCK_MS = 60_000;
@@ -91,7 +92,7 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex flex-col items-center justify-center px-6 py-10 relative">
       <button
-        onClick={() => navigate('/app/dashboard')}
+        onClick={() => navigate(APP_PATHS.home)}
         className="absolute top-6 left-6 flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold text-sm transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Terug

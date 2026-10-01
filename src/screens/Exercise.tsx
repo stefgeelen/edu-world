@@ -8,9 +8,9 @@ import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
-import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 
 const OP_SPOKEN: Record<string, string> = { '+': 'plus', '-': 'min', '×': 'maal', '÷': 'gedeeld door' };
@@ -71,7 +71,6 @@ export function Exercise() {
   const { selectedAvatar } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { stage } = useDifficultyLevel();
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
 
@@ -114,7 +113,7 @@ export function Exercise() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           regenerate();
         }
@@ -126,7 +125,7 @@ export function Exercise() {
 
       setTimeout(() => {
         if (lives - 1 <= 0) {
-          navigate(`/app/stage/fluisterbos/${stage}`);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           setSelectedOption(null);
           setStatus('idle');
@@ -139,7 +138,7 @@ export function Exercise() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)}
+      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
     >
       {/* Main Content */}
       <div className="flex-1 flex flex-col px-6 md:px-12 lg:px-16 justify-center max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full z-10 relative mt-8 md:mt-12">
@@ -216,7 +215,7 @@ export function Exercise() {
             >
               <p className="text-sm md:text-base font-bold text-white/90">
                 {status === 'idle' && "Jij kan dit!"}
-                {status === 'correct' && <span className="text-emerald-400">Goed gedaan! +10 XP</span>}
+                {status === 'correct' && <span className="text-emerald-400">Goed gedaan!</span>}
                 {status === 'incorrect' && <span className="text-orange-400">Oeps! Probeer opnieuw!</span>}
               </p>
             </motion.div>

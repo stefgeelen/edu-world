@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { X, Heart, HeartCrack } from 'lucide-react';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
-import type { BuddyMood } from '@/data/buddyMessages';
+import type { BuddyMood, BuddySituation } from '@/data/buddyMessages';
 
 interface ExerciseShellProps {
   children: React.ReactNode;
@@ -32,7 +32,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
       setBuddyData(null);
       return;
     }
-    const situationMap: Record<BuddyMood, 'correct_answer' | 'wrong_answer' | 'exercise_complete' | 'exercise_start' | 'dashboard_greeting'> = {
+    const situationMap: Record<BuddyMood, BuddySituation> = {
       correct: 'correct_answer',
       wrong: 'wrong_answer',
       complete: 'exercise_complete',

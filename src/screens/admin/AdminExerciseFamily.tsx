@@ -96,7 +96,7 @@ export function AdminExerciseFamily() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-exercise-family', routePrefix] });
       queryClient.invalidateQueries({ queryKey: ['admin-exercises'] });
-      queryClient.invalidateQueries({ queryKey: ['stage-exercises-progress'] });
+      queryClient.invalidateQueries({ queryKey: ['practice-menu'] });
       queryClient.invalidateQueries({ queryKey: ['stage-mastery'] });
     },
     onError: () => toast.error('Kon status niet bijwerken.'),

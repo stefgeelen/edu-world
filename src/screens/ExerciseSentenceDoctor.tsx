@@ -16,6 +16,7 @@ import {
   FIX_SENTENCES_GRADE_1,
   type FixQuestion,
 } from '@/data/sentenceDoctorSentences';
+import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
 
 /* ------------------------------------------------------------------ */
 /*  Types & Data                                                       */
@@ -71,7 +72,7 @@ function pickUnused<T>(arr: T[], used: Set<number>): { item: T; index: number } 
 export function ExerciseSentenceDoctor() {
   const navigate = useNavigate();
   const { speak } = useSpeech();
-  const { grade, stage } = useDifficultyLevel();
+  const { grade } = useDifficultyLevel();
   const buildSentences = BUILD_SENTENCES_BY_GRADE[grade] ?? BUILD_SENTENCES_GRADE_1;
   const fixSentences = FIX_SENTENCES_BY_GRADE[grade] ?? FIX_SENTENCES_GRADE_1;
 
@@ -115,8 +116,7 @@ export function ExerciseSentenceDoctor() {
     lives, progress, status, handleCorrect, handleIncorrect,
   } = useExerciseState({
     totalQuestions: 5,
-    xpReward: 10,
-    returnPath: '/app/map',
+    returnPath: EXERCISE_DONE_PATH,
     exerciseId,
     confettiIntensity: 'large',
     confettiColors: ['#10b981', '#3b82f6', '#a78bfa'],
@@ -165,7 +165,7 @@ export function ExerciseSentenceDoctor() {
   const isBuild = question.mode === 'build';
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(`/app/stage/fluisterbos/${stage}`)} silenceBuddy>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(EXERCISE_CLOSE_PATH)} silenceBuddy>
       <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-10 w-full max-w-xl mx-auto">
 
         {/* Title */}

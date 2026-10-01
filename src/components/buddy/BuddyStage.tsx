@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { BuddyCue, BuddyMood } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import type { CareFx } from '@/hooks/useBuddy';
+import type { GrowthForm } from '@/lib/buddy/growth';
 import buddyHappy from '@/assets/buddy/buddy-happy.png';
 import buddyNeutral from '@/assets/buddy/buddy-neutral.png';
 import buddySad from '@/assets/buddy/buddy-sad.png';
@@ -118,6 +119,7 @@ export function BuddyStage({
   fx,
   onPoke,
   pointer,
+  growth,
 }: {
   name: string;
   mood: BuddyMood;
@@ -127,6 +129,8 @@ export function BuddyStage({
   onPoke?: () => void;
   /** Rondleiding: een wijzend handje toont dat je de Buddy kan aantikken. */
   pointer?: boolean;
+  /** Hoe groot de Buddy al is en wat hij draagt. Zonder: volwassen, zonder accessoires. */
+  growth?: GrowthForm;
 }) {
   const [boopAt, setBoopAt] = useState<number | null>(null);
 
@@ -155,6 +159,12 @@ export function BuddyStage({
         aria-label={`Tik op ${name}`}
         className="rounded-full outline-none focus-visible:ring-4 focus-visible:ring-white/80"
       >
+        {/* Eigen laag voor de groei: de animaties op de afbeelding gebruiken zelf transform. */}
+        <span
+          className="relative inline-block transition-transform duration-700"
+          style={{ transform: `scale(${growth?.scale ?? 1})` }}
+          data-testid="buddy-growth"
+        >
         <img
           key={imgKey}
           src={BUDDY_ART[mood]}
@@ -164,6 +174,17 @@ export function BuddyStage({
           draggable={false}
           className={`h-56 w-56 select-none drop-shadow-2xl md:h-72 md:w-72 ${animation}`}
         />
+        {growth?.accessories.map((emoji, i) => (
+          <span
+            key={emoji}
+            aria-hidden
+            className="pointer-events-none absolute text-4xl drop-shadow md:text-5xl"
+            style={i === 0 ? { top: '4%', right: '18%' } : { bottom: '10%', left: '10%' }}
+          >
+            {emoji}
+          </span>
+        ))}
+        </span>
       </button>
 
       {pointer && !boop && (

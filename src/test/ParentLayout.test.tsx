@@ -82,7 +82,7 @@ describe('ParentLayout', () => {
     fireEvent.click(screen.getByTitle('Vergrendelen'));
     expect(lockMock).toHaveBeenCalledTimes(1);
     expect(toastSuccessMock).toHaveBeenCalledWith('Ouderportaal vergrendeld');
-    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   });
 
   it('locks the session, signs out, and returns to /auth on "Uitloggen"', async () => {

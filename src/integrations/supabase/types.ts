@@ -110,6 +110,7 @@ export type Database = {
           child_id: string
           created_at: string
           dead: boolean
+          growth_stage: number
           health_zero_since: string | null
           inventory: Json
           last_tick: string
@@ -118,11 +119,14 @@ export type Database = {
           parent_id: string
           sleep_until: string | null
           updated_at: string
+          wishes: string[]
+          wishes_day: string | null
         }
         Insert: {
           child_id: string
           created_at?: string
           dead?: boolean
+          growth_stage?: number
           health_zero_since?: string | null
           inventory?: Json
           last_tick?: string
@@ -131,11 +135,14 @@ export type Database = {
           parent_id: string
           sleep_until?: string | null
           updated_at?: string
+          wishes?: string[]
+          wishes_day?: string | null
         }
         Update: {
           child_id?: string
           created_at?: string
           dead?: boolean
+          growth_stage?: number
           health_zero_since?: string | null
           inventory?: Json
           last_tick?: string
@@ -144,6 +151,8 @@ export type Database = {
           parent_id?: string
           sleep_until?: string | null
           updated_at?: string
+          wishes?: string[]
+          wishes_day?: string | null
         }
         Relationships: [
           {
@@ -750,6 +759,7 @@ export type Database = {
           child_id: string
           created_at: string
           dead: boolean
+          growth_stage: number
           health_zero_since: string | null
           inventory: Json
           last_tick: string
@@ -758,6 +768,8 @@ export type Database = {
           parent_id: string
           sleep_until: string | null
           updated_at: string
+          wishes: string[]
+          wishes_day: string | null
         }
         SetofOptions: {
           from: "*"
@@ -770,6 +782,23 @@ export type Database = {
         Args: { p_from: string; p_to: string }
         Returns: Record<string, unknown>
       }
+      _can_access_child: {
+        Args: { p_child: Database["public"]["Tables"]["children"]["Row"] }
+        Returns: boolean
+      }
+      _child_practice_options: {
+        Args: { p_child_id: string }
+        Returns: {
+          display_order: number
+          exercise_id: string
+          route: string
+          stage_num: number
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+          type_key: string
+        }[]
+      }
+      _practice_day_start: { Args: never; Returns: string }
       admin_engagement_stats: { Args: never; Returns: Json }
       buddy_buy: {
         Args: { p_child_id: string; p_item_id: string }
@@ -785,6 +814,7 @@ export type Database = {
           child_id: string
           created_at: string
           dead: boolean
+          growth_stage: number
           health_zero_since: string | null
           inventory: Json
           last_tick: string
@@ -793,6 +823,8 @@ export type Database = {
           parent_id: string
           sleep_until: string | null
           updated_at: string
+          wishes: string[]
+          wishes_day: string | null
         }
         SetofOptions: {
           from: "*"
@@ -800,6 +832,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      buddy_growth_target: {
+        Args: { p_day: string; p_grade: number }
+        Returns: number
+      }
+      buddy_next_growth: {
+        Args: { p_current: number; p_target: number }
+        Returns: number
       }
       buddy_revive: { Args: { p_child_id: string }; Returns: Json }
       child_exercise_stats: {
@@ -826,6 +866,7 @@ export type Database = {
         }
         Returns: Json
       }
+      exercise_type_key: { Args: { p_route: string }; Returns: string }
       has_parent_pin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
@@ -834,6 +875,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      practice_menu: { Args: { p_child_id: string }; Returns: Json }
+      practice_munten_for: { Args: { p_nth: number }; Returns: number }
+      practice_wish_bonus: { Args: never; Returns: number }
       set_parent_pin: { Args: { p_pin: string }; Returns: undefined }
       touch_activity: {
         Args: { p_child_id?: string; p_standalone?: boolean }

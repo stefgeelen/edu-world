@@ -47,6 +47,7 @@ function rowToState(row: BuddyStateRow): BuddyState {
     sleepUntil: row.sleep_until ? new Date(row.sleep_until).getTime() : null,
     healthZeroSince: row.health_zero_since ? new Date(row.health_zero_since).getTime() : null,
     dead: row.dead,
+    growthStage: row.growth_stage,
   };
 }
 
