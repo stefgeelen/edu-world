@@ -197,7 +197,8 @@ export function useBuddy() {
     onSuccess: (res) => {
       queryClient.setQueryData(queryKey, res.state);
       queryClient.invalidateQueries({ queryKey });
-      if (res.ok) toast.success(res.message); else toast.error(res.message);
+      // Geen toast bij succes: de Winkel toont zelf groot "Gekocht!".
+      if (!res.ok) toast.error(res.message);
     },
     onError: (error) => toast.error(mapDbError(error)),
   });
@@ -221,7 +222,10 @@ export function useBuddy() {
     buddy,
     loaded: !isLoading && !!row,
     care: (action: CareActionId, itemId?: string) => careMutation.mutate({ action, itemId }),
-    buy: (itemId: string) => buyMutation.mutate(itemId),
+    /** `onBought` loopt alleen als de server de aankoop echt doorvoerde. */
+    buy: (itemId: string, onBought?: () => void) =>
+      buyMutation.mutate(itemId, { onSuccess: (res) => res.ok && onBought?.() }),
+    buyPending: buyMutation.isPending,
     buyAndCare: (action: CareActionId, itemId: string) => buyAndCareMutation.mutate({ action, itemId }),
     /** Een Care Action of koop-en-geef is onderweg; knoppen wachten tot die klaar is. */
     careBusy: careMutation.isPending || buyAndCareMutation.isPending,

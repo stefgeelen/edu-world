@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronRight, ShoppingBag, Sparkles, Volume2 } from 'lucide-react';
 import { buddyCue, isSleeping, moodOf, type BuddyCue } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import { buddyMessage, careActionMessage } from '@/lib/buddy/messages';
 import { BuddyFxProvider, useBuddy } from '@/hooks/useBuddy';
 import { useSpeech } from '@/hooks/useSpeech';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { useBuddyTour, type BuddyTourStep } from '@/hooks/useBuddyTour';
 import { CarePanel } from '@/components/buddy/CarePanel';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
 import forestScene from '@/assets/forest-scene.jpg';
@@ -19,6 +21,18 @@ const CUE_ACTION: Partial<Record<BuddyCue, CareActionId>> = {
   ill: 'medicine',
 };
 
+/** Wat de Buddy zegt tijdens de rondleiding bij het eerste bezoek. Zonder emoji: het wordt voorgelezen. */
+const TOUR_TEXT: Record<BuddyTourStep, (name: string) => string> = {
+  poke: (name) => `Hoi! Ik ben ${name}. Tik eens op mij!`,
+  feed: () => 'Hihi, dat kriebelt! Ik heb honger. Tik op Voeren en geef me iets lekkers.',
+  done: () => 'Mmm, lekker! Met oefeningen verdien je munten. Daarmee koop je in de Winkel nog meer. Tik op Klaar!',
+};
+
+/** Een item dat in de Winkel gekocht is met "Geef aan ...", meegegeven bij het terugkeren. */
+interface GiveState {
+  give?: { action: CareActionId; itemId: string };
+}
+
 export function BuddyRoom() {
   return (
     <BuddyFxProvider>
@@ -30,8 +44,12 @@ export function BuddyRoom() {
 function BuddyRoomContent() {
   // `now` comes from the shared clock in BuddyFxProvider, so this screen and the
   // CarePanel below it tick together off a single timer.
-  const { buddy, loaded, careFx, now } = useBuddy();
+  const { buddy, loaded, careFx, now, care } = useBuddy();
   const [seed, setSeed] = useState(0);
+  const { data: child } = useCurrentChild();
+  const tour = useBuddyTour(child?.id);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const mood = loaded && now ? moodOf(buddy, now) : 'neutral';
   const cue = loaded && now ? buddyCue(buddy, now) : 'ok';
@@ -45,7 +63,9 @@ function BuddyRoomContent() {
       : sleeping
         ? `Zzz... nog ${minutesLeft} minuten rust.`
         : buddyMessage(mood, s, cue);
-  const message = messageFor(seed);
+  // De rondleiding wacht op een levende, wakkere Buddy: anders kan het kind de stappen niet doen.
+  const tourStep = loaded && !buddy.dead && !sleeping ? tour.step : null;
+  const message = tourStep ? TOUR_TEXT[tourStep](buddy.name) : messageFor(seed);
 
   // Veel kinderen van 5-7 lezen nog niet: de Buddy zegt zijn tekstballon ook hardop.
   const { speak } = useSpeech();
@@ -55,18 +75,51 @@ function BuddyRoomContent() {
   useEffect(() => {
     if (!loaded || greeted.current) return;
     greeted.current = true;
-    speak(message);
-  }, [loaded, message, speak]);
+    // Tijdens de rondleiding spreekt de stap zelf (effect hieronder).
+    if (!tourStep) speak(message);
+  }, [loaded, message, speak, tourStep]);
+
+  // Elke stap van de rondleiding wordt één keer voorgelezen.
+  useEffect(() => {
+    if (tourStep) speak(TOUR_TEXT[tourStep](buddy.name));
+    // Alleen bij een nieuwe stap; de naam verandert niet tijdens de rondleiding.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourStep]);
 
   // En bij elke Care Action ("Mmm, lekker!").
   const careFxAt = careFx?.at;
   useEffect(() => {
-    if (careFx) speak(careActionMessage(careFx.action));
+    if (!careFx) return;
+    // In de rondleiding begint de volgende stap zelf met "Mmm, lekker!".
+    if (tourStep === 'feed') tour.advance('feed');
+    else speak(careActionMessage(careFx.action));
     // Alleen afgaan op een nieuwe Care Action, niet op elke render tijdens de animatie.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [careFxAt]);
 
+  // Teruggekomen uit de Winkel met "Geef aan ...": meteen gebruiken, zodat het
+  // kind de Buddy ziet smullen. De state wordt gewist zodat terug/vernieuwen
+  // het niet nog eens geeft.
+  const give = (location.state as GiveState | null)?.give;
+  const givenFor = useRef<string | null>(null);
+  useEffect(() => {
+    // Eén keer per navigatie: loopt het effect opnieuw voor de state gewist is, dan gaat er geen tweede item af.
+    if (!loaded || !give || givenFor.current === location.key) return;
+    givenFor.current = location.key;
+    navigate(location.pathname, { replace: true, state: null });
+    care(give.action, give.itemId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, give]);
+
   const poke = () => {
+    if (tourStep === 'poke') {
+      tour.advance('poke');
+      return;
+    }
+    if (tourStep) {
+      speak(message);
+      return;
+    }
     const next = seed + 1;
     setSeed(next);
     speak(messageFor(next));
@@ -118,7 +171,33 @@ function BuddyRoomContent() {
               <Volume2 className="h-5 w-5" />
             </span>
           </button>
-          <BuddyStage name={buddy.name} mood={mood} cue={cue} fx={careFx} onPoke={poke} />
+          <BuddyStage
+            name={buddy.name}
+            mood={mood}
+            cue={cue}
+            fx={careFx}
+            onPoke={poke}
+            pointer={tourStep === 'poke'}
+          />
+
+          {tourStep === 'done' && (
+            <button
+              type="button"
+              onClick={() => tour.advance('done')}
+              className="mt-1 min-h-14 animate-care-nudge rounded-3xl bg-edu-green px-8 py-3 text-lg font-black text-white shadow-lg"
+            >
+              Klaar 👍
+            </button>
+          )}
+          {tourStep && tourStep !== 'done' && (
+            <button
+              type="button"
+              onClick={tour.finish}
+              className="mt-1 rounded-full bg-white/80 px-3 py-1.5 text-xs font-bold text-muted-foreground"
+            >
+              Overslaan
+            </button>
+          )}
         </section>
 
         {buddy.dead && (
@@ -146,7 +225,10 @@ function BuddyRoomContent() {
           </h2>
           <CarePanel
             disabled={buddy.dead || sleeping || careFx !== null}
-            highlight={careFx || sleeping ? undefined : CUE_ACTION[cue]}
+            highlight={
+              tourStep === 'feed' ? 'feed' : careFx || sleeping || tourStep ? undefined : CUE_ACTION[cue]
+            }
+            pointAt={tourStep === 'feed' ? 'feed' : undefined}
           />
         </section>
 

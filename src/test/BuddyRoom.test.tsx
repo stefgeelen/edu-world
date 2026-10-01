@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 const care = vi.fn();
 const buyAndCare = vi.fn();
 let buddyFixture: Record<string, unknown>;
+let careFxFixture: { action: string; at: number } | null;
 
 vi.mock('@/hooks/useBuddy', () => ({
   BuddyFxProvider: ({ children }: { children: ReactNode }) => children,
@@ -19,10 +20,14 @@ vi.mock('@/hooks/useBuddy', () => ({
     care,
     buyAndCare,
     careBusy: false,
-    careFx: null,
+    careFx: careFxFixture,
     now: Date.UTC(2026, 0, 5, 11, 0, 0), // maandag 12:00 lokaal
   }),
 }));
+
+vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: { id: 'child-1' } }) }));
+
+const TOUR_KEY = 'leapio:buddy-tour-done:child-1';
 
 const speak = vi.fn();
 vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
@@ -43,17 +48,34 @@ function makeBuddy(overrides: Record<string, unknown> = {}) {
   };
 }
 
-const renderRoom = () =>
+const renderRoom = (state?: unknown) =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[{ pathname: '/app/buddy-room', state }]}>
       <BuddyRoom />
     </MemoryRouter>
   );
 
+// This jsdom setup has no working localStorage, so give each test a fresh in-memory one.
+function memoryStorage() {
+  const data = new Map<string, string>();
+  return {
+    getItem: (k: string) => data.get(k) ?? null,
+    setItem: (k: string, v: string) => void data.set(k, String(v)),
+    removeItem: (k: string) => void data.delete(k),
+    clear: () => data.clear(),
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubGlobal('localStorage', memoryStorage());
   buddyFixture = makeBuddy();
+  careFxFixture = null;
+  // De rondleiding heeft een eigen describe; de andere tests zien de gewone kamer.
+  localStorage.setItem(TOUR_KEY, '1');
 });
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('BuddyRoom', () => {
   it('pairs every Need with its own Care Action button', () => {
@@ -138,5 +160,59 @@ describe('BuddyRoom', () => {
     expect(after).not.toBe(before);
     expect(speak).toHaveBeenCalledWith(after);
     expect(document.querySelector('.animate-buddy-boop')).not.toBeNull();
+  });
+
+  it('uses an item bought in the shop as soon as the child comes back', () => {
+    renderRoom({ give: { action: 'feed', itemId: 'bes' } });
+    expect(care).toHaveBeenCalledTimes(1);
+    expect(care).toHaveBeenCalledWith('feed', 'bes');
+  });
+});
+
+describe('BuddyRoom — first-visit tour', () => {
+  beforeEach(() => localStorage.removeItem(TOUR_KEY));
+
+  const bubble = () => screen.getByRole('button', { name: /Lees voor/ });
+
+  it('starts by asking the child to tap the Buddy, and says so out loud', () => {
+    renderRoom();
+    expect(bubble()).toHaveTextContent('Hoi! Ik ben Nootje. Tik eens op mij!');
+    expect(speak).toHaveBeenCalledTimes(1);
+    expect(speak).toHaveBeenCalledWith('Hoi! Ik ben Nootje. Tik eens op mij!');
+  });
+
+  it('walks from tapping the Buddy to feeding it to the closing step', () => {
+    const { rerender } = renderRoom();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tik op Nootje' }));
+    expect(bubble()).toHaveTextContent(/Tik op Voeren/);
+    expect(screen.getByRole('button', { name: 'Voeren' })).toHaveClass('animate-care-nudge');
+
+    careFxFixture = { action: 'feed', at: Date.now() };
+    rerender(
+      <MemoryRouter>
+        <BuddyRoom />
+      </MemoryRouter>
+    );
+    expect(bubble()).toHaveTextContent(/Mmm, lekker! Met oefeningen verdien je munten/);
+    expect(speak).not.toHaveBeenCalledWith('Mmm, lekker!');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Klaar 👍' }));
+    expect(localStorage.getItem(TOUR_KEY)).toBe('1');
+    expect(screen.queryByRole('button', { name: 'Klaar 👍' })).not.toBeInTheDocument();
+  });
+
+  it('can be skipped and then stays away', () => {
+    renderRoom();
+    fireEvent.click(screen.getByRole('button', { name: 'Overslaan' }));
+    expect(localStorage.getItem(TOUR_KEY)).toBe('1');
+    expect(bubble()).not.toHaveTextContent(/Tik eens op mij/);
+  });
+
+  it('waits while the Buddy naps, since the steps cannot be done then', () => {
+    buddyFixture = makeBuddy({ sleepUntil: Date.UTC(2026, 0, 5, 11, 10, 0) });
+    renderRoom();
+    expect(bubble()).not.toHaveTextContent(/Tik eens op mij/);
+    expect(screen.queryByRole('button', { name: 'Overslaan' })).not.toBeInTheDocument();
   });
 });

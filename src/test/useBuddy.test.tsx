@@ -324,7 +324,7 @@ describe('useBuddy — buy()', () => {
     await waitFor(() => expect(result.current.buddy.munten).toBe(15));
     expect(result.current.buddy.inventory.taart).toBe(1);
     expect(rpcMock).toHaveBeenCalledWith('buddy_buy', { p_child_id: 'child-1', p_item_id: 'taart' });
-    expect(toastSuccess).toHaveBeenCalledWith('Feesttaart gekocht voor 25 Munten.');
+    expect(toastSuccess).not.toHaveBeenCalled();
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['buddy-state', 'child-1'] });
   });
 
@@ -345,11 +345,24 @@ describe('useBuddy — buy()', () => {
     const { result } = renderUseBuddy();
     await waitFor(() => expect(result.current.loaded).toBe(true));
 
+    const onBought = vi.fn();
     setRpcResult('buddy_buy', { ok: true, message: 'gekocht', state: makeRow() });
-    await act(async () => result.current.buy('taart'));
+    await act(async () => result.current.buy('taart', onBought));
 
-    await waitFor(() => expect(toastSuccess).toHaveBeenCalled());
+    await waitFor(() => expect(onBought).toHaveBeenCalledTimes(1));
     expect(result.current.careFx).toBeNull();
+  });
+
+  it('does not report a refused purchase as bought', async () => {
+    const { result } = renderUseBuddy();
+    await waitFor(() => expect(result.current.loaded).toBe(true));
+
+    const onBought = vi.fn();
+    setRpcResult('buddy_buy', { ok: false, message: 'Niet genoeg Munten.', state: makeRow() });
+    await act(async () => result.current.buy('taart', onBought));
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('Niet genoeg Munten.'));
+    expect(onBought).not.toHaveBeenCalled();
   });
 
   it('maps a database error on a purchase to a readable message', async () => {

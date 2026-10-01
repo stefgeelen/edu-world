@@ -50,8 +50,11 @@ const USE_VERB: Record<CareActionId, string> = {
 export function CarePanel({
   disabled,
   highlight,
+  pointAt,
 }: {
   disabled?: boolean;
+  /** Rondleiding: een wijzend handje onder deze knop. */
+  pointAt?: CareActionId;
   /** De Care Action die de Buddy nu nodig heeft; die knop wiebelt als hint. */
   highlight?: CareActionId;
 }) {
@@ -134,6 +137,14 @@ export function CarePanel({
                   {a.emoji}
                 </span>
                 <span className="text-sm font-extrabold leading-none">{a.label}</span>
+                {!off && pointAt === id && (
+                  <span
+                    className="pointer-events-none absolute -bottom-10 left-1/2 z-10 -translate-x-1/2 animate-bounce text-4xl drop-shadow-lg"
+                    aria-hidden
+                  >
+                    👆
+                  </span>
+                )}
                 {owned > 0 && (
                   <span className="absolute -right-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-1 text-xs font-extrabold text-foreground shadow">
                     {owned}
@@ -248,7 +259,7 @@ export function CarePanel({
               </Link>
             ) : (
               <Link
-                to="/app/buddy-room/shop"
+                to={`/app/buddy-room/shop?cat=${action?.category ?? 'food'}`}
                 onClick={() => setOpen(null)}
                 className="block rounded-2xl bg-muted px-4 py-3 text-center text-sm font-extrabold text-foreground"
               >

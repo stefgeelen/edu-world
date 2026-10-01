@@ -117,6 +117,7 @@ export function BuddyStage({
   cue,
   fx,
   onPoke,
+  pointer,
 }: {
   name: string;
   mood: BuddyMood;
@@ -124,6 +125,8 @@ export function BuddyStage({
   fx?: CareFx | null;
   /** Het kind tikt de Buddy aan; de Buddy springt op en de ouder-component laat hem iets zeggen. */
   onPoke?: () => void;
+  /** Rondleiding: een wijzend handje toont dat je de Buddy kan aantikken. */
+  pointer?: boolean;
 }) {
   const [boopAt, setBoopAt] = useState<number | null>(null);
 
@@ -135,7 +138,7 @@ export function BuddyStage({
 
   // Een Care Action-animatie gaat altijd voor; een tik speelt daar niet doorheen.
   const boop = !fx && boopAt !== null;
-  const hint = fx || boop ? undefined : CUE_HINT[cue];
+  const hint = fx || boop || pointer ? undefined : CUE_HINT[cue];
   const animation = fx ? ACTION_ANIMATION[fx.action] : boop ? 'animate-buddy-boop' : CUE_ANIMATION[cue];
   const imgKey = fx ? `fx-${fx.at}` : boop ? `boop-${boopAt}` : `cue-${cue}`;
 
@@ -162,6 +165,15 @@ export function BuddyStage({
           className={`h-56 w-56 select-none drop-shadow-2xl md:h-72 md:w-72 ${animation}`}
         />
       </button>
+
+      {pointer && !boop && (
+        <span
+          className="pointer-events-none absolute bottom-0 right-[18%] animate-bounce text-5xl drop-shadow-lg"
+          aria-hidden
+        >
+          👆
+        </span>
+      )}
 
       {boop && (
         <div className="pointer-events-none absolute inset-0" aria-hidden>
