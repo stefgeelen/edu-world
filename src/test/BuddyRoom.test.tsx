@@ -281,7 +281,7 @@ describe('BuddyRoom — home of the app', () => {
     expect(screen.getByRole('heading', { name: /Wensen van Nootje/ })).toBeInTheDocument();
     const open = screen.getByRole('button', { name: /Klok lezen/ });
     expect(open).toBeEnabled();
-    expect(open).toHaveTextContent('+5 🪙');
+    expect(open).toHaveTextContent('+5');
     expect(screen.getByRole('button', { name: /Geld tellen/ })).toBeDisabled();
   });
 
@@ -305,7 +305,7 @@ describe('BuddyRoom — home of the app', () => {
     // growthStage 2 = 1ste leerjaar, 2de trimester. "Nu" is 5 januari: 86 dagen tot 1 april.
     renderRoom();
     expect(screen.getByRole('heading', { name: 'Baby Nootje' })).toBeInTheDocument();
-    expect(screen.getByText(/Nog 86 dagen tot Nootje groeit/)).toBeInTheDocument();
+    expect(screen.getByText(/Groeit over 86 dagen/)).toBeInTheDocument();
   });
 
   it('does not throw a growth party on the very first visit', () => {

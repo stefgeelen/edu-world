@@ -102,14 +102,14 @@ npm run lint      # ESLint
 ```
 
 **What has tests** (70 files under `src/test/`, ~640 cases):
-- All 14 exercise screens, plus `Exercise`, `BuddyRoom` (incl. first-visit tour, wishes, rewards, growth), `Practice`, `BuddyShop`, `WishesCard`, app-route redirects, and the admin + parent portals
+- All 14 exercise screens, plus `Exercise`, `BuddyRoom` (incl. first-visit tour, wishes, rewards, growth), `Practice`, `BuddyShop`, `WishesCard`, the Prijzenkast (badge screens), app-route redirects, and the admin + parent portals
 - Auth flow (`Auth`, `AuthContext`, `ProtectedRoute`, `AdminRoute`, PIN session, password validation)
 - Data hooks (`useCompleteExercise`, `usePracticeMenu`, `useChildInsights`, `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`)
 - Buddy care system (`buddyState`, `buddyCatalog`, `useBuddy`) — decay/illness/death rules, shop economy, catalog integrity, RPC plumbing
 - Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `addChildLogic`, Buddy growth + payout copy)
 - E2E: `e2e/onboarding.spec.ts` (Playwright) — signup through first exercise only
 
-**What still has NO tests:** `AvatarSelection`, badge screens, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt, greeting and exercise-config hooks.
+**What still has NO tests:** `AvatarSelection`, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt and exercise-config hooks.
 
 **Conventions:** shared helpers live in `src/test/testUtils.tsx` (`createTestQueryClient`, `queryWrapper`, `fakeSupabaseChain`). Mock Supabase/auth at the module boundary and assert on behaviour, not implementation. Anchor time-sensitive fixtures to `Date.now()` — hooks that tick against the real clock will decay a fixed past timestamp out from under the test.
 

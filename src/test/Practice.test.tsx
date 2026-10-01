@@ -83,14 +83,14 @@ describe('Practice', () => {
     renderPractice();
     const tile = screen.getByRole('button', { name: /^Klok lezen/ });
     expect(tile).toHaveAccessibleName(/13 Munten, een wens van je Buddy/);
-    expect(tile).toHaveTextContent('⭐ Wens');
-    expect(tile).toHaveTextContent('🪙 13');
+    expect(tile).toHaveTextContent('Wens');
+    expect(tile).toHaveTextContent('+13');
   });
 
   it('shows a repeated type pays less, in the Buddy’s words', () => {
     renderPractice();
     const tile = screen.getByRole('button', { name: /Geld tellen/ });
-    expect(tile).toHaveTextContent('🪙 2');
+    expect(tile).toHaveTextContent('+2');
     expect(tile).toHaveTextContent('Ken ik al!');
     expect(screen.getByRole('button', { name: /Woordjes/ })).not.toHaveTextContent('Ken ik al!');
   });
@@ -101,8 +101,8 @@ describe('Practice', () => {
     });
     renderPractice();
     const tile = screen.getByRole('button', { name: /^Klok lezen/ });
-    expect(tile).not.toHaveTextContent('⭐ Wens');
-    expect(tile).toHaveTextContent('🪙 8');
+    expect(tile).not.toHaveTextContent('Wens');
+    expect(tile).toHaveTextContent('+8');
   });
 
   it('reads its greeting aloud once, naming an open wish', () => {
@@ -144,6 +144,7 @@ describe('Practice', () => {
 
   it('leads back to the Buddy', () => {
     renderPractice();
-    expect(screen.getByRole('link', { name: /Terug/ })).toHaveAttribute('href', '/app/home');
+    fireEvent.click(screen.getByRole('button', { name: 'Terug naar je Buddy' }));
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   });
 });

@@ -1,13 +1,16 @@
 import { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, Volume2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ChevronLeft, Loader2, Star, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { APP_PATHS } from '@/routes/paths';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useBuddy } from '@/hooks/useBuddy';
 import { isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
 import { practiceGreeting } from '@/lib/buddy/messages';
-import { SUBJECTS, exerciseTypeEmoji } from '@/data/exerciseTypes';
+import { SUBJECTS, type SubjectStyle } from '@/data/exerciseTypes';
+import { ExerciseTypeIcon } from '@/components/buddy/ExerciseTypeIcon';
+import { MuntenChip } from '@/components/buddy/MuntenChip';
 
 export function Practice() {
   const navigate = useNavigate();
@@ -26,107 +29,128 @@ export function Practice() {
     speak(greeting);
   }, [menu, greeting, speak]);
 
-  const start = (option: PracticeOption) => navigate(`/app${option.route}`);
-
   return (
-    <main className="h-full w-full overflow-y-auto pb-12">
-      <div className="mx-auto w-full max-w-md px-4 pt-5 md:max-w-2xl">
-        <header className="flex items-center justify-between">
-          <Link
-            to={APP_PATHS.home}
-            className="flex min-h-12 items-center gap-1.5 rounded-2xl bg-white px-4 py-2 text-base font-extrabold text-foreground shadow-sm active:scale-95"
-          >
-            <ArrowLeft className="h-5 w-5" aria-hidden /> Terug
-          </Link>
-          <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 shadow-sm">
-            <span className="text-xl" aria-hidden>
-              🪙
-            </span>
-            <span className="text-lg font-black text-foreground" aria-label={`${buddy.munten} Munten`}>
-              {buddy.munten}
-            </span>
-          </div>
-        </header>
-
-        <h1 className="mt-4 text-2xl font-black text-foreground">Kies een oefening</h1>
-
-        <button
-          type="button"
-          onClick={() => speak(greeting)}
-          aria-label={`Lees voor: ${greeting}`}
-          className="mt-2 flex w-full items-center gap-2.5 rounded-3xl rounded-bl-md bg-white py-2.5 pl-4 pr-2.5 text-left text-base font-bold text-foreground shadow-md active:scale-[0.99]"
-        >
-          <span className="flex-1">{greeting}</span>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-edu-blue text-white" aria-hidden>
-            <Volume2 className="h-5 w-5" />
-          </span>
-        </button>
-
-        {waiting && (
-          <div className="mt-10 flex justify-center" role="status" aria-label="Oefeningen laden">
-            <Loader2 className="h-8 w-8 animate-spin text-edu-teal" />
-          </div>
-        )}
-
-        {isError && (
-          <div className="mt-6 rounded-3xl bg-white p-6 text-center shadow-md">
-            <p className="text-lg font-black text-foreground">De oefeningen konden niet geladen worden</p>
-            <p className="mt-1 text-sm text-muted-foreground">Controleer je internetverbinding en probeer het opnieuw.</p>
+    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-50">
+      <header className="flex-shrink-0 border-b border-slate-200 bg-white px-4 pb-4 pt-6 shadow-sm">
+        <div className="mx-auto w-full max-w-3xl space-y-3">
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => refetch()}
-              className="mt-4 min-h-12 rounded-2xl bg-edu-green px-6 py-2.5 text-base font-black text-white shadow-md"
+              onClick={() => navigate(APP_PATHS.home)}
+              aria-label="Terug naar je Buddy"
+              className="flex-shrink-0 rounded-2xl bg-slate-100 p-2.5 transition-colors hover:bg-slate-200 active:bg-slate-300"
             >
-              Opnieuw proberen
+              <ChevronLeft className="h-5 w-5 text-slate-600" strokeWidth={2.5} />
             </button>
+            <div className="min-w-0 flex-1">
+              <p className="mb-0.5 text-xs font-bold uppercase tracking-widest text-slate-400">Oefenen</p>
+              <h1 className="truncate text-xl font-black text-slate-900">Kies een oefening</h1>
+            </div>
+            <MuntenChip amount={buddy.munten} size="lg" />
           </div>
-        )}
 
-        {menu && menu.exercises.length === 0 && (
-          <div className="mt-6 rounded-3xl bg-white p-6 text-center shadow-md">
-            <span className="text-5xl" aria-hidden>
-              🌱
+          <button
+            type="button"
+            onClick={() => speak(greeting)}
+            aria-label={`Lees voor: ${greeting}`}
+            className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 py-2 pl-3 pr-2 text-left transition-colors hover:bg-slate-100"
+          >
+            <span className="flex-1 text-sm font-bold text-slate-700">{greeting}</span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white" aria-hidden>
+              <Volume2 className="h-4 w-4" />
             </span>
-            <p className="mt-2 text-lg font-black text-foreground">Hier staan nog geen oefeningen</p>
-            <p className="mt-1 text-sm text-muted-foreground">Ze worden nog gemaakt. Kom later nog eens terug!</p>
-          </div>
-        )}
+          </button>
+        </div>
+      </header>
 
-        {menu &&
-          SUBJECTS.map((subject) => {
-            const options = menu.exercises.filter((o) => o.subject === subject.id);
-            if (options.length === 0) return null;
-            return (
-              <section key={subject.id} className="mt-6" aria-labelledby={`subject-${subject.id}`}>
-                <h2 id={`subject-${subject.id}`} className="mb-2 px-1 text-lg font-black text-foreground">
-                  <span aria-hidden>{subject.emoji}</span> {subject.label}
-                </h2>
-                <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
-                  {options.map((option) => (
-                    <OptionTile
-                      key={option.type_key}
-                      option={option}
-                      repeated={isRepeated(option, menu)}
-                      wishBonus={menu.wish_bonus}
-                      onStart={() => start(option)}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+      <div className="flex-1 overflow-y-auto px-4 py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="mx-auto w-full max-w-3xl space-y-8 pb-6">
+          {waiting && (
+            <div className="flex justify-center pt-10" role="status" aria-label="Oefeningen laden">
+              <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
+            </div>
+          )}
+
+          {isError && (
+            <Message title="De oefeningen konden niet geladen worden" body="Controleer je internetverbinding en probeer het opnieuw.">
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="w-full rounded-2xl border-b-4 border-teal-600 bg-gradient-to-r from-teal-500 to-teal-400 py-3 font-black text-white transition-all active:translate-y-1 active:border-b-0"
+              >
+                Opnieuw proberen
+              </button>
+            </Message>
+          )}
+
+          {menu && menu.exercises.length === 0 && (
+            <Message title="Hier staan nog geen oefeningen" body="Ze worden nog gemaakt. Kom later nog eens terug!" />
+          )}
+
+          {menu &&
+            SUBJECTS.map((subject) => {
+              const options = menu.exercises.filter((o) => o.subject === subject.id);
+              if (options.length === 0) return null;
+              const Icon = subject.icon;
+              return (
+                <section key={subject.id} aria-labelledby={`subject-${subject.id}`}>
+                  <div className={cn('mb-4 flex items-center gap-3 rounded-2xl bg-gradient-to-r p-3', subject.gradient)}>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+                      <Icon className="h-5 w-5 text-white" aria-hidden />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h2 id={`subject-${subject.id}`} className="text-base font-black text-white">
+                        {subject.label}
+                      </h2>
+                      <p className="text-xs font-semibold text-white/80">
+                        {options.length} {options.length === 1 ? 'soort oefening' : 'soorten oefeningen'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {options.map((option, i) => (
+                      <OptionCard
+                        key={option.type_key}
+                        option={option}
+                        subject={subject}
+                        index={i}
+                        repeated={isRepeated(option, menu)}
+                        wishBonus={menu.wish_bonus}
+                        onStart={() => navigate(`/app${option.route}`)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
 
-function OptionTile({
+function Message({ title, body, children }: { title: string; body: string; children?: React.ReactNode }) {
+  return (
+    <div className="mx-auto w-full max-w-sm space-y-4 rounded-3xl border-2 border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/40">
+      <h2 className="text-xl font-black text-slate-800">{title}</h2>
+      <p className="text-sm font-medium text-slate-500">{body}</p>
+      {children}
+    </div>
+  );
+}
+
+function OptionCard({
   option,
+  subject,
+  index,
   repeated,
   wishBonus,
   onStart,
 }: {
   option: PracticeOption;
+  subject: SubjectStyle;
+  index: number;
   repeated: boolean;
   wishBonus: number;
   onStart: () => void;
@@ -135,39 +159,42 @@ function OptionTile({
   const payout = option.next_munten + (wish ? wishBonus : 0);
 
   return (
-    <button
+    <motion.button
       type="button"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.04, 0.4), type: 'spring', bounce: 0.15 }}
       onClick={onStart}
       aria-label={`${option.title}, ${payout} Munten${wish ? ', een wens van je Buddy' : ''}${repeated ? ', die ken je al' : ''}`}
       className={cn(
-        'relative flex min-h-[8.5rem] flex-col items-center justify-center gap-1.5 rounded-3xl bg-white px-2 py-3 text-center shadow-md ring-1 ring-black/5 transition active:scale-95',
-        wish && 'ring-4 ring-edu-yellow',
-        repeated && 'opacity-80'
+        'relative flex flex-col items-center rounded-2xl border p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0',
+        repeated ? 'border-slate-200 bg-white' : cn(subject.bg, subject.border),
+        wish && 'border-amber-300 ring-2 ring-amber-300'
       )}
     >
       {wish && (
-        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-edu-yellow px-2.5 py-0.5 text-xs font-black text-foreground shadow">
-          ⭐ Wens
+        <span className="absolute right-2 top-2 flex items-center gap-0.5 rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-white shadow-sm">
+          <Star className="h-3 w-3 fill-white" aria-hidden /> Wens
         </span>
       )}
-      <span className="text-4xl leading-none" aria-hidden>
-        {exerciseTypeEmoji(option.type_key, option.subject)}
+
+      <div className="mb-2">
+        <ExerciseTypeIcon typeKey={option.type_key} subject={option.subject} muted={repeated} />
+      </div>
+
+      <p className={cn('mb-2 text-sm font-bold leading-tight', repeated ? 'text-slate-500' : 'text-slate-800')}>
+        {option.title}
+      </p>
+
+      <span aria-hidden>
+        <MuntenChip amount={`+${payout}`} muted={repeated} />
       </span>
-      <span className="text-sm font-extrabold leading-tight text-foreground">{option.title}</span>
-      <span
-        className={cn(
-          'rounded-full px-2.5 py-0.5 text-sm font-black tabular-nums',
-          repeated ? 'bg-muted text-muted-foreground' : 'bg-amber-100 text-amber-800'
-        )}
-        aria-hidden
-      >
-        🪙 {payout}
-      </span>
+
       {repeated && (
-        <span className="text-[11px] font-bold leading-none text-muted-foreground" aria-hidden>
+        <span className="mt-1 text-[10px] font-semibold text-slate-400" aria-hidden>
           Ken ik al!
         </span>
       )}
-    </button>
+    </motion.button>
   );
 }

@@ -50,11 +50,11 @@ export function buddyMessage(mood: BuddyMood, seed = 0, cue?: BuddyCue) {
   return list[seed % list.length];
 }
 
-/** "Nog 12 dagen tot Nootje groeit!" — leeg in het derde trimester, zie daysUntilNextGrowth. */
+/** "Groeit over 12 dagen" — kort genoeg voor de bovenbalk op een gsm; leeg in het derde trimester, zie daysUntilNextGrowth. */
 export function growthCountdown(name: string, days: number | null): string | null {
   if (days === null) return null;
   if (days <= 1) return `Morgen groeit ${name}!`;
-  return `Nog ${days} dagen tot ${name} groeit`;
+  return `Groeit over ${days} dagen`;
 }
 
 /** What the Buddy says on top of the list. Read aloud: many children here don't read yet. */

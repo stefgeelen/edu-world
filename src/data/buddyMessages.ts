@@ -8,8 +8,7 @@ export type BuddySituation =
   | 'exercise_start'
   | 'correct_answer'
   | 'wrong_answer'
-  | 'exercise_complete'
-  | 'badges_overview';
+  | 'exercise_complete';
 
 export type BuddyMood = 'greeting' | 'correct' | 'wrong' | 'complete' | 'idle';
 
@@ -18,7 +17,6 @@ const SITUATION_TO_MOOD: Record<BuddySituation, BuddyMood> = {
   correct_answer: 'correct',
   wrong_answer: 'wrong',
   exercise_complete: 'complete',
-  badges_overview: 'greeting',
 };
 
 export function getMoodForSituation(situation: BuddySituation): BuddyMood {
@@ -51,11 +49,6 @@ export const BUDDY_MESSAGES: MessageMap = {
       'Data opgeslagen — puike prestatie!',
       'Je hebt mijn geheugen geüpdatet met succes!',
     ],
-    badges_overview: [
-      'Kijk eens wat je verzameld hebt, {name}!',
-      'Jouw trofeeënkast is indrukwekkend, {name}!',
-      'Nog meer te verdienen — go go go!',
-    ],
   },
 
   zaza: {
@@ -79,11 +72,6 @@ export const BUDDY_MESSAGES: MessageMap = {
       'Missie geslaagd, {name}! Terug naar het ruimtestation! 🛸',
       'Je hebt weer een planeet veroverd!',
       'Kosmische high-five, {name}! ✋',
-    ],
-    badges_overview: [
-      '{name}, jouw sterrenkaart wordt steeds voller!',
-      'Een hele galaxy aan trofeeën wacht op je!',
-      'Kijk dat licht eens schitteren, {name}!',
     ],
   },
 
@@ -110,11 +98,6 @@ export const BUDDY_MESSAGES: MessageMap = {
       'Dat was een platinum track, {name}!',
       'Je hebt de hele show gestolen!',
     ],
-    badges_overview: [
-      'Jouw award-kast vult zich, {name}!',
-      'Bling check — {name} is op fire!',
-      'Nog meer trofeeën te scoren, MC!',
-    ],
   },
 
   rocco: {
@@ -139,11 +122,6 @@ export const BUDDY_MESSAGES: MessageMap = {
       'De koning is trots op je!',
       'Je bent een legendarische ridder, {name}!',
     ],
-    badges_overview: [
-      'Jouw schatkamer groeit, {name}!',
-      'Een ware verzameling van eer, {name}!',
-      'Meer trofeeën te winnen, ridder!',
-    ],
   },
 
   sparky: {
@@ -167,11 +145,6 @@ export const BUDDY_MESSAGES: MessageMap = {
       'Missie gehackt — ik bedoel gehaald, {name}! 🎯',
       'Data-analyse compleet: jij bent top!',
       'Mijn staart staat stijf van trots! ⚡',
-    ],
-    badges_overview: [
-      '{name}, jouw firewall van badges groeit!',
-      'Cyber-trofeeën stapelen zich op, {name}!',
-      'Nog meer achievements te unlocken!',
     ],
   },
 };

@@ -70,7 +70,7 @@ describe('daysUntilNextGrowth', () => {
 
 describe('growthCountdown', () => {
   it('says how many days are left, and "morgen" on the last one', () => {
-    expect(growthCountdown('Nootje', 12)).toBe('Nog 12 dagen tot Nootje groeit');
+    expect(growthCountdown('Nootje', 12)).toBe('Groeit over 12 dagen');
     expect(growthCountdown('Nootje', 1)).toBe('Morgen groeit Nootje!');
     expect(growthCountdown('Nootje', null)).toBeNull();
   });

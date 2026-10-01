@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Shield, ShoppingBag, Sparkles, Trophy, Users, Volume2 } from 'lucide-react';
+import { ChevronRight, Shield, ShoppingBag, Sprout, Trophy, Users, Volume2, Zap, type LucideIcon } from 'lucide-react';
 import { buddyCue, isSleeping, moodOf, type BuddyCue } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import { buddyMessage, careActionMessage, growthCountdown } from '@/lib/buddy/messages';
@@ -11,6 +11,7 @@ import { useBuddyTour, type BuddyTourStep } from '@/hooks/useBuddyTour';
 import { CarePanel } from '@/components/buddy/CarePanel';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
 import { WishesCard } from '@/components/buddy/WishesCard';
+import { MuntenChip } from '@/components/buddy/MuntenChip';
 import { RewardTeller } from '@/components/buddy/RewardTeller';
 import { GrowthMoment } from '@/components/buddy/GrowthMoment';
 import { useAdminRole } from '@/hooks/useAdminRole';
@@ -38,6 +39,22 @@ const TOUR_TEXT: Record<BuddyTourStep, (name: string) => string> = {
 /** Een item dat in de Winkel gekocht is met "Geef aan ...", meegegeven bij het terugkeren. */
 interface GiveState {
   give?: { action: CareActionId; itemId: string };
+}
+
+/** Shop / trophy cabinet shortcut in the shared card style. */
+function Tile({ to, label, icon: Icon, gradient }: { to: string; label: string; icon: LucideIcon; gradient: string }) {
+  return (
+    <Link
+      to={to}
+      aria-label={label}
+      className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+    >
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-sm`} aria-hidden>
+        <Icon className="h-5 w-5 text-white" strokeWidth={2.25} />
+      </span>
+      <span className="min-w-0 text-base font-black leading-tight text-slate-900">{label}</span>
+    </Link>
+  );
 }
 
 export function BuddyRoom() {
@@ -146,56 +163,36 @@ function BuddyRoomContent() {
       <div className="absolute inset-x-0 top-0 h-[52vh] bg-gradient-to-b from-transparent via-transparent to-background" aria-hidden />
 
       <div className="relative mx-auto w-full max-w-md px-4 pt-5 md:max-w-xl">
-        <header className="flex items-start justify-between gap-2">
-          <div className="min-w-0 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Jouw Buddy</p>
-            <h1 className="text-lg font-black leading-tight text-foreground">{form.title}</h1>
-            {countdown && <p className="mt-0.5 text-xs font-extrabold text-edu-green">🌱 {countdown}</p>}
+        <header className="flex items-center gap-2">
+          <div className="min-w-0 flex-1 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
+            <h1 className="truncate text-lg font-black leading-tight text-slate-900">{form.title}</h1>
+            {countdown ? (
+              <p className="flex items-center gap-1 truncate text-xs font-bold text-emerald-600">
+                <Sprout className="h-3.5 w-3.5 shrink-0" aria-hidden /> {countdown}
+              </p>
+            ) : (
+              <p className="text-xs font-bold text-slate-400">Jouw Buddy</p>
+            )}
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
-                <span className="text-xl" aria-hidden>
-                  🪙
-                </span>
-                <span className="text-lg font-black text-foreground" aria-label={`${buddy.munten} Munten`}>
-                  {buddy.munten}
-                </span>
-              </div>
-              <Link
-                to={APP_PATHS.shop}
-                className="flex min-h-12 items-center justify-center gap-1.5 rounded-2xl bg-edu-green px-3 py-2 text-base font-black text-white shadow-md active:scale-95"
-              >
-                <ShoppingBag className="h-5 w-5" aria-hidden />
-                Winkel
-              </Link>
-            </div>
-            <nav className="flex items-center gap-2" aria-label="Meer">
-              <Link
-                to={APP_PATHS.badges}
-                aria-label="Prijzenkast"
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-amber-500 shadow-sm backdrop-blur active:scale-95"
-              >
-                <Trophy className="h-5 w-5" aria-hidden />
-              </Link>
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  aria-label="Admin"
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-muted-foreground shadow-sm backdrop-blur active:scale-95"
-                >
-                  <Shield className="h-5 w-5" aria-hidden />
-                </Link>
-              )}
-              <Link
-                to={APP_PATHS.parent}
-                aria-label="Ouderportaal"
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 text-muted-foreground shadow-sm backdrop-blur active:scale-95"
-              >
-                <Users className="h-5 w-5" aria-hidden />
-              </Link>
-            </nav>
-          </div>
+          <span className="rounded-2xl bg-white/90 p-1.5 shadow-sm backdrop-blur">
+            <MuntenChip amount={buddy.munten} size="lg" />
+          </span>
+          {isAdmin && (
+            <Link
+              to="/admin"
+              aria-label="Admin"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/90 text-slate-500 shadow-sm backdrop-blur active:scale-95"
+            >
+              <Shield className="h-5 w-5" aria-hidden />
+            </Link>
+          )}
+          <Link
+            to={APP_PATHS.parent}
+            aria-label="Ouderportaal"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/90 text-slate-500 shadow-sm backdrop-blur active:scale-95"
+          >
+            <Users className="h-5 w-5" aria-hidden />
+          </Link>
         </header>
 
         <section className="mt-2 flex flex-col items-center">
@@ -274,11 +271,27 @@ function BuddyRoomContent() {
 
         <Link
           to={APP_PATHS.practice}
-          className="mt-5 flex min-h-20 w-full items-center justify-center gap-3 rounded-3xl bg-edu-yellow px-4 py-4 text-2xl font-black text-foreground shadow-lg ring-4 ring-white/70 active:scale-[0.98]"
+          className="group relative mt-5 flex w-full items-center justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-5 shadow-[0_8px_32px_rgba(16,185,129,0.25)] transition-all active:scale-[0.98]"
         >
-          <Sparkles className="h-7 w-7" aria-hidden />
-          Oefenen!
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent" />
+          <div className="relative flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/25">
+              <Zap className="h-6 w-6 fill-white text-white" strokeWidth={2.5} aria-hidden />
+            </div>
+            <div className="text-left">
+              <span className="block text-2xl font-black leading-tight text-white">Oefenen!</span>
+              <span className="block text-sm font-bold text-emerald-50/90">Verdien munten voor {buddy.name}</span>
+            </div>
+          </div>
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/40 bg-white/25 transition-transform group-hover:translate-x-1">
+            <ChevronRight className="h-5 w-5 text-white" strokeWidth={3} aria-hidden />
+          </div>
         </Link>
+
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <Tile to={APP_PATHS.shop} label="Winkel" icon={ShoppingBag} gradient="from-emerald-400 to-emerald-600" />
+          <Tile to={APP_PATHS.badges} label="Prijzenkast" icon={Trophy} gradient="from-amber-400 to-amber-600" />
+        </div>
 
         <WishesCard buddyName={buddy.name} />
         <RewardTeller />
