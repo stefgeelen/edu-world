@@ -1,14 +1,14 @@
 # Leapio — Technical Specification
 
 > **Audience:** engineers and architects working on Leapio. Assumes the reader can read the code; this document exists to explain what is where, why it is shaped that way, and where the sharp edges are.
-> **Last reviewed:** 2026-09-16 (full re-audit against `main` @ `2593ced`)
-> **Companion docs:** [CONTEXT.md](../CONTEXT.md) (domain vocabulary — authoritative for naming), [CLAUDE.md](../CLAUDE.md) (working conventions), [EXERCISES.md](../EXERCISES.md) (didactic design), `wayfinder/buddy-care/` (Buddy Care design tickets).
+> **Last reviewed:** 2026-10-02 (against `main` @ `ca97805`: the Buddy-centred redesign, engagement/install tracking, the iOS install flow)
+> **Companion docs:** [CONTEXT.md](../CONTEXT.md) (domain vocabulary — authoritative for naming), [CLAUDE.md](../CLAUDE.md) (working conventions), [EXERCISES.md](../EXERCISES.md) (didactic design), `wayfinder/buddy-care/` (Buddy Care design tickets), `wayfinder/buddy-centred-app/map.md` (decisions behind the October 2026 redesign).
 
 ---
 
 ## 1. Project Overview
 
-Leapio is a gamified, Dutch-language (Flemish) learning web app for primary-school children. Children complete short interactive exercises in rekenen (math), lezen (reading) and schrijven (writing), earn XP, stars, badges and Munten, care for a Buddy companion, and progress through three stages (trimesters) per grade. Parents own the account, manage child profiles behind a PIN, set rewards and monitor progress. Admins manage users, subscriptions, exercise difficulty and beta signups.
+Leapio is a gamified, Dutch-language (Flemish) learning web app for primary-school children. **Since October 2026 the child app is built around caring for a Buddy companion**: exercises in rekenen (math), lezen (reading) and schrijven (writing) earn Munten, Munten buy care for the Buddy, and the Buddy grows on fixed calendar moments through the school years. Munten and badges are the only rewards the child sees. XP, levels, the streak and trimester progress are still computed server-side, but only the parent portal and the badges read them. Parents own the account, manage child profiles behind a PIN, set rewards and monitor progress. Admins manage users, subscriptions, exercise difficulty, beta signups and read engagement statistics.
 
 **Actors**
 
@@ -19,7 +19,7 @@ Leapio is a gamified, Dutch-language (Flemish) learning web app for primary-scho
 | Admin | `/admin/*` | `user_roles.role = 'admin'` |
 | Prospect | `/`, `/beta` landing + signup | Public |
 
-**Product status (matters architecturally):** the app ships as a beta aimed at the Flemish 1ste and 2de leerjaar, but only **grade-1 content actually exists**. `MAX_SUPPORTED_GRADE = 1` in [difficultyConfig.ts](../src/data/difficultyConfig.ts) gates the content-pool exercises and the grade-2 world theme. Grade-2 rows in `exercises` are provisioned per-route by an admin rather than shipped in a migration. Any work that assumes multi-grade content is live is wrong today.
+**Product status (matters architecturally):** the app ships as a beta aimed at the Flemish 1ste leerjaar (the beta page stopped marketing the 2de on 2026-09-28), and only **grade-1 content actually exists**. `MAX_SUPPORTED_GRADE = 1` in [difficultyConfig.ts](../src/data/difficultyConfig.ts) gates the content-pool exercises. (The per-grade world themes went with the quest map.) Grade-2 rows in `exercises` are provisioned per-route by an admin rather than shipped in a migration. Any work that assumes multi-grade content is live is wrong today.
 
 ---
 
@@ -57,32 +57,34 @@ Leapio is a gamified, Dutch-language (Flemish) learning web app for primary-scho
 
 ```
 src/
-├── screens/            # 34 top-level screens (18 of them exercises)
+├── screens/            # 32 top-level screens (18 of them exercises)
 │   ├── admin/          #  8 admin screens
 │   └── parent/         #  8 parent-portal screens
 ├── components/
 │   ├── ui/             # 49 Radix/Shadcn primitives
 │   ├── exercise/       # ExerciseShell, ExerciseNumpad, KwadraatGrid
-│   ├── buddy/          # BuddyStage, CareActionBar, NeedBar
+│   ├── buddy/          # BuddyStage, CarePanel, GrowthMoment, ExerciseTypeIcon
+│   ├── dashboard/      # Vitrine (StarryBackground, Ornaments, Payout) + vitrineStyles — the shared dark look
 │   ├── feedback/       # BuddyToast
 │   ├── beta/           # BetaSignupForm
 │   └── figma/          # ImageWithFallback
 ├── context/            # AuthContext, GameContext, CelebrationContext
-├── hooks/              # 22 hooks (data access, game logic, platform)
-├── routes/             # publicRoutes, appRoutes, parentRoutes, adminRoutes
+├── hooks/              # 23 hooks (data access, game logic, platform)
+├── routes/             # publicRoutes, appRoutes, parentRoutes, adminRoutes, paths.ts (APP_PATHS)
 ├── data/               # Static config & content pools (9 modules)
 ├── lib/                # Cross-cutting utilities
-│   └── buddy/          # Buddy domain logic (catalog, constants, schedule, state, messages)
-├── types/              # game.ts, stage.ts
+│   └── buddy/          # Buddy domain logic (catalog, constants, schedule, state, messages, growth, payout)
+├── types/              # game.ts
 ├── integrations/
 │   └── supabase/       # Generated types.ts + client singleton
 ├── pages/              # Index (landing), NotFound
-└── test/               # 67 Vitest files + shared testUtils
+└── test/               # 72 Vitest files + shared testUtils
 supabase/
-├── migrations/         # 26 SQL migrations (schema, RLS, RPCs)
+├── migrations/         # 29 SQL migrations (schema, RLS, RPCs)
 └── functions/          # 4 Deno edge functions
 e2e/                    # Playwright: onboarding.spec.ts
 wayfinder/buddy-care/   # Feature design tickets (001-011)
+wayfinder/buddy-centred-app/  # map.md: decisions of the Oct 2026 redesign
 ```
 
 ---
@@ -107,10 +109,11 @@ wayfinder/buddy-care/   # Feature design tickets (001-011)
             appRoutes      <ProtectedRoute><ErrorBoundary><Layout/>
                                             └── <GameProvider>
                                                   └── <CelebrationProvider>
-                                                        └── <Outlet/> + <TabBar/>
+                                                        └── <Outlet/> + <TabBar/>   ← two tabs; hidden on /app, add-child, exercises
             *              NotFound
           </Routes>
           <InstallPrompt />             ← lazy
+          <ActivityTracker />           ← touch_activity ping, throttled
           <SpeedInsights />
 ```
 
@@ -119,7 +122,7 @@ Two deliberate placements:
 - **`<ErrorBoundary>` sits *inside* `<ProtectedRoute>` for `/app`.** A crashing gameplay screen shows the forest fallback for `/app` only rather than blanking the whole app via the root boundary. The parent and admin trees already did this with `<ParentErrorBoundary>`.
 - **`GameProvider` / `CelebrationProvider` live in `Layout`, not in `App`.** They depend on the current child, so they must not mount for unauthenticated or parent-portal routes.
 
-`BuddyFxProvider` (from [useBuddy.tsx](../src/hooks/useBuddy.tsx)) is **not** in the global tree — it is mounted per-screen by `BuddyRoom`. Screens that call `useBuddy()` outside a provider (e.g. `BuddyShop`) fall back to an inert no-op context with a frozen clock, which is safe because nothing they render decays.
+`BuddyFxProvider` (from [useBuddy.tsx](../src/hooks/useBuddy.tsx)) is **not** in the global tree — it is mounted per-screen by `BuddyRoom`. Screens that call `useBuddy()` outside a provider (`BuddyShop`, `Practice` for the Munten chip) fall back to an inert no-op context with a frozen clock, which is safe because nothing they render decays.
 
 ### 4.2 State layers
 
@@ -127,8 +130,9 @@ Two deliberate placements:
 |---|---|---|---|
 | Auth session | `user`, `session`, `loading` | AuthContext + GoTrue | localStorage, auto-refreshed |
 | Server state | Every DB read | React Query (`staleTime: 30s`) | In-memory, per tab |
-| Game state | `selectedAvatar`, `xp`, `level`, `streak`, `badges` | GameContext, derived from `children` + `child_badges` | Per mount |
-| Celebration | Reward/promotion popups | CelebrationContext | Per mount |
+| Game state | `selectedAvatar`, `badges` (XP/level/streak were removed from the context: no child screen shows them) | GameContext, derived from `children` + `child_badges` | Per mount |
+| Celebration | Reward popup only (the promotion popup is gone) | CelebrationContext | Per mount |
+| Per-device flags | Buddy tour done, last growth stage shown, install-banner dismissal | `localStorage`, keyed per child where relevant | Per device |
 | Buddy FX + clock | Care animation, one 5s shared tick | BuddyFxContext | Per Buddy screen |
 | PIN unlock | `parent_pin_ok` flag | `sessionStorage` | Per tab |
 | Form state | Inputs, validation | React Hook Form + Zod (parent/admin), manual (auth screens) | Per mount |
@@ -148,6 +152,8 @@ These are load-bearing; removing them regresses something measurable.
 | `child_exercise_stats` RPC | [migration](../supabase/migrations/20260911170000_child_exercise_stats_and_timeout.sql) | Three hooks used to download every attempt row a child had ever produced and aggregate in JS — a payload that grows for the life of the account. |
 | One shared 5s clock in `BuddyFxProvider` | useBuddy.tsx | N Buddy consumers on a screen cost one timer, not N. |
 | Canvas downscale to 450px long edge | [canvasRecognition.ts](../src/lib/canvasRecognition.ts) | Halves the per-call token cost of handwriting recognition. |
+| In-memory audio cache, last 60 lines | [useSpeech.ts](../src/hooks/useSpeech.ts) | The Buddy repeats a small set of sentences on every tap; without it each repeat was an ElevenLabs call. |
+| One `practice_menu` RPC for list + payouts + Wishes | migration `20261001120000` | One round-trip feeds the Dashboard and the exercise list, and the payout shown is by construction the payout earned. |
 | `statement_timeout = 15s` on `authenticated`/`anon` | migration `20260911170000` | Caps a runaway query instead of holding a connection indefinitely. |
 
 ---
@@ -169,18 +175,21 @@ All route trees are lazy-loaded. Each route has its **own** `<Suspense>` boundar
 
 ### 5.2 Child game (`/app/*`) — `<ProtectedRoute>` + `<Layout>`
 
+All child paths live in [paths.ts](../src/routes/paths.ts) (`APP_PATHS`). Exercise screens navigate to `EXERCISE_DONE_PATH` / `EXERCISE_CLOSE_PATH`, both the dashboard; no screen hard-codes a return route any more.
+
 | Path | Screen |
 |---|---|
-| `/app` | `AvatarSelection` — redirects to `/app/dashboard` if avatar set, `/app/add-child` if no child |
+| `/app` | `AvatarSelection` — redirects to `/app/home` if avatar set, `/app/add-child` if no child |
 | `/app/add-child` | `AddChild` |
-| `/app/dashboard` | `Dashboard` — hub, daily quests, buddy greeting, stats |
-| `/app/map` | `QuestMap` — stage selector, themed per grade |
-| `/app/stage/fluisterbos` | → redirect to `/app/stage/fluisterbos/1` |
-| `/app/stage/fluisterbos/:stage` | `Fluisterbos` — exercise list for a stage |
-| `/app/buddy-room` | `BuddyRoom` |
-| `/app/buddy-room/shop` | `BuddyShop` |
-| `/app/badges`, `/app/badges/:id` | `BadgeOverview`, `BadgeDetail` |
-| `/app/progress` | `Progress` (Recharts) |
+| `/app/home` | `BuddyRoom` — **tab 1, where the app opens**: Buddy, care panel, Munten, growth countdown, first-visit tour |
+| `/app/dashboard` | `Dashboard` — **tab 2**: greeting, "Alle oefeningen", Snel starten (`quickStarts`), Wishes, trophy room, parent-reward countdowns |
+| `/app/oefenen` | `Practice` — one tile per exercise type, grouped by subject, from `practice_menu` |
+| `/app/shop` | `BuddyShop` — five category tabs, `?cat=` selects one |
+| `/app/badges`, `/app/badges/:id` | `BadgeOverview`, `BadgeDetail` (the Prijzenkast) |
+
+Redirects kept for bookmarks and installed home-screen apps: `/app/buddy-room` → `/app/home`, `/app/buddy-room/shop` → `/app/shop` (keeps `?cat=`), `/app/map` and `/app/stage/*` → `/app/oefenen`, `/app/progress` → `/app/home`. Removed screens: `QuestMap`, `Fluisterbos` (stage), `Progress`, the old XP `Dashboard`.
+
+`TabBar` has two tabs (Buddy → `home`, also lit on `shop`; Dashboard → `dashboard`, also lit on `oefenen` and `badges`) and hides itself on `/app`, `/app/add-child` and `/app/exercises/*`.
 
 Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage number 1–3, not a database id**:
 
@@ -211,7 +220,7 @@ Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage nu
 
 ### 5.4 Admin (`/admin/*`) — `<AdminRoute>` → `<ParentErrorBoundary>` → `<AdminDashboard>`
 
-`index` → redirect to `users` · `users` · `subscriptions` · `stats` · `exercises` · `exercises/:familyKey` (`AdminExerciseFamily`, per-family difficulty config editor) · `beta` · `feedback`.
+`index` → redirect to `users` · `users` · `subscriptions` · `stats` (engagement + home-screen adoption, from `admin_engagement_stats`) · `exercises` · `exercises/:familyKey` (`AdminExerciseFamily`, per-family difficulty config editor) · `beta` · `feedback`.
 
 ---
 
@@ -221,15 +230,15 @@ Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage nu
 
 | Table | Purpose | Key columns |
 |---|---|---|
-| `profiles` | One row per auth user | `user_type` (parent/teacher), `locale` |
-| `children` | Child profiles | `parent_id`, `organization_id`, `grade`, `xp`, `level`, `streak`, `avatar_id`, `max_unlocked_stage`, `pending_promotion`, `last_active_date` |
+| `profiles` | One row per auth user | `user_type` (parent/teacher), `locale`, `last_seen_at`, `installed_at`, `last_standalone_at` |
+| `children` | Child profiles | `parent_id`, `organization_id`, `grade`, `xp`, `level`, `streak`, `avatar_id`, `max_unlocked_stage`, `pending_promotion`, `last_active_date`, `last_opened_at` |
 | `exercises` | Exercise catalogue, one row per (route, grade) | `route`, `grade`, `stage`, `subject`, `xp_reward`, `display_order`, `is_active`, **`config` (jsonb)** |
 | `exercise_attempts` | Every attempt | `score`, `max_score`, `stars`, `time_spent_seconds`, `answers` (jsonb) |
 | `child_progress` | Per-child, per-subject rollup (**a real table maintained by `complete_exercise`, not a materialized view**) | unique `(child_id, subject)` |
 | `trimester_progress` | Per-child, per-grade, per-trimester XP vs threshold | unique `(child_id, grade_level, trimester_number)` |
 | `badges` / `child_badges` | Badge definitions / per-child progress | `progress`, `is_unlocked`, `unlocked_at` |
 | `rewards` | Parent-defined goals ("do N of subject X") | `required_exercises`, `current_progress`, `is_completed` |
-| `buddy_states` | One Buddy per child | `needs` (jsonb), `inventory` (jsonb), `munten`, `last_tick`, `sleep_until`, `health_zero_since`, `dead` |
+| `buddy_states` | One Buddy per child | `needs` (jsonb), `inventory` (jsonb), `munten`, `last_tick`, `sleep_until`, `health_zero_since`, `dead`, **`growth_stage`** (1..18), **`wishes_day`** + **`wishes`** (text[] of type keys) |
 | `subscriptions` | Plan + limits | `plan`, `status`, `max_children`, `stripe_*` |
 | `organizations` / `organization_members` | School/org ownership path | `org_role` (owner/admin/teacher) |
 | `parent_pins` | bcrypt PIN hash per user | `pin_hash` |
@@ -245,15 +254,19 @@ Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage nu
 
 | RPC | Security | Caller | Purpose |
 |---|---|---|---|
-| `complete_exercise(child, exercise, score, max_score, stars, time_spent, answers)` | DEFINER + explicit ownership guard | `useCompleteExercise` | The single write path for gameplay. Returns `{attempt_id, xp_earned, leveled_up, new_level, streak, all_trimesters_completed, completed_rewards, munten_earned, munten_total}` |
-| `child_exercise_stats(child)` | **INVOKER** (deliberate — RLS on `exercise_attempts` does the filtering, so there is no hand-written ownership check to keep in sync) | `useStageExercises`, `useStageMastery`, `useChildInsights` | Per-exercise aggregate: attempts, best stars, avg score, title/subject/stage |
-| `buddy_get_or_create(child)` | DEFINER + `parent_id = auth.uid()` | `useBuddy` | Ticks and returns the Buddy row, creating it on first call |
+| `complete_exercise(child, exercise, score, max_score, stars, time_spent, answers)` | DEFINER + `_can_access_child` | `useCompleteExercise` | The single write path for gameplay. Returns `{attempt_id, xp_earned, leveled_up, new_level, streak, all_trimesters_completed, completed_rewards, munten_earned, munten_total, times_today, wish_fulfilled, wish_bonus}`. The client acts only on rewards and the Munten fields. |
+| `practice_menu(child)` | DEFINER + `_can_access_child` | `usePracticeMenu` | `{day, wish_bonus, full_munten, exercises[{type_key, exercise_id, title, subject, route, done_today, next_munten, wished}], wishes[{type_key, title, subject, route, fulfilled}]}`. **Writes** today's Wishes on the first call of the day. |
+| `child_exercise_stats(child)` | **INVOKER** (deliberate — RLS on `exercise_attempts` does the filtering, so there is no hand-written ownership check to keep in sync) | `useChildInsights` (the two stage hooks that also used it are gone) | Per-exercise aggregate: attempts, best stars, avg score, title/subject/stage |
+| `buddy_get_or_create(child)` | DEFINER + `parent_id = auth.uid()` | `useBuddy` | Advances `growth_stage`, ticks and returns the Buddy row, creating it on first call |
 | `buddy_care(child, action, item_id)` | DEFINER + ownership | `useBuddy` | Applies one Care Action; consumes a Care Item |
 | `buddy_buy(child, item_id)` | DEFINER + ownership | `useBuddy` | Spends Munten, adds to inventory |
 | `buddy_revive(child)` | DEFINER + ownership | `useBuddy` (parent portal) | Resets Needs to `REVIVAL_LEVEL`, clears death |
 | `has_parent_pin()` / `set_parent_pin(pin)` / `verify_parent_pin(pin)` | DEFINER | `useParentPin` | bcrypt PIN lifecycle |
 | `has_role(user, role)` | DEFINER | RLS policies, `useAdminRole` | Role check used inside policies |
-| `_buddy_ensure_row`, `_buddy_tick`, `_buddy_item`, `_buddy_window_hours` | DEFINER, **EXECUTE revoked from `anon`/`authenticated`** | Internal only | Buddy simulation internals |
+| `touch_activity(child?, standalone?)` | DEFINER | `ActivityTracker` (`useActivityPing`) | Stamps `last_seen_at` / `last_opened_at`, and `installed_at` / `last_standalone_at` when running standalone. Client-throttled to 5 min. Dropped and recreated (not replaced) when `p_standalone` was added, so a one-argument call is unambiguous. |
+| `admin_engagement_stats()` | DEFINER + admin check inside | `useAdminEngagement` | One JSON payload for `/admin/stats`: tiles, funnel, cohorts, activity, install adoption |
+| `_buddy_ensure_row`, `_buddy_tick`, `_buddy_item`, `_buddy_window_hours`, `_child_practice_options`, `_can_access_child` | DEFINER, **EXECUTE revoked from `anon`/`authenticated`** | Internal only | Buddy simulation; pickable exercises per child; the shared ownership predicate |
+| `exercise_type_key(route)`, `practice_munten_for(n)`, `practice_wish_bonus()`, `_practice_day_start()`, `buddy_growth_target(grade, day)`, `buddy_next_growth(current, target)` | IMMUTABLE/STABLE SQL helpers | Internal | The economy and growth rules in one place each (§9.7, §9.8) |
 
 ### 6.3 Exercise resolution chain
 
@@ -269,24 +282,17 @@ A child navigating to `/app/exercises/math/2` triggers three independent lookups
 
 ```typescript
 // Auth / identity
-['my-child', userId]                      ['my-children']
+['my-child', userId]
 ['has-parent-pin', userId]                ['user-role', userId]
 
 // Exercise catalogue — route- AND grade-scoped, because `route` alone
 // no longer identifies a row
 ['exercise-id', dbRoute, grade]           ['exercise-config', dbRoute, grade]
 
-// Child progress
-['stage-exercises-progress', childId, stage, grade]
-['stage-mastery', childId, maxUnlockedStage, grade]
-['child-progress', childId]               ['trimester-progress', childId, grade]
-['child-insights', childId]               ['recent-attempts', childId]
-['daily-quest-attempts-today', childId, todayKey]
-['daily-quest-subject-week', childId, todayKey]
-
-// Gamification
-['game-badges', childId]                  ['child-rewards', childId]
-['buddy-state', childId]
+// Child app
+['practice-menu', childId]                ['buddy-state', childId]
+['child-rewards', childId]                ['game-badges', childId]
+['child-insights', childId]
 
 // Parent portal
 ['parent-children', userId]               ['parent-children-count', userId]
@@ -299,9 +305,12 @@ A child navigating to `/app/exercises/math/2` triggers three independent lookups
 // Admin (unscoped — admin sees everything)
 ['admin-children']    ['admin-profiles']        ['admin-roles']
 ['admin-subscriptions']                          ['admin-subscriptions-detail']
-['admin-stats']        ['admin-exercises']       ['admin-exercise-family', routePrefix]
+['admin-stats-subscriptions']                    ['admin-engagement']
+['admin-exercises']    ['admin-exercise-family', routePrefix]
 ['admin-beta-signups'] ['admin-feedback']
 ```
+
+Removed with the map and the daily quests: `stage-exercises-progress`, `stage-mastery`, `child-progress`, `trimester-progress`, `recent-attempts`, `daily-quest-*`. (`AdminExerciseFamily` still invalidates the dead `['stage-mastery']` and does **not** invalidate `['practice-menu']`; see R20.)
 
 Note the parent portal keeps its **own** `parent-*` copies of child data rather than reusing the gameplay keys — the portal reads any child, gameplay reads "the" child. That is why `useCompleteExercise` has to invalidate both families.
 
@@ -309,19 +318,16 @@ Every child-scoped key carries `childId`; every parent-scoped key carries `userI
 
 ### 6.5 Invalidation fan-out on exercise completion
 
-`useCompleteExercise.onSuccess` invalidates **14** keys, then fires celebrations:
+`useCompleteExercise.onSuccess` invalidates **7** keys (down from 14), then fires celebrations:
 
 ```
-stage-exercises-progress · child-progress · trimester-progress
-my-child · my-children · recent-attempts
-child-rewards · parent-rewards · parent-rewards+userId
-parent-children · parent-children+userId
-game-badges · child-insights · buddy-state
+practice-menu · buddy-state · child-rewards · game-badges
+parent-children · parent-rewards · child-insights
 ```
 
-Then, in order: reward popups → promotion popup → Munten buddy-toast → level-up buddy-toast → streak-milestone buddy-toast (milestones: 3, 5, 7, 10, 14, 30).
+Then: reward popup (`celebrateRewards`) → one Buddy toast from `payoutMessage()` ("⭐ Wens vervuld!", "Deze ken ik al!" from the 3rd repeat, else "+N Munten"). The level-up, streak-milestone and promotion celebrations are gone.
 
-Note `['stage-mastery', …]` is **not** in the list — the only place that invalidates it is the admin exercise-family editor. It is keyed on `child.max_unlocked_stage`, and `['my-child']` *is* invalidated, so it re-keys indirectly, but only when that column actually changes. Mastery counts derived from attempt counts can therefore lag by up to `staleTime` (30s) after a completion. If a stage ever fails to unlock immediately after the last exercise of the previous one, this is the first place to look.
+`practice-menu` must be invalidated on every completion because each one changes what the next attempt of its type pays. Two parent-portal mutations also reach into the child's keys: opening a trimester invalidates `['practice-menu', childId]`; changing the grade invalidates `['my-child']`, `['practice-menu', childId]` and `['buddy-state', childId]` (the Buddy grows into the new grade's form).
 
 ---
 
@@ -333,7 +339,7 @@ Note `['stage-mastery', …]` is **not** in the list — the only place that inv
 2. With email confirmation enabled, `signUp` resolves **without a session**; `AuthProvider.signUp` returns `needsEmailConfirmation` so the caller does not push an unauthenticated user into onboarding.
 3. `/auth/callback` picks the session up and routes onward to PIN setup / add-child.
 4. `/auth/setup-pin` — 4-digit PIN, validated and bcrypt-hashed server-side by `set_parent_pin`.
-5. `/app/add-child` → `/app` (`AvatarSelection`) → `/app/dashboard`.
+5. `/app/add-child` → `/app` (`AvatarSelection`) → `/app/home`.
 
 `AuthProvider` registers `onAuthStateChange` **before** calling `getSession()`, and locks the PIN session on `SIGNED_OUT` / `USER_UPDATED`.
 
@@ -343,7 +349,7 @@ Note `['stage-mastery', …]` is **not** in the list — the only place that inv
 |---|---|---|
 | `<ProtectedRoute>` | `user && !loading` | → `/auth` |
 | `<ParentPinGate>` | `parentPinSession.isUnlocked()` | PIN entry, or → `/auth/setup-pin?redirect=…` if no PIN exists |
-| `<AdminRoute>` | `useAdminRole()` → `user_roles` | → `/app/dashboard` |
+| `<AdminRoute>` | `useAdminRole()` → `user_roles` | → `/app/home` |
 
 ### 7.3 PIN system
 
@@ -365,11 +371,11 @@ Three enforcement layers, in order of trust:
 2. **Explicit guards inside `SECURITY DEFINER` RPCs.** Any DEFINER function taking a client-supplied `p_child_id` must re-check ownership itself, because RLS does not apply inside it. `complete_exercise` gained this guard in `20260911160000`; before that, any authenticated user could award XP, streak, badges, rewards and Munten to *any* child id.
 3. **Edge functions** verify the caller with an anon-key client bound to the request's `Authorization` header, then escalate to a service-role client. `admin-delete-user` additionally requires an `admin` row in `user_roles` (403 otherwise). `delete-account` acts on the caller's own user only.
 
-**Known inconsistency:** the four `buddy_*` RPCs require `children.parent_id = auth.uid()` and reject org-owned children (`parent_id IS NULL`), while `complete_exercise` accepts either the parent *or* an org member. An org-owned child therefore earns Munten on every completion but gets `Not authorized` when opening the Buddy Room. See §13 R2.
+**Ownership predicate.** Migration `20261001120000` extracted `_can_access_child(children)` (parent, or member of the child's organisation). `complete_exercise` and `practice_menu` use it. **The four `buddy_*` RPCs still inline `parent_id = auth.uid()`**, so an org member who is not the parent gets `Not authorized` on the Buddy. For a child with no parent at all, `complete_exercise` and `practice_menu` now skip the Buddy part (no row, no Munten, no Wishes) instead of failing on `buddy_states.parent_id NOT NULL`, which used to abort the whole completion. See §13 R2.
 
 ### 7.5 RLS failure mode
 
-An RLS denial is not an error. Supabase returns `[]` or `null` with `error === null`. Code must treat an unexpected empty result as a possible authorization failure, not as "no data". `useStageMastery` is the model to copy: it surfaces `isError` explicitly so callers can tell "no stages yet" apart from "the query failed" — without it, a backend outage rendered as every stage being locked.
+An RLS denial is not an error. Supabase returns `[]` or `null` with `error === null`. Code must treat an unexpected empty result as a possible authorization failure, not as "no data". `Practice` is the model to copy: it treats `!menu && !isError` as waiting (not `isLoading`, which is false while a retry is paused in a background tab) and renders an explicit error with a retry, so "no exercises yet" and "the call failed" never look the same.
 
 ### 7.6 Secrets & configuration
 
@@ -394,17 +400,18 @@ An RLS denial is not an error. Supabase returns `[]` or `null` with `error === n
 3. Child answers → correct/incorrect feedback: confetti + `progress += step`, or `lives -= 1`.
 4. Progress reaches 100% **or** lives hit 0 → `completeExercise.mutate({exerciseId, score, maxScore, stars, timeSpent, answers})`. Stars map from remaining lives (3/2/1). Partial results *are* persisted on game over.
 5. `complete_exercise` runs the whole gameplay transaction server-side (§8.2).
-6. `onSuccess` → 14 invalidations → celebrations → navigate back to the stage screen.
+6. `onSuccess` → 7 invalidations → reward popup + payout toast; the screen navigates to `EXERCISE_DONE_PATH` (the dashboard).
 
 ### 8.2 What `complete_exercise` does (one round-trip, one transaction)
 
-Insert `exercise_attempts` → upsert `child_progress` → upsert `trimester_progress` (and set `pending_promotion` when all three trimesters of the grade are complete) → single `UPDATE children` for xp/streak/`last_active_date`/level → advance matching `rewards` → upsert badges → ensure+tick the Buddy row and add Munten → return the aggregate result.
+Lock the child row (`SELECT … FOR UPDATE`) → count today's attempts of this exercise **type** (`exercise_type_key`) → insert `exercise_attempts` → upsert `child_progress` → single `UPDATE children` for xp/streak/`last_active_date`/level → upsert `trimester_progress` (and set `pending_promotion` when all three trimesters of the grade are complete) → advance matching `rewards` (repeats count fully) → upsert badges → if the child has a parent: ensure+tick the Buddy row, decide the Wish, add `practice_munten_for(n) + wish bonus` → return the aggregate result.
 
 Design points worth preserving:
 
 - **Level is computed inline** as `GREATEST(level, FLOOR(new_xp / 1000) + 1)`, algebraically identical to the old `WHILE xp >= level * 1000` loop but in the same statement as the XP update. `GREATEST` keeps a level from ever going backwards.
 - **Streak** is computed against `(now() AT TIME ZONE 'Europe/Amsterdam')::date`, so a child's day boundary is Belgian local midnight, not UTC.
-- **Badges:** `first-steps` is insert-once; `goal-oriented`/`book-master`/`legend`/`fire-streak` are absolute values recomputed in one multi-row upsert; `perfect` and `speed` increment by one and must stay separate because their `ON CONFLICT` expression reads the existing row.
+- **Row lock first.** Two simultaneous completions would otherwise both count as "the first of this type today" and both claim the full payout and the Wish bonus.
+- **Badges:** `first-steps` is insert-once; `goal-oriented` (50), `book-master` (20), `legend` (500) count total exercises and `fire-streak` the streak, recomputed in one multi-row upsert; `perfect` and `speed` increment by one and must stay separate because their `ON CONFLICT` expression reads the existing row. `goal-oriented` and `legend` used XP and level until `20261001120000`, which also recalculated existing progress. `champion`, `collector` and `rainbow` have **no** server-side rule and cannot be earned (R19).
 - **Deliberately not async.** Moving badge/reward work off the request path would make unlocks eventually consistent and change what a child sees the instant they finish.
 - **Trimester number** is parsed out of `exercises.stage` (`'stage-2'` → 2), clamped to 1–3.
 
@@ -414,17 +421,17 @@ Design points worth preserving:
 
 canvas pointer strokes → `canvasToRecognitionBase64()` (downscale to ≤450px long edge, keep the transparent background because that is what the model has always received) → `invokeFunction('recognize-digit', …)` → edge function calls Anthropic `claude-haiku-4-5` with a lenient children's-handwriting prompt → `{recognized: number | null}`.
 
-Every edge-function call goes through [invokeFunction.ts](../src/lib/invokeFunction.ts), which enforces a **12s deadline** (8s for TTS) and throws `EdgeFunctionTimeoutError` so a screen can offer a retry instead of leaving a child staring at a frozen question forever.
+Every edge-function call goes through [invokeFunction.ts](../src/lib/invokeFunction.ts), which enforces a **12s deadline** (8s for TTS) and throws `EdgeFunctionTimeoutError` so a screen can offer a retry instead of leaving a child staring at a frozen question forever. On a non-2xx response it reads the body supabase-js attaches as `context` and throws the function's own `error` (plus `details`), falling back to the generic error only when the body has nothing usable.
 
 ### 8.4 Text-to-speech
 
-`useSpeech` / `speakText` calls the `synthesize-speech` edge function (ElevenLabs, Flemish voice), plays the returned base64 MP3, and **falls back to the Web Speech API** (`nl-NL`, rate 0.75) if the function fails. `lib/speechUnlock.ts` is imported by `Layout` for its side effect: iOS Safari requires a user gesture before any audio can play. Consumers: `ExerciseSoundHouse` (where audio is the exercise, not an enhancement), `ExerciseLanguage`, `ExercisePictureWord`, `ExerciseSentenceDoctor`, `BuddyBubble`, `BuddyToast`.
+`useSpeech` / `speakText` calls the `synthesize-speech` edge function (ElevenLabs, Flemish voice), plays the returned base64 MP3, and **falls back to the Web Speech API** (`nl-NL`, rate 0.75) if the function fails. `lib/speechUnlock.ts` is imported by `Layout` for its side effect: iOS Safari requires a user gesture before any audio can play. Decoded audio for the **last 60 lines** is cached in memory (LRU), because the Buddy repeats a small sentence set on every arrival, Care Action and tap. Consumers: `ExerciseSoundHouse` (where audio is the exercise, not an enhancement), `ExerciseLanguage`, `ExercisePictureWord`, `ExerciseSentenceDoctor`, `BuddyBubble`, `BuddyToast`, `BuddyRoom`, `Practice`.
 
 ---
 
 ## 9. Buddy Care Subsystem
 
-The newest and most stateful feature (migrations `20260911120000`, `20260914120000`; design in `wayfinder/buddy-care/`). **[CONTEXT.md](../CONTEXT.md) is authoritative for its vocabulary** — Avatar vs Buddy, Need, Care Action, Care Item, Eikel, Illness, Death, Buddy Room.
+The most stateful feature, and since October 2026 the centre of the child app (migrations `20260911120000`, `20260914120000`, `20261001120000`; design in `wayfinder/buddy-care/` and `wayfinder/buddy-centred-app/`). **[CONTEXT.md](../CONTEXT.md) is authoritative for its vocabulary** — Avatar vs Buddy, Need, Care Action, Care Item, Eikel, Illness, Death, Buddy Room.
 
 ### 9.1 Model
 
@@ -440,7 +447,7 @@ Five **Needs** on 0–100: Hunger, Fun, Energy, Hygiene, Health. The first four 
 | `DEATH_AFTER_HOURS` | 24 active hours (≈2 school days) | Health at 0 for this long → Death |
 | `SLEEP_MINUTES` | 30 | Normal rest duration; a sleep-comfort item shortens it by its `strength` % |
 | `REVIVAL_LEVEL` | 55 | Needs after a parent revival (partial, not full) |
-| `STARTING_MUNTEN` / per exercise | 40 / 8 | Economy |
+| `STARTING_MUNTEN` | 40 | Economy. Per-exercise payout: see §9.8 |
 
 ### 9.2 Care Window — the clock only runs during school hours
 
@@ -465,11 +472,38 @@ This is a deliberate duplication with a maintenance cost: **the TS and SQL imple
 
 ### 9.5 Presentation
 
-`BuddyRoom` mounts `BuddyFxProvider` and renders `BuddyStage` (mood animation + care FX), `NeedBar` ×5 and `CareActionBar`. `buddyCue()` picks the single signal the Buddy shows, with fixed priority: **dead > napping > ill > night > lowest critical Need**. Night deliberately ranks below Illness so a sick Buddy can still ask for medicine after 19:00. `lib/buddy/messages.ts` holds the Dutch copy per mood and cue.
+`BuddyRoom` mounts `BuddyFxProvider` and renders `BuddyStage` (mood animation, care FX, growth scale + accessories, poke-to-hop) and `CarePanel` (each Need on a row with its Care Action; replaces `NeedBar` + `CareActionBar`). `buddyCue()` picks the single signal the Buddy shows, with fixed priority: **dead > napping > ill > night > lowest critical Need**, and `CUE_ACTION` maps the cue to the button that wiggles. Night deliberately ranks below Illness so a sick Buddy can still ask for medicine after 19:00; the evening no longer *looks* asleep, because care is allowed then. `lib/buddy/messages.ts` holds the Dutch copy per mood, cue and Care Action, plus `growthCountdown` and `practiceGreeting`.
+
+Other moving parts, all client-only:
+
+- **Buy-and-care** (`useBuddy().buyAndCare`): `buddy_buy` then `buddy_care` in sequence, so the server still validates price, stock and category. If the care call is refused after the buy succeeded, the item stays in the inventory. Care buttons are disabled while a mutation is in flight.
+- **Give from the Shop:** after a purchase, "Geef aan …" navigates to `/app/home` with `location.state.give = {action, itemId}`; `BuddyRoom` uses it once per `location.key` and clears the state with a `replace` navigation, so back/refresh cannot spend a second item.
+- **Tour** (`useBuddyTour`): `poke → feed → done`, read synchronously from `localStorage['leapio:buddy-tour-done:<childId>']` so the first render already knows. Paused while the Buddy sleeps or is dead.
+- **Growth moment** (`useGrowthMoment`): compares `growth_stage` with `localStorage['leapio:buddy-growth-seen:<childId>']`; the first visit on a device only records.
+- Successful Care Actions and purchases no longer toast; only refusals do.
 
 ### 9.6 Naming divergence (open)
 
 CONTEXT.md makes **Eikel** the canonical currency name, but the code and schema say `munten` throughout (`buddy_states.munten`, `STARTING_MUNTEN`, `MUNTEN_PER_EXERCISE`, and the user-facing string `"+N Munten voor je Buddy!"`). Either the domain doc or the implementation is wrong; today children see "Munten". See §13 R3.
+
+### 9.7 Growth
+
+`growth_stage` 1..18 = `(grade − 1) × 3 + calendar trimester` (sep–dec = 1, jan–mar = 2, apr–aug = 3), computed by `buddy_growth_target` and applied in `buddy_get_or_create` through `buddy_next_growth`: **within the same grade the stage never decreases** (otherwise every September, before a parent raises the grade, the calendar would shrink the Buddy back to trimester 1); a **grade change is followed in either direction**, so a wrong grade can be corrected. It is persisted rather than derived for exactly that reason. Care has no influence. The migration back-filled every existing Buddy.
+
+Client side, [growth.ts](../src/lib/buddy/growth.ts) maps a stage to a `GrowthForm` (title, scale, emoji accessories; six forms, placeholder art) and computes `daysUntilNextGrowth` (null in trimester 3, where the next step is a grade change with no date). `phaseOfMonth` must match `buddy_growth_target`.
+
+### 9.8 Practice economy
+
+| Rule | SQL | TS mirror |
+|---|---|---|
+| Type of an exercise = route minus last segment (`/exercises/clock/2` → `/exercises/clock`) | `exercise_type_key` | `TYPE_ICON` keys in `data/exerciseTypes.ts` |
+| Payout for the n-th attempt of a type today: 8, 8, 4, 2, 1… | `practice_munten_for` | `payout.ts` `FULL_PAYOUT_TIMES = 2` (only for the message) |
+| Wish bonus +5, first attempt of a wished type today | `practice_wish_bonus` | — (the client reads `wish_bonus` from the menu) |
+| Day boundary: midnight Europe/Amsterdam | `_practice_day_start` | — |
+| Pickable exercises: per type, the version from the highest open trimester; a trimester is open if `max_unlocked_stage` ≥ it **or** every active exercise of the previous one has ≥ 5 attempts | `_child_practice_options` | — (moved from the deleted `useStageMastery`) |
+| Wishes: up to 3 type keys, ordered by `md5(child_id ‖ day ‖ type_key)`, stored on `buddy_states` the first time `practice_menu` runs that day | `practice_menu` | — |
+
+The client never computes a payout. `usePracticeMenu` exposes `isRepeated`, `wishOpen` and `quickStarts` (open Wishes, then types not done today, then least done) over what the server returned.
 
 ---
 
@@ -489,13 +523,19 @@ Boundaries: `<ErrorBoundary>` (root, and again inside `/app`) with a forest-them
 
 ### 10.2 Offline & PWA
 
-`manifest.json`, `icon-192/512`, theme-color and Apple meta tags are in place, and `useInstallPrompt` / `<InstallPrompt>` drive an A2HS prompt. `useOnlineStatus` / `<OfflineBanner>` surface connectivity.
+`manifest.json` (`start_url: /app`, separate `any` and `maskable` icon entries), `icon-192/512`, a real 180px `apple-touch-icon`, PNG favicons, theme-color and Apple meta tags are in place. Icons are rasterised from `src/assets/brand/icon-leapio.svg` by `scripts/build-icons.sh` (headless Chrome); the PNGs are committed because the build has no image step.
+
+`useInstallPrompt` reports an `InstallMode`: `installed` · `native` (`beforeinstallprompt` available) · `ios-safari` (guided Share → *Zet op beginscherm* steps) · `ios-other` (asks to open in Safari) · `none`. Dismissal is stored as a timestamp and holds for 14 days. `lib/platform.ts` `isStandalone()` also feeds `touch_activity`. `useOnlineStatus` / `<OfflineBanner>` surface connectivity.
 
 **There is no service worker.** The app is installable but not offline-capable: an installed Leapio opened without connectivity shows a browser error, not the banner. The banner only helps a tab that is already loaded. See §13 R6.
 
 ### 10.3 SEO & marketing surface
 
-`<SEO>` (react-helmet-async) plus `public/sitemap.xml` and `robots.txt`. `index.html` still carries Lovable scaffold leftovers: `meta name="author" content="Lovable"`, `twitter:site @Lovable`, `og:description "Lovable Generated Project"`, an OG image on a `pub-*.r2.dev` preview URL, and a `<!-- TODO: Update og:title -->`. Anything shared from Leapio today previews as a Lovable project. `SEO-AUDIT.md` covers this separately.
+`<SEO>` (react-helmet-async) plus `public/sitemap.xml` and `robots.txt`. The Lovable scaffold metadata in `index.html` was cleaned up on 2026-09-28: own `og-image.jpg` (1200×630, with size and alt), no Lovable author/twitter tags, Leapio descriptions. **Every absolute URL (OG image, `og:url`, sitemap, the beta page's fallback canonical) points at `leapio.app`, which has no DNS yet**, so link previews will not render an image until it does. The beta page is narrowed to the 1ste leerjaar, and both marketing pages describe the Buddy-centred app (R18). `SEO-AUDIT.md` covers SEO separately.
+
+### 10.4 Activity & install telemetry
+
+`<ActivityTracker>` (in `App`) calls `touch_activity(p_child_id, p_standalone)` on load and on tab focus, throttled to once per 5 minutes in module state, fire-and-forget. It is the only usage signal besides a completed exercise: it separates "opens the app and stalls" from "never came back", and counts home-screen installs (`installed_at`) versus installed use (`last_standalone_at`). `admin_engagement_stats` turns it into the `/admin/stats` screen.
 
 ---
 
@@ -503,11 +543,11 @@ Boundaries: `<ErrorBoundary>` (root, and again inside `/app`) with a forest-them
 
 ### 11.1 Current state — verified by running it
 
-`npm test`: **67 test files, 554 cases — 553 pass, 1 skipped**, ~31s. (13 unhandled GoTrue rejections are logged as noise from mocked auth in `parentPinSession.test.ts`; they do not fail the run.)
+`npm test` (2026-10-02): **72 test files, 661 cases, all passing**, ~30s. (14 unhandled GoTrue rejections are logged as noise from mocked auth; they do not fail the run.)
 
-**Covered:** all 18 exercise screens · `Exercise`, `Dashboard`, `Fluisterbos`, `QuestMap` · the full admin portal (8 screens) · the full parent portal (8 screens) · auth (`Auth`, `AuthContext`, `ProtectedRoute`, `AdminRoute`, PIN session, password validation) · data hooks (`useCompleteExercise`, `useDailyQuests`, `useStageExercises`, `useStageMastery`, `useChildInsights`, `useTrimesterProgress`, `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`, `useBuddy`) · Buddy logic (`buddyState`, `buddySchedule`, `buddyCatalog`) · pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `worldThemes`, `dailyQuests`, `addChildLogic`, `canvasRecognition`).
+**Covered:** all 18 exercise screens · `Exercise`, `BuddyRoom` (incl. the tour, give-from-shop, growth), `BuddyShop`, `Dashboard`, `TabBar`, `Practice`, the Prijzenkast (badge screens), the app-route redirects · the full admin portal (8 screens) · the full parent portal (8 screens) · auth (`Auth`, `AuthContext`, `ProtectedRoute`, `AdminRoute`, PIN session, password validation) · data hooks (`useCompleteExercise`, `usePracticeMenu`, `useChildInsights`, `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`, `useBuddy`, `useActivityPing`) · Buddy logic (`buddyState`, `buddySchedule`, `buddyCatalog`, growth, payout copy) · pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `addChildLogic`, `canvasRecognition`, `invokeFunction`) · the speech audio cache.
 
-**Not covered:** `BuddyRoom` / `BuddyShop` screens · `AvatarSelection` · `Progress` · badge screens · landing pages · `AuthCallback` / `ResetPassword` · `GameContext` / `CelebrationContext` · the speech, online-status, install-prompt, greeting and exercise-config hooks · **the SQL itself** (no pgTAP; `complete_exercise` and the `buddy_*` RPCs are only exercised through mocks).
+**Not covered:** `AvatarSelection` · landing pages · `SetupParentPin` · `AuthCallback` / `ResetPassword` · `GameContext` / `CelebrationContext` · `useSpeech` beyond its cache, the online-status, install-prompt and exercise-config hooks · **the SQL itself** (no pgTAP; `complete_exercise`, `practice_menu` and the `buddy_*` RPCs are only exercised through mocks).
 
 **E2E:** `e2e/onboarding.spec.ts` covers signup through the first exercise. Nothing else.
 
@@ -522,12 +562,10 @@ npm run build   # vite build — does NOT type-check (SWC strips types)
 # there is no `npm run typecheck`
 ```
 
-`npx tsc --noEmit -p tsconfig.app.json` currently reports **17 errors**, and nothing in the build or CI runs it. Two are genuine stale-type bugs in shipping code:
+`npx tsc --noEmit -p tsconfig.app.json` reports **8 errors** (2026-10-02; was 17), and nothing in the build or CI runs it. `types.ts` was regenerated on 2026-09-28 and after `20261001120000`, which cleared the `child_exercise_stats` errors. What remains:
 
-- `src/integrations/supabase/types.ts` **does not contain `child_exercise_stats`**, so all three hooks that call it are type-errors and their result rows are typed `Json`. The generated types have not been regenerated since migration `20260911170000`.
-- `Cannot find name 'BuildQuestion'` in `src/data/sentenceDoctorSentences.ts:22` and `Cannot find name 'Question'` in `src/screens/ExerciseSentenceDoctor.tsx:78` — type-only references to names that no longer exist.
-
-The rest are in test files (mock-typing drift).
+- `Cannot find name 'BuildQuestion'` in `src/data/sentenceDoctorSentences.ts:22` and `Cannot find name 'Question'` in `src/screens/ExerciseSentenceDoctor.tsx:79` — type-only references to names that no longer exist.
+- Six in test files (mock-typing drift).
 
 The only GitHub Actions workflow is `Supabase Keep-Alive` — a cron ping (Mon/Thu 08:00 UTC) that keeps the free-tier project from pausing, because a project left paused long enough is permanently deleted with no backups, which has already wiped `auth.users` once. **No workflow runs lint, tests, or type-checking on a push or PR.** See §13 R7.
 
@@ -543,7 +581,8 @@ The only GitHub Actions workflow is `Supabase Keep-Alive` — a cron ping (Mon/T
 | RUM | `@vercel/speed-insights` |
 | Migrations | Applied via Supabase CLI against a single hosted project. No staging project, no migration step in CI |
 | DB safety | Free tier: **no automated backups.** The keep-alive workflow is the only thing standing between an idle period and permanent data loss |
-| Lovable | `lovable-tagger` runs in dev mode only; `.lovable/` and scaffold metadata remain |
+| Lovable | `lovable-tagger` runs in dev mode only; `.lovable/` remains. The public metadata no longer references Lovable. |
+| Domain | `leapio.app` is the intended production domain; it has no DNS yet |
 
 Single environment. A migration lands in production the moment it is pushed, and `main` is the deploy branch.
 
@@ -557,9 +596,9 @@ Ordered by what I would fix first. Severity is about blast radius, not effort.
 `ParentPinGate` keeps `attempts` and `lockedUntil` in component state, so reloading the page resets the lockout, and `verify_parent_pin` has no server-side counter. A 4-digit PIN is 10 000 candidates.
 **Fix:** move the counter server-side — a `pin_attempts` column (or table) on `parent_pins`, incremented inside `verify_parent_pin` and reset on success, with a timestamped lockout the RPC itself enforces.
 
-### R2 · Org-owned children cannot use the Buddy Room — **High (correctness)**
-The four `buddy_*` RPCs require `children.parent_id = auth.uid()`; `complete_exercise` accepts parent *or* org member. An org-owned child (`parent_id IS NULL`) earns Munten on every completion and gets `Not authorized` opening the Buddy Room.
-**Fix:** extract the ownership predicate `complete_exercise` uses into one shared SQL function and call it from all five. The duplicated inline check is exactly how this drifted.
+### R2 · Org access to the Buddy — **Medium (correctness)**, narrowed 2026-10-01
+`_can_access_child` now exists and `complete_exercise` / `practice_menu` use it. A parentless org child no longer breaks completion; it simply has no Buddy, no Munten and no Wishes. Still open: the four `buddy_*` RPCs inline `parent_id = auth.uid()`, so an org member (teacher) gets `Not authorized` on a child that does have a parent, and a parentless child can never have a Buddy at all. Matters once school accounts are real.
+**Fix:** call `_can_access_child` from the `buddy_*` RPCs, and decide what owns `buddy_states.parent_id` for an org child.
 
 ### R3 · Munten vs Eikel — **Medium (product/domain)**
 CONTEXT.md declares **Eikel** canonical; the schema column, the TS constants and the user-facing toast all say **Munten**. Children currently see "Munten".
@@ -578,8 +617,8 @@ Manifest, icons, install prompt and an offline banner all present; no service wo
 **Fix:** either add a minimal precache worker (app shell + avatars + picture pool) or drop the install prompt until one exists.
 
 ### R7 · Nothing gates a push — **Medium (process)**
-No CI runs lint, tests or `tsc`. The project does not currently type-check (17 errors), which the Vite/SWC build cannot catch because it strips types without checking them.
-**Fix, in order:** add `"typecheck": "tsc --noEmit -p tsconfig.app.json"`; regenerate `src/integrations/supabase/types.ts` (this alone clears the `child_exercise_stats` errors and restores typing on three hooks); fix the two dangling type names; add a PR workflow running lint + typecheck + test.
+No CI runs lint, tests or `tsc`. The project does not type-check (8 errors, down from 17 after the type regeneration), which the Vite/SWC build cannot catch because it strips types without checking them.
+**Fix, in order:** add `"typecheck": "tsc --noEmit -p tsconfig.app.json"`; fix the two dangling type names and the six test-file errors; add a PR workflow running lint + typecheck + test.
 
 ### R8 · Uncancelled timers that navigate and mutate — **Medium**
 `useExerciseState` fires two bare `setTimeout`s that call `completeExercise.mutate()` and `navigate()`. Neither is cleared on unmount, and the hook backs most exercise screens. Five screens also keep their own uncleared timers: `Exercise`, `ExerciseCompareObjects`, `ExerciseComparison`, `ExerciseDotCount`, `ExerciseWriteNumber`. A child who taps back during the feedback pause gets a stray navigation, and possibly a duplicate attempt row.
@@ -587,7 +626,7 @@ No CI runs lint, tests or `tsc`. The project does not currently type-check (17 e
 *Pointer/keyboard listeners are, by contrast, balanced everywhere now (`ExerciseClock` 2/2, `ExerciseWriteNumber` 7/7, `ExerciseSplitBox` and `ExerciseSubtractBox` 1/1) — the old "possible listener leak" risk is resolved.*
 
 ### R9 · Buddy logic duplicated in TS and SQL — **Medium (by design, needs guarding)**
-Decay rates, the care window, the death rule and item strengths exist in `lib/buddy/*` and in the migrations. The split is correct (server authority + smooth client countdown), but the two can silently diverge, and divergence shows up as a Buddy that dies on screen and revives on refresh. `MUNTEN_PER_EXERCISE = 8` is also hard-coded as a literal `8` in `complete_exercise`.
+Decay rates, the care window, the death rule and item strengths exist in `lib/buddy/*` and in the migrations. The split is correct (server authority + smooth client countdown), but the two can silently diverge, and divergence shows up as a Buddy that dies on screen and revives on refresh. October 2026 added two more pairs: the calendar trimester (`phaseOfMonth` ↔ `buddy_growth_target`) and the repeat threshold behind "Deze ken ik al!" (`FULL_PAYOUT_TIMES` ↔ `practice_munten_for`). The payout amounts themselves are server-only, which is the better pattern.
 **Fix:** a test that asserts the TS constants against values read from the DB, or generate one side from the other. At minimum, a comment block in both places listing every paired constant.
 
 ### R10 · `exercises.config` has no schema validation — **Medium**
@@ -596,38 +635,57 @@ Decay rates, the care window, the death rule and item strengths exist in `lib/bu
 
 ### R11 · Catalogue queries fire before the child resolves — **Low**
 `useExerciseId` and `useExerciseConfig` default `grade` to 1 and have no `enabled` guard, so each issues one query keyed on grade 1 before `useCurrentChild` settles, then a second on the real grade. Harmless for grade-1 users (everyone, today) and self-correcting because grade is in the key — but it doubles the request and will look like a flash of wrong difficulty once grade 2 is live.
-**Fix:** `enabled: isFetched` on both, as `useStageExercises` does.
+**Fix:** `enabled: isFetched` on both (the pattern the deleted stage hooks used).
 
 ### R12 · Stripe columns with no integration — **Low**
 `subscriptions.stripe_customer_id` / `stripe_subscription_id` and the full plan/status enums exist; there is no Stripe SDK, no checkout, no webhook. Plans are set by hand in `/admin/subscriptions`. Fine as a placeholder — worth an explicit note so nobody assumes billing works.
 
-### R13 · Lovable scaffold metadata in `index.html` — **Low (but public)**
-`author: Lovable`, `twitter:site: @Lovable`, `og:description: "Lovable Generated Project"`, an OG image on a `r2.dev` preview URL, and an unresolved `TODO` on `og:title`. Every shared link previews as a Lovable project.
+### R13 · Public URLs point at a domain that does not resolve — **Low (but public)**
+The Lovable metadata is gone (2026-09-28). The OG image, `og:url`, sitemap and fallback canonical now all use `leapio.app`, which has no DNS, so a shared link previews without an image until the domain is live.
 
 ### R14 · Dead code in `GameContext` — **Low**
 `hexToColorClass(hex)` ignores its argument and returns the constant `'bg-slate-400'`; badge colours come from `gradientFrom`/`gradientTo` anyway. `GameContext` also re-exports `avatars`/`badgesData` "for backwards compatibility" and mirrors `dbBadges` into `useState` via an effect when a derived value would do.
 *(The `child as any` assertion previously flagged here is gone — `useCurrentChild` now returns a properly typed `Pick<Tables<'children'>, …>`.)*
 
-### R15 · `zzdebug.test.tsx` and stray build artefacts — **Low**
-A debug test file ships in the suite, and ~90 `vitest.config.ts.timestamp-*.mjs` files sit in the repo root. Cosmetic, but they make `ls` and test output noisy.
+### R15 · Stray build artefacts — **Low**
+`zzdebug.test.tsx` is gone, but 84 `vitest.config.ts.timestamp-*.mjs` files still sit in the repo root. Cosmetic, but they make `ls` noisy.
+
+### R16 · Hidden XP still drives promotion — **Medium (product/domain)**
+The child no longer sees XP, but `trimester_progress` XP thresholds still set `pending_promotion`, while the Buddy grows by the calendar. Two clocks for one school year, one of them invisible. Removing the XP/level columns (as the decision map suggests) breaks promotion and the parent portal unless promotion is redesigned first. Open decision D-11 in the FSD.
+
+### R17 · `practice_menu` writes, and reads all attempts — **Low**
+It is called on every Dashboard and exercise-list load, takes a `FOR UPDATE` on `buddy_states` once a day to store the Wishes, and `_child_practice_options` counts **all** of the child's attempts per call to decide open trimesters: the same lifetime-growing aggregate D5 moved off the client. Fine at beta scale; an index on `exercise_attempts(child_id, exercise_id)` or a cached "open until" stage will matter later.
+
+### R18 · Marketing copy describes the removed game — **Resolved 2026-10-02**
+`BetaLanding`, `Landing`, `index.html` meta, JSON-LD and the signup share text were rewritten around the Buddy; the invented testimonials on `Landing` were removed. Left: `src/assets/beta-hero.jpg` (also the OG image) shows "XP" coins.
+
+### R19 · Three badges cannot be earned — **Low**
+`champion`, `collector` and `rainbow` exist in `badges` but `complete_exercise` has no rule for them.
+
+### R20 · Admin exercise edits do not refresh the menu — **Low**
+`AdminExerciseFamily` invalidates the removed `['stage-mastery']` key instead of `['practice-menu']`. Only matters when an admin tests as a child on the same device, but it is a dead key reference.
+
+### R21 · Per-device state for tour and growth — **Low (by design)**
+The first-visit tour and the "Buddy grew" moment are remembered in `localStorage`, so a second tablet replays them and a private window always shows them. Accepted: a replayed celebration is harmless and not worth a write per visit.
 
 ### 13.1 High-risk files
 
 | File | Lines | Why |
 |---|---|---|
-| `supabase/migrations/…_harden_and_streamline_complete_exercise.sql` | 260 | The entire gameplay write path, and the authorization guard for it |
+| `supabase/migrations/20261001120000_buddy_centred_practice.sql` | 601 | Current `complete_exercise`, `practice_menu`, trimester opening, payouts, Wishes, growth |
 | `supabase/migrations/…_add_buddy_care.sql` + `…_buddy_care_window.sql` | 594 + 178 | Server-authoritative Buddy simulation; must stay in step with `lib/buddy/*` |
 | `src/context/AuthContext.tsx` | 123 | Auth gate for the whole app; listener-before-getSession ordering, referential stability |
-| `src/hooks/useCompleteExercise.ts` | 137 | 14 invalidations + every celebration trigger |
-| `src/hooks/useBuddy.tsx` | 202 | Optimistic Buddy state, shared clock, three mutations |
-| `src/hooks/useExerciseState.ts` | 125 | Shared by most exercises; uncancelled timers (R8) |
-| `src/screens/ExerciseNumberLine.tsx` | 645 | Pointer-event drag logic |
-| `src/screens/ExerciseWriteLetter.tsx` | 593 | Canvas + stroke paths + recognition |
-| `src/screens/ExerciseWriteDigit.tsx` | 536 | Canvas + recognition |
-| `src/screens/parent/ParentChildDetail.tsx` | 505 | Multiple queries, insights, revival |
-| `src/screens/Dashboard.tsx` | 500 | Many queries, greeting effect, quest state |
+| `src/hooks/useCompleteExercise.ts` | 109 | 7 invalidations + reward/payout feedback |
+| `src/hooks/useBuddy.tsx` | 238 | Buddy state, shared clock, care/buy/buy-and-care mutations |
+| `src/screens/BuddyRoom.tsx` | 273 | Home screen: speech, tour, give-from-shop, growth moment |
+| `src/hooks/useExerciseState.ts` | 124 | Shared by most exercises; uncancelled timers (R8) |
+| `src/screens/ExerciseNumberLine.tsx` | 644 | Pointer-event drag logic |
+| `src/screens/ExerciseWriteLetter.tsx` | 591 | Canvas + stroke paths + recognition |
+| `src/screens/ExerciseWriteDigit.tsx` | 534 | Canvas + recognition |
+| `src/screens/parent/ParentChildDetail.tsx` | 512 | Multiple queries, insights, revival, grade/trimester changes that reach the child's keys |
+| `src/screens/Dashboard.tsx` | 422 | Menu, Wishes, badges, rewards in one screen |
 | `src/hooks/useParentPin.ts` + `ParentPinGate.tsx` | — | Security-critical (R1) |
-| `src/integrations/supabase/types.ts` | 941 | Generated; **currently stale** (R7) |
+| `src/integrations/supabase/types.ts` | 1046 | Generated; regenerate after every migration |
 
 ---
 
@@ -643,12 +701,18 @@ Decisions already made, with the reasoning, so they are not silently reversed.
 | D4 | Needs decay only inside a Care Window (school hours, weekdays) | The 24/7 model killed Buddies over a weekend through no fault of the child. |
 | D5 | Aggregate on the server (`child_exercise_stats`), not in the browser | The per-attempt payload grows for the life of the account. |
 | D6 | `:id` in exercise routes is the stage number, not a DB id | Routes stay human-readable and shareable; the UUID is resolved by `(route, grade)`. |
-| D7 | The `fluisterbos` URL segment is a legacy slug, not a design statement | Re-parameterizing the URL would touch every `navigate()` call in every exercise for a cosmetic win; themes change what renders, not the route. |
+| D7 | *(Superseded 2026-10-01.)* The `fluisterbos` stage URLs are gone; every exercise returns through `EXERCISE_DONE_PATH`, and old stage URLs redirect to `/app/oefenen`. | Centralising the return path in `paths.ts` made the next layout change (two tabs, 2026-10-02) a one-line edit. |
 | D8 | Per-route `<Suspense>` boundaries | One shared boundary meant a single broken import showed an eternal spinner everywhere. |
 | D9 | `<ErrorBoundary>` inside the `/app` guard, not only at the root | A crashing exercise degrades `/app`, not the whole app. |
 | D10 | `child_exercise_stats` is `SECURITY INVOKER` | RLS on `exercise_attempts` already scopes it; no hand-written ownership check to drift. The opposite choice in `complete_exercise` (DEFINER) is what required the R2-style guard. |
 | D11 | PIN verified server-side, only a boolean in `sessionStorage` | The PIN itself never touches client storage. |
 | D12 | Speech and recognition degrade instead of blocking | `speakText` falls back to Web Speech; `invokeFunction` deadlines at 12s so a child is never stuck. |
+| D13 | Everything worth Munten is decided server-side (`practice_menu`, `complete_exercise`); the client only displays it | What a tile shows and what the child earns can never differ, and a child cannot farm payouts from the browser. |
+| D14 | Wishes are picked once per day and stored on `buddy_states` | Stable all day on every device, and `complete_exercise` checks a Wish with one row lookup. |
+| D15 | `growth_stage` is persisted, not derived | It must not go backwards within a grade (September before the parent raises the grade). |
+| D16 | XP/level/streak columns kept although the child never sees them | The parent portal and badges read them, and the live app had to keep working across the switch. All of `20261001120000` is additive. |
+| D17 | Two tabs (Buddy, Dashboard), one dark style on every child screen | Product call on 2026-10-02 after the tab-less version felt cluttered. Shared pieces in `components/dashboard`. |
+| D18 | Parent rewards count every exercise fully, repeats included | Product call: accepted that a child working for a reward can stick to one type. |
 
 ---
 
@@ -677,9 +741,12 @@ Decisions already made, with the reasoning, so they are not silently reversed.
 **Forms**
 - React Hook Form + Zod. The auth screens still use manual validation — known debt; new screens should not copy them.
 
-**Buddy**
+**Buddy & practice**
 - Vocabulary comes from CONTEXT.md, not from whatever the code happens to say.
-- Any change to decay, the care window, death or item strengths is a **paired** change in `lib/buddy/*` **and** the SQL.
+- Any change to decay, the care window, death, item strengths, the calendar trimester or the repeat threshold is a **paired** change in `lib/buddy/*` **and** the SQL.
+- Payouts, Wishes and pickable exercises come from `practice_menu`; never compute them in the client.
+- Child routes come from `APP_PATHS`; exercises return via `EXERCISE_DONE_PATH` / `EXERCISE_CLOSE_PATH`.
+- Do not reintroduce child-facing XP, levels, streak counters or a map.
 
 **Timers & listeners**
 - Hold every `setTimeout` in a ref and clear it on unmount. Every `addEventListener` gets its `removeEventListener` in the same cleanup.
@@ -690,13 +757,15 @@ Decisions already made, with the reasoning, so they are not silently reversed.
 
 A sequence, not a backlog — each step makes the next one safer.
 
-1. **Regenerate `types.ts`, add `npm run typecheck`, fix the 17 errors, add a PR workflow** (R7). Nothing else on this list is verifiable until the type gate exists.
+1. **Add `npm run typecheck`, fix the 8 remaining errors, add a PR workflow** (R7). Nothing else on this list is verifiable until the type gate exists.
 2. **Server-side PIN throttling** (R1). The only genuine security hole.
-3. **One shared ownership predicate for all child-scoped RPCs** (R2), which also prevents the next drift of this kind.
-4. **Error reporting in both boundaries** (R4), then **replace the subscription-limit string match with a SQLSTATE** (R5) — the second is only safely testable once the first exists.
-5. **Fix the uncancelled timers in `useExerciseState`** (R8). Small change, affects nearly every exercise.
-6. **Zod-validate `exercises.config`** (R10) before grade-2 provisioning makes malformed configs likely.
-7. **Decide Munten vs Eikel** (R3) before more Dutch copy is written against the wrong term.
-8. **pgTAP (or equivalent) coverage for `complete_exercise` and the `buddy_*` RPCs.** They hold the most business logic in the system and are currently only tested through mocks.
-9. **Service worker, or drop the install prompt** (R6).
-10. **Clean `index.html` metadata** (R13) before any real marketing push.
+3. **pgTAP (or equivalent) coverage for `complete_exercise`, `practice_menu` and the `buddy_*` RPCs.** They now hold the whole economy, trimester opening and growth, and are only tested through mocks against a single live database.
+4. **Replace the beta hero / OG image**, which still shows "XP" coins (R18).
+5. **Decide promotion vs calendar growth** (R16) before touching the hidden XP columns.
+6. **`_can_access_child` in the `buddy_*` RPCs** (R2) before school accounts go live.
+7. **Error reporting in both boundaries** (R4), then **replace the subscription-limit string match with a SQLSTATE** (R5).
+8. **Fix the uncancelled timers in `useExerciseState`** (R8). Small change, affects nearly every exercise.
+9. **Zod-validate `exercises.config`** (R10) before grade-2 provisioning makes malformed configs likely.
+10. **Decide Munten vs Eikel** (R3) before more Dutch copy is written against the wrong term.
+11. **Service worker, or drop the install prompt** (R6). More pressing now that the iOS install flow actively recruits installs.
+12. **Point DNS at `leapio.app`** (R13).
