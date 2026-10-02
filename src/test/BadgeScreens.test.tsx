@@ -24,6 +24,7 @@ const badge = (id: string, name: string, progress: number, maxProgress: number, 
 
 let badgesFixture = [badge('first-steps', 'Eerste Stappen', 1, 1, true), badge('goal-oriented', 'Doelgericht', 12, 50, false)];
 vi.mock('@/context/GameContext', () => ({ useGame: () => ({ badges: badgesFixture }) }));
+vi.mock('@/hooks/useChildGreeting', () => ({ useChildGreeting: () => ({ childName: 'Lien' }) }));
 
 const triggerConfetti = vi.fn();
 vi.mock('@/lib/confetti', () => ({ triggerConfetti: (...a: unknown[]) => triggerConfetti(...a) }));
@@ -46,30 +47,32 @@ beforeEach(() => {
 });
 
 describe('BadgeOverview (Prijzenkast)', () => {
+  const renderOverview = () => render(<MemoryRouter><BadgeOverview /></MemoryRouter>);
+
   it('counts the earned trophies', () => {
-    render(<MemoryRouter><BadgeOverview /></MemoryRouter>);
-    expect(screen.getByText('1 / 2')).toBeInTheDocument();
-    expect(screen.getByText('1 van 2 verdiend')).toBeInTheDocument();
+    renderOverview();
+    expect(screen.getByText('1 van 2 badges ontgrendeld')).toBeInTheDocument();
+    expect(screen.getByText('50%')).toBeInTheDocument();
   });
 
   it('shows progress on a trophy that is not earned yet', () => {
-    render(<MemoryRouter><BadgeOverview /></MemoryRouter>);
-    expect(screen.getByRole('button', { name: 'Eerste Stappen, verdiend' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Doelgericht, 12 van 50' })).toHaveTextContent('12/50');
+    renderOverview();
+    expect(screen.getByText('12/50')).toBeInTheDocument();
+    expect(screen.getByText('Behaald')).toBeInTheDocument();
   });
 
-  it('opens a trophy and leads back to the Buddy', () => {
-    render(<MemoryRouter><BadgeOverview /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: /Doelgericht/ }));
+  it('opens a trophy, and leads back to the dashboard it came from', () => {
+    renderOverview();
+    fireEvent.click(screen.getByText('Doelgericht'));
     expect(navigateMock).toHaveBeenCalledWith('/app/badges/goal-oriented');
-    fireEvent.click(screen.getByRole('button', { name: 'Terug naar je Buddy' }));
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    fireEvent.click(screen.getByRole('button', { name: 'Terug naar het dashboard' }));
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 
   it('encourages a child without any trophy yet', () => {
     badgesFixture = [badge('goal-oriented', 'Doelgericht', 0, 50, false)];
-    render(<MemoryRouter><BadgeOverview /></MemoryRouter>);
-    expect(screen.getByText('Hier komen jouw trofeeën te staan!')).toBeInTheDocument();
+    renderOverview();
+    expect(screen.getByText('Lien, hier komen jouw trofeeën te staan!')).toBeInTheDocument();
   });
 });
 
@@ -78,22 +81,22 @@ describe('BadgeDetail', () => {
     renderDetail('goal-oriented');
     expect(screen.getByRole('heading', { name: 'Doelgericht' })).toBeInTheDocument();
     expect(screen.getByText('Doe 50 keer iets')).toBeInTheDocument();
-    expect(screen.getByText('Nog 38 te gaan')).toBeInTheDocument();
-    expect(screen.getByText('Nog niet verdiend')).toBeInTheDocument();
+    expect(screen.getByText('Nog 38 te gaan!')).toBeInTheDocument();
+    expect(screen.getByText('Nog Niet Behaald')).toBeInTheDocument();
   });
 
   it('celebrates an earned trophy, and cancels the party if the child leaves first', () => {
     vi.useFakeTimers();
     const { unmount } = renderDetail('first-steps');
-    expect(screen.getByText('Verdiend!')).toBeInTheDocument();
+    expect(screen.getByText('Badge Behaald!')).toBeInTheDocument();
     unmount();
     vi.advanceTimersByTime(500);
     expect(triggerConfetti).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 
-  it('says so for an unknown trophy', () => {
+  it('says so for an unknown trophy, with a way back', () => {
     renderDetail('nope');
-    expect(screen.getByText('Deze trofee bestaat niet')).toBeInTheDocument();
+    expect(screen.getByText('Badge niet gevonden')).toBeInTheDocument();
   });
 });

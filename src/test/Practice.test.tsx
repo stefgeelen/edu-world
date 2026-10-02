@@ -142,9 +142,9 @@ describe('Practice', () => {
     expect(screen.queryByText('Hier staan nog geen oefeningen')).not.toBeInTheDocument();
   });
 
-  it('leads back to the Buddy', () => {
+  it('leads back to the dashboard', () => {
     renderPractice();
-    fireEvent.click(screen.getByRole('button', { name: 'Terug naar je Buddy' }));
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    fireEvent.click(screen.getByRole('button', { name: 'Terug naar het dashboard' }));
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });

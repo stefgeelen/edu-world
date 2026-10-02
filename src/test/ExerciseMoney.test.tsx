@@ -180,7 +180,7 @@ describe('ExerciseMoney component', () => {
         stars: 0,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
     expect(triggerConfettiMock).not.toHaveBeenCalled();
   });
 
@@ -212,6 +212,6 @@ describe('ExerciseMoney component', () => {
         stars: 3,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });

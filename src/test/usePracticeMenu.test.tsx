@@ -10,7 +10,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 let childFixture: { id: string } | null = { id: 'child-1' };
 vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: childFixture }) }));
 
-import { isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
+import { isRepeated, quickStarts, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
 
 const menu = { day: '2026-10-01', wish_bonus: 5, full_munten: 8, exercises: [], wishes: [] };
 
@@ -67,5 +67,27 @@ describe('practice option helpers', () => {
     expect(wishOpen({ ...base, wished: true })).toBe(true);
     expect(wishOpen({ ...base, wished: true, done_today: 1 })).toBe(false);
     expect(wishOpen(base)).toBe(false);
+  });
+});
+
+describe('quickStarts', () => {
+  const o = (type_key: string, extra: Partial<PracticeOption> = {}): PracticeOption => ({
+    type_key, exercise_id: type_key, title: type_key, subject: 'math', route: `${type_key}/1`, done_today: 0, next_munten: 8, wished: false, ...extra,
+  });
+  const menu = (exercises: PracticeOption[]) => ({ day: '', wish_bonus: 5, full_munten: 8, exercises, wishes: [] });
+
+  it('puts open wishes first, then fresh types, then the least repeated', () => {
+    const picks = quickStarts(menu([
+      o('a', { done_today: 4 }),
+      o('b', { done_today: 1 }),
+      o('c'),
+      o('d', { wished: true }),
+      o('e', { wished: true, done_today: 1 }),
+    ]));
+    expect(picks.map((p) => p.type_key)).toEqual(['d', 'c', 'b', 'e']);
+  });
+
+  it('keeps the list order among equals and never offers more than asked', () => {
+    expect(quickStarts(menu([o('x'), o('y'), o('z')]), 2).map((p) => p.type_key)).toEqual(['x', 'y']);
   });
 });

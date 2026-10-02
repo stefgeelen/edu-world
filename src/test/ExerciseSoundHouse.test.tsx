@@ -119,7 +119,7 @@ describe('ExerciseSoundHouse component', () => {
         stars: 3,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 
   it('ends the exercise after losing all 3 lives, persisting a 0-score/1-star result', async () => {
@@ -138,6 +138,6 @@ describe('ExerciseSoundHouse component', () => {
         stars: 1,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });

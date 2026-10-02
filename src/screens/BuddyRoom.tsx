@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronRight, Shield, ShoppingBag, Sprout, Trophy, Users, Volume2, Zap, type LucideIcon } from 'lucide-react';
+import { Heart, ShoppingBag, Sprout, Volume2 } from 'lucide-react';
 import { buddyCue, isSleeping, moodOf, type BuddyCue } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import { buddyMessage, careActionMessage, growthCountdown } from '@/lib/buddy/messages';
@@ -10,11 +10,10 @@ import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { useBuddyTour, type BuddyTourStep } from '@/hooks/useBuddyTour';
 import { CarePanel } from '@/components/buddy/CarePanel';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
-import { WishesCard } from '@/components/buddy/WishesCard';
-import { MuntenChip } from '@/components/buddy/MuntenChip';
-import { RewardTeller } from '@/components/buddy/RewardTeller';
+import { Ornaments, StarryBackground } from '@/components/dashboard/Vitrine';
+import { VITRINE } from '@/components/dashboard/vitrineStyles';
+import { cn } from '@/lib/utils';
 import { GrowthMoment } from '@/components/buddy/GrowthMoment';
-import { useAdminRole } from '@/hooks/useAdminRole';
 import { useGrowthMoment } from '@/hooks/useGrowthMoment';
 import { daysUntilNextGrowth, growthForm } from '@/lib/buddy/growth';
 import { APP_PATHS } from '@/routes/paths';
@@ -41,22 +40,6 @@ interface GiveState {
   give?: { action: CareActionId; itemId: string };
 }
 
-/** Shop / trophy cabinet shortcut in the shared card style. */
-function Tile({ to, label, icon: Icon, gradient }: { to: string; label: string; icon: LucideIcon; gradient: string }) {
-  return (
-    <Link
-      to={to}
-      aria-label={label}
-      className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
-    >
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-sm`} aria-hidden>
-        <Icon className="h-5 w-5 text-white" strokeWidth={2.25} />
-      </span>
-      <span className="min-w-0 text-base font-black leading-tight text-slate-900">{label}</span>
-    </Link>
-  );
-}
-
 export function BuddyRoom() {
   return (
     <BuddyFxProvider>
@@ -74,7 +57,6 @@ function BuddyRoomContent() {
   const tour = useBuddyTour(child?.id);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAdmin } = useAdminRole();
   const form = growthForm(buddy.growthStage);
   const growthMoment = useGrowthMoment(child?.id, buddy.growthStage, loaded);
   const countdown = loaded && now ? growthCountdown(buddy.name, daysUntilNextGrowth(now)) : null;
@@ -154,44 +136,46 @@ function BuddyRoomContent() {
   };
 
   return (
-    <main className="relative h-full w-full overflow-y-auto pb-12">
+    <main
+      className="relative h-full w-full overflow-y-auto bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] pb-32"
+      style={{ fontFamily: "'Nunito', sans-serif" }}
+    >
+      <StarryBackground />
+      {/* The forest, at night: it fades into the same sky as the dashboard. */}
       <div
-        className="absolute inset-x-0 top-0 h-[52vh] bg-cover bg-center"
+        className="absolute inset-x-0 top-0 h-[56vh] bg-cover bg-center opacity-80 brightness-[0.7] saturate-[0.85] [mask-image:linear-gradient(to_bottom,black_45%,transparent)]"
         style={{ backgroundImage: `url(${forestScene})` }}
         aria-hidden
       />
-      <div className="absolute inset-x-0 top-0 h-[52vh] bg-gradient-to-b from-transparent via-transparent to-background" aria-hidden />
+      <div className="absolute inset-x-0 top-0 h-[56vh] bg-gradient-to-b from-[#2d1b54]/70 via-[#2d1b54]/20 to-transparent" aria-hidden />
 
-      <div className="relative mx-auto w-full max-w-md px-4 pt-5 md:max-w-xl">
-        <header className="flex items-center gap-2">
-          <div className="min-w-0 flex-1 rounded-2xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
-            <h1 className="truncate text-lg font-black leading-tight text-slate-900">{form.title}</h1>
-            {countdown ? (
-              <p className="flex items-center gap-1 truncate text-xs font-bold text-emerald-600">
-                <Sprout className="h-3.5 w-3.5 shrink-0" aria-hidden /> {countdown}
+      <div className="relative z-10 mx-auto w-full max-w-md px-4 pt-4 sm:pt-6 md:max-w-xl">
+        <header className={cn(VITRINE, 'flex items-center gap-2 border-amber-400/30 p-3 shadow-[0_8px_32px_rgba(251,191,36,0.12)]')}>
+          <Ornaments tone="border-amber-400/40" />
+          <div className="relative z-10 min-w-0 flex-1 pl-1">
+            <p className="mb-0.5 text-[10px] font-bold uppercase leading-none tracking-widest text-amber-300/70">Jouw Buddy</p>
+            <h1 className="truncate bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-lg font-black leading-tight text-transparent">
+              {form.title}
+            </h1>
+            {countdown && (
+              <p className="mt-0.5 flex items-start gap-1 text-[11px] font-bold leading-tight text-emerald-300">
+                <Sprout className="h-3.5 w-3.5 shrink-0" aria-hidden /> <span>{countdown}</span>
               </p>
-            ) : (
-              <p className="text-xs font-bold text-slate-400">Jouw Buddy</p>
             )}
           </div>
-          <span className="rounded-2xl bg-white/90 p-1.5 shadow-sm backdrop-blur">
-            <MuntenChip amount={buddy.munten} size="lg" />
-          </span>
-          {isAdmin && (
-            <Link
-              to="/admin"
-              aria-label="Admin"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/90 text-slate-500 shadow-sm backdrop-blur active:scale-95"
-            >
-              <Shield className="h-5 w-5" aria-hidden />
-            </Link>
-          )}
-          <Link
-            to={APP_PATHS.parent}
-            aria-label="Ouderportaal"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/90 text-slate-500 shadow-sm backdrop-blur active:scale-95"
+          <span
+            className="relative z-10 flex shrink-0 items-center gap-1.5 rounded-full border-2 border-amber-500/40 bg-[#0f0828]/80 px-3 py-1.5"
+            aria-label={`${buddy.munten} Munten`}
           >
-            <Users className="h-5 w-5" aria-hidden />
+            <span aria-hidden>🪙</span>
+            <span className="text-sm font-black text-amber-200">{buddy.munten}</span>
+          </span>
+          <Link
+            to={APP_PATHS.shop}
+            className="relative z-10 flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-2xl border-2 border-emerald-300/40 bg-gradient-to-br from-emerald-500 to-teal-500 px-3 py-2 text-sm font-black text-white shadow-[0_4px_16px_rgba(16,185,129,0.3)] active:scale-95"
+          >
+            <ShoppingBag className="h-4 w-4" aria-hidden />
+            Winkel
           </Link>
         </header>
 
@@ -200,11 +184,11 @@ function BuddyRoomContent() {
             type="button"
             onClick={() => speak(message)}
             aria-label={`Lees voor: ${message}`}
-            className="mb-1 flex max-w-[19rem] items-center gap-2.5 rounded-3xl rounded-bl-md bg-white/95 py-2.5 pl-4 pr-2.5 text-left text-base font-bold text-foreground shadow-lg backdrop-blur active:scale-[0.98] md:max-w-sm md:text-lg"
+            className="mb-1 mt-3 flex max-w-[19rem] items-center gap-2.5 rounded-3xl rounded-bl-md border-2 border-[#3b2d71] bg-[#1a103c]/90 py-2.5 pl-4 pr-2.5 text-left text-base font-bold text-white shadow-lg backdrop-blur active:scale-[0.98] md:max-w-sm md:text-lg"
           >
             <span className="flex-1">{message}</span>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-edu-blue text-white shadow-md" aria-hidden>
-              <Volume2 className="h-5 w-5" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-sky-600 text-[#1a103c] shadow-md" aria-hidden>
+              <Volume2 className="h-5 w-5" strokeWidth={2.5} />
             </span>
           </button>
           <BuddyStage
@@ -230,7 +214,7 @@ function BuddyRoomContent() {
             <button
               type="button"
               onClick={tour.finish}
-              className="mt-1 rounded-full bg-white/80 px-3 py-1.5 text-xs font-bold text-muted-foreground"
+              className="mt-1 rounded-full border-2 border-[#3b2d71] bg-[#0f0828]/80 px-3 py-1.5 text-xs font-bold text-[#9d8bce]"
             >
               Overslaan
             </button>
@@ -238,28 +222,37 @@ function BuddyRoomContent() {
         </section>
 
         {buddy.dead && (
-          <div className="mt-2 rounded-3xl bg-white p-4 text-center shadow-lg ring-1 ring-destructive/20">
-            <p className="text-sm font-extrabold text-foreground">
+          <div className={cn(VITRINE, 'mt-2 border-rose-400/40 p-4 text-center')}>
+            <Ornaments tone="border-rose-300/40" />
+            <p className="relative z-10 text-sm font-extrabold text-white">
               Je Buddy is heel moe en rust uit. Vraag hulp aan mama of papa.
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="relative z-10 mt-1 text-xs text-[#a78bfa]">
               Voor ouders: je kan de Buddy terugbrengen via het Ouderportaal.
             </p>
           </div>
         )}
 
         {!buddy.dead && buddy.needs.health <= 0 && (
-          <div className="mt-2 rounded-3xl bg-white p-3 text-center shadow-md ring-1 ring-edu-teal/30">
-            <p className="text-sm font-extrabold text-foreground">
+          <div className={cn(VITRINE, 'mt-2 border-teal-400/40 p-3 text-center')}>
+            <Ornaments tone="border-teal-300/40" />
+            <p className="relative z-10 text-sm font-extrabold text-white">
               Je Buddy is ziek! Tik op 💊 Medicijn om je Buddy beter te maken.
             </p>
           </div>
         )}
 
-        <section className="mt-4">
-          <h2 className="mb-2 px-1 text-sm font-black text-foreground">
-            {sleeping ? `💤 ${buddy.name} slaapt nog ${minutesLeft} min` : `Zorg voor ${buddy.name}`}
-          </h2>
+        <section className={cn(VITRINE, 'mt-4 border-violet-500/30 shadow-[0_8px_32px_rgba(167,139,250,0.12)]')} aria-labelledby="care-title">
+          <Ornaments tone="border-violet-400/40" />
+          <div className="relative z-10 mb-4 flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 shadow-[0_0_16px_rgba(167,139,250,0.4)]">
+              <Heart className="h-5 w-5 fill-[#1a103c] text-[#1a103c]" strokeWidth={2.5} aria-hidden />
+            </div>
+            <h2 id="care-title" className="bg-gradient-to-r from-violet-200 via-purple-200 to-violet-200 bg-clip-text text-base font-black leading-none text-transparent">
+              {sleeping ? `💤 ${buddy.name} slaapt nog ${minutesLeft} min` : `Zorg voor ${buddy.name}`}
+            </h2>
+          </div>
+          <div className="relative z-10">
           <CarePanel
             disabled={buddy.dead || sleeping || careFx !== null}
             highlight={
@@ -267,34 +260,9 @@ function BuddyRoomContent() {
             }
             pointAt={tourStep === 'feed' ? 'feed' : undefined}
           />
+          </div>
         </section>
 
-        <Link
-          to={APP_PATHS.practice}
-          className="group relative mt-5 flex w-full items-center justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-5 shadow-[0_8px_32px_rgba(16,185,129,0.25)] transition-all active:scale-[0.98]"
-        >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent" />
-          <div className="relative flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/25">
-              <Zap className="h-6 w-6 fill-white text-white" strokeWidth={2.5} aria-hidden />
-            </div>
-            <div className="text-left">
-              <span className="block text-2xl font-black leading-tight text-white">Oefenen!</span>
-              <span className="block text-sm font-bold text-emerald-50/90">Verdien munten voor {buddy.name}</span>
-            </div>
-          </div>
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/40 bg-white/25 transition-transform group-hover:translate-x-1">
-            <ChevronRight className="h-5 w-5 text-white" strokeWidth={3} aria-hidden />
-          </div>
-        </Link>
-
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <Tile to={APP_PATHS.shop} label="Winkel" icon={ShoppingBag} gradient="from-emerald-400 to-emerald-600" />
-          <Tile to={APP_PATHS.badges} label="Prijzenkast" icon={Trophy} gradient="from-amber-400 to-amber-600" />
-        </div>
-
-        <WishesCard buddyName={buddy.name} />
-        <RewardTeller />
       </div>
 
       {growthMoment.grew && (

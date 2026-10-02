@@ -67,3 +67,17 @@ export const isRepeated = (option: PracticeOption, menu: Pick<PracticeMenu, 'ful
 
 /** The wish bonus is still up for grabs on this option. */
 export const wishOpen = (option: PracticeOption) => option.wished && option.done_today === 0;
+
+/**
+ * A handful of exercises to start with one tap: the Buddy's open wishes first,
+ * then types the child hasn't done today, then the rest — least done first, so
+ * the shortcut itself nudges towards variety.
+ */
+export function quickStarts(menu: PracticeMenu, count = 4): PracticeOption[] {
+  const rank = (o: PracticeOption) => (wishOpen(o) ? 0 : o.done_today === 0 ? 1 : 2);
+  return menu.exercises
+    .map((o, i) => ({ o, i }))
+    .sort((a, b) => rank(a.o) - rank(b.o) || a.o.done_today - b.o.done_today || a.i - b.i)
+    .slice(0, count)
+    .map(({ o }) => o);
+}

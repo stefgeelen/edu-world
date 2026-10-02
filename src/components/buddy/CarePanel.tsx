@@ -13,6 +13,7 @@ import { CRITICAL_THRESHOLD, NEED_EMOJI, NEED_IDS, NEED_LABEL, type NeedId } fro
 import { useBuddy } from '@/hooks/useBuddy';
 import { cn } from '@/lib/utils';
 import { APP_PATHS } from '@/routes/paths';
+import { DARK_DIALOG, DARK_ROW } from '@/components/dashboard/vitrineStyles';
 
 /** Elke Need staat op één rij met de Care Action die hem aanvult. */
 const NEED_ACTION: Record<NeedId, CareActionId> = {
@@ -91,10 +92,10 @@ export function CarePanel({
           return (
             <div
               key={need}
-              className="flex items-center gap-3 rounded-3xl bg-white/95 py-2 pl-4 pr-2 shadow-sm ring-1 ring-black/5"
+              className={cn(DARK_ROW, "flex items-center gap-3 py-2 pl-4 pr-2")}
             >
               <div className="min-w-0 flex-1">
-                <p className="mb-1.5 flex items-center gap-1.5 text-sm font-extrabold text-foreground md:text-base">
+                <p className="mb-1.5 flex items-center gap-1.5 text-sm font-extrabold text-white/90 md:text-base">
                   <span className="text-lg leading-none" aria-hidden>
                     {NEED_EMOJI[need]}
                   </span>
@@ -106,7 +107,7 @@ export function CarePanel({
                   )}
                 </p>
                 <div
-                  className="h-4 w-full overflow-hidden rounded-full bg-muted"
+                  className="h-4 w-full overflow-hidden rounded-full border border-[#3b2d71] bg-[#2d1b54]"
                   role="meter"
                   aria-label={NEED_LABEL[need]}
                   aria-valuemin={0}
@@ -131,7 +132,7 @@ export function CarePanel({
                 className={cn(
                   'relative flex min-h-16 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-white shadow-lg transition-transform active:scale-95 disabled:opacity-40 md:w-28',
                   ACTION_STYLE[id],
-                  nudge && 'animate-care-nudge ring-4 ring-white'
+                  nudge && 'animate-care-nudge ring-4 ring-amber-300'
                 )}
               >
                 <span className="text-2xl leading-none" aria-hidden>
@@ -158,12 +159,12 @@ export function CarePanel({
       </div>
 
       <Dialog open={open !== null} onOpenChange={(v) => !v && setOpen(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl">
+        <DialogContent className={cn(DARK_DIALOG, "max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
-            <DialogTitle className="text-2xl font-extrabold">
+            <DialogTitle className="text-2xl font-extrabold text-white">
               {action?.emoji} {action?.label}
             </DialogTitle>
-            <DialogDescription className="text-base">
+            <DialogDescription className="text-base text-[#a78bfa]">
               {open === 'sleep'
                 ? 'Slapen is gratis. Met een dekentje of kussen is je Buddy sneller uitgerust.'
                 : 'Kies wat je wil geven.'}
@@ -206,16 +207,16 @@ export function CarePanel({
                           ? `Koop ${item.name} voor ${item.price} Munten en gebruik het meteen`
                           : `${item.name} kost ${item.price} Munten, je hebt er nog ${item.price - buddy.munten} nodig`
                     }
-                    className="flex min-h-16 w-full items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-left shadow-sm ring-2 ring-black/10 transition active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
+                    className={cn(DARK_ROW, "flex min-h-16 w-full items-center gap-3 px-3 py-2.5 text-left transition hover:border-violet-400/50 active:scale-[0.98] disabled:opacity-50")}
                   >
                     <span className="text-3xl leading-none" aria-hidden>
                       {item.emoji}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-base font-extrabold leading-tight text-foreground">
+                      <span className="block text-base font-extrabold leading-tight text-white">
                         {item.name}
                       </span>
-                      <span className="block text-xs text-muted-foreground">{item.description}</span>
+                      <span className="block text-xs text-[#a78bfa]">{item.description}</span>
                     </span>
                     {count > 0 ? (
                       <span
@@ -238,7 +239,7 @@ export function CarePanel({
                       </span>
                     ) : (
                       <span
-                        className="shrink-0 rounded-xl bg-muted px-3 py-2 text-sm font-black text-muted-foreground"
+                        className="shrink-0 rounded-xl bg-[#2d1b54] px-3 py-2 text-sm font-black text-[#9d8bce]"
                         aria-hidden
                       >
                         Nog <span className="tabular-nums">{item.price - buddy.munten}</span> 🪙
@@ -252,7 +253,7 @@ export function CarePanel({
               <Link
                 to={APP_PATHS.practice}
                 onClick={() => setOpen(null)}
-                className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-edu-yellow px-4 py-3 text-base font-black text-foreground shadow-md"
+                className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border-2 border-emerald-300/40 bg-gradient-to-br from-emerald-500 to-cyan-500 px-4 py-3 text-base font-black text-white shadow-md"
               >
                 <Sparkles className="h-5 w-5" aria-hidden />
                 Oefenen en 🪙 verdienen
@@ -262,7 +263,7 @@ export function CarePanel({
               <Link
                 to={`${APP_PATHS.shop}?cat=${action?.category ?? 'food'}`}
                 onClick={() => setOpen(null)}
-                className="block rounded-2xl bg-muted px-4 py-3 text-center text-sm font-extrabold text-foreground"
+                className={cn(DARK_ROW, "block px-4 py-3 text-center text-sm font-extrabold text-white/90")}
               >
                 🛍️ Naar de Winkel →
               </Link>

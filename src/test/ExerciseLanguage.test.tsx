@@ -123,7 +123,7 @@ describe('ExerciseLanguage component', () => {
         stars: 3,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 
   it('persists a 0-star partial result when all 3 lives are lost, then navigates away', async () => {
@@ -146,6 +146,6 @@ describe('ExerciseLanguage component', () => {
         stars: 0,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });

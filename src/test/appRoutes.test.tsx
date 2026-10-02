@@ -11,6 +11,7 @@ vi.mock('@/components/Layout', () => ({ Layout: () => <Outlet /> }));
 vi.mock('@/screens/BuddyRoom', () => ({ BuddyRoom: () => <p>Kamer van de Buddy</p> }));
 vi.mock('@/screens/Practice', () => ({ Practice: () => <p>Kies een oefening</p> }));
 vi.mock('@/screens/BuddyShop', () => ({ BuddyShop: () => <p>Winkel</p> }));
+vi.mock('@/screens/Dashboard', () => ({ Dashboard: () => <p>Dashboard</p> }));
 
 import { appRoutes } from '@/routes/appRoutes';
 
@@ -29,7 +30,6 @@ const renderAt = (url: string) =>
 
 describe('app routes', () => {
   it.each([
-    ['/app/dashboard', '/app/home', 'Kamer van de Buddy'],
     ['/app/buddy-room', '/app/home', 'Kamer van de Buddy'],
     ['/app/progress', '/app/home', 'Kamer van de Buddy'],
     ['/app/map', '/app/oefenen', 'Kies een oefening'],
@@ -46,8 +46,14 @@ describe('app routes', () => {
     expect(screen.getByRole('status', { name: 'url' })).toHaveTextContent('/app/shop?cat=hygiene');
   });
 
-  it('serves the new home, practice list and shop directly', async () => {
-    renderAt('/app/home');
-    expect(await screen.findByText('Kamer van de Buddy')).toBeInTheDocument();
+  it.each([
+    ['/app/home', 'Kamer van de Buddy'],
+    ['/app/dashboard', 'Dashboard'],
+    ['/app/oefenen', 'Kies een oefening'],
+    ['/app/shop', 'Winkel'],
+  ])('serves %s directly', async (url, text) => {
+    renderAt(url);
+    expect(await screen.findByText(text)).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'url' })).toHaveTextContent(url);
   });
 });

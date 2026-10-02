@@ -1,118 +1,234 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, ChevronLeft, Lock, Trophy } from 'lucide-react';
+import { 
+  Sparkles, Flame, Star, Target, Trophy, BookOpen, 
+  Zap, Award, Heart, Crown, Lock, ChevronRight, ChevronLeft, type LucideIcon,
+} from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
-import { badgeIcon } from '@/data/badgeIcons';
+import { useChildGreeting } from '@/hooks/useChildGreeting';
 import { APP_PATHS } from '@/routes/paths';
 
-/** The Prijzenkast: every badge, earned ones in colour, the rest with their progress. */
+const iconMap: Record<string, LucideIcon> = {
+  Sparkles, Flame, Star, Target, Trophy, BookOpen, Zap, Award, Heart, Crown,
+};
+
+/** Animated starry background matching QuestMap / Dashboard */
+function StarryBackground() {
+  const stars = React.useMemo(() => 
+    Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      size: Math.random() * 3 + 1,
+      delay: Math.random() * 3,
+      duration: Math.random() * 2 + 2,
+    })), []
+  );
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {stars.map(star => (
+        <motion.div
+          key={star.id}
+          className="absolute rounded-full bg-white"
+          style={{ left: star.left, top: star.top, width: star.size, height: star.size }}
+          animate={{ opacity: [0.2, 0.8, 0.2] }}
+          transition={{ duration: star.duration, delay: star.delay, repeat: Infinity }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function BadgeOverview() {
   const navigate = useNavigate();
   const { badges } = useGame();
-  const unlocked = badges.filter((b) => b.isUnlocked).length;
-  const pct = badges.length > 0 ? Math.round((unlocked / badges.length) * 100) : 0;
+  const { childName } = useChildGreeting();
+  const unlockedCount = badges.filter((b) => b.isUnlocked).length;
+  const progressPercent = badges.length > 0 ? Math.round((unlockedCount / badges.length) * 100) : 0;
+  const empty = unlockedCount === 0;
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-50">
-      <header className="flex-shrink-0 border-b border-slate-200 bg-white px-4 pb-4 pt-6 shadow-sm">
-        <div className="mx-auto w-full max-w-3xl space-y-3">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(APP_PATHS.home)}
-              aria-label="Terug naar je Buddy"
-              className="flex-shrink-0 rounded-2xl bg-slate-100 p-2.5 transition-colors hover:bg-slate-200 active:bg-slate-300"
-            >
-              <ChevronLeft className="h-5 w-5 text-slate-600" strokeWidth={2.5} />
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className="mb-0.5 text-xs font-bold uppercase tracking-widest text-slate-400">Prijzenkast</p>
-              <h1 className="truncate text-xl font-black text-slate-900">Jouw trofeeën</h1>
-            </div>
-            <span className="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5">
-              <Trophy className="h-4 w-4 text-amber-500" aria-hidden />
-              <span className="text-sm font-black text-amber-700">
-                {unlocked} / {badges.length}
-              </span>
-            </span>
-          </div>
+    <div className="h-full w-full overflow-y-auto pb-32 md:pb-40 relative" style={{ background: 'linear-gradient(to bottom, #2d1b54, #0a0618)' }}>
+      <StarryBackground />
 
-          <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">
-                {unlocked === 0 ? 'Hier komen jouw trofeeën te staan!' : `${unlocked} van ${badges.length} verdiend`}
+      {/* Floating forest decorations */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-16 left-4 text-3xl opacity-20 animate-bounce" style={{ animationDuration: '4s' }}>🍄</div>
+        <div className="absolute top-32 right-8 text-2xl opacity-15 animate-bounce" style={{ animationDuration: '5s' }}>✨</div>
+        <div className="absolute bottom-48 left-12 text-3xl opacity-20 animate-bounce" style={{ animationDuration: '6s' }}>🌿</div>
+        <div className="absolute bottom-32 right-6 text-2xl opacity-15 animate-bounce" style={{ animationDuration: '3.5s' }}>🦋</div>
+      </div>
+
+      <div className="relative z-10 flex flex-col pt-12 md:pt-16">
+        {/* Not a tab of its own: the trophy room on the dashboard leads here. */}
+        <button
+          type="button"
+          onClick={() => navigate(APP_PATHS.dashboard)}
+          aria-label="Terug naar het dashboard"
+          className="absolute left-4 top-4 rounded-2xl border-2 border-[#3b2d71] bg-[#1c1134]/60 p-3 shadow-lg backdrop-blur-md transition-colors hover:bg-[#2d1b54]/80"
+        >
+          <ChevronLeft className="h-6 w-6 text-white/80" />
+        </button>
+        {/* Header */}
+        <div className="px-6 md:px-12 lg:px-16 mb-6 max-w-7xl mx-auto w-full">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/30 backdrop-blur-md mb-4">
+              <Trophy className="w-5 h-5 text-amber-400" />
+              <span className="text-sm font-bold text-amber-300 tracking-wide uppercase" style={{ fontFamily: "'Nunito', sans-serif" }}>
+                {childName}'s prestaties
               </span>
-              <span className="text-xs font-black text-amber-600">{pct}%</span>
             </div>
-            <div className="h-3.5 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-2" style={{ fontFamily: "'Nunito', sans-serif" }}>
+              🏆 Trofeeën Tuin
+            </h1>
+            <p className="text-lg text-purple-200/80 font-medium">
+              {empty
+                ? `${childName}, hier komen jouw trofeeën te staan!`
+                : `${unlockedCount} van ${badges.length} badges ontgrendeld`}
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Progress Card */}
+        <div className="px-6 md:px-12 lg:px-16 mb-8 max-w-7xl mx-auto w-full">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-3xl p-5 border-2 border-amber-500/30 backdrop-blur-md"
+            style={{ background: 'rgba(45, 27, 84, 0.6)' }}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-bold text-purple-200/80">Voortgang</span>
+              <span className="text-2xl font-black text-amber-400">{progressPercent}%</span>
+            </div>
+            <div className="h-4 w-full bg-[#1a0e35] rounded-full overflow-hidden border-2 border-[#3b2d71]">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-                className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500"
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-1 overflow-y-auto px-4 py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="mx-auto grid w-full max-w-3xl grid-cols-2 gap-3 pb-6 sm:grid-cols-3">
-          {badges.map((badge, i) => {
-            const Icon = badgeIcon(badge.icon);
-            const progress = Math.min((badge.progress / Math.max(1, badge.maxProgress)) * 100, 100);
-            return (
-              <motion.button
-                key={badge.id}
-                type="button"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.04, 0.4), type: 'spring', bounce: 0.15 }}
-                onClick={() => navigate(`${APP_PATHS.badges}/${badge.id}`)}
-                aria-label={`${badge.name}${badge.isUnlocked ? ', verdiend' : `, ${badge.progress} van ${badge.maxProgress}`}`}
-                className={cn(
-                  'relative flex flex-col items-center rounded-2xl border p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0',
-                  badge.isUnlocked ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-white'
-                )}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 1, delay: 0.3, type: 'spring' }}
+                className="h-full bg-gradient-to-r from-amber-400 to-yellow-400 relative"
+                style={{ boxShadow: '0 0 12px rgba(251,191,36,0.4)' }}
               >
-                <span className="absolute right-2 top-2" aria-hidden>
-                  {badge.isUnlocked ? (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500">
-                      <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
-                    </span>
-                  ) : (
-                    <Lock className="h-4 w-4 text-slate-300" />
-                  )}
-                </span>
+                <div className="absolute inset-0 bg-white/20" style={{
+                  backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.2) 10px, rgba(255,255,255,0.2) 20px)',
+                }} />
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
 
-                <span
-                  aria-hidden
-                  className={cn('mb-2 flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm', !badge.isUnlocked && 'bg-slate-200')}
-                  style={badge.isUnlocked ? { background: `linear-gradient(135deg, ${badge.gradientFrom}, ${badge.gradientTo})` } : undefined}
+        {/* Badge Grid */}
+        <div className="px-6 md:px-12 lg:px-16 max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {badges.map((badge, index) => {
+              const Icon = iconMap[badge.icon] || Star;
+              const badgeProgress = Math.min((badge.progress / badge.maxProgress) * 100, 100);
+
+              return (
+                <motion.div
+                  key={badge.id}
+                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, type: 'spring' }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate(`${APP_PATHS.badges}/${badge.id}`)}
+                  className="relative cursor-pointer group"
                 >
-                  <Icon className={cn('h-7 w-7', badge.isUnlocked ? 'text-white' : 'text-slate-400')} strokeWidth={2.25} />
-                </span>
+                  <div
+                    className={cn(
+                      "relative rounded-[2rem] p-6 md:p-8 border-2 transition-all duration-300 backdrop-blur-md",
+                      badge.isUnlocked
+                        ? "border-amber-500/40 hover:border-amber-400/60 badge-shimmer badge-glow"
+                        : "border-[#3b2d71]/60 opacity-60 grayscale hover:opacity-70"
+                    )}
+                    style={{
+                      background: badge.isUnlocked
+                        ? `linear-gradient(135deg, ${badge.gradientFrom}20 0%, ${badge.gradientTo}20 100%), rgba(45, 27, 84, 0.5)`
+                        : 'rgba(26, 14, 53, 0.6)',
+                      boxShadow: badge.isUnlocked ? '0 8px 32px rgba(0,0,0,0.3)' : 'none',
+                    }}
+                  >
+                    {/* Lock Overlay */}
+                    {!badge.isUnlocked && (
+                      <div className="absolute inset-0 rounded-[2rem] flex items-center justify-center z-10">
+                        <div className="absolute top-4 right-4 w-10 h-10 bg-[#2d1b54] border-2 border-[#3b2d71] rounded-full flex items-center justify-center shadow-lg">
+                          <Lock className="w-5 h-5 text-purple-300/60" />
+                        </div>
+                      </div>
+                    )}
 
-                <p className={cn('mb-2 text-sm font-bold leading-tight', badge.isUnlocked ? 'text-slate-800' : 'text-slate-500')}>
-                  {badge.name}
-                </p>
+                    {/* Badge Icon */}
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={cn(
+                          "w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mb-4 transition-transform group-hover:scale-110",
+                          !badge.isUnlocked && "bg-[#2d1b54]"
+                        )}
+                        style={{
+                          background: badge.isUnlocked
+                            ? `linear-gradient(135deg, ${badge.gradientFrom} 0%, ${badge.gradientTo} 100%)`
+                            : undefined,
+                          boxShadow: badge.isUnlocked
+                            ? `0 8px 24px ${badge.gradientFrom}40`
+                            : 'none',
+                        }}
+                      >
+                        <Icon className={cn("w-10 h-10 md:w-12 md:h-12", badge.isUnlocked ? "text-white" : "text-purple-400/40")} strokeWidth={2} />
+                      </div>
 
-                {badge.isUnlocked ? (
-                  <span className="text-[10px] font-black uppercase tracking-wide text-emerald-600">Verdiend</span>
-                ) : (
-                  <div className="w-full space-y-1">
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-amber-400" style={{ width: `${progress}%` }} />
+                      {/* Badge Name */}
+                      <h3 className={cn(
+                        "text-base md:text-lg font-black text-center mb-1 leading-tight",
+                        badge.isUnlocked ? "text-white" : "text-purple-300/50"
+                      )} style={{ fontFamily: "'Nunito', sans-serif" }}>
+                        {badge.name}
+                      </h3>
+
+                      {/* Progress Bar (locked) */}
+                      {!badge.isUnlocked && (
+                        <div className="w-full mt-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs font-bold text-purple-300/50">
+                              {badge.progress}/{badge.maxProgress}
+                            </span>
+                            <span className="text-xs font-bold text-purple-300/50">
+                              {Math.round(badgeProgress)}%
+                            </span>
+                          </div>
+                          <div className="h-2 w-full bg-[#1a0e35] rounded-full overflow-hidden border border-[#3b2d71]/50">
+                            <div
+                              className="h-full bg-gradient-to-r from-purple-500/60 to-purple-400/60 transition-all duration-500"
+                              style={{ width: `${badgeProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Unlocked indicator */}
+                      {badge.isUnlocked && (
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" style={{ boxShadow: '0 0 8px rgba(52,211,153,0.5)' }} />
+                          <span className="text-xs font-bold text-emerald-400 uppercase tracking-wide">
+                            Behaald
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400">
-                      {badge.progress}/{badge.maxProgress}
-                    </span>
+
+                    {/* Hover Arrow */}
+                    <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ChevronRight className="w-5 h-5 text-purple-300/50" />
+                    </div>
                   </div>
-                )}
-              </motion.button>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

@@ -34,14 +34,16 @@ src/
 5. `/app/home` — the Buddy's room: the home screen of the app
 
 ## Child App Model (since Oct 2026)
-Caring for the Buddy is the game; exercises are how you care for it. There is **no tab bar and no map**.
-- `/app/home` (`BuddyRoom`) — Buddy + Care Actions, big **Oefenen!** button, the Buddy's Wishes, parent rewards ("Nog 12 rekenoefeningen tot: IJsje"), growth countdown. Shop, trophy cabinet (`/app/badges`) and parent portal are reached from here.
-- `/app/oefenen` (`Practice`) — one tile per *type* of exercise (route family, e.g. `/exercises/clock`), grouped by subject. The child always picks.
+Caring for the Buddy is the game; exercises are how you care for it. **Two tabs** (`TabBar`), hidden during onboarding and exercises; **no map**.
+- Tab 1 `/app/home` (`BuddyRoom`, where the app opens) — the Buddy, Care Actions, Munten, Shop, growth countdown. Same dark night-sky look as tab 2 (forest fades into it); the Shop too.
+- Tab 2 `/app/dashboard` (`Dashboard`, old dark starry "vitrine" style) — header with parent portal/logout, "Alle oefeningen" hero, **Snel starten** (open wishes first, then fresh types: `quickStarts`), the Buddy's **Wishes**, the trophy room (opens `/app/badges`), parent rewards.
+- `/app/oefenen` (`Practice`, same dark style) — one tile per *type* of exercise (route family, e.g. `/exercises/clock`), grouped by subject. The child always picks. Shared dark pieces: `src/components/dashboard/Vitrine.tsx`.
+- Exercises return to the dashboard when finished or closed.
 - **Munten** are the only currency. Repeating a type on the same day pays less: 8, 8, 4, 2, 1, 1… (resets daily). **Wishes**: up to 3 types per day, +5 the first time today.
 - **Growth**: `buddy_states.growth_stage` 1..18 = (grade − 1) × 3 + calendar trimester (sep–dec, jan–mar, apr–aug). Never goes back within a grade. Care has no influence.
 - XP, level and streak are **invisible to the child**. The columns stay: the parent portal (trimester progress, promotion) and badges still use them. Parent rewards count every exercise fully, repeats included.
 - All of this is decided server-side: `practice_menu` RPC (pickable exercises, payouts, wishes) and `complete_exercise` — see `supabase/migrations/20261001120000_buddy_centred_practice.sql`. The client only displays it.
-- Paths live in `src/routes/paths.ts` (`APP_PATHS`, `EXERCISE_DONE_PATH` → home, `EXERCISE_CLOSE_PATH` → practice). Old URLs (`/app/dashboard`, `/app/map`, `/app/stage/*`, `/app/buddy-room`, `/app/progress`) redirect.
+- Paths live in `src/routes/paths.ts` (`APP_PATHS`, `EXERCISE_DONE_PATH`/`EXERCISE_CLOSE_PATH` → dashboard). Old URLs (`/app/map`, `/app/stage/*`, `/app/buddy-room`, `/app/progress`) redirect.
 
 **Session:** Supabase handles localStorage persistence + auto token refresh.  
 **PIN:** Verified and stored in `sessionStorage` via `useParentPin`. Cleared on auth state change.  
@@ -101,8 +103,8 @@ npm test          # run all tests (Vitest)
 npm run lint      # ESLint
 ```
 
-**What has tests** (70 files under `src/test/`, ~640 cases):
-- All 14 exercise screens, plus `Exercise`, `BuddyRoom` (incl. first-visit tour, wishes, rewards, growth), `Practice`, `BuddyShop`, `WishesCard`, the Prijzenkast (badge screens), app-route redirects, and the admin + parent portals
+**What has tests** (72 files under `src/test/`, ~660 cases):
+- All 14 exercise screens, plus `Exercise`, `BuddyRoom` (incl. first-visit tour, growth), `Dashboard`, `TabBar`, `Practice`, `BuddyShop`, the Prijzenkast (badge screens), app-route redirects, and the admin + parent portals
 - Auth flow (`Auth`, `AuthContext`, `ProtectedRoute`, `AdminRoute`, PIN session, password validation)
 - Data hooks (`useCompleteExercise`, `usePracticeMenu`, `useChildInsights`, `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`)
 - Buddy care system (`buddyState`, `buddyCatalog`, `useBuddy`) — decay/illness/death rules, shop economy, catalog integrity, RPC plumbing

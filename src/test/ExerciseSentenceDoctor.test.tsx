@@ -192,7 +192,7 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
         stars: 3,
       }),
     );
-    expect(navigateMock).toHaveBeenCalledWith('/app/home');
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });
 

@@ -10,15 +10,25 @@ De app had twee spellen naast elkaar: groeien (XP, levels, daily quests, badges,
 
 ## Beslissingen (door Stef, brainstorm 2026-10-01)
 
-- **Startscherm = de kamer van de Buddy.** Geen tabbalk, geen kaart. Winkel, prijzenkast (badges) en ouderportaal worden vanuit de kamer bereikt. Eén grote knop "Oefenen!".
+- **Startscherm = de kamer van de Buddy.** Geen kaart. (Eerst ook zonder tabbalk — op 2026-10-02 bijgestuurd naar twee tabs, zie hieronder.)
 - **Het kind kiest altijd zelf** een oefening, uit één lijst per type oefening.
 - **Herhaling per type oefening** levert minder Munten op: 8, 8, 4, 2, 1, 1… Elke dag begint het opnieuw. Geen harde limiet: de sturing gaat via beloning. De Buddy zegt "Ken ik al!".
 - **Wensen van de Buddy** vervangen de daily quests: tot 3 types per dag, +5 Munten de eerste keer vandaag.
 - **Evolutie op vaste momenten**: een nieuwe vorm per leerjaar, een kleine verandering per trimester (sep-dec, jan-mrt, apr-aug). Verzorging heeft **geen** invloed: elke Buddy evolueert hetzelfde.
 - **XP, levels en streak verdwijnen** uit het zicht van het kind. De streak leeft verder als badge ("Vijf Dagen Trouw").
 - **Beloningen van ouders blijven** en tellen het aantal oefeningen. **Herhaalde oefeningen tellen voluit mee**, ook al levert herhaling minder Munten op. Bewust geaccepteerd: een kind dat voor de beloning werkt, kan bij één type blijven.
-- **Het kind ziet de teller van zijn beloning** in de kamer ("Nog 12 rekenoefeningen tot: IJsje").
+- **Het kind ziet de teller van zijn beloning** op het dashboard ("Nog 12 rekenoefeningen tot: IJsje").
 - **Het kind ziet geen voortgang in de leerstof.** Dat blijft in het ouderportaal.
+
+## Bijgestuurd op 2026-10-02
+
+Na het testen vond Stef de opzet zonder tabs te rommelig. Terug naar **twee tabs**:
+- **Tab 1 — Buddy** (de app opent hier): de kamer van de Buddy, verzorgen, winkel, groei.
+- **Tab 2 — Dashboard** in de oude donkere sterrenstijl: snel naar een oefening springen ("Snel starten", wensen eerst) of naar de lijst met alle oefeningen, plus de wensen van de Buddy, de trofeeënkamer en de beloningen.
+- De lijst met alle oefeningen en de prijzenkast staan ook in die donkere stijl.
+- Na een oefening kom je terug op het dashboard.
+
+De andere beslissingen hierboven (geen kaart, geen XP voor het kind, herhaling, wensen, groei) blijven gelden.
 
 ## Technische keuzes (zelf beslist)
 

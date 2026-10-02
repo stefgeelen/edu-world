@@ -26,6 +26,7 @@ const ExerciseSoundHouse = lazy(() => import('@/screens/ExerciseSoundHouse').the
 const ExercisePictureWord = lazy(() => import('@/screens/ExercisePictureWord').then(m => ({ default: m.ExercisePictureWord })));
 const ExerciseWriteLetter = lazy(() => import('@/screens/ExerciseWriteLetter').then(m => ({ default: m.ExerciseWriteLetter })));
 const ExerciseSumSplit = lazy(() => import('@/screens/ExerciseSumSplit').then(m => ({ default: m.ExerciseSumSplit })));
+const Dashboard = lazy(() => import('@/screens/Dashboard').then(m => ({ default: m.Dashboard })));
 const BuddyRoom = lazy(() => import('@/screens/BuddyRoom').then(m => ({ default: m.BuddyRoom })));
 const BuddyShop = lazy(() => import('@/screens/BuddyShop').then(m => ({ default: m.BuddyShop })));
 const Practice = lazy(() => import('@/screens/Practice').then(m => ({ default: m.Practice })));
@@ -50,6 +51,7 @@ export const appRoutes = (
     <Route index element={<S><AvatarSelection /></S>} />
     <Route path="add-child" element={<S><AddChild /></S>} />
     <Route path="home" element={<S><BuddyRoom /></S>} />
+    <Route path="dashboard" element={<S><Dashboard /></S>} />
     <Route path="oefenen" element={<S><Practice /></S>} />
     <Route path="shop" element={<S><BuddyShop /></S>} />
     <Route path="exercises/math/:id" element={<S><Exercise /></S>} />
@@ -74,9 +76,8 @@ export const appRoutes = (
     <Route path="badges/:id" element={<S><BadgeDetail /></S>} />
 
     {/* Old screens, kept as redirects: bookmarks and installed home-screen apps
-        may still open them. The map, stage screens and dashboard are gone —
-        the Buddy's room is home and exercises are picked from one list. */}
-    <Route path="dashboard" element={<Navigate to={APP_PATHS.home} replace />} />
+        may still open them. The map and stage screens are gone — exercises are
+        picked from the dashboard or the full list. */}
     <Route path="buddy-room" element={<Navigate to={APP_PATHS.home} replace />} />
     <Route path="buddy-room/shop" element={<ShopRedirect />} />
     <Route path="map" element={<Navigate to={APP_PATHS.practice} replace />} />
