@@ -58,7 +58,7 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
 
   if (success) {
     const shareText = encodeURIComponent(
-      'Ontdek Leapio — gamified oefenen voor het 1ste leerjaar in Vlaanderen. Schrijf je in voor de beta:'
+      'Ontdek Leapio: je kind oefent voor het 1ste leerjaar en verzorgt zo een eigen Buddy. Schrijf je in voor de beta:'
     );
     const shareUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '');
     return (
@@ -74,7 +74,7 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
           <div className="flex-1">
             <h3 className="text-xl font-black text-slate-900 mb-1">Je bent erbij!</h3>
             <p className="text-slate-600 mb-4">
-              Begin augustus krijg je als één van de eersten toegang. Help ons groeien — deel met andere ouders:
+              We nodigen in kleine golven uit; je krijgt een mailtje zodra je aan de beurt bent. Help ons groeien — deel met andere ouders:
             </p>
             <div className="flex flex-wrap gap-2">
               <a

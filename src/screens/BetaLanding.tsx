@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import {
-  Sparkles, Trophy, BookOpen, Shield, BarChart3, Gift, Clock,
-  CheckCircle2, MapPin, Smartphone, Heart, Star, ChevronDown
+  Sparkles, BookOpen, BarChart3, Gift, Clock,
+  CheckCircle2, MapPin, Smartphone, Heart, Star, ChevronDown, Sprout
 } from 'lucide-react';
 import { useState } from 'react';
 import heroImg from '@/assets/beta-hero.jpg';
@@ -22,8 +22,16 @@ const FAQ_ITEMS = [
     a: 'Leapio is een PWA — installeer het rechtstreeks op smartphone, tablet of laptop, zonder app store. Werkt op iPhone, iPad, Android en computers.',
   },
   {
+    q: 'Wat is de Buddy?',
+    a: 'Een eigen diertje dat je kind zelf kiest en verzorgt: eten geven, spelen, wassen, laten slapen. Dat kost munten, en munten verdien je met oefeningen. De Buddy groeit mee door het schooljaar. Het kind beslist zelf welke oefening het maakt.',
+  },
+  {
+    q: 'Moet mijn kind elke dag of in het weekend inloggen?',
+    a: 'Nee. De Buddy krijgt alleen honger en slaap op schooldagen overdag. In het weekend en \'s nachts staat alles stil, dus een vrije zaterdag kost niets. Eén keer per schooldag even langskomen is ruim genoeg.',
+  },
+  {
     q: 'Voor welke leeftijden is het bedoeld?',
-    a: 'Leapio is ontworpen voor kinderen van 6 en 7 jaar — het 1ste leerjaar in Vlaanderen. De moeilijkheidsgraad past zich automatisch aan per trimester.',
+    a: 'Leapio is ontworpen voor kinderen van 6 en 7 jaar — het 1ste leerjaar in Vlaanderen. De oefeningen volgen de drie trimesters van het schooljaar, en jij kan als ouder bepalen hoe ver je kind vooruit mag.',
   },
   {
     q: 'Is het ook in lijn met het Vlaamse curriculum?',
@@ -37,15 +45,15 @@ const FAQ_ITEMS = [
 
 const FEATURES = [
   {
-    icon: Trophy,
-    title: 'Voor je kind: een echt avontuur',
-    description: 'Een gamified questkaart met XP, levels, badges en streaks. Geen werkboekje — een spel waarvoor ze elke dag terugkomen.',
+    icon: Heart,
+    title: 'Voor je kind: een eigen Buddy',
+    description: 'Je kind zorgt voor een diertje dat honger krijgt, wil spelen en moe wordt. Met elke oefening verdient het munten om hem te verzorgen. Geen werkboekje — een vriendje waarvoor ze terugkomen.',
     color: 'from-amber-400 to-orange-500',
   },
   {
     icon: BarChart3,
     title: 'Voor jou: volledige controle',
-    description: 'Pincode-beveiligd ouderportaal met voortgang per vak. Stel je eigen beloningen in, gekoppeld aan oefeningen die je kind voltooit.',
+    description: 'Pincode-beveiligd ouderportaal met voortgang per vak en de oefeningen waar je kind nog moeite mee heeft. Stel je eigen beloningen in: je kind ziet op zijn scherm hoeveel oefeningen het nog moet doen.',
     color: 'from-violet-500 to-purple-600',
   },
   {
@@ -59,18 +67,18 @@ const FEATURES = [
 const STEPS = [
   {
     icon: Heart,
-    title: 'Je kind kiest een avatar',
-    description: 'En komt terecht op de Magische Fluisterbos kaart vol oefeningen.',
+    title: 'Je kind kiest een Buddy',
+    description: 'Een eigen vriendje in het Magische Fluisterbos. De Buddy praat hardop, dus ook kinderen die nog niet lezen weten wat hij wil.',
   },
   {
     icon: BookOpen,
-    title: 'Oefenen voelt als spelen',
-    description: 'Rekenen, lezen en schrijven met directe feedback en AI-handschriftherkenning.',
+    title: 'Oefenen verdient munten',
+    description: 'Rekenen, lezen en schrijven met directe feedback. Elke oefening levert munten op voor eten, speelgoed en een warm bad. Afwisselen loont het meest.',
   },
   {
-    icon: Trophy,
-    title: 'Jij stelt de beloningen in',
-    description: 'IJsje na 10 oefeningen? Filmavond na een trimester? Jij beslist, zij blijven gemotiveerd.',
+    icon: Sprout,
+    title: 'De Buddy groeit mee',
+    description: 'Elk trimester verandert de Buddy een beetje, elk leerjaar krijgt hij een nieuwe vorm. En jij kan er een echte beloning aan koppelen: een ijsje na 10 rekenoefeningen?',
   },
 ];
 
@@ -85,7 +93,7 @@ export default function BetaLanding() {
       name: 'Leapio',
       operatingSystem: 'Web, iOS, Android',
       applicationCategory: 'EducationalApplication',
-      description: 'Gamified leerplatform voor het 1ste leerjaar in Vlaanderen. Rekenen, lezen en schrijven met XP, badges en een Vlaams curriculum.',
+      description: 'Leerapp voor het 1ste leerjaar in Vlaanderen. Je kind oefent rekenen, lezen en schrijven en verdient zo munten om een eigen Buddy te verzorgen. Volgens het Vlaamse leerplan.',
       inLanguage: 'nl-BE',
       offers: {
         '@type': 'Offer',
@@ -118,8 +126,8 @@ export default function BetaLanding() {
   return (
     <>
       <SEO
-        title="Leapio Beta — Gamified Oefenen voor het 1ste Leerjaar | Vlaanderen"
-        description="Schrijf je in voor de Leapio beta. Een gamified leerapp voor rekenen, lezen en schrijven, gebouwd voor het Vlaamse 1ste leerjaar."
+        title="Leapio Beta — Oefenen voor het 1ste Leerjaar, met een eigen Buddy | Vlaanderen"
+        description="Schrijf je in voor de Leapio beta. Je kind oefent rekenen, lezen en schrijven en verzorgt zo een eigen Buddy. Gebouwd voor het Vlaamse 1ste leerjaar."
         canonical={canonical}
         ogImage={heroImg}
         jsonLd={jsonLd}
@@ -163,7 +171,7 @@ export default function BetaLanding() {
                 transition={{ duration: 0.5, delay: 0.05 }}
                 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight mb-5"
               >
-                Jouw kind oefent <span className="text-amber-300">elke dag</span>.
+                Jouw kind oefent <span className="text-amber-300">voor zijn Buddy</span>.
                 <br className="hidden md:block" /> Zonder gezeur.
               </motion.h1>
 
@@ -173,8 +181,8 @@ export default function BetaLanding() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="text-lg md:text-xl text-violet-100/90 mb-8 max-w-xl leading-relaxed"
               >
-                Het eerste echt Vlaamse leerplatform voor het 1ste leerjaar.
-                Gamified rekenen, lezen en schrijven, afgestemd op het trimestersysteem.
+                Je kind kiest een eigen Buddy en zorgt ervoor. Eten, spelen en slapen kost munten,
+                en munten verdien je met rekenen, lezen en schrijven voor het Vlaamse 1ste leerjaar.
                 Schrijf je in voor de beta en krijg <strong className="text-white">1 maand gratis</strong> bij lancering.
               </motion.p>
 
@@ -202,7 +210,7 @@ export default function BetaLanding() {
               <div className="absolute -inset-6 bg-gradient-to-br from-amber-400/30 to-violet-500/30 rounded-[3rem] blur-2xl" />
               <img
                 src={heroImg}
-                alt="Vlaams kind oefent rekenen en lezen op de Leapio leerapp"
+                alt="Vlaams kind oefent met Leapio en verzorgt zijn Buddy"
                 width={1280}
                 height={960}
                 loading="eager"
@@ -221,7 +229,7 @@ export default function BetaLanding() {
                 Waarom ouders kiezen voor Leapio
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Drie redenen waarom Leapio werkt waar werkboekjes en huiswerkapps falen.
+                Kinderen oefenen niet voor punten. Ze oefenen voor iemand die op hen wacht.
               </p>
             </div>
 
@@ -254,7 +262,7 @@ export default function BetaLanding() {
                 Zo werkt het
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Eén keer instellen, elke dag plezier.
+                Eén keer instellen. Daarna wil je kind zelf even bij zijn Buddy kijken.
               </p>
             </div>
 
@@ -283,7 +291,7 @@ export default function BetaLanding() {
             <p className="text-lg text-slate-700 leading-relaxed">
               Speciaal ontworpen voor het <strong>1ste leerjaar</strong>.
               Werkt op tablet, smartphone en computer — installeer als app zonder app store.
-              In het <strong>Nederlands</strong>, met spraakondersteuning voor kinderen die nog leren lezen.
+              In het <strong>Nederlands</strong>, en de Buddy en de oefeningen spreken hardop voor kinderen die nog leren lezen.
             </p>
           </div>
         </section>

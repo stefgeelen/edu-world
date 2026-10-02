@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Sparkles, Trophy, BarChart3, Play, ArrowRight,
-  BookOpen, Target, Flame, Star, Users, Shield,
-  CheckCircle2, Menu, X, Zap, GraduationCap
+  Sparkles, BarChart3, Play, ArrowRight,
+  BookOpen, Heart, Star, Users, Shield, Moon,
+  CheckCircle2, Menu, X, Zap, GraduationCap, Sprout, Gift
 } from 'lucide-react';
 import heroIllustration from '@/assets/hero-illustration.jpg';
 import type { Easing } from 'framer-motion';
@@ -21,23 +21,23 @@ const fadeUp = {
 
 const FEATURES = [
   {
-    icon: BookOpen,
-    title: 'Interactief Leren',
-    description: 'Slimme oefeningen die zich aanpassen aan het niveau van je kind.',
-    color: 'bg-edu-blue/10 text-edu-blue',
-    border: 'border-edu-blue/20',
-  },
-  {
-    icon: Trophy,
-    title: 'Gamified Beloningen',
-    description: 'Badges, punten en streaks houden de motivatie hoog.',
+    icon: Heart,
+    title: 'Een eigen Buddy',
+    description: 'Je kind verzorgt een diertje dat honger krijgt, wil spelen en moe wordt. Oefeningen leveren de munten op om hem te helpen.',
     color: 'bg-edu-orange/10 text-edu-orange',
     border: 'border-edu-orange/20',
   },
   {
+    icon: BookOpen,
+    title: 'Echte leerstof',
+    description: 'Rekenen, lezen en schrijven voor het Vlaamse 1ste leerjaar, per trimester. Alles wordt voorgelezen voor kinderen die nog niet lezen.',
+    color: 'bg-edu-blue/10 text-edu-blue',
+    border: 'border-edu-blue/20',
+  },
+  {
     icon: BarChart3,
-    title: 'Ouder Dashboard',
-    description: 'Volg eenvoudig de voortgang en voltooide taken van je kind.',
+    title: 'Ouderportaal',
+    description: 'Volg de voortgang per vak, zie waar je kind nog moeite mee heeft en stel je eigen beloningen in.',
     color: 'bg-edu-teal/10 text-edu-teal',
     border: 'border-edu-teal/20',
   },
@@ -55,43 +55,41 @@ const STEPS = [
     number: '1',
     icon: Users,
     title: 'Maak een profiel',
-    description: 'Stel een profiel in voor je kind met naam en leeftijd. Leapio bepaalt automatisch het juiste niveau.',
+    description: 'Stel een profiel in voor je kind met naam en leeftijd. Leapio kiest het juiste leerjaar.',
     color: 'from-edu-blue to-edu-purple',
   },
   {
     number: '2',
     icon: Zap,
-    title: 'Kind speelt & leert',
-    description: 'Je kind maakt speelse oefeningen, verdient badges en klimt levels. Leren voelt als een avontuur!',
+    title: 'Je kind kiest een Buddy',
+    description: 'Elke oefening levert munten op voor eten, speelgoed en een warm bad. Je kind kiest zelf wat het oefent.',
     color: 'from-edu-orange to-edu-pink',
   },
   {
     number: '3',
     icon: BarChart3,
-    title: 'Bekijk de voortgang',
-    description: 'Volg de resultaten, streaks en groei van je kind via het overzichtelijke ouder-dashboard.',
+    title: 'Jij volgt mee',
+    description: 'In het ouderportaal zie je wat je kind oefent en hoe het gaat, achter een pincode die alleen jij kent.',
     color: 'from-edu-teal to-edu-green',
   },
 ];
 
-const TESTIMONIALS = [
+/** Wat er gebeurt in een dag met de Buddy. Bewust geen getuigenissen: die hebben we pas na de beta. */
+const BUDDY_DAY = [
   {
-    quote: 'Mijn dochter kijkt nu uit naar haar huiswerk! De badges en beloningen houden haar super gemotiveerd.',
-    name: 'Sarah de Vries',
-    role: 'Moeder van Emma (7)',
-    avatar: '👩',
+    icon: Sprout,
+    title: 'De Buddy groeit mee',
+    description: 'Elk trimester verandert hij een beetje, elk leerjaar krijgt hij een nieuwe vorm. Zo groeit hij samen met je kind door de lagere school.',
   },
   {
-    quote: 'Als leerkracht zie ik een duidelijk verschil bij leerlingen die Leapio thuis gebruiken. Ze zijn zelfverzekerder.',
-    name: 'Pieter Janssen',
-    role: 'Leerkracht groep 4',
-    avatar: '👨‍🏫',
+    icon: Moon,
+    title: 'Vrij in het weekend',
+    description: 'De Buddy krijgt alleen honger op schooldagen overdag. \'s Nachts en in het weekend staat alles stil. Eén keer per schooldag langskomen is genoeg.',
   },
   {
-    quote: 'Eindelijk een app die écht werkt. Geen gezeur meer, mijn zoon wil zelf oefenen. Dat had ik nooit verwacht!',
-    name: 'Lisa Bakker',
-    role: 'Moeder van Daan (9)',
-    avatar: '👩‍🦰',
+    icon: Gift,
+    title: 'Jouw beloning erbij',
+    description: 'Een ijsje na 10 rekenoefeningen? Je kind ziet op zijn eigen scherm hoeveel oefeningen het nog moet doen.',
   },
 ];
 
@@ -119,13 +117,13 @@ export function Landing() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {['features', 'how-it-works', 'testimonials'].map((id) => (
+            {['features', 'how-it-works', 'buddy'].map((id) => (
               <button
                 key={id}
                 onClick={() => scrollTo(id)}
                 className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors capitalize"
               >
-                {id === 'how-it-works' ? 'Hoe werkt het' : id === 'features' ? 'Functies' : 'Ervaringen'}
+                {id === 'how-it-works' ? 'Hoe werkt het' : id === 'features' ? 'Functies' : 'De Buddy'}
               </button>
             ))}
           </nav>
@@ -162,7 +160,7 @@ export function Landing() {
             {[
               { id: 'features', label: 'Functies' },
               { id: 'how-it-works', label: 'Hoe werkt het' },
-              { id: 'testimonials', label: 'Ervaringen' },
+              { id: 'buddy', label: 'De Buddy' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -197,16 +195,16 @@ export function Landing() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-edu-yellow/15 text-edu-orange rounded-full text-sm font-bold mb-6 border border-edu-yellow/30"
               >
                 <Sparkles className="w-4 h-4" />
-                Nieuw: Fluisterbos-avontuur beschikbaar!
+                Nieuw: verzorg je eigen Buddy!
               </motion.div>
 
               <motion.h1
                 variants={fadeUp} custom={1} initial="hidden" animate="visible"
                 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-foreground leading-[1.1] tracking-tight mb-6"
               >
-                Maak van huiswerk{' '}
+                Oefenen voor{' '}
                 <span className="bg-gradient-to-r from-edu-blue via-edu-teal to-edu-green bg-clip-text text-transparent">
-                  een avontuur
+                  een eigen Buddy
                 </span>
               </motion.h1>
 
@@ -214,8 +212,8 @@ export function Landing() {
                 variants={fadeUp} custom={2} initial="hidden" animate="visible"
                 className="text-lg sm:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed"
               >
-                Leapio houdt je kinderen gemotiveerd en betrokken bij hun schoolwerk door{' '}
-                <strong className="text-foreground">leuk, interactief leren</strong> met beloningen, badges en avonturen.
+                Je kind kiest een Buddy en zorgt ervoor. Eten, spelen en slapen kost munten, en die verdient het met{' '}
+                <strong className="text-foreground">rekenen, lezen en schrijven</strong> voor het 1ste leerjaar.
               </motion.p>
 
               <motion.div
@@ -245,11 +243,11 @@ export function Landing() {
               >
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-edu-green" />
-                  <span className="font-medium">Geen creditcard nodig</span>
+                  <span className="font-medium">Geen kredietkaart nodig</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-edu-green" />
-                  <span className="font-medium">Geschikt voor groep 1-6</span>
+                  <span className="font-medium">Voor het 1ste leerjaar</span>
                 </div>
               </motion.div>
             </div>
@@ -264,7 +262,7 @@ export function Landing() {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-edu-blue/15 border-2 border-border/50">
                 <img
                   src={heroIllustration}
-                  alt="Leapio gamified learning dashboard met badges en oefeningen"
+                  alt="Leapio: een kind oefent en verzorgt zijn Buddy"
                   className="w-full h-auto"
                   loading="eager"
                 />
@@ -282,7 +280,7 @@ export function Landing() {
                 transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }}
                 className="absolute -bottom-4 -left-4 w-14 h-14 bg-edu-teal rounded-2xl shadow-lg flex items-center justify-center -rotate-6"
               >
-                <Flame className="w-7 h-7 text-white" />
+                <Heart className="w-7 h-7 text-white" fill="white" />
               </motion.div>
             </motion.div>
           </div>
@@ -304,7 +302,7 @@ export function Landing() {
               Alles wat je kind nodig heeft
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Van adaptieve oefeningen tot motiverende beloningen — Leapio maakt leren leuk én effectief.
+              Kinderen oefenen niet voor punten. Ze oefenen voor iemand die op hen wacht.
             </p>
           </motion.div>
 
@@ -342,7 +340,7 @@ export function Landing() {
               In 3 stappen van start
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Binnen 2 minuten is je kind klaar om te beginnen met leren.
+              Binnen 2 minuten heeft je kind zijn eigen Buddy.
             </p>
           </motion.div>
 
@@ -375,8 +373,8 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ───── TESTIMONIALS ───── */}
-      <section id="testimonials" className="py-20 sm:py-28 bg-secondary/30">
+      {/* ───── DE BUDDY ───── */}
+      <section id="buddy" className="py-20 sm:py-28 bg-secondary/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
@@ -384,37 +382,26 @@ export function Landing() {
             className="text-center mb-16"
           >
             <span className="inline-block px-4 py-1.5 bg-edu-pink/10 text-edu-pink rounded-full text-sm font-bold mb-4">
-              Ervaringen
+              De Buddy
             </span>
             <h2 className="text-3xl sm:text-4xl font-display font-black text-foreground mb-4">
-              Ouders & leerkrachten zijn enthousiast
+              Een vriendje voor het hele schooljaar
             </h2>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-            {TESTIMONIALS.map((t, i) => (
+            {BUDDY_DAY.map((item, i) => (
               <motion.div
-                key={t.name}
+                key={item.title}
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.4 }}
-                className="bg-card rounded-3xl p-8 border-2 border-border/50 hover:shadow-xl transition-shadow duration-300 relative"
+                className="bg-card rounded-3xl p-8 border-2 border-border/50 hover:shadow-xl transition-shadow duration-300"
               >
-                {/* Stars */}
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, s) => (
-                    <Star key={s} className="w-4 h-4 text-edu-yellow" fill="hsl(var(--edu-yellow))" />
-                  ))}
+                <div className="w-14 h-14 rounded-2xl bg-edu-pink/10 text-edu-pink flex items-center justify-center mb-5">
+                  <item.icon className="w-7 h-7" strokeWidth={2} />
                 </div>
-
-                <p className="text-foreground leading-relaxed mb-6 italic">"{t.quote}"</p>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">{t.avatar}</span>
-                  <div>
-                    <p className="font-display font-bold text-foreground text-sm">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
-                </div>
+                <h3 className="text-lg font-display font-extrabold text-card-foreground mb-2">{item.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{item.description}</p>
               </motion.div>
             ))}
           </div>
@@ -434,16 +421,16 @@ export function Landing() {
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-black text-white mb-4 relative z-10">
-              Klaar om leren leuk te maken?
+              Klaar om een Buddy te kiezen?
             </h2>
             <p className="text-lg text-white/80 max-w-xl mx-auto mb-8 relative z-10">
-              Start vandaag nog gratis en ontdek waarom duizenden gezinnen kiezen voor Leapio.
+              Maak gratis een profiel aan en laat je kind vandaag nog zijn eigen Buddy kiezen.
             </p>
             <button
               onClick={() => navigate('/auth')}
               className="px-10 py-4 bg-white text-edu-blue rounded-2xl font-extrabold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative z-10"
             >
-              Start Gratis Proefperiode
+              Gratis starten
             </button>
           </motion.div>
         </div>
