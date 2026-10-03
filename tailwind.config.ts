@@ -66,10 +66,28 @@ export default {
           yellow: "hsl(var(--edu-yellow))",
           green: "hsl(var(--edu-green))",
         },
+        lp: {
+          night: "hsl(var(--lp-night) / <alpha-value>)",
+          "night-soft": "hsl(var(--lp-night-soft) / <alpha-value>)",
+          panel: "hsl(var(--lp-panel) / <alpha-value>)",
+          gold: "hsl(var(--lp-gold) / <alpha-value>)",
+          "gold-shadow": "hsl(var(--lp-gold-shadow) / <alpha-value>)",
+          coral: "hsl(var(--lp-coral) / <alpha-value>)",
+          leaf: "hsl(var(--lp-leaf) / <alpha-value>)",
+          cream: "hsl(var(--lp-cream) / <alpha-value>)",
+          mist: "hsl(var(--lp-mist) / <alpha-value>)",
+          teal: "hsl(var(--lp-teal) / <alpha-value>)",
+          orange: "hsl(var(--lp-orange) / <alpha-value>)",
+          pink: "hsl(var(--lp-pink) / <alpha-value>)",
+          violet: "hsl(var(--lp-violet) / <alpha-value>)",
+          blue: "hsl(var(--lp-blue) / <alpha-value>)",
+        },
       },
       fontFamily: {
         display: ["Nunito", "sans-serif"],
         body: ["Inter", "sans-serif"],
+        "lp-display": ["Outfit", "sans-serif"],
+        "lp-body": ["Figtree", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -117,6 +135,15 @@ export default {
         "fade-in": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
+        },
+        // Landing page: the hero Buddy and the stars behind it.
+        "lp-float": {
+          "0%, 100%": { transform: "translateY(0) rotate(-1deg)" },
+          "50%": { transform: "translateY(-10px) rotate(1deg)" },
+        },
+        "lp-twinkle": {
+          "0%, 100%": { opacity: "0.28", transform: "scale(0.8)" },
+          "50%": { opacity: "0.9", transform: "scale(1.15)" },
         },
         // Buddy Room: idle mood/cue loops (BuddyStage).
         "buddy-float": {
@@ -257,6 +284,8 @@ export default {
         "fx-rise": "fx-rise 1.4s ease-out forwards",
         "fx-pop": "fx-pop 1.2s ease-out forwards",
         "fx-bubble": "fx-bubble 1.5s ease-out forwards",
+        "lp-float": "lp-float 5s ease-in-out infinite",
+        "lp-twinkle": "lp-twinkle 3.5s ease-in-out infinite",
       },
     },
   },

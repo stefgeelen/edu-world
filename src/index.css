@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@500;600;700;800&family=Figtree:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -63,6 +63,22 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Landing page (night sky, cream, gold). Used via the `lp-*` Tailwind colours. */
+    --lp-night: 251 56% 15%;
+    --lp-night-soft: 246 45% 25%;
+    --lp-panel: 259 82% 12%;
+    --lp-gold: 43 85% 58%;
+    --lp-gold-shadow: 39 100% 32%;
+    --lp-coral: 8 90% 64%;
+    --lp-leaf: 137 41% 57%;
+    --lp-cream: 46 53% 94%;
+    --lp-mist: 135 43% 86%;
+    --lp-teal: 166 100% 38%;
+    --lp-orange: 27 100% 50%;
+    --lp-pink: 327 79% 61%;
+    --lp-violet: 260 94% 68%;
+    --lp-blue: 212 92% 58%;
   }
 
   .dark {
