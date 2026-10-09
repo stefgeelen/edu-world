@@ -141,7 +141,7 @@ describe('ExercisePictureWord component', () => {
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 
-  it('ends the exercise after losing all 3 lives, persisting a 0-star result', () => {
+  it('ends the exercise after losing all 3 lives, without paying anything out', () => {
     render(<ExercisePictureWord />);
 
     for (let round = 0; round < 3; round++) {
@@ -149,13 +149,7 @@ describe('ExercisePictureWord component', () => {
       act(() => vi.advanceTimersByTime(1200));
     }
 
-    expect(completeExerciseMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        exerciseId: 'picture-word-exercise-id',
-        score: 0,
-        maxScore: 5,
-        stars: 1,
-      }),
-    );
+    expect(completeExerciseMutateMock).not.toHaveBeenCalled();
+    expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });

@@ -13,7 +13,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>();
   return { ...actual, useNavigate: () => navigateMock };
 });
-vi.mock('@/context/GameContext', () => ({ useGame: () => ({ selectedAvatar: null }) }));
+vi.mock('@/context/GameContext', () => ({ useGame: () => ({ buddy: { name: 'Nootje', art: { happy: '', neutral: '' } } }) }));
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-1', stage: 1, grade: 1 }) }));
 vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => undefined }));

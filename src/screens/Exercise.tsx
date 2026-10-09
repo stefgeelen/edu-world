@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Loader2 } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
@@ -68,7 +68,7 @@ function generateMathQuestion(config: MathSumsConfig) {
 export function Exercise() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { selectedAvatar } = useGame();
+  const { buddy } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
@@ -198,7 +198,7 @@ export function Exercise() {
         </div>
       </div>
 
-      {/* Avatar Feedback */}
+      {/* Buddy Feedback */}
       <AnimatePresence>
         <motion.div 
           initial={{ y: 150, x: -50, rotate: -20 }}
@@ -221,21 +221,15 @@ export function Exercise() {
             </motion.div>
             
             <div className="w-48 h-48 md:w-56 md:h-56 rounded-full border-8 border-[#3b2d71] shadow-2xl overflow-hidden bg-[#1c1134]/50 backdrop-blur-md">
-              {selectedAvatar ? (
-                <img 
-                  src={selectedAvatar.imageUrlHead}
-                  alt="avatar"
-                  className={cn(
-                    "w-full h-full object-cover transition-transform duration-500",
-                    status === 'correct' && "scale-110",
-                    status === 'incorrect' && "grayscale opacity-80"
-                  )} 
-                />
-              ) : (
-                <div className="w-full h-full bg-[#2d1b54] flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 md:w-12 md:h-12 animate-spin text-[#9d8bce]" />
-                </div>
-              )}
+              <img
+                src={status === 'incorrect' ? buddy.art.neutral : buddy.art.happy}
+                alt={buddy.name}
+                draggable={false}
+                className={cn(
+                  "w-full h-full object-contain p-3 transition-transform duration-500",
+                  status === 'correct' && "scale-110"
+                )}
+              />
             </div>
           </div>
         </motion.div>

@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { GrowthMoment } from '@/components/buddy/GrowthMoment';
 import { useGrowthMoment } from '@/hooks/useGrowthMoment';
 import { daysUntilNextGrowth, growthForm } from '@/lib/buddy/growth';
+import { buddySpecies } from '@/lib/buddy/species';
 import { APP_PATHS } from '@/routes/paths';
 import forestScene from '@/assets/forest-scene.jpg';
 
@@ -57,7 +58,7 @@ function BuddyRoomContent() {
   const tour = useBuddyTour(child?.id);
   const location = useLocation();
   const navigate = useNavigate();
-  const form = growthForm(buddy.growthStage);
+  const form = growthForm(buddy.growthStage, buddy.name);
   const growthMoment = useGrowthMoment(child?.id, buddy.growthStage, loaded);
   const countdown = loaded && now ? growthCountdown(buddy.name, daysUntilNextGrowth(now)) : null;
 
@@ -192,7 +193,7 @@ function BuddyRoomContent() {
             </span>
           </button>
           <BuddyStage
-            name={buddy.name}
+            species={buddySpecies(buddy.species)}
             mood={mood}
             cue={cue}
             fx={careFx}

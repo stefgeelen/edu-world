@@ -147,7 +147,10 @@ export function ExercisePictureWord() {
       const nl = l - 1;
       setTimeout(() => {
         if (nl <= 0) {
-          finishExercise();
+          // Game over pays nothing: ExerciseShell saves it for the parent portal.
+          if (stageNavigated) return;
+          setStageNavigated(true);
+          navigate(EXERCISE_DONE_PATH);
         } else {
           setStatus('idle');
           setWrongWord(null);

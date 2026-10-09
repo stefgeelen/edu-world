@@ -123,7 +123,7 @@ describe('ExerciseSoundHouse component', () => {
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 
-  it('ends the exercise after losing all 3 lives, persisting a 0-score/1-star result', async () => {
+  it('ends the exercise after losing all 3 lives, without paying anything out', async () => {
     render(<ExerciseSoundHouse />);
 
     for (let round = 0; round < 3; round++) {
@@ -131,14 +131,7 @@ describe('ExerciseSoundHouse component', () => {
       await tick(1800);
     }
 
-    expect(completeExerciseMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        exerciseId: 'sound-house-exercise-id',
-        score: 0,
-        maxScore: 5,
-        stars: 1,
-      }),
-    );
+    expect(completeExerciseMutateMock).not.toHaveBeenCalled();
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });

@@ -40,11 +40,11 @@ import { ParentChildren } from '@/screens/parent/ParentChildren';
 
 const CHILD_A = {
   id: 'child-1', name: 'Test Child A', age: 8, grade: 3, xp: 240, level: 2,
-  streak: 4, avatar_url: null, avatar_id: 'avatar-1', pending_promotion: false,
+  streak: 4, pending_promotion: false,
 };
 const CHILD_B = {
   id: 'child-2', name: 'Test Child B', age: 6, grade: 1, xp: 10, level: 1,
-  streak: 0, avatar_url: null, avatar_id: 'avatar-2', pending_promotion: true,
+  streak: 0, pending_promotion: true,
 };
 
 function renderScreen() {

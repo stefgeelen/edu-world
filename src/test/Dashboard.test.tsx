@@ -27,7 +27,7 @@ vi.mock('@/hooks/useChildRewards', async () => {
 
 let badgesFixture: unknown[] = [];
 vi.mock('@/context/GameContext', () => ({
-  useGame: () => ({ selectedAvatar: { name: 'Fia', imageUrlHead: '' }, badges: badgesFixture }),
+  useGame: () => ({ buddy: { name: 'Nootje', art: { happy: '' } }, badges: badgesFixture }),
 }));
 vi.mock('@/hooks/useChildGreeting', () => ({ useChildGreeting: () => ({ greeting: 'Hallo, Lien!', childName: 'Lien' }) }));
 
@@ -102,7 +102,7 @@ describe('Dashboard', () => {
 
   it('lists the Buddy’s wishes in the old quest style, starting one on tap', () => {
     renderDashboard();
-    const wishes = screen.getByRole('region', { name: /Wensen van Fia/ });
+    const wishes = screen.getByRole('region', { name: /Wensen van Nootje/ });
     expect(within(wishes).getByText('1 / 2 vervuld')).toBeInTheDocument();
     fireEvent.click(within(wishes).getByRole('button', { name: /Klokkijken/ }));
     expect(navigateMock).toHaveBeenCalledWith('/app/exercises/clock/1');

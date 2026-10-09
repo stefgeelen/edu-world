@@ -10,7 +10,7 @@ import type { Tables } from '@/integrations/supabase/types';
 /** The columns of `children` the gameplay side reads. */
 export type CurrentChild = Pick<
   Tables<'children'>,
-  'id' | 'name' | 'grade' | 'avatar_id' | 'max_unlocked_stage'
+  'id' | 'name' | 'grade' | 'max_unlocked_stage'
 >;
 
 /**
@@ -29,7 +29,7 @@ export function useCurrentChild() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
-        .select('id, name, grade, avatar_id, max_unlocked_stage')
+        .select('id, name, grade, max_unlocked_stage')
         .eq('parent_id', user!.id)
         .order('created_at', { ascending: true })
         .limit(1)

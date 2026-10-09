@@ -3,24 +3,24 @@ import { useGame } from '@/context/GameContext';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { BUDDY_MESSAGES, getMoodForSituation, type BuddySituation, type BuddyMood } from '@/data/buddyMessages';
 
+/** Een fout antwoord toont de Buddy rustig, niet verdrietig: het kind mag zich vergissen. */
+const ART_FOR_MOOD = { greeting: 'happy', correct: 'happy', wrong: 'neutral', complete: 'happy', idle: 'neutral' } as const;
+
 /**
- * Returns a buddy message + mood for the current avatar and given situation.
+ * Returns a message + mood from the child's Buddy for the given situation.
  * Tracks shown messages per session to avoid repetition.
  * Replaces `{name}` placeholders with the child's name.
  */
 export function useBuddyMessage() {
-  const { selectedAvatar } = useGame();
+  const { buddy } = useGame();
   const { data: child } = useCurrentChild();
   const shownRef = useRef<Map<string, Set<number>>>(new Map());
 
-  const getMessage = useCallback((situation: BuddySituation): { message: string; mood: BuddyMood; avatarUrl: string | null; avatarName: string } | null => {
-    if (!selectedAvatar) return null;
+  const getMessage = useCallback((situation: BuddySituation): { message: string; mood: BuddyMood; buddyImage: string; buddyName: string } | null => {
+    const messages = BUDDY_MESSAGES[buddy.id][situation];
+    if (messages.length === 0) return null;
 
-    const avatarId = selectedAvatar.id;
-    const messages = BUDDY_MESSAGES[avatarId]?.[situation];
-    if (!messages || messages.length === 0) return null;
-
-    const key = `${avatarId}-${situation}`;
+    const key = `${buddy.id}-${situation}`;
     if (!shownRef.current.has(key)) {
       shownRef.current.set(key, new Set());
     }
@@ -36,14 +36,15 @@ export function useBuddyMessage() {
 
     const childName = child?.name ?? 'Vriend';
     const message = messages[idx].replace(/\{name\}/g, childName);
+    const mood = getMoodForSituation(situation);
 
     return {
       message,
-      mood: getMoodForSituation(situation),
-      avatarUrl: selectedAvatar.imageUrlHead,
-      avatarName: selectedAvatar.name,
+      mood,
+      buddyImage: buddy.art[ART_FOR_MOOD[mood]],
+      buddyName: buddy.name,
     };
-  }, [selectedAvatar, child]);
+  }, [buddy, child]);
 
-  return { getMessage, hasAvatar: !!selectedAvatar };
+  return { getMessage };
 }

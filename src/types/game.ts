@@ -1,16 +1,3 @@
-export type Avatar = {
-  id: string;
-  name: string;
-  imageUrl: string;
-  imageUrlFull: string;
-  imageUrlHead: string;
-  color: string;
-  subject: string;
-  description: string;
-  bgGradient: string;
-  accentColor: string;
-};
-
 export type Badge = {
   id: string;
   name: string;

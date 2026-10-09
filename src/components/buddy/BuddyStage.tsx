@@ -3,27 +3,13 @@ import type { BuddyCue, BuddyMood } from '@/lib/buddy/state';
 import type { CareActionId } from '@/lib/buddy/catalog';
 import type { CareFx } from '@/hooks/useBuddy';
 import type { GrowthForm } from '@/lib/buddy/growth';
-import buddyHappy from '@/assets/buddy/buddy-happy.png';
-import buddyNeutral from '@/assets/buddy/buddy-neutral.png';
-import buddySad from '@/assets/buddy/buddy-sad.png';
-import buddyIll from '@/assets/buddy/buddy-ill.png';
-import buddySleeping from '@/assets/buddy/buddy-sleeping.png';
-import buddyGone from '@/assets/buddy/buddy-gone.png';
+import type { BuddySpecies } from '@/lib/buddy/species';
 import hintHunger from '@/assets/buddy/hint-hunger.png';
 import hintFun from '@/assets/buddy/hint-fun.png';
 import hintEnergy from '@/assets/buddy/hint-energy.png';
 import hintHygiene from '@/assets/buddy/hint-hygiene.png';
 import hintIll from '@/assets/buddy/hint-ill.png';
 import hintSleep from '@/assets/buddy/hint-sleep.png';
-
-const BUDDY_ART: Record<BuddyMood, string> = {
-  happy: buddyHappy,
-  neutral: buddyNeutral,
-  sad: buddySad,
-  ill: buddyIll,
-  sleeping: buddySleeping,
-  gone: buddyGone,
-};
 
 const CUE_ANIMATION: Record<BuddyCue, string> = {
   gone: '',
@@ -113,7 +99,7 @@ function particlesFor(fx: CareFx): Particle[] {
 }
 
 export function BuddyStage({
-  name,
+  species,
   mood,
   cue,
   fx,
@@ -121,7 +107,8 @@ export function BuddyStage({
   pointer,
   growth,
 }: {
-  name: string;
+  /** Welke Buddy: naam en tekeningen. */
+  species: BuddySpecies;
   mood: BuddyMood;
   cue: BuddyCue;
   fx?: CareFx | null;
@@ -156,7 +143,7 @@ export function BuddyStage({
           setBoopAt(Date.now());
           onPoke?.();
         }}
-        aria-label={`Tik op ${name}`}
+        aria-label={`Tik op ${species.name}`}
         className="rounded-full outline-none focus-visible:ring-4 focus-visible:ring-white/80"
       >
         {/* Eigen laag voor de groei: de animaties op de afbeelding gebruiken zelf transform. */}
@@ -167,7 +154,7 @@ export function BuddyStage({
         >
         <img
           key={imgKey}
-          src={BUDDY_ART[mood]}
+          src={species.art[mood]}
           alt=""
           width={768}
           height={768}

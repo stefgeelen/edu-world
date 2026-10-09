@@ -14,14 +14,14 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
-function renderShell(props: { progress: number; lives: number; savesGameOver?: boolean }, onClose = vi.fn()) {
+function renderShell(props: { progress: number; lives: number }, onClose = vi.fn()) {
   const view = render(
     <ExerciseShell onClose={onClose} {...props}>
       <div />
     </ExerciseShell>
   );
   const close = () => fireEvent.click(view.container.querySelector('button')!);
-  const rerender = (next: { progress: number; lives: number; savesGameOver?: boolean }) =>
+  const rerender = (next: { progress: number; lives: number }) =>
     view.rerender(
       <ExerciseShell onClose={onClose} {...next}>
         <div />
@@ -71,12 +71,5 @@ describe('ExerciseShell — incomplete attempts', () => {
 
     expect(recordMock).toHaveBeenCalledTimes(1);
     expect(recordMock).toHaveBeenCalledWith('game_over', 20, 3);
-  });
-
-  it('leaves the game-over to the screen when it already saves one', () => {
-    const { rerender } = renderShell({ progress: 20, lives: 1, savesGameOver: true });
-    rerender({ progress: 20, lives: 0, savesGameOver: true });
-
-    expect(recordMock).not.toHaveBeenCalled();
   });
 });

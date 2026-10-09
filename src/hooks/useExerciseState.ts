@@ -84,25 +84,14 @@ export function useExerciseState(options: UseExerciseStateOptions = {}) {
 
     setTimeout(() => {
       if (nextLives <= 0) {
-        // Persist partial results on game over
-        if (exerciseId) {
-          const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
-          const score = correctCount.current;
-          completeExercise.mutate({
-            exerciseId,
-            score,
-            maxScore: totalQuestions,
-            stars: 0,
-            timeSpent,
-          });
-        }
+        // Game over pays nothing: ExerciseShell saves it for the parent portal.
         navigate(returnPath);
       } else {
         setStatus('idle');
         onNextQuestion?.();
       }
     }, 1600);
-  }, [lives, returnPath, navigate, onIncorrect, onNextQuestion, exerciseId, totalQuestions, completeExercise]);
+  }, [lives, returnPath, navigate, onIncorrect, onNextQuestion]);
 
   const resetExercise = useCallback(() => {
     setLives(3);

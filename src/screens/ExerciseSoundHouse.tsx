@@ -121,7 +121,8 @@ export function ExerciseSoundHouse() {
 
       setTimeout(() => {
         if (nextLives <= 0) {
-          finish();
+          // Game over pays nothing: ExerciseShell saves it for the parent portal.
+          navigate(EXERCISE_DONE_PATH);
         } else {
           setSelected(null);
           setStatus('idle');

@@ -17,11 +17,6 @@ interface ExerciseShellProps {
   buddyMood?: BuddyMood | null;
   /** Disable TTS for the buddy bubble (e.g. in reading exercises that already speak). */
   silenceBuddy?: boolean;
-  /**
-   * Set when the screen already saves a game-over through `complete_exercise`
-   * (stars 0), so the shell doesn't save it a second time.
-   */
-  savesGameOver?: boolean;
 }
 
 const START_LIVES = 3;
@@ -32,9 +27,9 @@ const START_LIVES = 3;
  *
  * Also saves the attempts that never reach `complete_exercise`, for the parent
  * portal's Aandachtspunten: losing all hearts, and closing the exercise after
- * answering at least once.
+ * answering at least once. Neither pays out Munten, XP or rewards.
  */
-export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false, savesGameOver = false }: ExerciseShellProps) {
+export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false }: ExerciseShellProps) {
   const { getMessage } = useBuddyMessage();
   const recordIncomplete = useRecordIncompleteExercise();
 
@@ -43,10 +38,10 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
   useEffect(() => {
     const lostLastHeart = previousLives.current > 0 && lives <= 0;
     previousLives.current = lives;
-    if (lostLastHeart && !savesGameOver) {
+    if (lostLastHeart) {
       recordIncomplete('game_over', progress, START_LIVES);
     }
-  }, [lives, progress, savesGameOver, recordIncomplete]);
+  }, [lives, progress, recordIncomplete]);
 
   const handleClose = () => {
     const started = progress > 0 || lives < START_LIVES;
@@ -56,7 +51,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
     }
     onClose();
   };
-  const [buddyData, setBuddyData] = useState<{ message: string; mood: BuddyMood; avatarUrl: string; avatarName: string } | null>(null);
+  const [buddyData, setBuddyData] = useState<{ message: string; mood: BuddyMood; buddyImage: string; buddyName: string } | null>(null);
 
   // Show buddy on mood change
   useEffect(() => {
@@ -72,9 +67,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
       idle: 'exercise_start',
     };
     const result = getMessage(situationMap[buddyMood]);
-    if (result) {
-      setBuddyData({ message: result.message, mood: result.mood, avatarUrl: result.avatarUrl!, avatarName: result.avatarName });
-    }
+    if (result) setBuddyData(result);
   }, [buddyMood, getMessage]);
 
   return (
@@ -140,8 +133,8 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
           key={`${buddyData.mood}-${buddyData.message}`}
           message={buddyData.message}
           mood={buddyData.mood}
-          avatarUrl={buddyData.avatarUrl}
-          avatarName={buddyData.avatarName}
+          buddyImage={buddyData.buddyImage}
+          buddyName={buddyData.buddyName}
           speakOnMount={!silenceBuddy}
           onDismiss={() => setBuddyData(null)}
         />

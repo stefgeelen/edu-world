@@ -127,9 +127,9 @@ describe('ExerciseLanguage component', () => {
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 
-  it('persists a 0-star partial result when all 3 lives are lost, then navigates away', async () => {
-    // The game-over branch now records the attempt (score 0, stars 0) before
-    // navigating, matching the correct-finish branch and every sibling screen.
+  it('pays nothing when all 3 lives are lost, then navigates away', async () => {
+    // A game-over never reaches complete_exercise (no Munten, XP or rewards);
+    // ExerciseShell saves it for the parent portal instead.
     render(<ExerciseLanguage />);
 
     for (let round = 0; round < 3; round++) {
@@ -139,14 +139,7 @@ describe('ExerciseLanguage component', () => {
       await tick(1500);
     }
 
-    expect(completeExerciseMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        exerciseId: 'language-exercise-id',
-        score: 0,
-        maxScore: 5,
-        stars: 0,
-      }),
-    );
+    expect(completeExerciseMutateMock).not.toHaveBeenCalled();
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
   });
 });

@@ -3,7 +3,7 @@
  * opens) and the dashboard, from which every exercise is one or two taps away.
  */
 export const APP_PATHS = {
-  /** Avatar pick; redirects to home once the child has one. */
+  /** Where login lands: on to add-child, or to home once there is a child. */
   start: '/app',
   addChild: '/app/add-child',
   /** Tab 1: the Buddy's room — the screen the app opens on. */

@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
 import { useParentChildren } from '@/hooks/useParentChildren';
+import { buddySpecies } from '@/lib/buddy/species';
 
 export function ParentChildren() {
   const navigate = useNavigate();
@@ -88,13 +89,9 @@ export function ParentChildren() {
             onClick={() => navigate(`/app/parent/child/${child.id}`)}
             className="w-full bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-4 text-left group"
           >
-            {/* Avatar */}
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl font-black text-slate-400 overflow-hidden flex-shrink-0">
-              {child.avatar_url ? (
-                <img src={child.avatar_url} className="w-full h-full object-cover" alt="" />
-              ) : (
-                child.name.charAt(0).toUpperCase()
-              )}
+            {/* Buddy */}
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              <img src={buddySpecies().art.happy} className="w-full h-full object-contain p-1" alt="" />
             </div>
 
             {/* Info */}

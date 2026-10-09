@@ -15,6 +15,7 @@ import { mapDbError } from '@/lib/errorMessages';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { createBuddy, tick, type BuddyState } from '@/lib/buddy/state';
 import { CARE_ITEMS, type CareActionId } from '@/lib/buddy/catalog';
+import { buddySpecies } from '@/lib/buddy/species';
 import type { NeedId } from '@/lib/buddy/constants';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -38,8 +39,11 @@ interface CareRpcResult {
 }
 
 function rowToState(row: BuddyStateRow): BuddyState {
+  // Nog geen keuze in de database: elk kind is voorlopig Nootje.
+  const species = buddySpecies();
   return {
-    name: 'Nootje',
+    species: species.id,
+    name: species.name,
     needs: row.needs as unknown as Record<NeedId, number>,
     munten: row.munten,
     inventory: (row.inventory as unknown as Record<string, number>) ?? {},

@@ -159,10 +159,7 @@ export function ExerciseComparison() {
       setLives(nextLives);
       setTimeout(() => {
         if (nextLives <= 0) {
-          if (exerciseId) {
-            const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
-            completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: 0, timeSpent });
-          }
+          // Game over pays nothing: ExerciseShell saves it for the parent portal.
           navigate(EXERCISE_DONE_PATH);
         } else generateNext();
       }, 1600);
@@ -302,7 +299,6 @@ export function ExerciseComparison() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(EXERCISE_CLOSE_PATH)}
-      savesGameOver
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}

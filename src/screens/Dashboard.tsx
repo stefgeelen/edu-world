@@ -39,7 +39,7 @@ const FOREST_DECORATIONS = [
 export function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { selectedAvatar, badges } = useGame();
+  const { buddy, badges } = useGame();
   const { isAdmin } = useAdminRole();
   const { greeting } = useChildGreeting();
   const { data: menu } = usePracticeMenu();
@@ -98,16 +98,12 @@ export function Dashboard() {
               <div className="relative shrink-0">
                 <div className="absolute inset-0 rounded-full bg-amber-400/30 blur-md animate-pulse" />
                 <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/30 bg-[#2d1b54] group-hover:border-amber-300 transition-colors animate-buddy-idle-float">
-                  {selectedAvatar ? (
-                    <ImageWithFallback src={selectedAvatar.imageUrlHead} alt="avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-[#3b2d71] animate-pulse" />
-                  )}
+                  <img src={buddy.art.happy} alt="" className="w-full h-full object-contain p-0.5" draggable={false} />
                 </div>
               </div>
               <div className="text-left min-w-0 flex-1">
                 <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">
-                  {selectedAvatar?.name ? `Met ${selectedAvatar.name}` : 'Studiemaatje'}
+                  {`Met ${buddy.name}`}
                 </p>
                 <h2 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight truncate">
                   {greeting}
@@ -208,7 +204,7 @@ export function Dashboard() {
                 </div>
                 <div>
                   <h3 id="wishes-title" className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-sky-300 to-cyan-200 leading-none">
-                    {wishesDone === wishes.length ? 'Alle wensen vervuld!' : `Wensen van ${selectedAvatar?.name ?? 'je Buddy'}`}
+                    {wishesDone === wishes.length ? 'Alle wensen vervuld!' : `Wensen van ${buddy.name}`}
                   </h3>
                   <p className="text-[10px] font-bold text-cyan-300/60 uppercase tracking-widest mt-0.5">
                     {wishesDone} / {wishes.length} vervuld

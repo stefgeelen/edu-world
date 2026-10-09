@@ -2,18 +2,18 @@ import React, { createContext, useCallback, useContext, useMemo, useState, useEf
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import type { Avatar, Badge } from '@/types/game';
-import { avatars } from '@/data/avatars';
+import type { Badge } from '@/types/game';
 import { badgesData } from '@/data/badges';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { buddySpecies, type BuddySpecies } from '@/lib/buddy/species';
 
 // Re-export for backwards compatibility
-export type { Avatar, Badge };
-export { avatars, badgesData };
+export type { Badge };
+export { badgesData };
 
 type GameContextType = {
-  selectedAvatar: Avatar | null;
-  setSelectedAvatar: (avatar: Avatar) => void;
+  /** De Buddy van het kind: naam en tekeningen. */
+  buddy: BuddySpecies;
   badges: Badge[];
   updateBadgeProgress: (badgeId: string, progress: number) => void;
 };
@@ -27,16 +27,9 @@ function hexToColorClass(hex: string): string {
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const { data: child } = useCurrentChild();
-  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
   const [badges, setBadges] = useState<Badge[]>(badgesData);
-
-  // Sync avatar from child data
-  useEffect(() => {
-    if (child) {
-      const found = avatars.find(a => a.id === child.avatar_id);
-      if (found) setSelectedAvatar(found);
-    }
-  }, [child]);
+  // Nog geen keuze in de database: elk kind is voorlopig Nootje.
+  const buddy = buddySpecies();
 
   // Fetch badges from DB + child_badges for progress
   const { data: dbBadges } = useQuery({
@@ -95,8 +88,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const value = useMemo(
-    () => ({ selectedAvatar, setSelectedAvatar, badges, updateBadgeProgress }),
-    [selectedAvatar, badges, updateBadgeProgress]
+    () => ({ buddy, badges, updateBadgeProgress }),
+    [buddy, badges, updateBadgeProgress]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

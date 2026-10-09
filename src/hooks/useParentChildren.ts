@@ -5,7 +5,7 @@ import type { Tables } from '@/integrations/supabase/types';
 
 export type ParentChild = Pick<
   Tables<'children'>,
-  'id' | 'name' | 'age' | 'grade' | 'xp' | 'level' | 'streak' | 'avatar_url' | 'avatar_id' | 'pending_promotion'
+  'id' | 'name' | 'age' | 'grade' | 'xp' | 'level' | 'streak' | 'pending_promotion'
 >;
 
 /**
@@ -24,7 +24,7 @@ export function useParentChildren() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
-        .select('id, name, age, grade, xp, level, streak, avatar_url, avatar_id, pending_promotion')
+        .select('id, name, age, grade, xp, level, streak, pending_promotion')
         .eq('parent_id', user!.id)
         .order('created_at', { ascending: true });
       if (error) throw error;

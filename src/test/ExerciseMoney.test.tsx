@@ -171,16 +171,9 @@ describe('ExerciseMoney component', () => {
       act(() => vi.advanceTimersByTime(1600));
     }
 
-    // On the 3rd wrong payment lives hit 0: the shared state machine persists
-    // a 0-star partial result and navigates back to the stage.
-    expect(completeExerciseMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        exerciseId: 'money-exercise-id',
-        score: 0,
-        maxScore: 5,
-        stars: 0,
-      }),
-    );
+    // On the 3rd wrong payment lives hit 0: nothing is paid out, and the
+    // shared state machine navigates back to the dashboard.
+    expect(completeExerciseMutateMock).not.toHaveBeenCalled();
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
     expect(triggerConfettiMock).not.toHaveBeenCalled();
   });

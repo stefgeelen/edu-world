@@ -15,8 +15,11 @@ import {
 } from "./constants";
 import { CARE_ACTIONS, getItem, type CareActionId } from "./catalog";
 import { elapsedWindows } from "./schedule";
+import { buddySpecies, DEFAULT_SPECIES_ID, type BuddySpeciesId } from "./species";
 
 export interface BuddyState {
+  /** Welke Buddy het kind heeft, zie species.ts. */
+  species: BuddySpeciesId;
   name: string;
   needs: Record<NeedId, number>;
   munten: number;
@@ -34,7 +37,8 @@ const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v * 10) / 10))
 
 export function createBuddy(now = Date.now()): BuddyState {
   return {
-    name: "Nootje",
+    species: DEFAULT_SPECIES_ID,
+    name: buddySpecies(DEFAULT_SPECIES_ID).name,
     needs: { hunger: 80, fun: 75, energy: 85, hygiene: 80, health: 100 },
     munten: STARTING_MUNTEN,
     inventory: { bes: 2, dennenappel: 1, doekje: 1 },

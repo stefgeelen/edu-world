@@ -269,7 +269,6 @@ export function ExerciseMoney() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(EXERCISE_CLOSE_PATH)}
-      savesGameOver
     >
       <DndContext
         sensors={sensors}

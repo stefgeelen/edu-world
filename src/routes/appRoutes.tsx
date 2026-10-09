@@ -6,7 +6,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { APP_PATHS } from '@/routes/paths';
 
-const AvatarSelection = lazy(() => import('@/screens/AvatarSelection').then(m => ({ default: m.AvatarSelection })));
+const AppStart = lazy(() => import('@/screens/AppStart').then(m => ({ default: m.AppStart })));
 const AddChild = lazy(() => import('@/screens/AddChild').then(m => ({ default: m.AddChild })));
 const Exercise = lazy(() => import('@/screens/Exercise').then(m => ({ default: m.Exercise })));
 const ExerciseNumberBond = lazy(() => import('@/screens/ExerciseNumberBond').then(m => ({ default: m.ExerciseNumberBond })));
@@ -48,7 +48,7 @@ export const appRoutes = (
   // forest fallback for /app only, instead of taking down the whole app the way
   // the single root boundary would. Parent/admin trees already do this.
   <Route path="/app" element={<ProtectedRoute><ErrorBoundary><Layout /></ErrorBoundary></ProtectedRoute>}>
-    <Route index element={<S><AvatarSelection /></S>} />
+    <Route index element={<S><AppStart /></S>} />
     <Route path="add-child" element={<S><AddChild /></S>} />
     <Route path="home" element={<S><BuddyRoom /></S>} />
     <Route path="dashboard" element={<S><Dashboard /></S>} />

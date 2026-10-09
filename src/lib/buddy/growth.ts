@@ -13,6 +13,7 @@
  */
 
 import { careCalendarDay } from './schedule';
+import { buddySpecies } from './species';
 
 export type GrowthPhase = 1 | 2 | 3;
 
@@ -30,7 +31,7 @@ export interface GrowthForm {
   stage: number;
   grade: number;
   phase: GrowthPhase;
-  /** Hoe de Buddy in deze fase heet, bv. "Kleine Nootje". */
+  /** Hoe de Buddy in deze fase heet, bv. "Kleine Nootje" of "Kleine Vosje". */
   title: string;
   /** Grootte van de Buddy-tekening, 1 = volwassen. */
   scale: number;
@@ -43,13 +44,13 @@ export interface GrowthForm {
  * een vorm is voorlopig grootte + accessoire. Komen er echte tekeningen per
  * vorm, dan horen ze hier.
  */
-const FORMS: { title: string; scale: number; accessory?: string }[] = [
-  { title: 'Baby Nootje', scale: 0.72 },
-  { title: 'Kleine Nootje', scale: 0.78, accessory: '🎀' },
-  { title: 'Nootje', scale: 0.84, accessory: '🧢' },
-  { title: 'Flinke Nootje', scale: 0.9, accessory: '🧣' },
-  { title: 'Grote Nootje', scale: 0.95, accessory: '🎒' },
-  { title: 'Wijze Nootje', scale: 1, accessory: '👑' },
+const FORMS: { prefix?: string; scale: number; accessory?: string }[] = [
+  { prefix: 'Baby', scale: 0.72 },
+  { prefix: 'Kleine', scale: 0.78, accessory: '🎀' },
+  { scale: 0.84, accessory: '🧢' },
+  { prefix: 'Flinke', scale: 0.9, accessory: '🧣' },
+  { prefix: 'Grote', scale: 0.95, accessory: '🎒' },
+  { prefix: 'Wijze', scale: 1, accessory: '👑' },
 ];
 
 /** Wat er per trimester bij komt. */
@@ -59,7 +60,7 @@ const PHASE_EXTRA: Record<GrowthPhase, string | undefined> = {
   3: '🌼',
 };
 
-export function growthForm(stage: number): GrowthForm {
+export function growthForm(stage: number, name = buddySpecies().name): GrowthForm {
   const s = Math.min(MAX_GROWTH_STAGE, Math.max(1, Math.round(stage) || 1));
   const grade = Math.floor((s - 1) / 3) + 1;
   const phase = (((s - 1) % 3) + 1) as GrowthPhase;
@@ -68,7 +69,7 @@ export function growthForm(stage: number): GrowthForm {
     stage: s,
     grade,
     phase,
-    title: form.title,
+    title: form.prefix ? `${form.prefix} ${name}` : name,
     scale: Math.min(1, form.scale + (phase - 1) * 0.02),
     accessories: [form.accessory, PHASE_EXTRA[phase]].filter((a): a is string => !!a),
   };

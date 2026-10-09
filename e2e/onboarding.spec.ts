@@ -1,5 +1,5 @@
-// Critical-path E2E: sign up -> mandatory PIN setup -> add child -> avatar
-// selection -> dashboard. This is the single flow every new Leapio user must
+// Critical-path E2E: sign up -> mandatory PIN setup -> add child -> the
+// Buddy's room. This is the single flow every new Leapio user must
 // complete, and per CLAUDE.md it currently has zero coverage of any kind.
 //
 // NOTE on running this file:
@@ -42,13 +42,8 @@ test.describe('onboarding: signup through first dashboard view', () => {
     await page.locator('#childAge').fill('6');
     await page.getByRole('button', { name: 'Verder' }).click();
 
-    // Avatar selection — pick the first available avatar
-    await expect(page).toHaveURL(/\/app\b/);
-    await page.locator('[class*="cursor-pointer"]').first().click();
-    await page.getByRole('button', { name: /Kies/ }).click();
-
-    // Dashboard
-    await expect(page).toHaveURL(/\/app\/dashboard/);
+    // Straight on to the Buddy's room
+    await expect(page).toHaveURL(/\/app\/home/);
   });
 
   test('signing in with the wrong password shows an error and does not navigate', async ({ page }) => {

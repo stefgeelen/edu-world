@@ -137,7 +137,7 @@ describe('useExerciseState', () => {
     expect(navigateMock).not.toHaveBeenCalled();
   });
 
-  it('ends the exercise (game over) once lives hit 0, persisting a 0-star result', () => {
+  it('ends the exercise (game over) once lives hit 0, without paying anything out', () => {
     const { result } = renderHook(() =>
       useExerciseState({ exerciseId: 'ex-1', returnPath: '/app/map', totalQuestions: 10 })
     );
@@ -149,7 +149,7 @@ describe('useExerciseState', () => {
     act(() => result.current.handleIncorrect()); // 0 -> game over
     act(() => vi.advanceTimersByTime(1600));
 
-    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ stars: 0, score: 0 }));
+    expect(mutateMock).not.toHaveBeenCalled();
     expect(navigateMock).toHaveBeenCalledWith('/app/map');
   });
 

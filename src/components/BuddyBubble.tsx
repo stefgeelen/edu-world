@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import type { BuddyMood } from '@/data/buddyMessages';
-import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { useSpeech } from '@/hooks/useSpeech';
 
 interface BuddyBubbleProps {
   message: string;
   mood: BuddyMood;
-  avatarUrl: string;
-  avatarName: string;
+  buddyImage: string;
+  buddyName: string;
   /** Auto-dismiss delay in ms. Set to 0 to disable. Default 4000. */
   autoDismissMs?: number;
   onDismiss?: () => void;
@@ -15,7 +14,7 @@ interface BuddyBubbleProps {
   speakOnMount?: boolean;
 }
 
-const MOOD_AVATAR_ANIMATION: Record<BuddyMood, string> = {
+const MOOD_ANIMATION: Record<BuddyMood, string> = {
   greeting: 'animate-buddy-bounce-in',
   correct: 'animate-buddy-celebrate',
   wrong: 'animate-buddy-sad-shake',
@@ -24,10 +23,10 @@ const MOOD_AVATAR_ANIMATION: Record<BuddyMood, string> = {
 };
 
 /**
- * Animated buddy avatar with speech bubble overlay.
- * Shows the selected study buddy with a contextual message and mood-based animation.
+ * The child's Buddy with a speech bubble, shown during exercises,
+ * with a contextual message and mood-based animation.
  */
-export function BuddyBubble({ message, mood, avatarUrl, avatarName, autoDismissMs = 4000, onDismiss, speakOnMount = true }: BuddyBubbleProps) {
+export function BuddyBubble({ message, mood, buddyImage, buddyName, autoDismissMs = 4000, onDismiss, speakOnMount = true }: BuddyBubbleProps) {
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
   const { speak } = useSpeech();
@@ -66,15 +65,11 @@ export function BuddyBubble({ message, mood, avatarUrl, avatarName, autoDismissM
       className={`fixed bottom-24 left-4 z-50 flex items-end gap-2 cursor-pointer md:bottom-8 md:left-6 ${exiting ? 'animate-buddy-exit' : ''}`}
       onClick={handleTap}
       role="status"
-      aria-label={`${avatarName} zegt: ${message}`}
+      aria-label={`${buddyName} zegt: ${message}`}
     >
-      {/* Avatar */}
-      <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/20 bg-[#2d1b54] flex-shrink-0 ${MOOD_AVATAR_ANIMATION[mood]}`}>
-        <ImageWithFallback
-          src={avatarUrl}
-          alt={avatarName}
-          className="w-full h-full object-cover"
-        />
+      {/* Buddy */}
+      <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full border-[3px] border-amber-400 overflow-hidden shadow-lg shadow-amber-400/20 bg-[#2d1b54] flex-shrink-0 ${MOOD_ANIMATION[mood]}`}>
+        <img src={buddyImage} alt={buddyName} className="w-full h-full object-contain p-0.5" draggable={false} />
       </div>
 
       {/* Speech bubble */}
@@ -82,7 +77,7 @@ export function BuddyBubble({ message, mood, avatarUrl, avatarName, autoDismissM
         {/* Triangle pointer */}
         <div className="absolute bottom-2 -left-2 w-3 h-3 bg-[#1a103c]/95 border-l-2 border-b-2 border-[#3b2d71] rotate-45" />
         <p className="text-sm font-bold text-white/90 leading-snug">{message}</p>
-        <p className="text-[10px] font-bold text-[#a78bfa] mt-1">{avatarName}</p>
+        <p className="text-[10px] font-bold text-[#a78bfa] mt-1">{buddyName}</p>
       </div>
     </div>
   );

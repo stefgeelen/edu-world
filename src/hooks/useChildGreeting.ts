@@ -19,20 +19,20 @@ const TIME_LABEL: Record<TimeOfDay, string> = {
 };
 
 /**
- * Returns a personalized greeting for the current child + their study buddy.
+ * Returns a personalized greeting for the current child + their Buddy.
  * Outputs: { greeting, childName, buddyName, timeOfDay }
  */
 export function useChildGreeting() {
   const { data: child } = useCurrentChild();
-  const { selectedAvatar } = useGame();
+  const { buddy } = useGame();
 
   return useMemo(() => {
     const hour = new Date().getHours();
     const timeOfDay = getTimeOfDay(hour);
     const childName = child?.name ?? 'Vriend';
-    const buddyName = selectedAvatar?.name ?? 'je studiemaatje';
+    const buddyName = buddy.name;
     const greeting = `${TIME_LABEL[timeOfDay]}, ${childName}!`;
 
     return { greeting, childName, buddyName, timeOfDay };
-  }, [child, selectedAvatar]);
+  }, [child, buddy]);
 }
