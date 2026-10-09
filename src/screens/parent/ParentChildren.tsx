@@ -91,7 +91,7 @@ export function ParentChildren() {
           >
             {/* Buddy */}
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-              <img src={buddySpecies().art.happy} className="w-full h-full object-contain p-1" alt="" />
+              <img src={buddySpecies(child.buddy_species).art.happy} className="w-full h-full object-contain p-1" alt="" />
             </div>
 
             {/* Info */}

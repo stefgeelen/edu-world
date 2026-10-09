@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import type { Badge } from '@/types/game';
 import { badgesData } from '@/data/badges';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { useBuddyRow } from '@/hooks/useBuddy';
 import { buddySpecies, type BuddySpecies } from '@/lib/buddy/species';
 
 // Re-export for backwards compatibility
@@ -28,8 +29,8 @@ function hexToColorClass(hex: string): string {
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const { data: child } = useCurrentChild();
   const [badges, setBadges] = useState<Badge[]>(badgesData);
-  // Nog geen keuze in de database: elk kind is voorlopig Nootje.
-  const buddy = buddySpecies();
+  const { data: buddyRow } = useBuddyRow();
+  const buddy = buddySpecies(buddyRow?.species);
 
   // Fetch badges from DB + child_badges for progress
   const { data: dbBadges } = useQuery({

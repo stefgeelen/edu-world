@@ -39,8 +39,7 @@ interface CareRpcResult {
 }
 
 function rowToState(row: BuddyStateRow): BuddyState {
-  // Nog geen keuze in de database: elk kind is voorlopig Nootje.
-  const species = buddySpecies();
+  const species = buddySpecies(row.species);
   return {
     species: species.id,
     name: species.name,
@@ -108,6 +107,24 @@ export function BuddyFxProvider({ children }: { children: ReactNode }) {
 const NOOP_FX: BuddyFxValue = { careFx: null, playCareFx: () => {}, now: 0 };
 
 /**
+ * The raw `buddy_states` row of the current child. Shared by `useBuddy` and by
+ * anything that only needs to know which Buddy the child has (one request).
+ */
+export function useBuddyRow() {
+  const { data: child } = useCurrentChild();
+  const childId = child?.id;
+  return useQuery({
+    queryKey: ['buddy-state', childId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('buddy_get_or_create', { p_child_id: childId! });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!childId,
+  });
+}
+
+/**
  * Buddy Room state and Care Actions, backed by the `buddy_states` table and its
  * RPCs (decay/pricing are computed server-side so a child can't manipulate them
  * from the client). See supabase/migrations/20260911120000_add_buddy_care.sql.
@@ -118,15 +135,7 @@ export function useBuddy() {
   const queryClient = useQueryClient();
   const queryKey = ['buddy-state', childId];
 
-  const { data: row, isLoading } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('buddy_get_or_create', { p_child_id: childId! });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!childId,
-  });
+  const { data: row, isLoading } = useBuddyRow();
 
   const { careFx, playCareFx, now: sharedNow } = useContext(BuddyFxContext) ?? NOOP_FX;
 

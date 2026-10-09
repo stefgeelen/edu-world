@@ -19,6 +19,7 @@ export function TabBar() {
   const hideTabBar =
     location.pathname === APP_PATHS.start ||
     location.pathname === APP_PATHS.addChild ||
+    location.pathname === APP_PATHS.chooseBuddy ||
     location.pathname.startsWith('/app/exercises');
 
   if (hideTabBar) return null;

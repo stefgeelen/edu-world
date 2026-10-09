@@ -3,9 +3,11 @@
  * opens) and the dashboard, from which every exercise is one or two taps away.
  */
 export const APP_PATHS = {
-  /** Where login lands: on to add-child, or to home once there is a child. */
+  /** Where login lands: on to add-child, the Buddy choice, or home. */
   start: '/app',
   addChild: '/app/add-child',
+  /** Pick a Buddy: the first time, then once per school year (stay or swap). */
+  chooseBuddy: '/app/kies-je-buddy',
   /** Tab 1: the Buddy's room — the screen the app opens on. */
   home: '/app/home',
   /** Tab 2: the dashboard — quick starts, wishes, trophies, rewards. */

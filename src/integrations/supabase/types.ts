@@ -118,6 +118,8 @@ export type Database = {
           needs: Json
           parent_id: string
           sleep_until: string | null
+          species: string
+          species_school_year: number | null
           updated_at: string
           wishes: string[]
           wishes_day: string | null
@@ -134,6 +136,8 @@ export type Database = {
           needs?: Json
           parent_id: string
           sleep_until?: string | null
+          species?: string
+          species_school_year?: number | null
           updated_at?: string
           wishes?: string[]
           wishes_day?: string | null
@@ -150,6 +154,8 @@ export type Database = {
           needs?: Json
           parent_id?: string
           sleep_until?: string | null
+          species?: string
+          species_school_year?: number | null
           updated_at?: string
           wishes?: string[]
           wishes_day?: string | null
@@ -812,6 +818,8 @@ export type Database = {
           needs: Json
           parent_id: string
           sleep_until: string | null
+          species: string
+          species_school_year: number | null
           updated_at: string
           wishes: string[]
           wishes_day: string | null
@@ -853,6 +861,33 @@ export type Database = {
         Args: { p_action: string; p_child_id: string; p_item_id?: string }
         Returns: Json
       }
+      buddy_choose: {
+        Args: { p_child_id: string; p_species: string }
+        Returns: {
+          child_id: string
+          created_at: string
+          dead: boolean
+          growth_stage: number
+          health_zero_since: string | null
+          inventory: Json
+          last_tick: string
+          munten: number
+          needs: Json
+          parent_id: string
+          sleep_until: string | null
+          species: string
+          species_school_year: number | null
+          updated_at: string
+          wishes: string[]
+          wishes_day: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "buddy_states"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       buddy_get_or_create: {
         Args: { p_child_id: string }
         Returns: {
@@ -867,6 +902,8 @@ export type Database = {
           needs: Json
           parent_id: string
           sleep_until: string | null
+          species: string
+          species_school_year: number | null
           updated_at: string
           wishes: string[]
           wishes_day: string | null
@@ -887,6 +924,7 @@ export type Database = {
         Returns: number
       }
       buddy_revive: { Args: { p_child_id: string }; Returns: Json }
+      buddy_school_year: { Args: { p_day: string }; Returns: number }
       child_exercise_insights: {
         Args: { p_child_id: string }
         Returns: {

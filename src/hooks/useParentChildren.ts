@@ -6,7 +6,10 @@ import type { Tables } from '@/integrations/supabase/types';
 export type ParentChild = Pick<
   Tables<'children'>,
   'id' | 'name' | 'age' | 'grade' | 'xp' | 'level' | 'streak' | 'pending_promotion'
->;
+> & {
+  /** Welke Buddy het kind heeft; null zolang het er nog geen heeft. */
+  buddy_species: string | null;
+};
 
 /**
  * The logged-in parent's children, ordered oldest first.
@@ -24,11 +27,14 @@ export function useParentChildren() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
-        .select('id, name, age, grade, xp, level, streak, pending_promotion')
+        .select('id, name, age, grade, xp, level, streak, pending_promotion, buddy_states(species)')
         .eq('parent_id', user!.id)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map(({ buddy_states, ...child }) => ({
+        ...child,
+        buddy_species: buddy_states?.species ?? null,
+      }));
     },
     enabled: !!user,
   });

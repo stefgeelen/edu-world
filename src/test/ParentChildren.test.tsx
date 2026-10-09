@@ -40,11 +40,11 @@ import { ParentChildren } from '@/screens/parent/ParentChildren';
 
 const CHILD_A = {
   id: 'child-1', name: 'Test Child A', age: 8, grade: 3, xp: 240, level: 2,
-  streak: 4, pending_promotion: false,
+  streak: 4, pending_promotion: false, buddy_states: { species: 'loeka' },
 };
 const CHILD_B = {
   id: 'child-2', name: 'Test Child B', age: 6, grade: 1, xp: 10, level: 1,
-  streak: 0, pending_promotion: true,
+  streak: 0, pending_promotion: true, buddy_states: null,
 };
 
 function renderScreen() {
@@ -81,6 +81,15 @@ describe('ParentChildren', () => {
     expect(screen.getByText('240 XP')).toBeInTheDocument();
     expect(screen.getByText('4')).toBeInTheDocument();
     expect(screen.getByText('1 van 3 kinderen')).toBeInTheDocument();
+  });
+
+  it("shows each child's own Buddy, and Nootje for a child that has none yet", async () => {
+    childrenData = [CHILD_A, CHILD_B];
+    const { container } = renderScreen();
+    await screen.findByText('Test Child B');
+    const srcs = Array.from(container.querySelectorAll('img')).map((img) => img.getAttribute('src'));
+    expect(srcs[0]).toContain('loeka-happy');
+    expect(srcs[1]).toContain('buddy-happy');
   });
 
   it('shows the pending-promotion badge only for the child who has one', async () => {
