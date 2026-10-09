@@ -172,6 +172,7 @@ export function ExerciseLanguage() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      savesGameOver
       silenceBuddy
     >
       {/* Main Content Area */}

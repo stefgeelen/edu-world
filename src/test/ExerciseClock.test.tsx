@@ -117,6 +117,7 @@ vi.mock('@/hooks/useDifficultyLevel', () => ({
 }));
 vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => undefined }));
+vi.mock('@/hooks/useRecordIncompleteExercise', () => ({ useRecordIncompleteExercise: () => vi.fn() }));
 vi.mock('@/hooks/useCompleteExercise', () => ({
   useCompleteExercise: () => ({ mutate: vi.fn() }),
   useCurrentChild: () => ({ data: undefined }),

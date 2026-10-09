@@ -24,6 +24,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-1', stage: 1, grade: 1 }) }));
 vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => 'picture-word-exercise-id' }));
+vi.mock('@/hooks/useRecordIncompleteExercise', () => ({ useRecordIncompleteExercise: () => vi.fn() }));
 const completeExerciseMutateMock = vi.fn();
 vi.mock('@/hooks/useCompleteExercise', () => ({
   useCompleteExercise: () => ({ mutate: completeExerciseMutateMock }),

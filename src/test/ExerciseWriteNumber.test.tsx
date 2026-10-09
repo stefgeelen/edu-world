@@ -19,6 +19,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => navigateMock };
 });
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => 'ex-write-number' }));
+vi.mock('@/hooks/useRecordIncompleteExercise', () => ({ useRecordIncompleteExercise: () => vi.fn() }));
 const mutateMock = vi.fn();
 vi.mock('@/hooks/useCompleteExercise', () => ({
   useCompleteExercise: () => ({ mutate: mutateMock }),

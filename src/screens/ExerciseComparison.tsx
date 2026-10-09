@@ -302,6 +302,7 @@ export function ExerciseComparison() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      savesGameOver
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}

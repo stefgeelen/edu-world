@@ -14,7 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useChildInsights } from '@/hooks/useChildInsights';
+import { useChildInsights, type ChildInsight } from '@/hooks/useChildInsights';
 import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
 
@@ -32,9 +32,20 @@ function formatTime(seconds: number): string {
   return `${hrs}u ${mins % 60}m`;
 }
 
-function scoreColor(pct: number) {
-  if (pct < 0.4) return { text: 'text-red-600', bg: 'bg-red-50' };
+function struggleColor(share: number) {
+  if (share >= 0.75) return { text: 'text-red-600', bg: 'bg-red-50' };
   return { text: 'text-orange-600', bg: 'bg-orange-50' };
+}
+
+/** "3× met 1 hartje · 1× alle hartjes kwijt", leaving out the zeros. */
+function struggleBreakdown(insight: ChildInsight): string {
+  return [
+    insight.hard > 0 && `${insight.hard}× met 1 hartje`,
+    insight.gameOver > 0 && `${insight.gameOver}× alle hartjes kwijt`,
+    insight.abandoned > 0 && `${insight.abandoned}× zelf gestopt`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 function stageLabel(stage: string) {
@@ -289,7 +300,7 @@ export function ParentChildDetail() {
           <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
           <div>
             <h3 className="font-bold text-slate-900">Aandachtspunten</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Oefeningen die extra aandacht verdienen</p>
+            <p className="text-xs text-slate-400 mt-0.5">Oefeningen die de laatste tijd vaak moeizaam gaan</p>
           </div>
         </div>
 
@@ -310,14 +321,14 @@ export function ParentChildDetail() {
           <div className="px-5 py-8 flex flex-col items-center gap-2 text-center">
             <CheckCircle2 className="w-8 h-8 text-teal-500" />
             <p className="font-bold text-slate-700 text-sm">Alles gaat goed!</p>
-            <p className="text-xs text-slate-400">Geen oefeningen met aanhoudende moeite gevonden.</p>
+            <p className="text-xs text-slate-400">Geen oefeningen waar je kind de laatste tijd moeite mee heeft.</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {insights.slice(0, 5).map((insight) => {
               const cfg = SUBJECT_CONFIG[insight.subject];
               const Icon = cfg?.icon;
-              const colors = scoreColor(insight.avgScorePct);
+              const colors = struggleColor(insight.struggleShare);
               return (
                 <div key={insight.exerciseId} className="px-5 py-4 flex items-center gap-4">
                   {cfg && Icon ? (
@@ -336,11 +347,15 @@ export function ParentChildDetail() {
                         </span>
                       )}
                       <span className="text-xs text-slate-400">{stageLabel(insight.stage)}</span>
-                      <span className="text-xs text-slate-400">{insight.attemptCount}× geprobeerd</span>
                     </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {insight.struggles} van de laatste {insight.tries} keer moeizaam: {struggleBreakdown(insight)}
+                    </p>
                   </div>
                   <div className={`text-right flex-shrink-0 px-2.5 py-1 rounded-xl ${colors.bg}`}>
-                    <p className={`text-lg font-black ${colors.text}`}>{Math.round(insight.avgScorePct * 100)}%</p>
+                    <p className={`text-lg font-black ${colors.text}`}>
+                      {insight.struggles}/{insight.tries}
+                    </p>
                   </div>
                 </div>
               );

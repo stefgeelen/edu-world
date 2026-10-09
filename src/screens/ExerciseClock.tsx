@@ -306,7 +306,7 @@ export function ExerciseClock() {
   }, [status, hourAngle, minuteAngle, task, handleCorrect, handleIncorrect]);
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(EXERCISE_CLOSE_PATH)}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(EXERCISE_CLOSE_PATH)} savesGameOver>
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 z-10 max-w-2xl mx-auto w-full">
 
         {/* Task card */}

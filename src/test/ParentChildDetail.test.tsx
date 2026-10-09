@@ -134,13 +134,17 @@ describe('ParentChildDetail', () => {
 
   it('shows insights from useChildInsights, or the all-good state when none are returned', async () => {
     useChildInsightsMock.mockReturnValue({
-      data: [{ exerciseId: 'ex-1', title: 'Optellen tot 10', subject: 'math', stage: 'stage-1', attemptCount: 3, avgScorePct: 0.3, bestStars: 1 }],
+      data: [{
+        exerciseId: 'ex-1', title: 'Optellen tot 10', subject: 'math', stage: 'stage-1',
+        tries: 4, hard: 2, gameOver: 0, abandoned: 1, struggles: 3, struggleShare: 0.75,
+      }],
       isLoading: false,
     });
     renderScreen();
 
     await waitFor(() => expect(screen.getByText('Optellen tot 10')).toBeInTheDocument());
-    expect(screen.getByText('30%')).toBeInTheDocument();
+    expect(screen.getByText('3/4')).toBeInTheDocument();
+    expect(screen.getByText('3 van de laatste 4 keer moeizaam: 2× met 1 hartje · 1× zelf gestopt')).toBeInTheDocument();
     expect(screen.queryByText('Alles gaat goed!')).not.toBeInTheDocument();
   });
 

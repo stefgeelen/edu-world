@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Heart, HeartCrack } from 'lucide-react';
 import { BuddyBubble } from '@/components/BuddyBubble';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
+import { useRecordIncompleteExercise } from '@/hooks/useRecordIncompleteExercise';
 import type { BuddyMood, BuddySituation } from '@/data/buddyMessages';
 
 interface ExerciseShellProps {
@@ -16,14 +17,45 @@ interface ExerciseShellProps {
   buddyMood?: BuddyMood | null;
   /** Disable TTS for the buddy bubble (e.g. in reading exercises that already speak). */
   silenceBuddy?: boolean;
+  /**
+   * Set when the screen already saves a game-over through `complete_exercise`
+   * (stars 0), so the shell doesn't save it a second time.
+   */
+  savesGameOver?: boolean;
 }
+
+const START_LIVES = 3;
 
 /**
  * Shared exercise layout: dark space-themed background with stars,
  * unified header (close button + progress bar + lives), and buddy integration.
+ *
+ * Also saves the attempts that never reach `complete_exercise`, for the parent
+ * portal's Aandachtspunten: losing all hearts, and closing the exercise after
+ * answering at least once.
  */
-export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false }: ExerciseShellProps) {
+export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false, savesGameOver = false }: ExerciseShellProps) {
   const { getMessage } = useBuddyMessage();
+  const recordIncomplete = useRecordIncompleteExercise();
+
+  // Save a game-over once, when the last heart goes.
+  const previousLives = useRef(lives);
+  useEffect(() => {
+    const lostLastHeart = previousLives.current > 0 && lives <= 0;
+    previousLives.current = lives;
+    if (lostLastHeart && !savesGameOver) {
+      recordIncomplete('game_over', progress, START_LIVES);
+    }
+  }, [lives, progress, savesGameOver, recordIncomplete]);
+
+  const handleClose = () => {
+    const started = progress > 0 || lives < START_LIVES;
+    const unfinished = progress < 100 && lives > 0;
+    if (started && unfinished) {
+      recordIncomplete('abandoned', progress, START_LIVES - lives);
+    }
+    onClose();
+  };
   const [buddyData, setBuddyData] = useState<{ message: string; mood: BuddyMood; avatarUrl: string; avatarName: string } | null>(null);
 
   // Show buddy on mood change
@@ -72,7 +104,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onClose();
+            handleClose();
           }}
           className="w-12 h-12 bg-[#2d1b54] rounded-full flex items-center justify-center border-b-[4px] border-[#1c1134] active:border-b-0 active:translate-y-1 transition-all flex-shrink-0 shadow-lg"
         >
@@ -91,7 +123,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
         </div>
 
         <div className="flex gap-1 md:gap-2">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(START_LIVES)].map((_, i) => (
             i < lives ?
               <Heart key={i} className="w-6 h-6 md:w-8 md:h-8 text-red-500 fill-red-500 animate-pulse drop-shadow-md" /> :
               <HeartCrack key={i} className="w-6 h-6 md:w-8 md:h-8 text-[#3b2d71] drop-shadow-md" />

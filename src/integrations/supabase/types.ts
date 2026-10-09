@@ -366,6 +366,51 @@ export type Database = {
           },
         ]
       }
+      exercise_incomplete_attempts: {
+        Row: {
+          child_id: string
+          created_at: string
+          exercise_id: string
+          id: string
+          mistakes: number
+          progress_pct: number
+          reason: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+          mistakes?: number
+          progress_pct?: number
+          reason: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          mistakes?: number
+          progress_pct?: number
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_incomplete_attempts_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_incomplete_attempts_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           config: Json | null
@@ -842,6 +887,21 @@ export type Database = {
         Returns: number
       }
       buddy_revive: { Args: { p_child_id: string }; Returns: Json }
+      child_exercise_insights: {
+        Args: { p_child_id: string }
+        Returns: {
+          abandoned: number
+          exercise_id: string
+          game_over: number
+          hard: number
+          last_try_at: string
+          smooth: number
+          stage: string
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+          tries: number
+        }[]
+      }
       child_exercise_stats: {
         Args: { p_child_id: string }
         Returns: {
@@ -878,6 +938,16 @@ export type Database = {
       practice_menu: { Args: { p_child_id: string }; Returns: Json }
       practice_munten_for: { Args: { p_nth: number }; Returns: number }
       practice_wish_bonus: { Args: never; Returns: number }
+      record_incomplete_exercise: {
+        Args: {
+          p_child_id: string
+          p_exercise_id: string
+          p_mistakes: number
+          p_progress_pct: number
+          p_reason: string
+        }
+        Returns: undefined
+      }
       set_parent_pin: { Args: { p_pin: string }; Returns: undefined }
       touch_activity: {
         Args: { p_child_id?: string; p_standalone?: boolean }
