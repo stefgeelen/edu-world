@@ -103,8 +103,11 @@ export function Landing() {
             <a href="#buddies" className="transition-colors hover:text-lp-gold">De Buddy’s</a>
             <a href="#voor-ouders" className="transition-colors hover:text-lp-gold">Voor ouders</a>
           </div>
-          <div className="flex items-center gap-4">
-            <Link to="/auth" className="hidden text-sm font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold sm:inline">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to="/auth"
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border-2 border-lp-cream/40 px-4 text-sm font-bold text-lp-cream transition-colors hover:border-lp-gold hover:text-lp-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lp-cream sm:px-5"
+            >
               Inloggen
             </Link>
             <a href="#beta" className={cn(GOLD_BUTTON, 'h-10 shrink-0 px-4 text-sm sm:px-5')}>
