@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, ChevronRight, GraduationCap, Zap, Flame, Loader2 } from 'lucide-react';
+import { Plus, ChevronRight, GraduationCap, Zap, Flame, Loader2, HelpCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -91,13 +91,22 @@ export function ParentChildren() {
           >
             {/* Buddy */}
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-              <img src={buddySpecies(child.buddy_species).art.happy} className="w-full h-full object-contain p-1" alt="" />
+              {child.buddy_species ? (
+                <img src={buddySpecies(child.buddy_species).art.happy} className="w-full h-full object-contain p-1" alt="" />
+              ) : (
+                <HelpCircle className="w-7 h-7 text-slate-300" aria-label="Kiest zelf een Buddy" />
+              )}
             </div>
 
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-bold text-lg text-slate-900 truncate">{child.name}</h3>
+                {!child.buddy_species && (
+                  <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs font-bold rounded-full">
+                    Kiest zelf een Buddy
+                  </span>
+                )}
                 {child.pending_promotion && (
                   <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">
                     Promotie beschikbaar

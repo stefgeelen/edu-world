@@ -32,6 +32,7 @@ vi.mock('@/context/AuthContext', () => ({
 let insertResult: { data: null; error: unknown } = { data: null, error: null };
 let deleteResult: { data: null; error: unknown } = { data: null, error: null };
 const invokeMock = vi.fn();
+const rpcMock = vi.fn();
 
 // user_roles backs both the initial select and the toggle-admin mutation
 // (insert to grant, delete to revoke). Mirror AdminFeedback's per-call-instance
@@ -75,6 +76,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => fromMock(...args),
     functions: { invoke: (...args: unknown[]) => invokeMock(...args) },
+    rpc: (...args: unknown[]) => rpcMock(...args),
   },
 }));
 
@@ -94,6 +96,7 @@ describe('AdminUsers', () => {
     insertResult = { data: null, error: null };
     deleteResult = { data: null, error: null };
     invokeMock.mockResolvedValue({ data: {}, error: null });
+    rpcMock.mockResolvedValue({ data: {}, error: null });
     confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
   });
 
@@ -102,6 +105,7 @@ describe('AdminUsers', () => {
     // PROFILES is mutated by the sort test; restore the shared baseline.
     PROFILES[0].last_seen_at = new Date(Date.now() - 2 * DAY).toISOString();
     PROFILES[1].last_seen_at = null;
+    CHILDREN.length = 1;
   });
 
   it('shows a loading spinner while profiles are being fetched', () => {
@@ -114,7 +118,8 @@ describe('AdminUsers', () => {
     await waitFor(() => expect(screen.getByText('Test Parent One')).toBeInTheDocument());
 
     expect(screen.getByText(/2 geregistreerde gebruikers/)).toBeInTheDocument();
-    expect(screen.getByText('family · active')).toBeInTheDocument();
+    expect(screen.getByText('Familie · Actief')).toBeInTheDocument();
+    expect(screen.getByText('Gratis · geen abonnement')).toBeInTheDocument();
     expect(screen.getByText('1 kind')).toBeInTheDocument();
     // user-2 has an admin role -> the "Admin" badge is shown.
     const userTwoCard = screen.getByText('Test Parent Two').closest('div')?.parentElement as HTMLElement;
@@ -234,5 +239,82 @@ describe('AdminUsers', () => {
     fireEvent.click(screen.getByText('Permanent verwijderen').closest('button') as HTMLButtonElement);
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('delete failed'));
+  });
+
+  describe('switching package', () => {
+    it('opens on the account\'s current package and saves the new one through admin_set_subscription', async () => {
+      renderScreen();
+      await waitFor(() => expect(screen.getByText('Test Parent One')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Familie · Actief'));
+      expect(await screen.findByText('Pakket wijzigen', { selector: 'h2' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: /Familie/ })).toHaveAttribute('aria-checked', 'true');
+      expect(screen.getByRole('radio', { name: 'Actief' })).toHaveAttribute('aria-checked', 'true');
+
+      // Nothing changed yet -> nothing to save.
+      const save = screen.getByRole('button', { name: 'Opslaan' });
+      expect(save).toBeDisabled();
+
+      fireEvent.click(screen.getByRole('radio', { name: /Basis/ }));
+      fireEvent.click(save);
+
+      await waitFor(() => expect(rpcMock).toHaveBeenCalledWith('admin_set_subscription', {
+        p_user_id: 'user-1',
+        p_plan: 'basic',
+        p_status: 'active',
+      }));
+      await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Pakket bijgewerkt'));
+    });
+
+    it('treats an account without a subscription as Gratis and can give it its first package', async () => {
+      renderScreen();
+      await waitFor(() => expect(screen.getByText('Test Parent Two')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Gratis · geen abonnement'));
+      expect(await screen.findByRole('radio', { name: /Gratis/ })).toHaveAttribute('aria-checked', 'true');
+
+      fireEvent.click(screen.getByRole('radio', { name: /Familie/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Opslaan' }));
+
+      await waitFor(() => expect(rpcMock).toHaveBeenCalledWith('admin_set_subscription', {
+        p_user_id: 'user-2',
+        p_plan: 'family',
+        p_status: 'active',
+      }));
+    });
+
+    it('warns how many children get paused when the new package allows fewer', async () => {
+      CHILDREN.push({ id: 'child-2', parent_id: 'user-1' }, { id: 'child-3', parent_id: 'user-1' });
+      renderScreen();
+      await waitFor(() => expect(screen.getByText('Test Parent One')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Familie · Actief'));
+      await screen.findByRole('radio', { name: /Familie/ });
+      expect(screen.queryByText(/gepauzeerd/)).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('radio', { name: /Basis/ }));
+      expect(screen.getByText('1 kind wordt gepauzeerd.')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('radio', { name: /Gratis/ }));
+      expect(screen.getByText('2 kinderen worden gepauzeerd.')).toBeInTheDocument();
+
+      // A cancelled package falls back to 1 child whatever the package says.
+      fireEvent.click(screen.getByRole('radio', { name: /Familie/ }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Opgezegd' }));
+      expect(screen.getByText('2 kinderen worden gepauzeerd.')).toBeInTheDocument();
+    });
+
+    it('shows an error toast and keeps the dialog open when saving fails', async () => {
+      rpcMock.mockResolvedValue({ data: null, error: new Error('nope') });
+      renderScreen();
+      await waitFor(() => expect(screen.getByText('Test Parent One')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Familie · Actief'));
+      fireEvent.click(await screen.findByRole('radio', { name: /School/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Opslaan' }));
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Pakket wijzigen mislukt'));
+      expect(screen.getByRole('button', { name: 'Opslaan' })).toBeInTheDocument();
+    });
   });
 });

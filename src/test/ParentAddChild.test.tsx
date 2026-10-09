@@ -65,11 +65,13 @@ import { ParentAddChild } from '@/screens/parent/ParentAddChild';
 function renderScreen() {
   const queryClient = createTestQueryClient();
   const Wrapper = queryWrapper(queryClient);
-  return render(
+  const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+  const view = render(
     <MemoryRouter>
       <Wrapper><ParentAddChild /></Wrapper>
     </MemoryRouter>
   );
+  return { ...view, invalidateSpy };
 }
 
 async function waitForFormReady() {
@@ -125,7 +127,7 @@ describe('ParentAddChild', () => {
   });
 
   it('inserts the new child with the clamped grade (not the age-suggested one), shows a success toast, and navigates back', async () => {
-    renderScreen();
+    const { invalidateSpy } = renderScreen();
     await waitForFormReady();
 
     fireEvent.change(screen.getByPlaceholderText('Bijv. Emma of Liam'), { target: { value: 'Test Child' } });
@@ -138,8 +140,11 @@ describe('ParentAddChild', () => {
       grade: 1,
       parent_id: 'parent-1',
     })));
-    expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is toegevoegd!');
+    await waitFor(() => expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is toegevoegd!'));
     expect(navigateMock).toHaveBeenCalledWith('/app/parent');
+    // The children list must show the new child straight away.
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['parent-children'] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['parent-children-count'] });
   });
 
   it('shows the locked max-children view and routes to the subscription screen from it', async () => {

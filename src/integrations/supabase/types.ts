@@ -853,6 +853,33 @@ export type Database = {
       }
       _practice_day_start: { Args: never; Returns: string }
       admin_engagement_stats: { Args: never; Returns: Json }
+      admin_set_subscription: {
+        Args: {
+          p_plan: Database["public"]["Enums"]["subscription_plan"]
+          p_status: Database["public"]["Enums"]["subscription_status"]
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          max_children: number
+          organization_id: string | null
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "subscriptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       buddy_buy: {
         Args: { p_child_id: string; p_item_id: string }
         Returns: Json
@@ -972,6 +999,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      plan_max_children: {
+        Args: { p_plan: Database["public"]["Enums"]["subscription_plan"] }
+        Returns: number
       }
       practice_menu: { Args: { p_child_id: string }; Returns: Json }
       practice_munten_for: { Args: { p_nth: number }; Returns: number }

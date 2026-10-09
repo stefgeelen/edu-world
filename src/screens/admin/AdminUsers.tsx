@@ -3,12 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction } from '@/lib/invokeFunction';
 import { motion } from 'framer-motion';
-import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown, Trash2, AlertTriangle, Activity } from 'lucide-react';
+import { Users, Search, Shield, ShieldCheck, ShieldOff, Loader2, Mail, Calendar, UserCheck, Crown, Trash2, AlertTriangle, Activity, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/context/AuthContext';
 import { timeAgoNl, daysSince } from '@/lib/relativeTime';
+import { planLabel, statusLabel } from '@/lib/subscriptionPlans';
+import { ChangePlanDialog, type ChangePlanTarget } from '@/components/admin/ChangePlanDialog';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -41,6 +43,7 @@ export function AdminUsers() {
   const [sort, setSort] = useState<'recent' | 'seen'>('recent');
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
   const [confirmText, setConfirmText] = useState('');
+  const [planTarget, setPlanTarget] = useState<ChangePlanTarget | null>(null);
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
 
@@ -68,7 +71,11 @@ export function AdminUsers() {
   const { data: subscriptions = [] } = useQuery({
     queryKey: ['admin-subscriptions'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('subscriptions').select('*');
+      // Newest first, so getUserSub picks the row admin_set_subscription edits.
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -246,18 +253,30 @@ export function AdminUsers() {
                 </div>
               </div>
 
-              {/* Subscription badge */}
+              {/* Subscription badge — click to switch package */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className={cn(
-                  'text-xs font-bold px-2.5 py-1 rounded-lg border',
-                  sub?.status === 'active'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : sub?.status === 'trialing'
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-slate-50 text-slate-500 border-slate-200'
-                )}>
-                  {sub ? `${sub.plan} · ${sub.status}` : 'Geen abonnement'}
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setPlanTarget({
+                    userId: profile.id,
+                    name: profile.full_name || profile.email || 'Deze gebruiker',
+                    plan: sub?.plan ?? 'free',
+                    status: sub?.status ?? 'active',
+                    childCount,
+                  })}
+                  title="Pakket wijzigen"
+                  className={cn(
+                    'flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg border hover:shadow-sm transition-all',
+                    sub?.status === 'active'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : sub?.status === 'trialing'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-slate-50 text-slate-500 border-slate-200'
+                  )}
+                >
+                  {sub ? `${planLabel(sub.plan)} · ${statusLabel(sub.status)}` : 'Gratis · geen abonnement'}
+                  <Pencil className="w-3 h-3" />
+                </button>
                 <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
                   {childCount} {childCount === 1 ? 'kind' : 'kinderen'}
                 </span>
@@ -312,6 +331,8 @@ export function AdminUsers() {
           </div>
         )}
       </div>
+
+      <ChangePlanDialog target={planTarget} onClose={() => setPlanTarget(null)} />
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!userToDelete} onOpenChange={(open) => { if (!open) { setUserToDelete(null); setConfirmText(''); } }}>

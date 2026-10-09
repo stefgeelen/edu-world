@@ -40,7 +40,7 @@ import { ParentChildren } from '@/screens/parent/ParentChildren';
 
 const CHILD_A = {
   id: 'child-1', name: 'Test Child A', age: 8, grade: 3, xp: 240, level: 2,
-  streak: 4, pending_promotion: false, buddy_states: { species: 'loeka' },
+  streak: 4, pending_promotion: false, buddy_states: { species: 'loeka', species_school_year: 2026 },
 };
 const CHILD_B = {
   id: 'child-2', name: 'Test Child B', age: 6, grade: 1, xp: 10, level: 1,
@@ -83,13 +83,17 @@ describe('ParentChildren', () => {
     expect(screen.getByText('1 van 3 kinderen')).toBeInTheDocument();
   });
 
-  it("shows each child's own Buddy, and Nootje for a child that has none yet", async () => {
-    childrenData = [CHILD_A, CHILD_B];
+  it("shows each child's own Buddy, and no Buddy yet for a child that still has to choose", async () => {
+    // A buddy_states row defaults to nootje before the child chooses; only
+    // species_school_year says the child really picked one.
+    const CHILD_C = { ...CHILD_B, id: 'child-3', name: 'Test Child C', buddy_states: { species: 'nootje', species_school_year: null } };
+    childrenData = [CHILD_A, CHILD_B, CHILD_C];
     const { container } = renderScreen();
-    await screen.findByText('Test Child B');
+    await screen.findByText('Test Child C');
     const srcs = Array.from(container.querySelectorAll('img')).map((img) => img.getAttribute('src'));
+    expect(srcs).toHaveLength(1);
     expect(srcs[0]).toContain('loeka-happy');
-    expect(srcs[1]).toContain('buddy-happy');
+    expect(screen.getAllByText('Kiest zelf een Buddy')).toHaveLength(2);
   });
 
   it('shows the pending-promotion badge only for the child who has one', async () => {

@@ -7,7 +7,11 @@ export type ParentChild = Pick<
   Tables<'children'>,
   'id' | 'name' | 'age' | 'grade' | 'xp' | 'level' | 'streak' | 'pending_promotion'
 > & {
-  /** Welke Buddy het kind heeft; null zolang het er nog geen heeft. */
+  /**
+   * Welke Buddy het kind gekozen heeft; null zolang het kind nog niet zelf
+   * gekozen heeft. Een buddy_states-rij krijgt standaard 'nootje', dus pas
+   * species_school_year zegt of er echt gekozen is (zie buddy_choose).
+   */
   buddy_species: string | null;
 };
 
@@ -27,13 +31,13 @@ export function useParentChildren() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
-        .select('id, name, age, grade, xp, level, streak, pending_promotion, buddy_states(species)')
+        .select('id, name, age, grade, xp, level, streak, pending_promotion, buddy_states(species, species_school_year)')
         .eq('parent_id', user!.id)
         .order('created_at', { ascending: true });
       if (error) throw error;
       return (data ?? []).map(({ buddy_states, ...child }) => ({
         ...child,
-        buddy_species: buddy_states?.species ?? null,
+        buddy_species: buddy_states?.species_school_year != null ? buddy_states.species : null,
       }));
     },
     enabled: !!user,

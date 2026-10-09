@@ -8,12 +8,13 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
 import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getGradeAssignment } from '@/lib/gradeFromAge';
 
 export function ParentAddChild() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [name, setName] = React.useState('');
   const [age, setAge] = React.useState<number | ''>('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -65,6 +66,11 @@ export function ParentAddChild() {
         parent_id: user.id,
       });
       if (error) throw error;
+      // Awaited so the children list already shows the new child on arrival.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['parent-children'] }),
+        queryClient.invalidateQueries({ queryKey: ['parent-children-count'] }),
+      ]);
       toast.success(`${name.trim()} is toegevoegd!`);
       navigate('/app/parent');
     } catch (err: any) {
