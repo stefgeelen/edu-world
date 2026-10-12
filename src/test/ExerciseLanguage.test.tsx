@@ -82,7 +82,7 @@ describe('ExerciseLanguage component', () => {
     vi.useRealTimers();
   });
 
-  it('clicking the correct word celebrates with confetti and the "Super goed!" buddy line', async () => {
+  it('clicking the correct word celebrates with confetti', async () => {
     render(<ExerciseLanguage />);
     const correctWord = await currentCorrectWord();
     const correctButton = getWordButtons().find((b) => b.textContent === correctWord)!;
@@ -90,7 +90,7 @@ describe('ExerciseLanguage component', () => {
     fireEvent.click(correctButton);
 
     expect(triggerConfettiMock).toHaveBeenCalled();
-    expect(screen.getByText('Super goed!')).toBeInTheDocument();
+    expect(screen.queryByText('Super goed!')).not.toBeInTheDocument(); // the old guide fox is gone
   });
 
   it('clicking a wrong word shows the correction, costs a life, and does not confetti', async () => {
@@ -102,7 +102,6 @@ describe('ExerciseLanguage component', () => {
     fireEvent.click(wrongButton);
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
-    expect(screen.getByText('Probeer nog eens!')).toBeInTheDocument();
 
     await tick(1500);
     expect(filledHeartCount()).toBe(2);

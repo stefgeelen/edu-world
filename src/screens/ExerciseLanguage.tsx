@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 // addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -268,33 +267,6 @@ export function ExerciseLanguage() {
         </div>
       </div>
 
-      {/* Guide Fox Character */}
-      <motion.div 
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
-        className="absolute -bottom-4 -right-4 w-40 h-40 md:w-48 md:h-48 z-20 pointer-events-none"
-      >
-        <motion.div 
-          animate={{ y: [0, -5, 0] }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="absolute -top-12 -left-20 md:-top-16 md:-left-24 bg-[#1c1134]/80 backdrop-blur-md px-4 py-2 md:px-5 md:py-3 rounded-2xl rounded-br-none shadow-lg border-2 border-[#3b2d71]"
-        >
-          <p className="text-sm md:text-base font-bold text-white/90 whitespace-nowrap">
-            {status === 'idle' ? "Wat hoor je?" : status === 'correct' ? "Super goed!" : "Probeer nog eens!"}
-          </p>
-        </motion.div>
-
-        <div className="w-full h-full rounded-tl-full bg-[#1c1134]/40 backdrop-blur-sm p-4 shadow-[-10px_-10px_30px_rgba(0,0,0,0.2)] border-t-4 border-l-4 border-[#3b2d71]/60">
-          <div className="w-full h-full rounded-full overflow-hidden border-4 border-[#3b2d71] shadow-inner bg-[#2d1b54]">
-            <ImageWithFallback 
-              src="https://images.unsplash.com/photo-1655210913485-73249fac3700?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHwzRCUyMGNhcnRvb24lMjBjdXRlJTIwZm94JTIwY2hhcmFjdGVyJTIwd2hpdGUlMjBiYWNrZ3JvdW5kfGVufDF8fHx8MTc3NDI5Nzk1MXww&ixlib=rb-4.1.0&q=80&w=1080" 
-              alt="Cartoon Fox" 
-              className="w-full h-full object-cover transform scale-110 translate-y-2"
-            />
-          </div>
-        </div>
-      </motion.div>
     </ExerciseShell>
   );
 }
