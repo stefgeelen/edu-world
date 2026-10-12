@@ -7,7 +7,7 @@ import {
   Sparkles, Star, Target, Trophy, Users, Zap, type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useGame } from '@/context/GameContext';
+import { useGame, type Badge } from '@/context/GameContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { usePlayers } from '@/hooks/usePlayers';
 import { useChildGreeting } from '@/hooks/useChildGreeting';
@@ -83,11 +83,11 @@ export function Dashboard() {
       ))}
 
       {/* ── Header Vitrine ──────────────────────────── */}
-      <div className="relative z-10 px-4 sm:px-5 pt-4 sm:pt-6 pb-3 sm:pb-4 max-w-2xl lg:max-w-5xl mx-auto w-full">
+      <div className="relative z-10 px-4 sm:px-5 pt-4 sm:pt-6 lg:pt-8 pb-3 sm:pb-4 lg:pb-6 max-w-2xl lg:max-w-5xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-3 sm:p-4 border-[3px] border-amber-400/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)]"
+          className="relative overflow-hidden bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-3 sm:p-4 lg:px-5 border-[3px] border-amber-400/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)]"
         >
           <Ornaments tone="border-amber-400/40" />
 
@@ -137,8 +137,9 @@ export function Dashboard() {
         </motion.div>
       </div>
 
-      {/* ── Content ─────────────────────────────────── */}
-      <div className="relative z-10 px-4 sm:px-5 max-w-2xl lg:max-w-5xl mx-auto w-full grid gap-3 sm:gap-4 lg:grid-cols-[3fr_2fr] lg:items-start">
+      {/* ── Content: on desktop centred between the header and the tab bar ── */}
+      <div className="relative z-10 flex-1 flex flex-col lg:justify-center">
+      <div className="px-4 sm:px-5 max-w-2xl lg:max-w-5xl mx-auto w-full grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-[3fr_2fr] lg:pb-6">
 
         {/* ── Hero: alle oefeningen ────────────────── */}
         <motion.button
@@ -146,7 +147,7 @@ export function Dashboard() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
           onClick={() => navigate(APP_PATHS.practice)}
-          className="lg:col-span-2 relative overflow-hidden w-full px-4 py-3.5 sm:px-5 sm:py-4 rounded-3xl flex items-center justify-between bg-gradient-to-br from-emerald-500/95 via-teal-500/90 to-cyan-500/95 border-[3px] border-emerald-300/40 shadow-[0_8px_32px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.4)] transition-all group outline-none active:scale-[0.98]"
+          className="lg:col-span-2 relative overflow-hidden w-full px-4 py-3.5 sm:px-5 sm:py-4 lg:px-6 lg:py-5 rounded-3xl flex items-center justify-between bg-gradient-to-br from-emerald-500/95 via-teal-500/90 to-cyan-500/95 border-[3px] border-emerald-300/40 shadow-[0_8px_32px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.4)] transition-all group outline-none active:scale-[0.98]"
         >
           <Ornaments tone="border-white/60" />
           <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
@@ -172,7 +173,7 @@ export function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className={cn(VITRINE, 'p-4 border-violet-500/30 shadow-[0_8px_32px_rgba(167,139,250,0.12)]')}
+            className={cn(VITRINE, 'p-4 lg:p-6 border-violet-500/30 shadow-[0_8px_32px_rgba(167,139,250,0.12)]')}
             aria-labelledby="quick-title"
           >
             <Ornaments tone="border-violet-400/40" />
@@ -192,7 +193,7 @@ export function Dashboard() {
               {wishes.length > 0 && <WishMeter buddyName={buddy.name} done={wishesDone} total={wishes.length} />}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 relative z-10">
+            <div className="grid grid-cols-2 gap-2 lg:gap-3 relative z-10">
               {starts.map(option => (
                 <QuickStart key={option.type_key} option={option} repeated={isRepeated(option, menu)} wishBonus={menu.wish_bonus} onStart={() => start(option.route)} />
               ))}
@@ -201,7 +202,7 @@ export function Dashboard() {
         )}
 
         {/* ── Rechterkolom op desktop ─────────────── */}
-        <div className="grid gap-3 sm:gap-4 content-start">
+        <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
           {/* ── Trofeeënkamer ──────────────────────── */}
           <motion.button
             type="button"
@@ -210,7 +211,7 @@ export function Dashboard() {
             transition={{ delay: 0.2 }}
             onClick={() => navigate(APP_PATHS.badges)}
             aria-label="Trofeeënkamer"
-            className={cn(VITRINE, 'p-4 w-full text-left border-amber-500/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)] cursor-pointer hover:border-amber-400/60 hover:shadow-[0_8px_40px_rgba(251,191,36,0.25)] transition-all active:scale-[0.99] group')}
+            className={cn(VITRINE, 'p-4 lg:p-6 lg:flex-1 lg:flex lg:flex-col w-full text-left border-amber-500/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)] cursor-pointer hover:border-amber-400/60 hover:shadow-[0_8px_40px_rgba(251,191,36,0.25)] transition-all active:scale-[0.99] group')}
           >
             <Ornaments tone="border-amber-400/40" />
 
@@ -229,37 +230,22 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-                {[0, 1, 2].map(i => {
-                  const badge = showcaseBadges[i];
-                  if (!badge) {
-                    return (
-                      <div key={i} className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-[#0f0828]/60 border-2 border-dashed border-[#3b2d71] flex items-center justify-center">
-                        <Lock className="w-3.5 h-3.5 text-[#5b4d8a]" />
-                      </div>
-                    );
-                  }
-                  const Icon = BADGE_ICONS[badge.icon] ?? Trophy;
-                  return (
-                    <div
-                      key={badge.id}
-                      className="relative w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center border border-white/15 overflow-hidden"
-                      style={{ background: `linear-gradient(135deg, ${badge.gradientFrom}, ${badge.gradientTo})`, boxShadow: `0 2px 10px ${badge.gradientFrom}55` }}
-                      title={badge.name}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
-                      <Icon className="w-4 h-4 text-white drop-shadow relative z-10" strokeWidth={2.4} />
-                    </div>
-                  );
-                })}
+                <span className="flex items-center gap-1 sm:gap-1.5 lg:hidden">
+                  {[0, 1, 2].map(i => <BadgeTile key={i} badge={showcaseBadges[i]} size="sm" />)}
+                </span>
                 <ChevronRight className="w-5 h-5 text-amber-400/60 group-hover:translate-x-0.5 group-hover:text-amber-300 transition-all" strokeWidth={3} />
               </div>
+            </div>
+
+            <div className="relative z-10 hidden lg:grid flex-1 grid-cols-3 gap-3 content-center py-4">
+              {[0, 1, 2].map(i => <BadgeTile key={i} badge={showcaseBadges[i]} size="lg" />)}
             </div>
 
             {nextBadge && (() => {
               const Icon = BADGE_ICONS[nextBadge.icon] ?? Trophy;
               const pct = Math.min((nextBadge.progress / nextBadge.maxProgress) * 100, 100);
               return (
-                <div className="relative z-10 mt-3 bg-[#0f0828]/60 rounded-2xl px-3 py-2.5 border border-[#3b2d71]">
+                <div className="relative z-10 mt-3 lg:mt-0 bg-[#0f0828]/60 rounded-2xl px-3 py-2.5 border border-[#3b2d71]">
                   <div className="flex items-center gap-2.5 mb-2">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 opacity-60" style={{ background: `linear-gradient(135deg, ${nextBadge.gradientFrom}, ${nextBadge.gradientTo})` }}>
                       <Icon className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
@@ -292,7 +278,7 @@ export function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className={cn(VITRINE, 'p-4 border-pink-500/30 shadow-[0_8px_32px_rgba(236,72,153,0.12)]')}
+              className={cn(VITRINE, 'p-4 lg:p-6 border-pink-500/30 shadow-[0_8px_32px_rgba(236,72,153,0.12)]')}
               aria-labelledby="rewards-title"
             >
               <Ornaments tone="border-pink-400/40" />
@@ -321,6 +307,30 @@ export function Dashboard() {
           )}
         </div>
       </div>
+      </div>
+    </div>
+  );
+}
+
+/** One earned badge in the trophy room, or a locked spot. Small in the header, large as the desktop showcase. */
+function BadgeTile({ badge, size }: { badge?: Badge; size: 'sm' | 'lg' }) {
+  const box = size === 'sm' ? 'w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl' : 'w-full aspect-square max-h-24 rounded-2xl';
+  if (!badge) {
+    return (
+      <div className={cn(box, 'bg-[#0f0828]/60 border-2 border-dashed border-[#3b2d71] flex items-center justify-center')}>
+        <Lock className={size === 'sm' ? 'w-3.5 h-3.5 text-[#5b4d8a]' : 'w-5 h-5 text-[#5b4d8a]'} />
+      </div>
+    );
+  }
+  const Icon = BADGE_ICONS[badge.icon] ?? Trophy;
+  return (
+    <div
+      className={cn(box, 'relative flex items-center justify-center border border-white/15 overflow-hidden')}
+      style={{ background: `linear-gradient(135deg, ${badge.gradientFrom}, ${badge.gradientTo})`, boxShadow: `0 2px 10px ${badge.gradientFrom}55` }}
+      title={badge.name}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+      <Icon className={cn('text-white drop-shadow relative z-10', size === 'sm' ? 'w-4 h-4' : 'w-8 h-8')} strokeWidth={2.4} />
     </div>
   );
 }
@@ -361,7 +371,7 @@ function QuickStart({ option, repeated, wishBonus, onStart }: { option: Practice
       onClick={onStart}
       aria-label={`Start ${option.title}, ${payout} Munten${wish ? ', een wens van je Buddy' : ''}`}
       className={cn(
-        'relative flex items-center gap-2.5 rounded-2xl border-2 p-2.5 text-left transition-all active:scale-[0.97] min-h-[68px]',
+        'relative flex items-center gap-2.5 rounded-2xl border-2 p-2.5 text-left transition-all active:scale-[0.97] min-h-[68px] lg:flex-col lg:justify-center lg:gap-2 lg:p-4 lg:text-center lg:min-h-[140px]',
         wish ? 'border-amber-400/50 bg-amber-500/10' : 'border-[#3b2d71] bg-[#0f0828]/60 hover:border-violet-400/50'
       )}
     >
@@ -369,8 +379,8 @@ function QuickStart({ option, repeated, wishBonus, onStart }: { option: Practice
         <span className="absolute -top-2 right-2 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-black uppercase text-[#1a103c] shadow">Wens</span>
       )}
       <ExerciseTypeIcon typeKey={option.type_key} subject={option.subject} size="sm" muted={repeated} />
-      <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
-        <span className="text-xs font-bold leading-tight text-white/90">{option.title}</span>
+      <span className="flex min-w-0 flex-1 lg:flex-none flex-col items-start lg:items-center gap-1 lg:gap-1.5">
+        <span className="text-xs lg:text-sm font-bold leading-tight text-white/90">{option.title}</span>
         <Payout amount={payout} muted={repeated} />
       </span>
     </button>
