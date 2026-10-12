@@ -12,7 +12,7 @@ import { useSpeech } from '@/hooks/useSpeech';
 import { DEFAULT_SOUND_HOUSE } from '@/data/difficultyConfig';
 import { generateSoundHouseRound, type SoundPosition, type SoundWord } from '@/data/soundHousePool';
 import type { BuddyMood } from '@/data/buddyMessages';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 const TOTAL_ROUNDS = 5;
 
@@ -85,7 +85,7 @@ export function ExerciseSoundHouse() {
         timeSpent,
       });
     }
-    navigate(EXERCISE_DONE_PATH);
+    navigate(exerciseExitPath());
   }, [exerciseId, lives, completeExercise, navigate]);
 
   const handleSelect = (pos: SoundPosition) => {
@@ -122,7 +122,7 @@ export function ExerciseSoundHouse() {
       setTimeout(() => {
         if (nextLives <= 0) {
           // Game over pays nothing: ExerciseShell saves it for the parent portal.
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           setSelected(null);
           setStatus('idle');
@@ -138,7 +138,7 @@ export function ExerciseSoundHouse() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
       buddyMood={buddyMood}
       silenceBuddy
     >

@@ -9,7 +9,7 @@ import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARE_OBJECTS } from '@/data/difficultyConfig';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -161,7 +161,7 @@ export function ExerciseCompareObjects() {
               timeSpent,
             });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           generateNext();
         }
@@ -173,7 +173,7 @@ export function ExerciseCompareObjects() {
       setTimeout(() => {
         if (nextLives <= 0) {
           // Game over pays nothing: ExerciseShell saves it for the parent portal.
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           generateNext();
         }
@@ -200,7 +200,7 @@ export function ExerciseCompareObjects() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
     >
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 

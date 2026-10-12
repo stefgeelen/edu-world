@@ -12,7 +12,7 @@ import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARISON } from '@/data/difficultyConfig';
 import { KwadraatGrid } from '@/components/exercise/KwadraatGrid';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -150,7 +150,7 @@ export function ExerciseComparison() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else generateNext();
       }, 1800);
     } else {
@@ -160,7 +160,7 @@ export function ExerciseComparison() {
       setTimeout(() => {
         if (nextLives <= 0) {
           // Game over pays nothing: ExerciseShell saves it for the parent portal.
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else generateNext();
       }, 1600);
     }
@@ -298,7 +298,7 @@ export function ExerciseComparison() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}

@@ -7,7 +7,7 @@ import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_CLOCK } from '@/data/difficultyConfig';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface ClockTask {
@@ -273,7 +273,7 @@ export function ExerciseClock() {
   const exerciseId = useExerciseId();
   const { lives, progress, status, handleCorrect, handleIncorrect } = useExerciseState({
     totalQuestions: 5,
-    returnPath: EXERCISE_DONE_PATH,
+    returnPath: exerciseExitPath(),
     exerciseId,
     onNextQuestion: nextQuestion,
   });
@@ -306,7 +306,7 @@ export function ExerciseClock() {
   }, [status, hourAngle, minuteAngle, task, handleCorrect, handleIncorrect]);
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(EXERCISE_CLOSE_PATH)}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())}>
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 z-10 max-w-2xl mx-auto w-full">
 
         {/* Task card */}

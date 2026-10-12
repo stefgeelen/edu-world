@@ -11,7 +11,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 function getRandomTarget() {
@@ -225,7 +225,7 @@ export function ExerciseWriteNumber() {
               const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
               completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
             }
-            navigate(EXERCISE_DONE_PATH);
+            navigate(exerciseExitPath());
           } else {
             generateNew();
           }
@@ -244,7 +244,7 @@ export function ExerciseWriteNumber() {
 
         setTimeout(() => {
           if (nextLives <= 0) {
-            navigate(EXERCISE_DONE_PATH);
+            navigate(exerciseExitPath());
           } else {
             clearCanvas();
             setStatus('idle');
@@ -266,7 +266,7 @@ export function ExerciseWriteNumber() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
     >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">

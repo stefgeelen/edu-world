@@ -13,7 +13,7 @@ import { DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ export function ExerciseNumberLine() {
         );
         setTimeout(() => {
           if (nextLives <= 0) {
-            navigate(EXERCISE_DONE_PATH);
+            navigate(exerciseExitPath());
           } else {
             clearCanvas();
             setCheckStatus('idle');
@@ -249,7 +249,7 @@ export function ExerciseNumberLine() {
           const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
           completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 4, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
         }
-        navigate(EXERCISE_DONE_PATH);
+        navigate(exerciseExitPath());
       } else {
         setSlots(makeSlots(nlCfg.maxNumber));
         setRoundDone(false);
@@ -261,7 +261,7 @@ export function ExerciseNumberLine() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
     >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">

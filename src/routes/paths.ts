@@ -21,9 +21,50 @@ export const APP_PATHS = {
   parent: '/app/parent',
 } as const;
 
+/** The screens an exercise can be started from, and so returns to. */
+export type ExerciseOrigin = typeof APP_PATHS.dashboard | typeof APP_PATHS.practice;
+
+/**
+ * Remembered per browser session (sessionStorage), so a reload in the middle
+ * of an exercise still goes back to the right screen. Storage can be blocked
+ * (private mode); then it lasts until the page reloads.
+ */
+const ORIGIN_KEY = 'leapio.exercise-origin';
+let origin: ExerciseOrigin | null = null;
+
+/** Call just before opening an exercise: it returns here when done or closed. */
+export function startExerciseFrom(from: ExerciseOrigin) {
+  origin = from;
+  try {
+    sessionStorage.setItem(ORIGIN_KEY, from);
+  } catch {
+    // Only in memory then.
+  }
+}
+
 /**
  * Where an exercise screen goes when the child finishes it, runs out of lives
- * or closes it: back to the dashboard, ready to pick the next one.
+ * or closes it: back to the screen it was started from (the dashboard or
+ * "Alle oefeningen"), ready to pick the next one. The dashboard when unknown,
+ * e.g. an exercise opened straight from a link.
  */
-export const EXERCISE_DONE_PATH = APP_PATHS.dashboard;
-export const EXERCISE_CLOSE_PATH = APP_PATHS.dashboard;
+export function exerciseExitPath(): ExerciseOrigin {
+  if (origin) return origin;
+  try {
+    const stored = sessionStorage.getItem(ORIGIN_KEY);
+    if (stored === APP_PATHS.practice || stored === APP_PATHS.dashboard) return stored;
+  } catch {
+    // Fall through.
+  }
+  return APP_PATHS.dashboard;
+}
+
+/** For tests: forget where the last exercise came from. */
+export function resetExerciseOrigin() {
+  origin = null;
+  try {
+    sessionStorage.removeItem(ORIGIN_KEY);
+  } catch {
+    // Nothing to clear.
+  }
+}

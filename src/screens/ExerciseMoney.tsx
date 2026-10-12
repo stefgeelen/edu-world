@@ -21,7 +21,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_MONEY } from '@/data/difficultyConfig';
 import { randomInt } from '@/lib/random';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 /* ── Products ─────────────────────────────────────────────────── */
 const PRODUCTS = [
@@ -209,7 +209,7 @@ export function ExerciseMoney() {
     handleIncorrect,
   } = useExerciseState({
     totalQuestions: 5,
-    returnPath: EXERCISE_DONE_PATH,
+    returnPath: exerciseExitPath(),
     exerciseId,
     onNextQuestion: nextQuestion,
   });
@@ -268,7 +268,7 @@ export function ExerciseMoney() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
     >
       <DndContext
         sensors={sensors}

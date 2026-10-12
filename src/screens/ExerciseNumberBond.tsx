@@ -10,7 +10,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 export function ExerciseNumberBond() {
@@ -80,7 +80,7 @@ export function ExerciseNumberBond() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           generateQuestion();
         }
@@ -89,7 +89,7 @@ export function ExerciseNumberBond() {
       setStatus('incorrect');
       setLives(l => l - 1);
       if (lives - 1 <= 0) {
-        setTimeout(() => navigate(EXERCISE_DONE_PATH), 1500);
+        setTimeout(() => navigate(exerciseExitPath()), 1500);
       }
     }
   };
@@ -103,7 +103,7 @@ export function ExerciseNumberBond() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
       onClick={() => setIsNumpadOpen(false)}
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">

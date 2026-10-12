@@ -175,7 +175,7 @@ All route trees are lazy-loaded. Each route has its **own** `<Suspense>` boundar
 
 ### 5.2 Child game (`/app/*`) — `<ProtectedRoute>` + `<Layout>`
 
-All child paths live in [paths.ts](../src/routes/paths.ts) (`APP_PATHS`). Exercise screens navigate to `EXERCISE_DONE_PATH` / `EXERCISE_CLOSE_PATH`, both the dashboard; no screen hard-codes a return route any more.
+All child paths live in [paths.ts](../src/routes/paths.ts) (`APP_PATHS`). Exercise screens leave through `exerciseExitPath()`: the screen the exercise was started from (the dashboard or `/app/oefenen`, recorded by `startExerciseFrom()` in sessionStorage), else the dashboard; no screen hard-codes a return route any more.
 
 | Path | Screen |
 |---|---|
@@ -400,7 +400,7 @@ An RLS denial is not an error. Supabase returns `[]` or `null` with `error === n
 3. Child answers → correct/incorrect feedback: confetti + `progress += step`, or `lives -= 1`.
 4. Progress reaches 100% **or** lives hit 0 → `completeExercise.mutate({exerciseId, score, maxScore, stars, timeSpent, answers})`. Stars map from remaining lives (3/2/1). Partial results *are* persisted on game over.
 5. `complete_exercise` runs the whole gameplay transaction server-side (§8.2).
-6. `onSuccess` → 7 invalidations → reward popup + payout toast; the screen navigates to `EXERCISE_DONE_PATH` (the dashboard).
+6. `onSuccess` → 7 invalidations → reward popup + payout toast; the screen navigates to `exerciseExitPath()` (where the exercise was started).
 
 ### 8.2 What `complete_exercise` does (one round-trip, one transaction)
 
@@ -701,7 +701,7 @@ Decisions already made, with the reasoning, so they are not silently reversed.
 | D4 | Needs decay only inside a Care Window (school hours, weekdays) | The 24/7 model killed Buddies over a weekend through no fault of the child. |
 | D5 | Aggregate on the server (`child_exercise_stats`), not in the browser | The per-attempt payload grows for the life of the account. |
 | D6 | `:id` in exercise routes is the stage number, not a DB id | Routes stay human-readable and shareable; the UUID is resolved by `(route, grade)`. |
-| D7 | *(Superseded 2026-10-01.)* The `fluisterbos` stage URLs are gone; every exercise returns through `EXERCISE_DONE_PATH`, and old stage URLs redirect to `/app/oefenen`. | Centralising the return path in `paths.ts` made the next layout change (two tabs, 2026-10-02) a one-line edit. |
+| D7 | *(Superseded 2026-10-01.)* The `fluisterbos` stage URLs are gone; every exercise returns through one path helper in `paths.ts` (now `exerciseExitPath()`), and old stage URLs redirect to `/app/oefenen`. | Centralising the return path in `paths.ts` made the next layout change (two tabs, 2026-10-02) a one-line edit. |
 | D8 | Per-route `<Suspense>` boundaries | One shared boundary meant a single broken import showed an eternal spinner everywhere. |
 | D9 | `<ErrorBoundary>` inside the `/app` guard, not only at the root | A crashing exercise degrades `/app`, not the whole app. |
 | D10 | `child_exercise_stats` is `SECURITY INVOKER` | RLS on `exercise_attempts` already scopes it; no hand-written ownership check to drift. The opposite choice in `complete_exercise` (DEFINER) is what required the R2-style guard. |
@@ -745,7 +745,7 @@ Decisions already made, with the reasoning, so they are not silently reversed.
 - Vocabulary comes from CONTEXT.md, not from whatever the code happens to say.
 - Any change to decay, the care window, death, item strengths, the calendar trimester or the repeat threshold is a **paired** change in `lib/buddy/*` **and** the SQL.
 - Payouts, Wishes and pickable exercises come from `practice_menu`; never compute them in the client.
-- Child routes come from `APP_PATHS`; exercises return via `EXERCISE_DONE_PATH` / `EXERCISE_CLOSE_PATH`.
+- Child routes come from `APP_PATHS`; exercises return via `exerciseExitPath()`.
 - Do not reintroduce child-facing XP, levels, streak counters or a map.
 
 **Timers & listeners**

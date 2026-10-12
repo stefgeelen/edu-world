@@ -15,7 +15,7 @@ import { useChildRewards, rewardCountdown } from '@/hooks/useChildRewards';
 import { quickStarts, isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { ExerciseTypeIcon } from '@/components/buddy/ExerciseTypeIcon';
-import { APP_PATHS } from '@/routes/paths';
+import { APP_PATHS, startExerciseFrom } from '@/routes/paths';
 import { cn } from '@/lib/utils';
 import { Ornaments, Payout, StarryBackground } from '@/components/dashboard/Vitrine';
 import { VITRINE } from '@/components/dashboard/vitrineStyles';
@@ -51,7 +51,10 @@ export function Dashboard() {
   const wishes = menu?.wishes ?? [];
   const wishesDone = wishes.filter(w => w.fulfilled).length;
 
-  const start = (route: string) => navigate(`/app${route}`);
+  const start = (route: string) => {
+    startExerciseFrom(APP_PATHS.dashboard);
+    navigate(`/app${route}`);
+  };
 
   // Trophy room: real badges from DB
   const unlockedBadges = useMemo(() => badges.filter(b => b.isUnlocked), [badges]);

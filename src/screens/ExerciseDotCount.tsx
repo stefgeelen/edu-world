@@ -9,7 +9,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 interface Dot {
@@ -85,7 +85,7 @@ export function ExerciseDotCount() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           generateNew();
         }
@@ -98,7 +98,7 @@ export function ExerciseDotCount() {
       setLives(nextLives);
       setTimeout(() => {
         if (nextLives <= 0) {
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           setDots([]);
           setStatus('idle');
@@ -115,7 +115,7 @@ export function ExerciseDotCount() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
     >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">

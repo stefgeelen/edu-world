@@ -13,7 +13,7 @@ import { DEFAULT_PICTURE_WORD } from '@/data/difficultyConfig';
 import { useSpeech } from '@/hooks/useSpeech';
 import { generatePictureRound, type PictureItem } from '@/data/picturePool';
 import type { BuddyMood } from '@/data/buddyMessages';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 const TOTAL_ROUNDS = 5;
 
@@ -150,7 +150,7 @@ export function ExercisePictureWord() {
           // Game over pays nothing: ExerciseShell saves it for the parent portal.
           if (stageNavigated) return;
           setStageNavigated(true);
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           setStatus('idle');
           setWrongWord(null);
@@ -176,7 +176,7 @@ export function ExercisePictureWord() {
       });
     }
     setBuddyMood('complete');
-    setTimeout(() => navigate(EXERCISE_DONE_PATH), 800);
+    setTimeout(() => navigate(exerciseExitPath()), 800);
   };
 
   const dragItem = useMemo(
@@ -190,7 +190,7 @@ export function ExercisePictureWord() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
       buddyMood={buddyMood}
       silenceBuddy
     >

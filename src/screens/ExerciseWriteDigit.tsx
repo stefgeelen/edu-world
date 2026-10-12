@@ -8,7 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 // ── Digit SVG paths (100 × 130 normalized space) ──────────────────────────
@@ -365,13 +365,13 @@ export function ExerciseWriteDigit() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: TOTAL_ITERATIONS, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else { setIteration(next); clearDrawing(); }
       }, 2000);
     } else {
       setStatus('incorrect');
       const nextLives = lives - 1; setLives(nextLives);
-      setTimeout(() => { if (nextLives <= 0) navigate(EXERCISE_DONE_PATH); else clearDrawing(); }, 1800);
+      setTimeout(() => { if (nextLives <= 0) navigate(exerciseExitPath()); else clearDrawing(); }, 1800);
     }
   }, [cSize, safeDigit, hasDrawn, status, iteration, lives, navigate, clearDrawing, exerciseId, completeExercise]);
 
@@ -379,7 +379,7 @@ export function ExerciseWriteDigit() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
     >
       {/* ── Info bar ── */}
       <div className="px-4 pt-3 pb-2 max-w-md mx-auto w-full flex-shrink-0 z-10">

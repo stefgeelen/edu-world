@@ -29,6 +29,7 @@ vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: 
 
 import { Practice } from '@/screens/Practice';
 import { resetSpoken } from '@/lib/spokenOnce';
+import { exerciseExitPath } from '@/routes/paths';
 
 const option = (o: Partial<PracticeOption> & Pick<PracticeOption, 'type_key' | 'title' | 'subject'>): PracticeOption => ({
   exercise_id: `${o.type_key}-id`,
@@ -83,6 +84,8 @@ describe('Practice', () => {
     renderPractice();
     fireEvent.click(screen.getByRole('button', { name: /Woordjes/ }));
     expect(navigateMock).toHaveBeenCalledWith('/app/exercises/language/2');
+    // ...and comes back here afterwards, not to the dashboard.
+    expect(exerciseExitPath()).toBe('/app/oefenen');
   });
 
   it('marks a wish and includes its bonus in what the tile pays', () => {

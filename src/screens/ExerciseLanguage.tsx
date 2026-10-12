@@ -11,7 +11,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 // Curated Vlaamse woordenschat per leerjaar — gevarieerd en fonetisch geordend.
 // Grade 1: korte klinkers (CVC), dan lange klinkers (aa/oo/ee/ie/oe), dan
@@ -138,7 +138,7 @@ export function ExerciseLanguage() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           generateQuestion();
         }
@@ -150,7 +150,7 @@ export function ExerciseLanguage() {
       setTimeout(() => {
         if (lives - 1 <= 0) {
           // Game over pays nothing: ExerciseShell saves it for the parent portal.
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           setStatus('idle');
           setSelectedWord(null);
@@ -165,7 +165,7 @@ export function ExerciseLanguage() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
       silenceBuddy
     >
       {/* Main Content Area */}

@@ -16,7 +16,7 @@ import {
   FIX_SENTENCES_GRADE_1,
   type FixQuestion,
 } from '@/data/sentenceDoctorSentences';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 /* ------------------------------------------------------------------ */
 /*  Types & Data                                                       */
@@ -116,7 +116,7 @@ export function ExerciseSentenceDoctor() {
     lives, progress, status, handleCorrect, handleIncorrect,
   } = useExerciseState({
     totalQuestions: 5,
-    returnPath: EXERCISE_DONE_PATH,
+    returnPath: exerciseExitPath(),
     exerciseId,
     confettiIntensity: 'large',
     confettiColors: ['#10b981', '#3b82f6', '#a78bfa'],
@@ -165,7 +165,7 @@ export function ExerciseSentenceDoctor() {
   const isBuild = question.mode === 'build';
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(EXERCISE_CLOSE_PATH)} silenceBuddy>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} silenceBuddy>
       <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-10 w-full max-w-xl mx-auto">
 
         {/* Title */}

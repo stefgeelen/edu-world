@@ -41,6 +41,7 @@ const signOut = vi.fn().mockResolvedValue({});
 vi.mock('@/integrations/supabase/client', () => ({ supabase: { auth: { signOut: () => signOut() } } }));
 
 import { Dashboard } from '@/screens/Dashboard';
+import { APP_PATHS, exerciseExitPath, startExerciseFrom } from '@/routes/paths';
 
 const option = (o: Partial<PracticeOption> & Pick<PracticeOption, 'type_key' | 'title'>): PracticeOption => ({
   exercise_id: o.type_key,
@@ -102,6 +103,13 @@ describe('Dashboard', () => {
     ]);
     fireEvent.click(quick[1]);
     expect(navigateMock).toHaveBeenCalledWith('/app/exercises/dots/1');
+  });
+
+  it('lets a quick start return to the dashboard afterwards', () => {
+    startExerciseFrom(APP_PATHS.practice); // the previous exercise came from "Alle oefeningen"
+    renderDashboard();
+    fireEvent.click(within(screen.getByRole('region', { name: 'Snel starten' })).getAllByRole('button')[0]);
+    expect(exerciseExitPath()).toBe('/app/dashboard');
   });
 
   it('counts the Buddy’s wishes in the Snel starten header, without listing them twice', () => {

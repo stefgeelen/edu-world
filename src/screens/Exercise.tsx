@@ -10,7 +10,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 
 const OP_SPOKEN: Record<string, string> = { '+': 'plus', '-': 'min', '×': 'maal', '÷': 'gedeeld door' };
@@ -113,7 +113,7 @@ export function Exercise() {
             const timeSpent = Math.round((Date.now() - startTime.current) / 1000);
             completeExercise.mutate({ exerciseId, score: correctCount.current, maxScore: 5, stars: lives === 3 ? 3 : lives === 2 ? 2 : 1, timeSpent });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           regenerate();
         }
@@ -125,7 +125,7 @@ export function Exercise() {
 
       setTimeout(() => {
         if (lives - 1 <= 0) {
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           setSelectedOption(null);
           setStatus('idle');
@@ -138,7 +138,7 @@ export function Exercise() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
     >
       {/* Main Content */}
       <div className="flex-1 flex flex-col px-6 md:px-12 lg:px-16 justify-center max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full z-10 relative mt-8 md:mt-12">

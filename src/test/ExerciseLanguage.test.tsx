@@ -34,6 +34,7 @@ const speakMock = vi.fn().mockResolvedValue(undefined);
 vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) }));
 
 import { ExerciseLanguage } from '@/screens/ExerciseLanguage';
+import { APP_PATHS, resetExerciseOrigin, startExerciseFrom } from '@/routes/paths';
 
 function getWordButtons(): HTMLButtonElement[] {
   return Array.from(document.querySelectorAll('span.tracking-widest'))
@@ -72,6 +73,7 @@ async function currentCorrectWord(): Promise<string> {
 describe('ExerciseLanguage component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetExerciseOrigin();
     vi.useFakeTimers();
   });
 
@@ -141,5 +143,20 @@ describe('ExerciseLanguage component', () => {
 
     expect(completeExerciseMutateMock).not.toHaveBeenCalled();
     expect(navigateMock).toHaveBeenCalledWith('/app/dashboard');
+  });
+
+  it('goes back to "Alle oefeningen" when it was started there', async () => {
+    startExerciseFrom(APP_PATHS.practice);
+    render(<ExerciseLanguage />);
+
+    for (let round = 0; round < 3; round++) {
+      const correctWord = await currentCorrectWord();
+      const wrongButton = getWordButtons().find((b) => b.textContent !== correctWord)!;
+      fireEvent.click(wrongButton);
+      await tick(1500);
+    }
+
+    expect(navigateMock).toHaveBeenCalledWith('/app/oefenen');
+    expect(navigateMock).not.toHaveBeenCalledWith('/app/dashboard');
   });
 });

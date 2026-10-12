@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Loader2, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { APP_PATHS } from '@/routes/paths';
+import { APP_PATHS, startExerciseFrom } from '@/routes/paths';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useBuddy } from '@/hooks/useBuddy';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
@@ -128,7 +128,10 @@ export function Practice() {
                         index={i}
                         repeated={isRepeated(option, menu)}
                         wishBonus={menu.wish_bonus}
-                        onStart={() => navigate(`/app${option.route}`)}
+                        onStart={() => {
+                          startExerciseFrom(APP_PATHS.practice);
+                          navigate(`/app${option.route}`);
+                        }}
                       />
                     ))}
                   </div>

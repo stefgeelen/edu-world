@@ -10,7 +10,7 @@ import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_SUBTRACT_BOX } from '@/data/difficultyConfig';
-import { EXERCISE_DONE_PATH, EXERCISE_CLOSE_PATH } from '@/routes/paths';
+import { exerciseExitPath } from '@/routes/paths';
 
 type Status = 'idle' | 'incorrect' | 'correct';
 /**
@@ -122,7 +122,7 @@ export function ExerciseSubtractBox() {
               timeSpent,
             });
           }
-          navigate(EXERCISE_DONE_PATH);
+          navigate(exerciseExitPath());
         } else {
           generateQuestion();
         }
@@ -131,7 +131,7 @@ export function ExerciseSubtractBox() {
       setStatus('incorrect');
       setLives((l) => l - 1);
       if (lives - 1 <= 0) {
-        setTimeout(() => navigate(EXERCISE_DONE_PATH), 1500);
+        setTimeout(() => navigate(exerciseExitPath()), 1500);
       }
     }
   };
@@ -180,7 +180,7 @@ export function ExerciseSubtractBox() {
     <ExerciseShell
       progress={progress}
       lives={lives}
-      onClose={() => navigate(EXERCISE_CLOSE_PATH)}
+      onClose={() => navigate(exerciseExitPath())}
       onClick={() => setIsNumpadOpen(false)}
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
