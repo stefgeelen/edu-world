@@ -13,8 +13,8 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { RotateCcw } from 'lucide-react';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { CheckButton, ClearButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -275,7 +275,9 @@ export function ExerciseMoney() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-1 flex flex-col px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full z-10 relative mt-6 md:mt-10 gap-4 md:gap-6 pb-6">
+        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full z-10 relative gap-4 md:gap-6 pb-6">
+
+          <ExercisePrompt className="mb-0">Sleep het juiste bedrag in de kassa!</ExercisePrompt>
 
           {/* ── Product / Winkelkast ──── */}
           <motion.div
@@ -325,24 +327,6 @@ export function ExerciseMoney() {
             )}
           </AnimatePresence>
 
-          {/* ── Action Buttons ──── */}
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#2d1b54] border-2 border-[#3b2d71] text-white/70 font-bold text-sm hover:bg-[#3b2d71] transition-colors"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Reset
-            </button>
-            <button
-              onClick={handlePay}
-              disabled={status !== 'idle' || totalCents === 0}
-              className="px-8 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-lg shadow-lg border-b-4 border-emerald-700 hover:from-emerald-600 hover:to-teal-600 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-40 disabled:pointer-events-none"
-            >
-              Betaal 💰
-            </button>
-          </div>
-
           {/* ── Portefeuille (Denominations) ──── */}
           <div className="bg-[#1c1134]/50 backdrop-blur-sm rounded-3xl p-4 md:p-6 border-2 border-[#3b2d71]">
             <p className="text-white/50 text-xs font-semibold mb-3 text-center uppercase tracking-wider">
@@ -361,6 +345,11 @@ export function ExerciseMoney() {
           {activeDenom && <DenominationVisual denom={activeDenom} isOverlay />}
         </DragOverlay>
       </DndContext>
+
+      <ExerciseActionBar>
+        <ClearButton onClick={handleReset} disabled={status !== 'idle' || totalCents === 0} />
+        <CheckButton onClick={handlePay} disabled={status !== 'idle' || totalCents === 0}>Betaal</CheckButton>
+      </ExerciseActionBar>
     </ExerciseShell>
   );
 }

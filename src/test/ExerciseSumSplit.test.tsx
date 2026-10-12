@@ -137,7 +137,7 @@ describe('ExerciseSumSplit component', () => {
     typeNumber(total);
     fireEvent.click(screen.getByLabelText('Controleer')); // closes numpad
 
-    fireEvent.click(screen.getByText('Controleer!').closest('button')!);
+    fireEvent.click(screen.getByText('Controleer').closest('button')!);
 
     await waitFor(() => expect(triggerConfettiMock).toHaveBeenCalled());
   });
@@ -157,7 +157,7 @@ describe('ExerciseSumSplit component', () => {
     typeNumber(total);
     fireEvent.click(screen.getByLabelText('Controleer'));
 
-    fireEvent.click(screen.getByText('Controleer!').closest('button')!);
+    fireEvent.click(screen.getByText('Controleer').closest('button')!);
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
     expect(screen.getByText(/Bijna! Probeer opnieuw\./)).toBeInTheDocument();
@@ -184,7 +184,7 @@ describe('ExerciseSumSplit component', () => {
 
     // Validate synchronously sets leftStatus/rightStatus/resultStatus to
     // 'correct', which openSlot() checks before allowing a slot to reopen.
-    fireEvent.click(screen.getByText('Controleer!').closest('button')!);
+    fireEvent.click(screen.getByText('Controleer').closest('button')!);
     fireEvent.click(leftBtn); // openSlot() should bail out: leftStatus === 'correct'
     expect(screen.queryByLabelText('Controleer')).not.toBeInTheDocument();
   });

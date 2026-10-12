@@ -184,7 +184,7 @@ describe('ExerciseClock component', () => {
     fireEvent.click(screen.getByText('Lange wijzer 🔵'));
     firePointerDown(svg, 0, -100); // sets minute hand to 0deg
 
-    fireEvent.click(screen.getByText('Klok nakijken ⏰'));
+    fireEvent.click(screen.getByRole('button', { name: 'Controleer' }));
 
     expect(triggerConfettiMock).toHaveBeenCalled();
   });
@@ -195,7 +195,7 @@ describe('ExerciseClock component', () => {
 
     // Leave both hands at their initial 0deg/0deg (correct for minute, wrong
     // for hour which should be at 30deg) — do not touch the hour hand at all.
-    fireEvent.click(screen.getByText('Klok nakijken ⏰'));
+    fireEvent.click(screen.getByRole('button', { name: 'Controleer' }));
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
     expect(screen.getByText(/Kijk goed/)).toBeInTheDocument();

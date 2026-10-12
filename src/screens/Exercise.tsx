@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Check, X } from 'lucide-react';
-import { useGame } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -68,7 +68,6 @@ function generateMathQuestion(config: MathSumsConfig) {
 export function Exercise() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { buddy } = useGame();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const correctCount = useRef(0);
@@ -141,7 +140,8 @@ export function Exercise() {
       onClose={() => navigate(exerciseExitPath())}
     >
       {/* Main Content */}
-      <div className="flex-1 flex flex-col px-6 md:px-12 lg:px-16 justify-center max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full z-10 relative mt-8 md:mt-12">
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-6 md:px-12 lg:px-16 pb-8 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full z-10 relative">
+        <ExercisePrompt>Kies het juiste antwoord!</ExercisePrompt>
         
         {/* Math Problem */}
         <motion.div 
@@ -198,44 +198,6 @@ export function Exercise() {
         </div>
       </div>
 
-      {/* Buddy Feedback */}
-      <AnimatePresence>
-        <motion.div 
-          initial={{ y: 150, x: -50, rotate: -20 }}
-          animate={{ y: 0, x: 0, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 100 }}
-          className="absolute -bottom-10 -left-10 md:-bottom-12 md:-left-12 z-20 pointer-events-none"
-        >
-          <div className="relative">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.5, type: 'spring' }}
-              className="absolute -top-12 left-24 md:-top-16 md:left-32 bg-[#1c1134]/80 backdrop-blur-md px-5 py-3 md:px-6 md:py-4 rounded-2xl rounded-bl-none shadow-[0_10px_30px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] w-48 md:w-56"
-            >
-              <p className="text-sm md:text-base font-bold text-white/90">
-                {status === 'idle' && "Jij kan dit!"}
-                {status === 'correct' && <span className="text-emerald-400">Goed gedaan!</span>}
-                {status === 'incorrect' && <span className="text-orange-400">Oeps! Probeer opnieuw!</span>}
-              </p>
-            </motion.div>
-            
-            <div className="w-48 h-48 md:w-56 md:h-56 rounded-full border-8 border-[#3b2d71] shadow-2xl overflow-hidden bg-[#1c1134]/50 backdrop-blur-md">
-              <img
-                src={status === 'incorrect' ? buddy.art.neutral : buddy.art.happy}
-                alt={buddy.name}
-                draggable={false}
-                className={cn(
-                  "w-full h-full object-contain p-3 transition-transform duration-500",
-                  status === 'correct' && "scale-110"
-                )}
-              />
-            </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-      
-      <div className="h-32 pointer-events-none" />
     </ExerciseShell>
   );
 }

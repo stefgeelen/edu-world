@@ -13,7 +13,6 @@ vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>();
   return { ...actual, useNavigate: () => navigateMock };
 });
-vi.mock('@/context/GameContext', () => ({ useGame: () => ({ buddy: { name: 'Nootje', art: { happy: '', neutral: '' } } }) }));
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-1', stage: 1, grade: 1 }) }));
 vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => undefined }));
@@ -70,23 +69,22 @@ describe('Exercise (math sums dispatcher) component', () => {
   beforeEach(() => vi.clearAllMocks());
   afterEach(() => cleanup());
 
-  it('selecting the correct option celebrates with confetti and the "Goed gedaan" buddy feedback', () => {
+  it('selecting the correct option celebrates with confetti', () => {
     renderExercise();
     const answer = readAnswer();
     fireEvent.click(optionButton(answer));
 
     expect(triggerConfettiMock).toHaveBeenCalled();
-    expect(screen.getByText('Goed gedaan!')).toBeInTheDocument();
   });
 
-  it('selecting a wrong option shows the "try again" feedback and does not celebrate', () => {
+  it('selecting a wrong option does not celebrate and locks the options', () => {
     renderExercise();
     const answer = readAnswer();
     const wrong = findWrongOptionValue(answer);
     fireEvent.click(optionButton(wrong));
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
-    expect(screen.getByText('Oeps! Probeer opnieuw!')).toBeInTheDocument();
+    expect(optionButton(wrong)).toBeDisabled();
   });
 
   it('locks in the answer: once a wrong option is picked, the disabled options no longer respond to clicks', () => {
@@ -94,13 +92,13 @@ describe('Exercise (math sums dispatcher) component', () => {
     const answer = readAnswer();
     const wrong = findWrongOptionValue(answer);
     fireEvent.click(optionButton(wrong));
-    expect(screen.getByText('Oeps! Probeer opnieuw!')).toBeInTheDocument();
+    expect(optionButton(wrong)).toBeDisabled();
 
     // All option buttons get `disabled` once status !== 'idle'; a click on
     // the (still disabled) correct button is a native no-op.
     fireEvent.click(optionButton(answer));
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
-    expect(screen.getByText('Oeps! Probeer opnieuw!')).toBeInTheDocument();
+    expect(optionButton(wrong)).toBeDisabled();
   });
 });

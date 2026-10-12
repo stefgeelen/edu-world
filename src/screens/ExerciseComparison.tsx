@@ -8,6 +8,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARISON } from '@/data/difficultyConfig';
@@ -288,10 +289,10 @@ export function ExerciseComparison() {
   };
 
   const variationDescriptions: Record<VariationType, string> = {
-    1: 'Twee getallen — kies het juiste teken!',
-    2: 'Getal en stippen — kies het juiste teken!',
-    3: 'Welk getal past hier? Vul het in!',
-    4: 'Stippen en teken — vul het ontbrekende getal in!',
+    1: 'Kies het juiste teken!',
+    2: 'Kies het juiste teken!',
+    3: 'Tik op het vraagteken en vul het juiste getal in!',
+    4: 'Tik op het vraagteken en vul het juiste getal in!',
   };
 
   return (
@@ -302,13 +303,10 @@ export function ExerciseComparison() {
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}
-      <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         <div className="flex-shrink-0">
-          <p className="text-sm font-bold text-[#9d8bce] mb-3 flex items-center gap-1.5">
-            <span className="text-lg">🌿</span>
-            {variationDescriptions[question.variation]}
-          </p>
+          <ExercisePrompt>{variationDescriptions[question.variation]}</ExercisePrompt>
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -376,15 +374,6 @@ export function ExerciseComparison() {
               ))}
             </div>
           </div>
-        )}
-
-        {needsNumber && status === 'idle' && !inputValue && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            className="flex-shrink-0 bg-amber-500/10 border-2 border-amber-400/20 rounded-2xl px-4 py-3 flex items-center gap-2 shadow-sm"
-          >
-            <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-sm font-bold text-amber-300">Tik op het <span className="text-amber-200">vraagteken</span> en voer een getal in!</p>
-          </motion.div>
         )}
 
         <AnimatePresence>

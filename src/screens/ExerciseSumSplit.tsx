@@ -1,12 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, CheckCircle2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_SUM_SPLIT } from '@/data/difficultyConfig';
@@ -301,14 +302,10 @@ export function ExerciseSumSplit() {
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
       <div
-        className="min-h-full flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0"
+        className="min-h-full flex flex-col items-center z-10 relative px-4"
         style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 16 }}
       >
-        <div className="mb-6 text-center">
-          <h2 className="text-xl md:text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">
-            Splits om door 10 te springen!
-          </h2>
-        </div>
+        <ExercisePrompt>Splits om door 10 te springen!</ExercisePrompt>
 
         {/* Equation with result slot */}
         <motion.div
@@ -369,24 +366,12 @@ export function ExerciseSumSplit() {
           </AnimatePresence>
         </div>
 
-        {/* Validate button */}
-        <motion.button
-          onClick={handleValidateAll}
-          disabled={!allFilled}
-          animate={allFilled && !hasAnyError ? { scale: [1, 1.04, 1] } : { scale: 1 }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-          className={cn(
-            'mt-8 flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-lg md:text-xl transition-all duration-300 shadow-xl',
-            allFilled
-              ? 'bg-emerald-500 border-b-[6px] border-emerald-700 text-white hover:bg-emerald-400 active:border-b-0 active:translate-y-1 shadow-[0_6px_20px_rgba(16,185,129,0.5)]'
-              : 'bg-[#2d1b54] border-b-[6px] border-[#1c1134] text-[#6b5ca5] cursor-not-allowed opacity-50'
-          )}
-        >
-          <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7" />
-          Controleer!
-        </motion.button>
       </div>
       </div>
+
+      <ExerciseActionBar>
+        <CheckButton onClick={handleValidateAll} disabled={!allFilled} />
+      </ExerciseActionBar>
 
       <ExerciseNumpad
         isOpen={isNumpadOpen}

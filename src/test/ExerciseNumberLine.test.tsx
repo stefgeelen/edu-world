@@ -129,11 +129,11 @@ describe('ExerciseNumberLine component', () => {
     vi.restoreAllMocks();
   });
 
-  it('keeps "Controleer mijn antwoorden!" disabled until every blank slot is filled', async () => {
+  it('keeps the Controleer bar disabled until every blank slot is filled', async () => {
     invokeMock.mockResolvedValue({ data: { isCorrect: true, recognized: 1 }, error: null });
     render(<ExerciseNumberLine />);
 
-    const checkAllButton = () => screen.getByText(/vakjes? nog in te vullen|Controleer mijn antwoorden!/).closest('button')!;
+    const checkAllButton = () => screen.getByRole('button', { name: 'Controleer de getallenlijn' });
     expect(checkAllButton()).toBeDisabled();
 
     // Open the drawing sheet for the first blank ("?") slot.
@@ -149,7 +149,6 @@ describe('ExerciseNumberLine component', () => {
     await new Promise((r) => setTimeout(r, 1500));
 
     expect(checkAllButton()).toBeDisabled(); // 2 of 3 blanks still remain
-    expect(screen.getByText(/2 vakjes nog in te vullen/)).toBeInTheDocument();
   }, 10000);
 
   it('enables and confirms the round once all blanks are filled correctly', async () => {
@@ -166,7 +165,7 @@ describe('ExerciseNumberLine component', () => {
       await new Promise((r) => setTimeout(r, 1500));
     }
 
-    const checkAllButton = screen.getByText('Controleer mijn antwoorden!').closest('button')!;
+    const checkAllButton = screen.getByRole('button', { name: 'Controleer de getallenlijn' });
     expect(checkAllButton).toBeEnabled();
 
     fireEvent.click(checkAllButton);

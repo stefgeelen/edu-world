@@ -130,7 +130,7 @@ describe('ExerciseMoney component', () => {
 
     drop('denom-3'); // €1
     drop('denom-4'); // 50c
-    fireEvent.click(screen.getByText('Betaal 💰'));
+    fireEvent.click(screen.getByRole('button', { name: 'Betaal' }));
 
     expect(triggerConfettiMock).toHaveBeenCalled();
     expect(screen.getByText(/Goed gedaan!/)).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('ExerciseMoney component', () => {
     render(<ExerciseMoney />);
 
     drop('denom-4'); // 50c only — less than the €1,50 price
-    fireEvent.click(screen.getByText('Betaal 💰'));
+    fireEvent.click(screen.getByRole('button', { name: 'Betaal' }));
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
     expect(screen.getByText(/niet genoeg/)).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe('ExerciseMoney component', () => {
     render(<ExerciseMoney />);
 
     drop('denom-2'); // €2 — more than the €1,50 price
-    fireEvent.click(screen.getByText('Betaal 💰'));
+    fireEvent.click(screen.getByRole('button', { name: 'Betaal' }));
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
     expect(screen.getByText(/iets te veel/)).toBeInTheDocument();
@@ -167,7 +167,7 @@ describe('ExerciseMoney component', () => {
 
     for (let round = 0; round < 3; round++) {
       drop('denom-4'); // 50c — always too little for the €1,50 price
-      fireEvent.click(screen.getByText('Betaal 💰'));
+      fireEvent.click(screen.getByRole('button', { name: 'Betaal' }));
       act(() => vi.advanceTimersByTime(1600));
     }
 
@@ -178,13 +178,13 @@ describe('ExerciseMoney component', () => {
     expect(triggerConfettiMock).not.toHaveBeenCalled();
   });
 
-  it('the Reset button clears the dropped coins back to the empty tray', () => {
+  it('the Wis button clears the dropped coins back to the empty tray', () => {
     render(<ExerciseMoney />);
 
     drop('denom-3');
     expect(screen.getByText(/Je hebt/)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Reset'));
+    fireEvent.click(screen.getByRole('button', { name: 'Wis' }));
     expect(screen.getByText(/Sleep geld hierheen/)).toBeInTheDocument();
   });
 
@@ -194,7 +194,7 @@ describe('ExerciseMoney component', () => {
     for (let round = 0; round < 5; round++) {
       drop('denom-3'); // €1
       drop('denom-4'); // 50c
-      fireEvent.click(screen.getByText('Betaal 💰'));
+      fireEvent.click(screen.getByRole('button', { name: 'Betaal' }));
       act(() => vi.advanceTimersByTime(1800));
     }
 

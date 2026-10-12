@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
@@ -108,14 +109,10 @@ export function ExerciseNumberBond() {
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
       <div
-        className="min-h-full flex flex-col items-center justify-center z-10 relative px-4 mt-8 md:mt-0"
+        className="min-h-full flex flex-col items-center z-10 relative px-4"
         style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 48 }}
       >
-        <div className="mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">
-            Maak samen {question.target}!
-          </h2>
-        </div>
+        <ExercisePrompt className="mb-8">Maak samen {question.target}!</ExercisePrompt>
 
         <div className="relative w-full max-w-[300px] md:max-w-[400px] aspect-square flex flex-col items-center">
           <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">

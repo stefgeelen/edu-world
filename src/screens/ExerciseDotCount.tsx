@@ -1,12 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Undo2, Trash2, Sparkles, X } from 'lucide-react';
+import { Check, Undo2, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { CheckButton, ClearButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
 import { exerciseExitPath } from '@/routes/paths';
@@ -118,30 +119,23 @@ export function ExerciseDotCount() {
       onClose={() => navigate(exerciseExitPath())}
     >
       {/* ── Scrollable content ── */}
-      <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         {/* Instruction + number */}
         <div className="flex-shrink-0">
-          <p className="text-sm font-bold text-[#9d8bce] mb-3 flex items-center gap-1.5">
-            <span className="text-lg">🌲</span>
-            Tik op het veld om stippen te plaatsen!
-          </p>
+          <ExercisePrompt>
+            Zet precies {target} {target === 1 ? 'stip' : 'stippen'} in het veld!
+          </ExercisePrompt>
 
           <motion.div
             key={target}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', bounce: 0.5 }}
-            className="bg-[#1c1134]/60 backdrop-blur-sm rounded-3xl border-2 border-[#3b2d71] shadow-md p-5 flex items-center gap-5"
+            className="flex justify-center"
           >
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg flex-shrink-0 ring-4 ring-teal-200/20">
               <span className="font-black text-white drop-shadow-md" style={{ fontSize: 44 }}>{target}</span>
-            </div>
-            <div>
-              <p className="font-black text-white mb-0.5">Maak dit getal!</p>
-              <p className="text-sm text-white/60 leading-snug">
-                Zet precies <span className="font-black text-emerald-400">{target}</span> {target === 1 ? 'stip' : 'stippen'} in het veld hieronder.
-              </p>
             </div>
           </motion.div>
         </div>
@@ -270,10 +264,8 @@ export function ExerciseDotCount() {
         <div className="flex-shrink-0 h-2" />
       </div>
 
-      {/* ── Sticky action bar ── */}
-      <div className="flex-shrink-0 bg-[#1a103c]/90 backdrop-blur-sm border-t-2 border-[#3b2d71] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] relative z-10">
-        <div className="max-w-md mx-auto w-full flex items-center gap-3">
-
+      {/* ── Action bar ── */}
+      <ExerciseActionBar>
           {/* Delete last dot */}
           <button
             onClick={handleDeleteLast}
@@ -288,37 +280,10 @@ export function ExerciseDotCount() {
             <Undo2 className="w-5 h-5" strokeWidth={2.5} />
           </button>
 
-          {/* Clear all */}
-          <button
-            onClick={clearAllDots}
-            disabled={dotCount === 0 || status !== 'idle'}
-            className={cn(
-              'flex items-center justify-center w-12 h-12 rounded-2xl border-2 transition-all flex-shrink-0',
-              dotCount > 0 && status === 'idle'
-                ? 'bg-[#2d1b54] border-[#4c3b82] text-white/80 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-400 active:scale-95'
-                : 'bg-[#1c1134] border-[#3b2d71] text-[#3b2d71] cursor-not-allowed'
-            )}
-          >
-            <Trash2 className="w-5 h-5" strokeWidth={2.5} />
-          </button>
+          <ClearButton onClick={clearAllDots} disabled={dotCount === 0 || status !== 'idle'} />
 
-          {/* Check / Confirm */}
-          <motion.button
-            whileTap={{ scale: 0.94 }}
-            onClick={handleConfirm}
-            disabled={dotCount === 0 || status !== 'idle'}
-            className={cn(
-              'ml-auto flex items-center justify-center gap-2 flex-1 h-12 rounded-2xl font-black text-base transition-all shadow-md',
-              dotCount > 0 && status === 'idle'
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
-                : 'bg-[#1c1134] text-[#3b2d71] border border-[#3b2d71] cursor-not-allowed'
-            )}
-          >
-            <Check className="w-5 h-5" strokeWidth={3} />
-            Controleer
-          </motion.button>
-        </div>
-      </div>
+          <CheckButton onClick={handleConfirm} disabled={dotCount === 0 || status !== 'idle'} />
+      </ExerciseActionBar>
     </ExerciseShell>
   );
 }

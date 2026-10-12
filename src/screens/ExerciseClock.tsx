@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -307,7 +308,8 @@ export function ExerciseClock() {
 
   return (
     <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())}>
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 z-10 max-w-2xl mx-auto w-full">
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-6 px-4 pb-6 z-10 max-w-2xl mx-auto w-full">
+        <ExercisePrompt className="mb-0">Zet de klok juist!</ExercisePrompt>
 
         {/* Task card */}
         <div className="bg-[#1c1134]/60 backdrop-blur-sm border border-[#3b2d71] rounded-2xl p-5 text-center w-full max-w-md">
@@ -339,19 +341,11 @@ export function ExerciseClock() {
           </motion.p>
         )}
 
-        {/* Check button */}
-        <button
-          onClick={handleCheck}
-          disabled={status !== 'idle'}
-          className="w-full max-w-xs py-4 rounded-2xl text-lg font-bold transition-all
-            bg-gradient-to-r from-emerald-500 to-cyan-500 text-white
-            border-b-4 border-emerald-700 active:border-b-0 active:translate-y-1
-            disabled:opacity-40 disabled:pointer-events-none
-            shadow-lg shadow-emerald-500/20"
-        >
-          Klok nakijken ⏰
-        </button>
       </div>
+
+      <ExerciseActionBar>
+        <CheckButton onClick={handleCheck} disabled={status !== 'idle'} />
+      </ExerciseActionBar>
     </ExerciseShell>
   );
 }

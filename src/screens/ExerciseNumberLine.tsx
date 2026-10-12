@@ -8,6 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,7 +89,6 @@ export function ExerciseNumberLine() {
   const blanks = slots.filter(s => s.isBlank);
   const filled = blanks.filter(s => s.filled);
   const allFilled = blanks.length > 0 && filled.length === blanks.length;
-  const remaining = blanks.length - filled.length;
 
 
   useEffect(() => {
@@ -264,29 +264,9 @@ export function ExerciseNumberLine() {
       onClose={() => navigate(exerciseExitPath())}
     >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col px-4 pt-5 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
-        {/* Instruction card */}
-        <div className="flex-shrink-0">
-          <p className="text-sm font-bold text-[#9d8bce] mb-3 flex items-center gap-1.5">
-            <span className="text-lg">🔢</span>
-            Tik op een vraagteken om het getal te schrijven!
-          </p>
-          <div className="bg-[#1c1134]/60 backdrop-blur-sm rounded-3xl border-2 border-[#3b2d71] shadow-md p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-md flex-shrink-0 text-2xl ring-2 ring-indigo-200/30">
-              📏
-            </div>
-            <div>
-              <p className="font-black text-white mb-0.5">Vul de getallenlijn in!</p>
-              <p className="text-sm text-white/60 leading-snug">
-                <span className="font-black text-emerald-400">{filled.length}</span>
-                {' '}van{' '}
-                <span className="font-black text-emerald-400">{blanks.length}</span>
-                {' '}lege vakjes ingevuld
-              </p>
-            </div>
-          </div>
-        </div>
+        <ExercisePrompt className="mb-0 flex-shrink-0">Tik op een vraagteken en schrijf het juiste getal!</ExercisePrompt>
 
         {/* Number line */}
         <div className="flex-shrink-0">
@@ -361,16 +341,6 @@ export function ExerciseNumberLine() {
           </div>
         </div>
 
-        {/* Tip card */}
-        {filled.length === 0 && (
-          <div className="flex-shrink-0 bg-[#1c1134]/60 border-2 border-[#3b2d71] rounded-2xl px-4 py-3 flex items-start gap-2 shadow-sm">
-            <Sparkles className="w-4 h-4 text-[#a78bfa] mt-0.5 flex-shrink-0" />
-            <p className="text-sm font-bold text-white/80">
-              Tik op een vakje met een <span className="text-[#a78bfa]">?</span> en schrijf het juiste getal met je vinger!
-            </p>
-          </div>
-        )}
-
         {/* Success card */}
         <AnimatePresence>
           {roundDone && (
@@ -392,26 +362,12 @@ export function ExerciseNumberLine() {
         <div className="flex-shrink-0 h-2" />
       </div>
 
-      {/* ── Sticky check bar ───────────────────────────────────────────── */}
-      <div className="flex-shrink-0 bg-[#1a103c]/90 backdrop-blur-sm border-t-2 border-[#3b2d71] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] relative z-10">
-        <div className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full">
-          <button
-            onClick={handleCheckAll}
-            disabled={!allFilled || roundDone}
-            className={cn(
-              'w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-black transition-all shadow-md',
-              allFilled && !roundDone
-                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-700'
-                : 'bg-[#1c1134] text-[#4c3b82] border border-[#3b2d71] cursor-not-allowed'
-            )}
-          >
-            <Check className="w-5 h-5" strokeWidth={3} />
-            {allFilled && !roundDone
-              ? 'Controleer mijn antwoorden!'
-              : `${remaining} ${remaining === 1 ? 'vakje' : 'vakjes'} nog in te vullen`}
-          </button>
-        </div>
-      </div>
+      {/* ── Check bar: hidden while the drawing sheet (with its own Controleer) is open ── */}
+      {activeSlot === null && (
+        <ExerciseActionBar>
+          <CheckButton onClick={handleCheckAll} disabled={!allFilled || roundDone} label="Controleer de getallenlijn" />
+        </ExerciseActionBar>
+      )}
 
       {/* ── Backdrop ───────────────────────────────────────────────────── */}
       <AnimatePresence>
@@ -615,7 +571,7 @@ export function ExerciseNumberLine() {
                 )}
               >
                 <Trash2 className="w-4 h-4" strokeWidth={2.5} />
-                Wis alles
+                Wis
               </button>
 
               <button
