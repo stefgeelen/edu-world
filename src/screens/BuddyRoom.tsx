@@ -150,7 +150,7 @@ function BuddyRoomContent() {
       />
       <div className="absolute inset-x-0 top-0 h-[56vh] bg-gradient-to-b from-[#2d1b54]/70 via-[#2d1b54]/20 to-transparent" aria-hidden />
 
-      <div className="relative z-10 mx-auto w-full max-w-md px-4 pt-4 sm:pt-6 md:max-w-xl">
+      <div className="relative z-10 mx-auto flex min-h-full w-full max-w-md flex-col px-4 pt-4 sm:pt-6 md:max-w-3xl lg:max-w-5xl">
         <header className={cn(VITRINE, 'flex items-center gap-2 border-amber-400/30 p-3 shadow-[0_8px_32px_rgba(251,191,36,0.12)]')}>
           <Ornaments tone="border-amber-400/40" />
           <div className="relative z-10 min-w-0 flex-1 pl-1">
@@ -180,12 +180,16 @@ function BuddyRoomContent() {
           </Link>
         </header>
 
-        <section className="mt-2 flex flex-col items-center">
+        {/* On tablet and desktop the Buddy and the care buttons stand side by side,
+            centred in the room between the header and the tab bar. */}
+        <div className="flex flex-1 flex-col justify-center">
+        <div className="md:my-4 md:grid md:grid-cols-2 md:items-center md:gap-4 lg:gap-6">
+        <section className="mt-1 flex flex-col items-center md:mt-0">
           <button
             type="button"
             onClick={() => speak(message)}
             aria-label={`Lees voor: ${message}`}
-            className="mb-1 mt-3 flex max-w-[19rem] items-center gap-2.5 rounded-3xl rounded-bl-md border-2 border-[#3b2d71] bg-[#1a103c]/90 py-2.5 pl-4 pr-2.5 text-left text-base font-bold text-white shadow-lg backdrop-blur active:scale-[0.98] md:max-w-sm md:text-lg"
+            className="mb-1 mt-2 flex max-w-[19rem] items-center gap-2.5 rounded-3xl rounded-bl-md border-2 border-[#3b2d71] bg-[#1a103c]/90 py-2.5 pl-4 pr-2.5 text-left text-base font-bold text-white shadow-lg backdrop-blur active:scale-[0.98] md:max-w-sm md:text-lg"
           >
             <span className="flex-1">{message}</span>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-sky-600 text-[#1a103c] shadow-md" aria-hidden>
@@ -222,8 +226,9 @@ function BuddyRoomContent() {
           )}
         </section>
 
+        <div className="min-w-0">
         {buddy.dead && (
-          <div className={cn(VITRINE, 'mt-2 border-rose-400/40 p-4 text-center')}>
+          <div className={cn(VITRINE, 'mt-2 border-rose-400/40 p-4 text-center md:mt-0 md:mb-3')}>
             <Ornaments tone="border-rose-300/40" />
             <p className="relative z-10 text-sm font-extrabold text-white">
               Je Buddy is heel moe en rust uit. Vraag hulp aan mama of papa.
@@ -235,7 +240,7 @@ function BuddyRoomContent() {
         )}
 
         {!buddy.dead && buddy.needs.health <= 0 && (
-          <div className={cn(VITRINE, 'mt-2 border-teal-400/40 p-3 text-center')}>
+          <div className={cn(VITRINE, 'mt-2 border-teal-400/40 p-3 text-center md:mt-0 md:mb-3')}>
             <Ornaments tone="border-teal-300/40" />
             <p className="relative z-10 text-sm font-extrabold text-white">
               Je Buddy is ziek! Tik op 💊 Medicijn om je Buddy beter te maken.
@@ -243,9 +248,9 @@ function BuddyRoomContent() {
           </div>
         )}
 
-        <section className={cn(VITRINE, 'mt-4 border-violet-500/30 shadow-[0_8px_32px_rgba(167,139,250,0.12)]')} aria-labelledby="care-title">
+        <section className={cn(VITRINE, 'mt-3 p-4 border-violet-500/30 md:mt-0 shadow-[0_8px_32px_rgba(167,139,250,0.12)]')} aria-labelledby="care-title">
           <Ornaments tone="border-violet-400/40" />
-          <div className="relative z-10 mb-4 flex items-center gap-2.5">
+          <div className="relative z-10 mb-3 flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 shadow-[0_0_16px_rgba(167,139,250,0.4)]">
               <Heart className="h-5 w-5 fill-[#1a103c] text-[#1a103c]" strokeWidth={2.5} aria-hidden />
             </div>
@@ -263,7 +268,9 @@ function BuddyRoomContent() {
           />
           </div>
         </section>
-
+        </div>
+        </div>
+        </div>
       </div>
 
       {growthMoment.grew && (
