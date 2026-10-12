@@ -3,14 +3,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
 
 // ExerciseWriteLetter is ExerciseWriteDigit's sibling screen: same canvas
-// engine, same lack of a Supabase edge function. Recognition is entirely
-// client-side (rasterize the target letter's SVG path onto an offscreen
-// canvas, compare pixel overlap against the child's drawing in
-// checkDrawing()) — there is no network/edge-function failure path to test,
-// unlike ExerciseWriteNumber/ExerciseNumberLine. We force the correct/
-// incorrect branch deterministically by queuing the two getImageData() calls
-// checkDrawing makes (see queueRecognition below), sidestepping the need for
-// real canvas rasterization, which jsdom doesn't support anyway.
+// engine, same lack of a Supabase edge function. The child writes one letter
+// between three lines, five times, with less help each time. Recognition is
+// entirely client-side (rasterize the target letter's SVG path onto an
+// offscreen canvas, lined up with the drawing along the lines, and compare
+// pixel overlap against the child's drawing in checkDrawing()) — there is no
+// network/edge-function failure path to test, unlike ExerciseWriteNumber/
+// ExerciseNumberLine. We force the correct/incorrect branch deterministically
+// by queuing the two getImageData() calls checkDrawing makes (see
+// queueRecognition below), sidestepping the need for real canvas
+// rasterization, which jsdom doesn't support anyway.
 //
 // Drawing is wired through React's onPointerDown/onPointerMove/onPointerUp
 // props (like ExerciseNumberLine), not addEventListener, so this hits
@@ -78,6 +80,7 @@ interface FakeCtx {
   restore: () => void;
   translate: (x: number, y: number) => void;
   rotate: (angle: number) => void;
+  clip: (...args: unknown[]) => void;
   beginPath: () => void;
   closePath: () => void;
   moveTo: (x: number, y: number) => void;
@@ -104,7 +107,7 @@ interface FakeCtx {
 
 function createFakeCtx(): FakeCtx {
   return {
-    save: vi.fn(), restore: vi.fn(), translate: vi.fn(), rotate: vi.fn(),
+    save: vi.fn(), restore: vi.fn(), translate: vi.fn(), rotate: vi.fn(), clip: vi.fn(),
     beginPath: vi.fn(), closePath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
     arc: vi.fn(), fill: vi.fn(), stroke: vi.fn(), clearRect: vi.fn(),
     setTransform: vi.fn(), setLineDash: vi.fn(), fillText: vi.fn(),
@@ -130,20 +133,21 @@ function makeImageData(alpha: number) {
 }
 
 // checkDrawing() calls getImageData() exactly twice, in order: once for the
-// freshly-rasterized reference glyph, once for the child's drawn canvas.
+// child's drawn canvas (to find where along the lines it was written), once
+// for the freshly-rasterized reference glyph.
 // Queuing full-canvas alpha (or none) sidesteps needing real path
 // rasterization (unsupported in jsdom) while still deterministically forcing
 // the correct/incorrect branch.
 function queueRecognition(correct: boolean) {
   fakeCtx.getImageData
-    .mockReturnValueOnce(makeImageData(correct ? 200 : 0)) // reference pixels
-    .mockReturnValueOnce(makeImageData(200)); // drawn pixels (always "inked")
+    .mockReturnValueOnce(makeImageData(200)) // drawn pixels (always "inked")
+    .mockReturnValueOnce(makeImageData(correct ? 200 : 0)); // reference pixels
 }
 
 function getDrawCanvas() {
-  // Canvas render order in the JSX is guide, anim, draw — only the third one
+  // Canvas render order in the JSX is guide, draw — only the second one
   // (drawRef) has pointer handlers wired up.
-  return document.querySelectorAll('canvas')[2] as HTMLCanvasElement;
+  return document.querySelectorAll('canvas')[1] as HTMLCanvasElement;
 }
 
 function draw() {
@@ -177,17 +181,15 @@ describe('ExerciseWriteLetter', () => {
     expect(screen.getByText('Controleer').closest('button')).toBeEnabled();
   });
 
-  it('cancels the pending demo-animation frame on unmount', () => {
-    const cafSpy = vi.spyOn(window, 'cancelAnimationFrame');
+  it('cancels the pending next-step timer on unmount', () => {
+    const clearSpy = vi.spyOn(window, 'clearTimeout');
     const { unmount } = render(<ExerciseWriteLetter />);
-
-    fireEvent.click(screen.getByText('Bekijk hoe het moet'));
-    // The rAF id is assigned synchronously inside startDemo, before any frame
-    // has actually run (jsdom schedules rAF callbacks asynchronously), so
-    // unmounting immediately after the click still has a live ref to cancel.
+    queueRecognition(true);
+    draw();
+    fireEvent.click(screen.getByText('Controleer'));
     unmount();
 
-    expect(cafSpy).toHaveBeenCalled();
+    expect(clearSpy).toHaveBeenCalled();
   });
 
   it('on a correct recognition: celebrates, advances the iteration, and resets for the next round', async () => {
@@ -197,7 +199,7 @@ describe('ExerciseWriteLetter', () => {
     fireEvent.click(screen.getByText('Controleer'));
 
     await waitFor(() => expect(triggerConfettiMock).toHaveBeenCalled());
-    expect(screen.getByText('Super! Volgende letter!')).toBeInTheDocument();
+    expect(screen.getByText('Super! Nog een keer!')).toBeInTheDocument();
 
     // Correct branch schedules the next round after a 2000ms setTimeout.
     await new Promise((r) => setTimeout(r, 2150));
@@ -205,6 +207,23 @@ describe('ExerciseWriteLetter', () => {
     expect(navigateMock).not.toHaveBeenCalled();
     expect(screen.getByText('Controleer').closest('button')).toBeDisabled(); // hasDrawn reset
   }, 10000);
+
+  it('keeps the same letter for the whole round, with less help each step', async () => {
+    render(<ExerciseWriteLetter />);
+    expect(screen.getByText('Schrijf over de stippellijn.')).toBeInTheDocument();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5); // would be another letter if it were picked again
+
+    for (let i = 0; i < 4; i++) {
+      queueRecognition(true);
+      draw();
+      fireEvent.click(screen.getByText('Controleer'));
+      await waitFor(() => expect(triggerConfettiMock).toHaveBeenCalledTimes(i + 1));
+      await new Promise((r) => setTimeout(r, 2150));
+    }
+
+    expect(screen.getByText('a')).toBeInTheDocument();
+    expect(screen.getByText('Nu helemaal zelf!')).toBeInTheDocument();
+  }, 15000);
 
   it('persists the attempt and navigates once all 5 rounds are answered correctly', async () => {
     render(<ExerciseWriteLetter />);
