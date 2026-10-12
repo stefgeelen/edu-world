@@ -104,13 +104,17 @@ describe('Dashboard', () => {
     expect(navigateMock).toHaveBeenCalledWith('/app/exercises/dots/1');
   });
 
-  it('lists the Buddy’s wishes in the old quest style, starting one on tap', () => {
+  it('counts the Buddy’s wishes in the Snel starten header, without listing them twice', () => {
     renderDashboard();
-    const wishes = screen.getByRole('region', { name: /Wensen van Nootje/ });
-    expect(within(wishes).getByText('1 / 2 vervuld')).toBeInTheDocument();
-    fireEvent.click(within(wishes).getByRole('button', { name: /Klokkijken/ }));
-    expect(navigateMock).toHaveBeenCalledWith('/app/exercises/clock/1');
-    expect(within(wishes).getByRole('button', { name: /Geld rekenen/ })).toBeDisabled();
+    const quick = screen.getByRole('region', { name: 'Snel starten' });
+    expect(within(quick).getByRole('status', { name: 'Wensen van Nootje: 1 / 2 vervuld' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /Wensen/ })).not.toBeInTheDocument();
+  });
+
+  it('cheers when every wish is fulfilled', () => {
+    menuFixture = { ...menuFixture!, wishes: menuFixture!.wishes.map(w => ({ ...w, fulfilled: true })) };
+    renderDashboard();
+    expect(screen.getByRole('status', { name: 'Alle wensen vervuld!' })).toBeInTheDocument();
   });
 
   it('shows the trophy room and opens the Prijzenkast', () => {
@@ -132,7 +136,7 @@ describe('Dashboard', () => {
     menuFixture = undefined;
     renderDashboard();
     expect(screen.queryByRole('region', { name: 'Snel starten' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: /Wensen/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('status', { name: /Wensen/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Mijn beloningen' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Alle oefeningen/ })).toBeInTheDocument();
   });

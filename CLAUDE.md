@@ -36,7 +36,7 @@ src/
 ## Child App Model (since Oct 2026)
 Caring for the Buddy is the game; exercises are how you care for it. **Two tabs** (`TabBar`), hidden during onboarding and exercises; **no map**.
 - Tab 1 `/app/home` (`BuddyRoom`, where the app opens) — the Buddy, Care Actions, Munten, Shop, growth countdown. Same dark night-sky look as tab 2 (forest fades into it); the Shop too.
-- Tab 2 `/app/dashboard` (`Dashboard`, old dark starry "vitrine" style) — header with parent portal/logout, "Alle oefeningen" hero, **Snel starten** (open wishes first, then fresh types: `quickStarts`), the Buddy's **Wishes**, the trophy room (opens `/app/badges`), parent rewards.
+- Tab 2 `/app/dashboard` (`Dashboard`, old dark starry "vitrine" style) — header with parent portal/logout, "Alle oefeningen" hero, **Snel starten** (open wishes first, then fresh types: `quickStarts`; a wish tile carries a "Wens" label and the header counts the Buddy's **Wishes**, no separate wish list), then the trophy room (one compact strip, opens `/app/badges`) and parent rewards, side by side with Snel starten on desktop.
 - `/app/oefenen` (`Practice`, same dark style) — one tile per *type* of exercise (route family, e.g. `/exercises/clock`), grouped by subject. The child always picks. Shared dark pieces: `src/components/dashboard/Vitrine.tsx`.
 - Exercises return to the dashboard when finished or closed.
 - **Munten** are the only currency. Repeating a type on the same day pays less: 8, 8, 4, 2, 1, 1… (resets daily). **Wishes**: up to 3 types per day, +5 the first time today.

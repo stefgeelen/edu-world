@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeftRight, Award, BookOpen, Check, ChevronRight, Crown, Flame, Gift, Heart, LayoutGrid, Lock, LogOut, Shield,
+  ArrowLeftRight, Award, BookOpen, ChevronRight, Crown, Flame, Gift, Heart, LayoutGrid, Lock, LogOut, Shield,
   Sparkles, Star, Target, Trophy, Users, Zap, type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,7 +83,7 @@ export function Dashboard() {
       ))}
 
       {/* ── Header Vitrine ──────────────────────────── */}
-      <div className="relative z-10 px-4 sm:px-5 pt-4 sm:pt-6 pb-4 max-w-2xl lg:max-w-5xl mx-auto w-full">
+      <div className="relative z-10 px-4 sm:px-5 pt-4 sm:pt-6 pb-3 sm:pb-4 max-w-2xl lg:max-w-5xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -104,10 +104,10 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="text-left min-w-0 flex-1">
-                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">
+                <p className="text-[10px] font-bold text-amber-300/70 uppercase tracking-widest leading-none mb-0.5 sm:mb-1 truncate">
                   {`Met ${buddy.name}`}
                 </p>
-                <h2 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight truncate">
+                <h2 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-tight line-clamp-2">
                   {greeting}
                 </h2>
               </div>
@@ -116,9 +116,9 @@ export function Dashboard() {
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Only with brothers or sisters: back to "Wie speelt er?". */}
               {players.length > 1 && (
-                <button onClick={() => navigate(APP_PATHS.whoIsPlaying)} className="h-9 sm:h-10 px-3 bg-[#0f0828]/80 rounded-full flex items-center gap-1.5 border-2 border-amber-400/40 active:scale-95 transition-all" title="Wie speelt er?" aria-label="Wissel van speler">
+                <button onClick={() => navigate(APP_PATHS.whoIsPlaying)} className="w-9 h-9 sm:w-auto sm:h-10 sm:px-3 bg-[#0f0828]/80 rounded-full flex items-center justify-center gap-1.5 border-2 border-amber-400/40 active:scale-95 transition-all" title="Wie speelt er?" aria-label="Wissel van speler">
                   <ArrowLeftRight className="w-4 h-4 text-amber-300" />
-                  <span className="text-xs font-black text-amber-200">Wissel</span>
+                  <span className="hidden sm:inline text-xs font-black text-amber-200">Wissel</span>
                 </button>
               )}
               {isAdmin && (
@@ -138,7 +138,7 @@ export function Dashboard() {
       </div>
 
       {/* ── Content ─────────────────────────────────── */}
-      <div className="relative z-10 px-4 sm:px-5 max-w-2xl lg:max-w-5xl mx-auto w-full flex-1 grid gap-4 sm:gap-5 lg:grid-cols-2">
+      <div className="relative z-10 px-4 sm:px-5 max-w-2xl lg:max-w-5xl mx-auto w-full grid gap-3 sm:gap-4 lg:grid-cols-[3fr_2fr] lg:items-start">
 
         {/* ── Hero: alle oefeningen ────────────────── */}
         <motion.button
@@ -146,13 +146,13 @@ export function Dashboard() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
           onClick={() => navigate(APP_PATHS.practice)}
-          className="lg:col-span-2 relative overflow-hidden w-full p-5 rounded-3xl flex items-center justify-between bg-gradient-to-br from-emerald-500/95 via-teal-500/90 to-cyan-500/95 border-[3px] border-emerald-300/40 shadow-[0_8px_32px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.4)] transition-all group outline-none active:scale-[0.98]"
+          className="lg:col-span-2 relative overflow-hidden w-full px-4 py-3.5 sm:px-5 sm:py-4 rounded-3xl flex items-center justify-between bg-gradient-to-br from-emerald-500/95 via-teal-500/90 to-cyan-500/95 border-[3px] border-emerald-300/40 shadow-[0_8px_32px_rgba(16,185,129,0.25)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.4)] transition-all group outline-none active:scale-[0.98]"
         >
           <Ornaments tone="border-white/60" />
           <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
 
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-white/25 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.3)]">
+            <div className="w-11 h-11 rounded-2xl bg-white/25 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.3)]">
               <LayoutGrid className="w-6 h-6 text-white drop-shadow" strokeWidth={2.5} />
             </div>
             <div className="text-left">
@@ -166,29 +166,33 @@ export function Dashboard() {
           </div>
         </motion.button>
 
-        {/* ── Snel starten ─────────────────────────── */}
+        {/* ── Snel starten, met de wensen van de Buddy ── */}
         {starts.length > 0 && menu && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className={cn(VITRINE, 'border-violet-500/30 shadow-[0_8px_32px_rgba(167,139,250,0.12)]')}
+            className={cn(VITRINE, 'p-4 border-violet-500/30 shadow-[0_8px_32px_rgba(167,139,250,0.12)]')}
             aria-labelledby="quick-title"
           >
             <Ornaments tone="border-violet-400/40" />
-            <div className="flex items-center gap-2.5 mb-4 relative z-10">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-[0_0_16px_rgba(167,139,250,0.4)]">
-                <Zap className="w-5 h-5 text-[#1a103c] fill-[#1a103c]" strokeWidth={2.5} />
+            <div className="flex items-center justify-between gap-2 mb-3 relative z-10">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-[0_0_16px_rgba(167,139,250,0.4)]">
+                  <Zap className="w-5 h-5 text-[#1a103c] fill-[#1a103c]" strokeWidth={2.5} />
+                </div>
+                <div className="min-w-0">
+                  <h3 id="quick-title" className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-200 via-purple-200 to-violet-200 leading-none">
+                    Snel starten
+                  </h3>
+                  {/* On a phone the wish meter needs the room. */}
+                  <p className={cn('text-[10px] font-bold text-violet-300/60 uppercase tracking-widest mt-0.5 truncate', wishes.length > 0 && 'hidden sm:block')}>Eén tik en je bent weg</p>
+                </div>
               </div>
-              <div>
-                <h3 id="quick-title" className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-200 via-purple-200 to-violet-200 leading-none">
-                  Snel starten
-                </h3>
-                <p className="text-[10px] font-bold text-violet-300/60 uppercase tracking-widest mt-0.5">Eén tik en je bent weg</p>
-              </div>
+              {wishes.length > 0 && <WishMeter buddyName={buddy.name} done={wishesDone} total={wishes.length} />}
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 relative z-10">
+            <div className="grid grid-cols-2 gap-2 relative z-10">
               {starts.map(option => (
                 <QuickStart key={option.type_key} option={option} repeated={isRepeated(option, menu)} wishBonus={menu.wish_bonus} onStart={() => start(option.route)} />
               ))}
@@ -196,209 +200,154 @@ export function Dashboard() {
           </motion.section>
         )}
 
-        {/* ── Wensen van de Buddy ─────────────────── */}
-        {wishes.length > 0 && menu && (
-          <motion.section
+        {/* ── Rechterkolom op desktop ─────────────── */}
+        <div className="grid gap-3 sm:gap-4 content-start">
+          {/* ── Trofeeënkamer ──────────────────────── */}
+          <motion.button
+            type="button"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className={cn(VITRINE, 'border-cyan-500/30 shadow-[0_8px_32px_rgba(34,211,238,0.12)]')}
-            aria-labelledby="wishes-title"
+            onClick={() => navigate(APP_PATHS.badges)}
+            aria-label="Trofeeënkamer"
+            className={cn(VITRINE, 'p-4 w-full text-left border-amber-500/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)] cursor-pointer hover:border-amber-400/60 hover:shadow-[0_8px_40px_rgba(251,191,36,0.25)] transition-all active:scale-[0.99] group')}
           >
-            <Ornaments tone="border-cyan-400/40" />
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.4)]">
-                  <Sparkles className="w-5 h-5 text-[#1a103c]" strokeWidth={2.5} />
+            <Ornaments tone="border-amber-400/40" />
+
+            <div className="flex items-center justify-between gap-2 relative z-10">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_16px_rgba(251,191,36,0.4)]">
+                  <Trophy className="w-5 h-5 text-[#1a103c]" strokeWidth={2.5} />
                 </div>
-                <div>
-                  <h3 id="wishes-title" className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-sky-300 to-cyan-200 leading-none">
-                    {wishesDone === wishes.length ? 'Alle wensen vervuld!' : `Wensen van ${buddy.name}`}
+                <div className="min-w-0">
+                  <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-none">
+                    Trofeeënkamer
                   </h3>
-                  <p className="text-[10px] font-bold text-cyan-300/60 uppercase tracking-widest mt-0.5">
-                    {wishesDone} / {wishes.length} vervuld
+                  <p className="text-[10px] font-bold text-amber-300/60 uppercase tracking-widest mt-0.5">
+                    {unlockedBadges.length} / {badges.length} verdiend
                   </p>
                 </div>
               </div>
-              <div className="relative w-10 h-10 shrink-0" aria-hidden>
-                <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="rgb(59,45,113)" strokeWidth="3" />
-                  <circle
-                    cx="18" cy="18" r="15" fill="none"
-                    stroke="url(#wishGrad)" strokeWidth="3" strokeLinecap="round"
-                    strokeDasharray={`${(wishesDone / wishes.length) * 94.25} 94.25`}
-                  />
-                  <defs>
-                    <linearGradient id="wishGrad" x1="0" x2="1" y1="0" y2="1">
-                      <stop offset="0%" stopColor="#22d3ee" />
-                      <stop offset="100%" stopColor="#0ea5e9" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-cyan-200">
-                  {Math.round((wishesDone / wishes.length) * 100)}%
-                </span>
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                {[0, 1, 2].map(i => {
+                  const badge = showcaseBadges[i];
+                  if (!badge) {
+                    return (
+                      <div key={i} className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-[#0f0828]/60 border-2 border-dashed border-[#3b2d71] flex items-center justify-center">
+                        <Lock className="w-3.5 h-3.5 text-[#5b4d8a]" />
+                      </div>
+                    );
+                  }
+                  const Icon = BADGE_ICONS[badge.icon] ?? Trophy;
+                  return (
+                    <div
+                      key={badge.id}
+                      className="relative w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center border border-white/15 overflow-hidden"
+                      style={{ background: `linear-gradient(135deg, ${badge.gradientFrom}, ${badge.gradientTo})`, boxShadow: `0 2px 10px ${badge.gradientFrom}55` }}
+                      title={badge.name}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+                      <Icon className="w-4 h-4 text-white drop-shadow relative z-10" strokeWidth={2.4} />
+                    </div>
+                  );
+                })}
+                <ChevronRight className="w-5 h-5 text-amber-400/60 group-hover:translate-x-0.5 group-hover:text-amber-300 transition-all" strokeWidth={3} />
               </div>
             </div>
 
-            <div className="space-y-2.5 relative z-10">
-              {wishes.map((wish, i) => (
-                <button
-                  key={wish.type_key}
-                  type="button"
-                  disabled={wish.fulfilled}
-                  onClick={() => start(wish.route)}
-                  className={cn(
-                    "w-full flex items-center justify-between p-3 rounded-2xl border-2 transition-all text-left",
-                    wish.fulfilled
-                      ? "bg-emerald-500/10 border-emerald-500/30"
-                      : "bg-[#0f0828]/60 border-[#3b2d71] hover:border-cyan-500/40 active:scale-[0.99]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border-2",
-                      wish.fulfilled
-                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-300/50 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                        : "bg-[#1a103c] border-[#5b4d8a]"
-                    )}>
-                      {wish.fulfilled
-                        ? <Check className="w-4 h-4 text-white" strokeWidth={3} aria-label="Vervuld" />
-                        : <span className="text-[11px] font-black text-cyan-300/70">{i + 1}</span>}
+            {nextBadge && (() => {
+              const Icon = BADGE_ICONS[nextBadge.icon] ?? Trophy;
+              const pct = Math.min((nextBadge.progress / nextBadge.maxProgress) * 100, 100);
+              return (
+                <div className="relative z-10 mt-3 bg-[#0f0828]/60 rounded-2xl px-3 py-2.5 border border-[#3b2d71]">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 opacity-60" style={{ background: `linear-gradient(135deg, ${nextBadge.gradientFrom}, ${nextBadge.gradientTo})` }}>
+                      <Icon className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
                     </div>
-                    <span className={cn(
-                      "font-bold text-sm",
-                      wish.fulfilled ? "text-emerald-300/70 line-through decoration-emerald-500/30" : "text-white/90"
-                    )}>
-                      {wish.title}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-black text-amber-300/70 uppercase tracking-wider leading-none">Volgende trofee</p>
+                      <p className="text-xs font-bold text-white/90 truncate mt-0.5">{nextBadge.name}</p>
+                    </div>
+                    <span className="text-[11px] font-black text-amber-200 whitespace-nowrap">
+                      {nextBadge.progress}/{nextBadge.maxProgress}
                     </span>
                   </div>
-                  <Payout amount={menu.wish_bonus} muted={wish.fulfilled} />
-                </button>
-              ))}
-            </div>
-          </motion.section>
-        )}
-
-        {/* ── Trofeeënkamer ────────────────────────── */}
-        <motion.button
-          type="button"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          onClick={() => navigate(APP_PATHS.badges)}
-          aria-label="Trofeeënkamer"
-          className={cn(VITRINE, 'w-full text-left lg:col-span-2 border-amber-500/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)] cursor-pointer hover:border-amber-400/60 hover:shadow-[0_8px_40px_rgba(251,191,36,0.25)] transition-all active:scale-[0.99] group')}
-        >
-          <Ornaments tone="border-amber-400/40" />
-
-          <div className="flex items-center justify-between mb-4 relative z-10">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_16px_rgba(251,191,36,0.4)]">
-                <Trophy className="w-5 h-5 text-[#1a103c]" strokeWidth={2.5} />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 leading-none">
-                  Trofeeënkamer
-                </h3>
-                <p className="text-[10px] font-bold text-amber-300/60 uppercase tracking-widest mt-0.5">
-                  {unlockedBadges.length} / {badges.length} verdiend
-                </p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-amber-400/60 group-hover:translate-x-0.5 group-hover:text-amber-300 transition-all" strokeWidth={3} />
-          </div>
-
-          <div className="grid grid-cols-3 gap-2.5 mb-4 relative z-10 max-w-md mx-auto">
-            {[0, 1, 2].map(i => {
-              const badge = showcaseBadges[i];
-              if (!badge) {
-                return (
-                  <div key={i} className="aspect-square max-h-32 rounded-2xl bg-[#0f0828]/60 border-2 border-dashed border-[#3b2d71] flex items-center justify-center">
-                    <Lock className="w-4 h-4 text-[#5b4d8a]" />
+                  <div className="h-1.5 w-full bg-[#2d1b54] rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.8, delay: 0.6 }}
+                      className="h-full rounded-full"
+                      style={{ background: `linear-gradient(90deg, ${nextBadge.gradientFrom}, ${nextBadge.gradientTo})` }}
+                    />
                   </div>
-                );
-              }
-              const Icon = BADGE_ICONS[badge.icon] ?? Trophy;
-              return (
-                <div
-                  key={badge.id}
-                  className="relative aspect-square max-h-32 rounded-2xl flex items-center justify-center border-2 border-white/10 shadow-lg overflow-hidden"
-                  style={{ background: `linear-gradient(135deg, ${badge.gradientFrom}, ${badge.gradientTo})`, boxShadow: `0 4px 20px ${badge.gradientFrom}55` }}
-                  title={badge.name}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
-                  <Icon className="w-7 h-7 text-white drop-shadow-md relative z-10" strokeWidth={2.2} />
                 </div>
               );
-            })}
-          </div>
+            })()}
+          </motion.button>
 
-          {nextBadge && (() => {
-            const Icon = BADGE_ICONS[nextBadge.icon] ?? Trophy;
-            const pct = Math.min((nextBadge.progress / nextBadge.maxProgress) * 100, 100);
-            return (
-              <div className="relative z-10 bg-[#0f0828]/60 rounded-2xl p-3 border border-[#3b2d71]">
-                <div className="flex items-center gap-2.5 mb-2">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 opacity-60" style={{ background: `linear-gradient(135deg, ${nextBadge.gradientFrom}, ${nextBadge.gradientTo})` }}>
-                    <Icon className="w-4 h-4 text-white" strokeWidth={2.5} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-black text-amber-300/70 uppercase tracking-wider">Volgende trofee</p>
-                    <p className="text-xs font-bold text-white/90 truncate">{nextBadge.name}</p>
-                  </div>
-                  <span className="text-[11px] font-black text-amber-200 whitespace-nowrap">
-                    {nextBadge.progress}/{nextBadge.maxProgress}
-                  </span>
+          {/* ── Beloningen ─────────────────────────── */}
+          {rewards.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className={cn(VITRINE, 'p-4 border-pink-500/30 shadow-[0_8px_32px_rgba(236,72,153,0.12)]')}
+              aria-labelledby="rewards-title"
+            >
+              <Ornaments tone="border-pink-400/40" />
+              <div className="flex items-center gap-2.5 mb-3 relative z-10">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-[0_0_16px_rgba(236,72,153,0.4)]">
+                  <Gift className="w-5 h-5 text-[#1a103c]" strokeWidth={2.5} />
                 </div>
-                <div className="h-1.5 w-full bg-[#2d1b54] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                    className="h-full rounded-full"
-                    style={{ background: `linear-gradient(90deg, ${nextBadge.gradientFrom}, ${nextBadge.gradientTo})` }}
-                  />
-                </div>
+                <h3 id="rewards-title" className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-rose-200 to-pink-200 leading-none">
+                  Mijn beloningen
+                </h3>
               </div>
-            );
-          })()}
-        </motion.button>
-
-        {/* ── Beloningen ───────────────────────────── */}
-        {rewards.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className={cn(VITRINE, 'lg:col-span-2 border-pink-500/30 shadow-[0_8px_32px_rgba(236,72,153,0.12)]')}
-            aria-labelledby="rewards-title"
-          >
-            <Ornaments tone="border-pink-400/40" />
-            <div className="flex items-center gap-2.5 mb-4 relative z-10">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center shadow-[0_0_16px_rgba(236,72,153,0.4)]">
-                <Gift className="w-5 h-5 text-[#1a103c]" strokeWidth={2.5} />
-              </div>
-              <h3 id="rewards-title" className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-rose-200 to-pink-200 leading-none">
-                Mijn beloningen
-              </h3>
-            </div>
-            <ul className="space-y-3 relative z-10">
-              {rewards.map(reward => {
-                const pct = Math.min(100, Math.round((reward.current_progress / Math.max(1, reward.required_exercises)) * 100));
-                return (
-                  <li key={reward.id} className="bg-[#0f0828]/60 rounded-2xl p-3 border border-[#3b2d71]">
-                    <p className="text-sm font-bold text-white/90">{rewardCountdown(reward)}</p>
-                    <div className="mt-2 h-2 w-full bg-[#2d1b54] rounded-full overflow-hidden" role="progressbar" aria-label={reward.title} aria-valuemin={0} aria-valuemax={reward.required_exercises} aria-valuenow={reward.current_progress}>
-                      <div className="h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-500" style={{ width: `${pct}%` }} />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </motion.section>
-        )}
+              <ul className="space-y-2 relative z-10">
+                {rewards.map(reward => {
+                  const pct = Math.min(100, Math.round((reward.current_progress / Math.max(1, reward.required_exercises)) * 100));
+                  return (
+                    <li key={reward.id} className="bg-[#0f0828]/60 rounded-2xl px-3 py-2.5 border border-[#3b2d71]">
+                      <p className="text-sm font-bold text-white/90">{rewardCountdown(reward)}</p>
+                      <div className="mt-2 h-2 w-full bg-[#2d1b54] rounded-full overflow-hidden" role="progressbar" aria-label={reward.title} aria-valuemin={0} aria-valuemax={reward.required_exercises} aria-valuenow={reward.current_progress}>
+                        <div className="h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-500" style={{ width: `${pct}%` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.section>
+          )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+/** How many of today's wishes are done: one dot per wish, in the header of Snel starten. */
+function WishMeter({ buddyName, done, total }: { buddyName: string; done: number; total: number }) {
+  const allDone = done === total;
+  return (
+    <div
+      role="status"
+      aria-label={allDone ? 'Alle wensen vervuld!' : `Wensen van ${buddyName}: ${done} / ${total} vervuld`}
+      className={cn(
+        'shrink-0 flex flex-col items-end gap-1 rounded-2xl border px-2.5 py-1.5',
+        allDone ? 'border-emerald-400/40 bg-emerald-500/10' : 'border-amber-400/30 bg-amber-500/10'
+      )}
+    >
+      <span className={cn('text-[10px] font-black uppercase tracking-wider leading-none whitespace-nowrap', allDone ? 'text-emerald-300' : 'text-amber-300/80')}>
+        {allDone ? 'Alle wensen vervuld! ⭐' : `Wensen van ${buddyName}`}
+      </span>
+      {!allDone && (
+        <span className="flex items-center gap-1" aria-hidden>
+          {Array.from({ length: total }, (_, i) => (
+            <span key={i} className={cn('w-2.5 h-2.5 rounded-full', i < done ? 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.7)]' : 'bg-[#3b2d71]')} />
+          ))}
+          <span className="ml-0.5 text-[10px] font-black text-amber-200">{done}/{total}</span>
+        </span>
+      )}
     </div>
   );
 }
@@ -412,7 +361,7 @@ function QuickStart({ option, repeated, wishBonus, onStart }: { option: Practice
       onClick={onStart}
       aria-label={`Start ${option.title}, ${payout} Munten${wish ? ', een wens van je Buddy' : ''}`}
       className={cn(
-        'relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3 text-center transition-all active:scale-[0.97]',
+        'relative flex items-center gap-2.5 rounded-2xl border-2 p-2.5 text-left transition-all active:scale-[0.97] min-h-[68px]',
         wish ? 'border-amber-400/50 bg-amber-500/10' : 'border-[#3b2d71] bg-[#0f0828]/60 hover:border-violet-400/50'
       )}
     >
@@ -420,8 +369,10 @@ function QuickStart({ option, repeated, wishBonus, onStart }: { option: Practice
         <span className="absolute -top-2 right-2 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-black uppercase text-[#1a103c] shadow">Wens</span>
       )}
       <ExerciseTypeIcon typeKey={option.type_key} subject={option.subject} size="sm" muted={repeated} />
-      <span className="text-xs font-bold leading-tight text-white/90">{option.title}</span>
-      <Payout amount={payout} muted={repeated} />
+      <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
+        <span className="text-xs font-bold leading-tight text-white/90">{option.title}</span>
+        <Payout amount={payout} muted={repeated} />
+      </span>
     </button>
   );
 }
