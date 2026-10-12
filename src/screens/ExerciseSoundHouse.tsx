@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -145,28 +145,7 @@ export function ExerciseSoundHouse() {
       <div className="flex-1 flex flex-col items-center z-10 relative px-6 mt-6 md:mt-10 w-full max-w-md mx-auto">
         {/* Speaker + sound bubble */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="relative">
-            <AnimatePresence>
-              {isPlaying && (
-                <motion.div
-                  initial={{ scale: 1, opacity: 0.7 }}
-                  animate={{ scale: 1.6, opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                  className="absolute inset-0 bg-orange-400 rounded-full pointer-events-none"
-                />
-              )}
-            </AnimatePresence>
-            <motion.button
-              onClick={playWord}
-              animate={{ scale: isPlaying ? 0.95 : 1 }}
-              className="relative w-24 h-24 md:w-28 md:h-28 bg-orange-500 rounded-full flex items-center justify-center border-b-[8px] border-orange-700 shadow-[0_12px_30px_rgba(249,115,22,0.45)] active:border-b-0 active:translate-y-[8px] transition-all"
-              aria-label="Speel het woord"
-            >
-              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 to-transparent h-1/2 pointer-events-none" />
-              <Volume2 className={cn('w-12 h-12 md:w-14 md:h-14 text-white drop-shadow-md', isPlaying && 'animate-pulse')} strokeWidth={2.5} />
-            </motion.button>
-          </div>
+          <SpeakerButton onPlay={playWord} playing={isPlaying} label="Speel het woord" />
 
           {/* Doelklank-bubbel */}
           <button

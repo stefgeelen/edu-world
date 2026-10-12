@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Volume2, Check, X as XIcon, Stethoscope } from 'lucide-react';
+import { Check, X as XIcon, Stethoscope } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -142,7 +143,7 @@ export function ExerciseSentenceDoctor() {
     const text = question.mode === 'build'
       ? orderedItems.map(i => i.word).join(' ')
       : fixedSentence.join(' ');
-    speak(text);
+    return speak(text);
   };
 
   const handleCheckBuild = () => {
@@ -182,15 +183,7 @@ export function ExerciseSentenceDoctor() {
             : 'Tik op het foute woord en kies het juiste.'}
         </p>
 
-        {/* Speaker */}
-        <motion.button
-          onPointerDown={handleSpeaker}
-          whileTap={{ scale: 0.9 }}
-          className="relative mb-8 w-16 h-16 sm:w-20 sm:h-20 bg-teal-500 rounded-full flex items-center justify-center border-b-[6px] border-teal-700 shadow-[0_10px_25px_rgba(20,184,166,0.35)] active:border-b-0 active:translate-y-[6px] transition-all"
-        >
-          <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/25 to-transparent h-1/2 pointer-events-none" />
-          <Volume2 className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-md" strokeWidth={2.5} />
-        </motion.button>
+        <SpeakerButton onPlay={handleSpeaker} label="Luister naar de zin" className="mb-8" />
 
         {/* BUILD MODE */}
         {isBuild && (

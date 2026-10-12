@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 // addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
 import { exerciseExitPath } from '@/routes/paths';
@@ -170,44 +171,7 @@ export function ExerciseLanguage() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col items-center z-10 relative px-6 mt-8 md:mt-12 w-full max-w-md mx-auto">
         
-        {/* Speaker Button */}
-        <div className="relative mb-12">
-          <AnimatePresence>
-            {isPlaying && (
-              <>
-                <motion.div 
-                  initial={{ scale: 1, opacity: 0.8 }}
-                  animate={{ scale: 1.8, opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8 }}
-                  className="absolute inset-0 bg-orange-400 rounded-full pointer-events-none"
-                />
-                <motion.div 
-                  initial={{ scale: 1, opacity: 0.6 }}
-                  animate={{ scale: 1.5, opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  className="absolute inset-0 bg-amber-400 rounded-full pointer-events-none"
-                />
-              </>
-            )}
-          </AnimatePresence>
-
-          <motion.button
-            onClick={playAudio}
-            animate={{ scale: isPlaying ? 0.95 : 1 }}
-            className="relative w-32 h-32 md:w-40 md:h-40 bg-orange-500 rounded-full flex items-center justify-center border-b-[10px] border-orange-700 shadow-[0_15px_35px_rgba(249,115,22,0.4)] active:border-b-0 active:translate-y-[10px] transition-all group z-10"
-          >
-            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 to-transparent h-1/2 pointer-events-none" />
-            <Volume2 
-              className={cn(
-                "w-16 h-16 md:w-20 md:h-20 text-white drop-shadow-md transition-transform",
-                isPlaying ? "animate-pulse" : "group-hover:scale-110"
-              )} 
-              strokeWidth={2.5} 
-            />
-          </motion.button>
-        </div>
+        <SpeakerButton onPlay={playAudio} playing={isPlaying} label="Luister naar het woord" className="mb-10" />
 
         {/* Word Cards List */}
         <div className="w-full flex flex-col gap-4">

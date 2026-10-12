@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -68,7 +68,7 @@ export function ExercisePictureWord() {
 
   const handlePlayAudio = () => {
     if (!question) return;
-    speak(question.correct.word);
+    return speak(question.correct.word);
   };
 
   const handlePointerDown = (e: React.PointerEvent, item: PictureItem) => {
@@ -200,14 +200,8 @@ export function ExercisePictureWord() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        {/* Speaker prompt */}
-        <button
-          onClick={handlePlayAudio}
-          className="mb-4 flex items-center gap-2 px-4 py-2 bg-[#2d1b54] text-white/90 rounded-full border-b-[4px] border-[#1c1134] active:border-b-0 active:translate-y-1 transition-all text-sm font-bold shadow-lg"
-        >
-          <Volume2 className="w-5 h-5 text-amber-300" />
-          Sleep het juiste woord!
-        </button>
+        <SpeakerButton onPlay={handlePlayAudio} label="Luister naar het woord" className="mb-3" />
+        <p className="mb-4 text-sm font-bold text-white/90">Sleep het juiste woord!</p>
 
         {/* Drop zone (picture) */}
         <motion.div
