@@ -18,6 +18,7 @@ import { useGrowthMoment } from '@/hooks/useGrowthMoment';
 import { daysUntilNextGrowth, growthForm } from '@/lib/buddy/growth';
 import { buddySpecies } from '@/lib/buddy/species';
 import { APP_PATHS } from '@/routes/paths';
+import { firstTimeSpoken } from '@/lib/spokenOnce';
 import forestScene from '@/assets/forest-scene.jpg';
 
 /** Welke Care Action de Buddy nu vraagt — die knop wiebelt als hint voor het kind. */
@@ -81,14 +82,17 @@ function BuddyRoomContent() {
   // Veel kinderen van 5-7 lezen nog niet: de Buddy zegt zijn tekstballon ook hardop.
   const { speak } = useSpeech();
 
-  // Eén keer bij binnenkomen, zodra de echte toestand geladen is.
+  // Eén keer bij binnenkomen, zodra de echte toestand geladen is. En per sessie
+  // maar één keer dezelfde zin: terug uit een oefening naar een Buddy die nog
+  // hetzelfde zegt, blijft stil. Heeft de Buddy iets anders nodig, dan wordt de
+  // nieuwe zin wel voorgelezen; de tekstballon aantikken leest altijd opnieuw.
   const greeted = useRef(false);
   useEffect(() => {
-    if (!loaded || greeted.current) return;
+    if (!loaded || !child || greeted.current) return;
     greeted.current = true;
     // Tijdens de rondleiding spreekt de stap zelf (effect hieronder).
-    if (!tourStep) speak(message);
-  }, [loaded, message, speak, tourStep]);
+    if (!tourStep && firstTimeSpoken(`buddy-room.${child.id}`, message)) speak(message);
+  }, [loaded, child, message, speak, tourStep]);
 
   // Elke stap van de rondleiding wordt één keer voorgelezen.
   useEffect(() => {

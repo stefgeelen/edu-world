@@ -24,7 +24,11 @@ vi.mock('@/hooks/useBuddy', () => ({ useBuddy: () => ({ buddy: { name: 'Nootje',
 const speak = vi.fn();
 vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
 
+let childFixture = { id: 'child-1' };
+vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: childFixture }) }));
+
 import { Practice } from '@/screens/Practice';
+import { resetSpoken } from '@/lib/spokenOnce';
 
 const option = (o: Partial<PracticeOption> & Pick<PracticeOption, 'type_key' | 'title' | 'subject'>): PracticeOption => ({
   exercise_id: `${o.type_key}-id`,
@@ -61,6 +65,8 @@ const renderPractice = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetSpoken();
+  childFixture = { id: 'child-1' };
   menuState = { data: makeMenu(), isLoading: false, isError: false };
 });
 
@@ -114,6 +120,36 @@ describe('Practice', () => {
     );
     expect(speak).toHaveBeenCalledTimes(1);
     expect(speak).toHaveBeenCalledWith('Mijn wens: Klok lezen! Maar kies gerust wat jij wil.');
+  });
+
+  it('stays quiet when coming back to the same greeting in this session', () => {
+    renderPractice().unmount();
+    renderPractice();
+    expect(speak).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads a new greeting, even after the old one was read', () => {
+    renderPractice().unmount();
+    menuState.data = makeMenu({
+      wishes: [{ type_key: '/exercises/clock', title: 'Klok lezen', subject: 'math', route: '/exercises/clock/2', fulfilled: true }],
+    });
+    renderPractice();
+    expect(speak).toHaveBeenLastCalledWith('Al mijn wensen zijn vervuld! Wat doen we nu?');
+    expect(speak).toHaveBeenCalledTimes(2);
+  });
+
+  it('reads the greeting again for a brother or sister on the same tablet', () => {
+    renderPractice().unmount();
+    childFixture = { id: 'child-2' };
+    renderPractice();
+    expect(speak).toHaveBeenCalledTimes(2);
+  });
+
+  it('always reads the greeting from the speaker button', () => {
+    renderPractice().unmount();
+    renderPractice();
+    fireEvent.click(screen.getByRole('button', { name: /^Lees voor/ }));
+    expect(speak).toHaveBeenCalledTimes(2);
   });
 
   it('says so when there are no exercises yet for this grade', () => {

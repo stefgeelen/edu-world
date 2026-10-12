@@ -37,6 +37,7 @@ vi.mock('@/lib/confetti', () => ({ triggerConfetti: vi.fn() }));
 const speak = vi.fn();
 vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
 
+import { resetSpoken } from '@/lib/spokenOnce';
 import { BuddyRoom } from '@/screens/BuddyRoom';
 
 function makeBuddy(overrides: Record<string, unknown> = {}) {
@@ -76,6 +77,7 @@ function memoryStorage() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetSpoken();
   vi.stubGlobal('localStorage', memoryStorage());
   buddyFixture = makeBuddy();
   careFxFixture = null;
@@ -147,6 +149,22 @@ describe('BuddyRoom', () => {
     );
     expect(speak).toHaveBeenCalledTimes(1);
     expect(speak).toHaveBeenCalledWith('Mijn buik knort... heb je iets te eten?');
+  });
+
+  it('stays quiet when coming back to a Buddy that still says the same thing', () => {
+    buddyFixture = makeBuddy({ needs: { hunger: 5, fun: 75, energy: 85, hygiene: 80, health: 100 } });
+    renderRoom().unmount();
+    renderRoom();
+    expect(speak).toHaveBeenCalledTimes(1);
+  });
+
+  it('speaks again on arrival when the Buddy has something new to say', () => {
+    buddyFixture = makeBuddy({ needs: { hunger: 5, fun: 75, energy: 85, hygiene: 80, health: 100 } });
+    renderRoom().unmount();
+    buddyFixture = makeBuddy();
+    renderRoom();
+    expect(speak).toHaveBeenCalledTimes(2);
+    expect(speak.mock.calls[1][0]).not.toBe('Mijn buik knort... heb je iets te eten?');
   });
 
   it('reads the bubble aloud again when the child taps it', () => {

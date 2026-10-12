@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Loader2, Volume2 } from 'lucide-react';
@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { APP_PATHS } from '@/routes/paths';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useBuddy } from '@/hooks/useBuddy';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { firstTimeSpoken } from '@/lib/spokenOnce';
 import { isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
 import { practiceGreeting } from '@/lib/buddy/messages';
 import { SUBJECTS } from '@/data/exerciseTypes';
@@ -23,13 +25,15 @@ export function Practice() {
   const { buddy } = useBuddy();
   const { speak } = useSpeech();
 
+  const { data: child } = useCurrentChild();
   const greeting = practiceGreeting(menu, buddy.name);
-  const greeted = useRef(false);
+  // Read aloud once per session: coming back from an exercise to the same
+  // sentence stays quiet; a new one ("Al mijn wensen zijn vervuld!") is read.
+  // The speaker button above the list always reads it again.
   useEffect(() => {
-    if (!menu || greeted.current) return;
-    greeted.current = true;
-    speak(greeting);
-  }, [menu, greeting, speak]);
+    if (!menu || !child) return;
+    if (firstTimeSpoken(`practice.${child.id}`, greeting)) speak(greeting);
+  }, [menu, child, greeting, speak]);
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-y-auto bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] pb-32" style={{ fontFamily: "'Nunito', sans-serif" }}>
