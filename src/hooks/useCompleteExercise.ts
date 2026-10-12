@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { usePlayingChildId } from '@/lib/playingChild';
 import { useQuery } from '@tanstack/react-query';
 import { useCelebration } from '@/context/CelebrationContext';
 import { buddyToast } from '@/components/feedback/BuddyToast';
@@ -14,23 +15,37 @@ export type CurrentChild = Pick<
 >;
 
 /**
- * Returns the current child for the logged-in parent.
+ * Returns the child playing on this device: the one picked on "Wie speelt
+ * er?", or, without a (still valid) pick, the oldest child that is not paused.
  * Reused across exercise hooks.
  *
- * Ordered by created_at so that a parent with several children always resolves
- * to the same one; without it "the" child was whichever row Postgres happened to
- * return first and could change between sessions.
+ * Ordered by created_at so that the fallback always resolves to the same
+ * child; without it "the" child was whichever row Postgres happened to return
+ * first and could change between sessions.
  */
 export function useCurrentChild() {
   const { user } = useAuth();
+  const playingChildId = usePlayingChildId(user?.id);
 
   return useQuery<CurrentChild | null>({
-    queryKey: ['my-child', user?.id],
+    queryKey: ['my-child', user?.id, playingChildId],
     queryFn: async () => {
+      if (playingChildId) {
+        const { data, error } = await supabase
+          .from('children')
+          .select('id, name, grade, max_unlocked_stage')
+          .eq('parent_id', user!.id)
+          .eq('id', playingChildId)
+          .eq('paused', false)
+          .maybeSingle();
+        if (error) throw error;
+        if (data) return data;
+      }
       const { data, error } = await supabase
         .from('children')
         .select('id, name, grade, max_unlocked_stage')
         .eq('parent_id', user!.id)
+        .eq('paused', false)
         .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();

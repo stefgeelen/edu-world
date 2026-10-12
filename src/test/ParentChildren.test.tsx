@@ -20,6 +20,7 @@ vi.mock('@/context/AuthContext', () => ({
 }));
 
 let childrenData: unknown[] = [];
+const rpcMock = vi.fn();
 let subscriptionData: { plan: string; max_children: number; status: string } | null = { plan: 'family', max_children: 3, status: 'active' };
 
 const fromMock = vi.fn((table: string) => {
@@ -33,7 +34,10 @@ const fromMock = vi.fn((table: string) => {
 });
 
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => fromMock(...(args as [string])) },
+  supabase: {
+    from: (...args: unknown[]) => fromMock(...(args as [string])),
+    rpc: (...args: unknown[]) => rpcMock(...args),
+  },
 }));
 
 import { ParentChildren } from '@/screens/parent/ParentChildren';
@@ -62,6 +66,7 @@ describe('ParentChildren', () => {
     vi.clearAllMocks();
     childrenData = [];
     subscriptionData = { plan: 'family', max_children: 3, status: 'active' };
+    rpcMock.mockResolvedValue({ data: null, error: null });
   });
 
   it('shows a loading indicator before the children query resolves', () => {
@@ -140,5 +145,47 @@ describe('ParentChildren', () => {
 
     fireEvent.click(screen.getByText('Upgrade je plan'));
     expect(navigateMock).toHaveBeenCalledWith('/app/parent/subscription');
+  });
+
+  describe('paused children', () => {
+    const PLAYING = { ...CHILD_A, paused: false };
+    const PAUSED_1 = { ...CHILD_B, paused: true };
+    const PAUSED_2 = { ...CHILD_B, id: 'child-3', name: 'Test Child C', paused: true };
+
+    it('marks paused children and says how many may play', async () => {
+      childrenData = [PLAYING, PAUSED_1, PAUSED_2];
+      subscriptionData = { plan: 'free', max_children: 1, status: 'active' };
+      renderScreen();
+
+      await screen.findByText('Test Child C');
+      expect(screen.getAllByText('Gepauzeerd')).toHaveLength(2);
+      expect(screen.getByText(/2 kinderen zijn gepauzeerd: je abonnement laat 1 kind spelen/)).toBeInTheDocument();
+    });
+
+    it('shows no pause banner when everyone can play', async () => {
+      childrenData = [PLAYING];
+      renderScreen();
+      await screen.findByText('Test Child A');
+      expect(screen.queryByText('Kies wie mag spelen')).not.toBeInTheDocument();
+    });
+
+    it('lets the parent choose who keeps playing, no more than the package allows', async () => {
+      childrenData = [PLAYING, PAUSED_1, PAUSED_2];
+      subscriptionData = { plan: 'free', max_children: 1, status: 'active' };
+      renderScreen();
+
+      fireEvent.click(await screen.findByText('Kies wie mag spelen'));
+      const a = await screen.findByRole('checkbox', { name: 'Test Child A' });
+      const b = screen.getByRole('checkbox', { name: 'Test Child B' });
+      expect(a).toHaveAttribute('aria-checked', 'true');
+      // Full: B cannot be added until A is unticked.
+      expect(b).toBeDisabled();
+
+      fireEvent.click(a);
+      fireEvent.click(b);
+      fireEvent.click(screen.getByRole('button', { name: 'Opslaan' }));
+
+      await waitFor(() => expect(rpcMock).toHaveBeenCalledWith('set_active_children', { p_child_ids: ['child-2'] }));
+    });
   });
 });

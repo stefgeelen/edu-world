@@ -2,19 +2,21 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, ChevronRight, GraduationCap, Zap, Flame, Loader2, HelpCircle } from 'lucide-react';
+import { Plus, ChevronRight, GraduationCap, Zap, Flame, Loader2, HelpCircle, PauseCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
 import { useParentChildren } from '@/hooks/useParentChildren';
 import { buddySpecies } from '@/lib/buddy/species';
+import { ChooseActiveChildrenDialog } from '@/components/parent/ChooseActiveChildrenDialog';
 
 export function ParentChildren() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const { data: children = [], isLoading } = useParentChildren();
+  const [chooseOpen, setChooseOpen] = React.useState(false);
 
   const { data: subscription } = useQuery({
     queryKey: ['parent-subscription', user?.id],
@@ -32,6 +34,8 @@ export function ParentChildren() {
 
   const maxChildren = subscription?.max_children ?? 1;
   const canAddChild = children.length < maxChildren;
+  const pausedCount = children.filter(c => c.paused).length;
+  const playingCount = children.length - pausedCount;
 
   if (isLoading) {
     return (
@@ -66,7 +70,30 @@ export function ParentChildren() {
         </button>
       </div>
 
-      {!canAddChild && children.length >= maxChildren && (
+      {pausedCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800 font-medium space-y-3">
+          <p>
+            {pausedCount === 1 ? '1 kind is' : `${pausedCount} kinderen zijn`} gepauzeerd: je abonnement laat{' '}
+            {playingCount} {playingCount === 1 ? 'kind' : 'kinderen'} spelen. Er wordt niets gewist.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setChooseOpen(true)}
+              className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold"
+            >
+              Kies wie mag spelen
+            </button>
+            <button
+              onClick={() => navigate('/app/parent/subscription')}
+              className="px-3 py-2 rounded-xl border border-amber-300 text-amber-700 font-bold hover:bg-amber-100"
+            >
+              Bekijk abonnementen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {pausedCount === 0 && !canAddChild && children.length >= maxChildren && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800 font-medium">
           Je hebt het maximum aantal kinderen bereikt voor jouw abonnement. 
           <button 
@@ -102,6 +129,12 @@ export function ParentChildren() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-bold text-lg text-slate-900 truncate">{child.name}</h3>
+                {child.paused && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">
+                    <PauseCircle className="w-3 h-3" />
+                    Gepauzeerd
+                  </span>
+                )}
                 {!child.buddy_species && (
                   <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs font-bold rounded-full">
                     Kiest zelf een Buddy
@@ -147,6 +180,12 @@ export function ParentChildren() {
           </button>
         </div>
       )}
+      <ChooseActiveChildrenDialog
+        open={chooseOpen}
+        onOpenChange={setChooseOpen}
+        childrenList={children}
+        allowed={playingCount}
+      />
     </div>
   );
 }

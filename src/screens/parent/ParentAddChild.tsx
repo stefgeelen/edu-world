@@ -70,6 +70,7 @@ export function ParentAddChild() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['parent-children'] }),
         queryClient.invalidateQueries({ queryKey: ['parent-children-count'] }),
+        queryClient.invalidateQueries({ queryKey: ['players'] }),
       ]);
       toast.success(`${name.trim()} is toegevoegd!`);
       navigate('/app/parent');

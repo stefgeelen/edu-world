@@ -79,6 +79,11 @@ export function mapDbError(error: AnyError): string {
       : 'Je hebt het maximum aantal kinderen bereikt voor je abonnement.';
   }
 
+  // Gepauzeerd kind (meer kinderen dan het pakket toelaat)
+  if (lower.includes('child is paused')) {
+    return 'Dit kind is gepauzeerd en kan nu niet spelen. Een ouder kan dat aanpassen in het ouderportaal.';
+  }
+
   // PIN-validatie (uit set_parent_pin RPC)
   if (lower.includes('pin moet exact 4 cijfers')) {
     return 'De toegangscode moet uit precies 4 cijfers bestaan.';

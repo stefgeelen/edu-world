@@ -34,6 +34,9 @@ vi.mock('@/hooks/useChildGreeting', () => ({ useChildGreeting: () => ({ greeting
 let isAdminFixture = false;
 vi.mock('@/hooks/useAdminRole', () => ({ useAdminRole: () => ({ isAdmin: isAdminFixture }) }));
 
+let playersFixture: { id: string; name: string; species: string | null; paused: boolean }[] = [];
+vi.mock('@/hooks/usePlayers', () => ({ usePlayers: () => ({ data: playersFixture }) }));
+
 const signOut = vi.fn().mockResolvedValue({});
 vi.mock('@/integrations/supabase/client', () => ({ supabase: { auth: { signOut: () => signOut() } } }));
 
@@ -61,6 +64,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   isAdminFixture = false;
   rewardsFixture = [];
+  playersFixture = [{ id: 'child-1', name: 'Lien', species: 'nootje', paused: false }];
   badgesFixture = [
     { id: 'first-steps', name: 'Eerste Stappen', icon: 'Sparkles', gradientFrom: '#fff', gradientTo: '#000', progress: 1, maxProgress: 1, isUnlocked: true },
     { id: 'goal-oriented', name: 'Doelgericht', icon: 'Target', gradientFrom: '#fff', gradientTo: '#000', progress: 12, maxProgress: 50, isUnlocked: false },
@@ -150,5 +154,20 @@ describe('Dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Uitloggen' }));
     await vi.waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/auth'));
     expect(signOut).toHaveBeenCalled();
+  });
+
+  it('offers no switch for an only child', () => {
+    renderDashboard();
+    expect(screen.queryByRole('button', { name: 'Wissel van speler' })).not.toBeInTheDocument();
+  });
+
+  it('goes back to "Wie speelt er?" from the switch button when there are several children', () => {
+    playersFixture = [
+      { id: 'child-1', name: 'Lien', species: 'nootje', paused: false },
+      { id: 'child-2', name: 'Bram', species: null, paused: false },
+    ];
+    renderDashboard();
+    fireEvent.click(screen.getByRole('button', { name: 'Wissel van speler' }));
+    expect(navigateMock).toHaveBeenCalledWith('/app/wie-speelt-er');
   });
 });

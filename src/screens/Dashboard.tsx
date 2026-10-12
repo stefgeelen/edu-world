@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
-  Award, BookOpen, Check, ChevronRight, Crown, Flame, Gift, Heart, LayoutGrid, Lock, LogOut, Shield,
+  ArrowLeftRight, Award, BookOpen, Check, ChevronRight, Crown, Flame, Gift, Heart, LayoutGrid, Lock, LogOut, Shield,
   Sparkles, Star, Target, Trophy, Users, Zap, type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGame } from '@/context/GameContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { usePlayers } from '@/hooks/usePlayers';
 import { useChildGreeting } from '@/hooks/useChildGreeting';
 import { useChildRewards, rewardCountdown } from '@/hooks/useChildRewards';
 import { quickStarts, isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
@@ -44,6 +45,7 @@ export function Dashboard() {
   const { greeting } = useChildGreeting();
   const { data: menu } = usePracticeMenu();
   const { data: rewards = [] } = useChildRewards();
+  const { data: players = [] } = usePlayers();
 
   const starts = useMemo(() => (menu ? quickStarts(menu) : []), [menu]);
   const wishes = menu?.wishes ?? [];
@@ -112,6 +114,13 @@ export function Dashboard() {
             </button>
 
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Only with brothers or sisters: back to "Wie speelt er?". */}
+              {players.length > 1 && (
+                <button onClick={() => navigate(APP_PATHS.whoIsPlaying)} className="h-9 sm:h-10 px-3 bg-[#0f0828]/80 rounded-full flex items-center gap-1.5 border-2 border-amber-400/40 active:scale-95 transition-all" title="Wie speelt er?" aria-label="Wissel van speler">
+                  <ArrowLeftRight className="w-4 h-4 text-amber-300" />
+                  <span className="text-xs font-black text-amber-200">Wissel</span>
+                </button>
+              )}
               {isAdmin && (
                 <button onClick={() => navigate('/admin')} className="hidden sm:flex w-10 h-10 bg-[#0f0828]/80 rounded-full items-center justify-center border-2 border-[#3b2d71] active:scale-95 transition-all" title="Admin" aria-label="Admin">
                   <Shield className="w-4 h-4 text-[#9d8bce]" />

@@ -261,6 +261,7 @@ export type Database = {
           created_at: string
           grade: number
           id: string
+          keep_active: boolean
           last_active_date: string | null
           last_opened_at: string | null
           level: number
@@ -268,6 +269,7 @@ export type Database = {
           name: string
           organization_id: string | null
           parent_id: string | null
+          paused: boolean
           pending_promotion: boolean
           streak: number
           updated_at: string
@@ -280,6 +282,7 @@ export type Database = {
           created_at?: string
           grade?: number
           id?: string
+          keep_active?: boolean
           last_active_date?: string | null
           last_opened_at?: string | null
           level?: number
@@ -287,6 +290,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           parent_id?: string | null
+          paused?: boolean
           pending_promotion?: boolean
           streak?: number
           updated_at?: string
@@ -299,6 +303,7 @@ export type Database = {
           created_at?: string
           grade?: number
           id?: string
+          keep_active?: boolean
           last_active_date?: string | null
           last_opened_at?: string | null
           level?: number
@@ -306,6 +311,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           parent_id?: string | null
+          paused?: boolean
           pending_promotion?: boolean
           streak?: number
           updated_at?: string
@@ -1000,6 +1006,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      my_players: { Args: never; Returns: Json }
+      parent_child_allowance: { Args: { p_parent_id: string }; Returns: number }
       plan_max_children: {
         Args: { p_plan: Database["public"]["Enums"]["subscription_plan"] }
         Returns: number
@@ -1017,7 +1025,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_active_children: {
+        Args: { p_child_ids: string[] }
+        Returns: undefined
+      }
       set_parent_pin: { Args: { p_pin: string }; Returns: undefined }
+      sync_paused_children: {
+        Args: { p_parent_id: string }
+        Returns: undefined
+      }
       touch_activity: {
         Args: { p_child_id?: string; p_standalone?: boolean }
         Returns: undefined

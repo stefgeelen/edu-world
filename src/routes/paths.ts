@@ -6,6 +6,8 @@ export const APP_PATHS = {
   /** Where login lands: on to add-child, the Buddy choice, or home. */
   start: '/app',
   addChild: '/app/add-child',
+  /** "Wie speelt er?": which child plays on this device, when there are several. */
+  whoIsPlaying: '/app/wie-speelt-er',
   /** Pick a Buddy: the first time, then once per school year (stay or swap). */
   chooseBuddy: '/app/kies-je-buddy',
   /** Tab 1: the Buddy's room — the screen the app opens on. */

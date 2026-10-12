@@ -8,6 +8,7 @@ import { APP_PATHS } from '@/routes/paths';
 
 const AppStart = lazy(() => import('@/screens/AppStart').then(m => ({ default: m.AppStart })));
 const ChooseBuddy = lazy(() => import('@/screens/ChooseBuddy').then(m => ({ default: m.ChooseBuddy })));
+const WhoIsPlaying = lazy(() => import('@/screens/WhoIsPlaying').then(m => ({ default: m.WhoIsPlaying })));
 const AddChild = lazy(() => import('@/screens/AddChild').then(m => ({ default: m.AddChild })));
 const Exercise = lazy(() => import('@/screens/Exercise').then(m => ({ default: m.Exercise })));
 const ExerciseNumberBond = lazy(() => import('@/screens/ExerciseNumberBond').then(m => ({ default: m.ExerciseNumberBond })));
@@ -51,6 +52,7 @@ export const appRoutes = (
   <Route path="/app" element={<ProtectedRoute><ErrorBoundary><Layout /></ErrorBoundary></ProtectedRoute>}>
     <Route index element={<S><AppStart /></S>} />
     <Route path="add-child" element={<S><AddChild /></S>} />
+    <Route path="wie-speelt-er" element={<S><WhoIsPlaying /></S>} />
     <Route path="kies-je-buddy" element={<S><ChooseBuddy /></S>} />
     <Route path="home" element={<S><BuddyRoom /></S>} />
     <Route path="dashboard" element={<S><Dashboard /></S>} />

@@ -14,19 +14,13 @@ const maybeSingle = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpcMock(...args),
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          // useCurrentChild orders by created_at so a multi-child parent always
-          // resolves to the same child.
-          order: () => ({
-            limit: () => ({
-              maybeSingle,
-            }),
-          }),
-        }),
-      }),
-    }),
+    // useCurrentChild filters (parent, picked child, not paused) and orders by
+    // created_at so a multi-child parent always resolves to the same child.
+    from: () => {
+      const chain: Record<string, unknown> = { maybeSingle };
+      for (const m of ['select', 'eq', 'order', 'limit']) chain[m] = () => chain;
+      return chain;
+    },
   },
 }));
 
@@ -68,7 +62,8 @@ function makeWrapper(queryClient: QueryClient) {
 // as the real UI does (buttons stay disabled/loading until child data loads).
 async function waitForChildQuery(queryClient: QueryClient) {
   await waitFor(() => {
-    expect(queryClient.getQueryState(['my-child', 'user-1'])?.status).toBe('success');
+    // No child picked on this device: the key's last part is null.
+    expect(queryClient.getQueryState(['my-child', 'user-1', null])?.status).toBe('success');
   });
 }
 

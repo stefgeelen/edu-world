@@ -30,7 +30,7 @@ src/
 1. `/auth` — sign up/login (email + password)
 2. `/auth/setup-pin` — set 4-digit parental PIN (stored via Supabase, verified via `useParentPin`)
 3. `/app/add-child` — create child profile (inserts to `children` table)
-4. `/app` — redirect only (`AppStart`): to `/app/add-child` if no child, to `/app/kies-je-buddy` (`ChooseBuddy`) if the child never chose a Buddy or a new school year started, else `/app/home`
+4. `/app` — redirect only (`AppStart`): to `/app/add-child` if no child, to `/app/wie-speelt-er` if several children can play and the device doesn't know who, to `/app/kies-je-buddy` (`ChooseBuddy`) if the child never chose a Buddy or a new school year started, else `/app/home`
 5. `/app/home` — the Buddy's room: the home screen of the app
 
 ## Child App Model (since Oct 2026)
@@ -45,6 +45,8 @@ Caring for the Buddy is the game; exercises are how you care for it. **Two tabs*
 - XP, level and streak are **invisible to the child**. The columns stay: the parent portal (trimester progress, promotion) and badges still use them. Parent rewards count every exercise fully, repeats included.
 - **Game-over pays nothing.** Losing all 3 hearts never calls `complete_exercise` (no Munten, XP, parent-reward progress or badges), in every exercise; the screen just navigates back. Only a finished run (all questions right, 1–3 hearts left → 1–3 stars) goes through `complete_exercise`.
 - **Aandachtspunten** (parent portal, `ParentChildDetail` via `useChildInsights`): per exercise row (type + grade + stage), over its last 10 tries. A try is a *struggle* when finished with 1 heart (stars 1), game-over, or closed with the X after at least one answer. Flagged when ≥2 tries and struggles ≥ half; red at ≥ 75%. Game-overs and abandons are saved by `ExerciseShell` into `exercise_incomplete_attempts` (`record_incomplete_exercise` RPC, pays nothing); `child_exercise_insights` RPC merges them with `exercise_attempts` — see `supabase/migrations/20261009120000_exercise_struggle_insights.sql`. Closing the browser mid-exercise is not caught. Before 9 Oct 2026, picture-word and sound-house stored game-overs as 1-star attempts.
+- **Several children per account.** Packages (`subscriptions.plan`): Gratis 1, Basis 2, Familie 5, School onbeperkt (`plan_max_children`; only while `active`/`trialing`, else 1). Upgrades are requested by mail; the admin sets them in Admin → Gebruikers (`admin_set_subscription`). Extra children are **paused** (`children.paused`, only written by `sync_paused_children`: the parent's `keep_active` picks first, then the oldest). Paused children cannot finish exercises, earn or spend; their Buddy is frozen. The parent picks who plays in Mijn Kinderen (`set_active_children`). See `supabase/migrations/20261009200000_who_is_playing_and_paused_children.sql`.
+- **Wie speelt er?** (`/app/wie-speelt-er`, `WhoIsPlaying`): `AppStart` sends there when more than one child can play and this device does not remember who (`src/lib/playingChild.ts`, localStorage per parent). `useCurrentChild` follows that pick, else the oldest non-paused child. The dashboard shows a "Wissel" button when there are several children. A child that never chose a Buddy goes to `ChooseBuddy` after being picked; the parent never picks the Buddy.
 - All of this is decided server-side: `practice_menu` RPC (pickable exercises, payouts, wishes) and `complete_exercise` — see `supabase/migrations/20261001120000_buddy_centred_practice.sql`. The client only displays it.
 - Paths live in `src/routes/paths.ts` (`APP_PATHS`, `EXERCISE_DONE_PATH`/`EXERCISE_CLOSE_PATH` → dashboard). Old URLs (`/app/map`, `/app/stage/*`, `/app/buddy-room`, `/app/progress`) redirect.
 
@@ -113,7 +115,7 @@ npm run lint      # ESLint
 - Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `addChildLogic`, Buddy growth + payout copy)
 - E2E: `e2e/onboarding.spec.ts` (Playwright) — signup through first exercise only
 
-**What still has NO tests:** `AppStart`, landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt and exercise-config hooks.
+**What still has NO tests:** landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt and exercise-config hooks.
 
 **Conventions:** shared helpers live in `src/test/testUtils.tsx` (`createTestQueryClient`, `queryWrapper`, `fakeSupabaseChain`). Mock Supabase/auth at the module boundary and assert on behaviour, not implementation. Anchor time-sensitive fixtures to `Date.now()` — hooks that tick against the real clock will decay a fixed past timestamp out from under the test.
 
