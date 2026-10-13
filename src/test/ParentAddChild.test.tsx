@@ -101,42 +101,47 @@ describe('ParentAddChild', () => {
     expect(submitButton).not.toBeDisabled();
   });
 
-  it('shows the assigned grade, clamped to what has real content, plus an honest note about the age-suggested grade', async () => {
-    // Age 8 suggests "3de leerjaar", but MAX_SUPPORTED_GRADE is 1 today, so
-    // the child is actually assigned grade 1 — the UI should say so plainly
-    // rather than showing "3de leerjaar" and silently assigning grade 1.
+  const gradeRadio = (label: string) => screen.getByRole('radio', { name: label });
+
+  it('suggests the grade for the age, with an honest note when that grade is not in the app yet', async () => {
     renderScreen();
     await waitForFormReady();
 
-    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '8' } });
-    expect(screen.getByText('→ 1ste leerjaar')).toBeInTheDocument();
-    expect(screen.getByText(/3de leerjaar zijn/)).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '7' } });
+    expect(gradeRadio('2de leerjaar')).toHaveAttribute('aria-checked', 'true');
+    expect(gradeRadio('1ste leerjaar')).toHaveAttribute('aria-checked', 'false');
+    expect(screen.getByText(/Voorgesteld op basis van de leeftijd/)).toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '11' } });
-    expect(screen.getByText('→ 1ste leerjaar')).toBeInTheDocument();
-    expect(screen.getByText(/6de leerjaar zijn/)).toBeInTheDocument();
+    // Age 8 suggests the 3de leerjaar, which is not in the app yet.
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '8' } });
+    expect(gradeRadio('2de leerjaar')).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByText(/3de leerjaar zijn/)).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: '3de leerjaar' })).not.toBeInTheDocument();
   });
 
-  it('does not show the clamp note for an age that is already within the supported range', async () => {
+  it('suggests the 1ste leerjaar for a 6-year-old', async () => {
     renderScreen();
     await waitForFormReady();
 
     fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '6' } });
-    expect(screen.getByText('→ 1ste leerjaar')).toBeInTheDocument();
+    expect(gradeRadio('1ste leerjaar')).toHaveAttribute('aria-checked', 'true');
     expect(screen.queryByText(/nog niet beschikbaar/)).not.toBeInTheDocument();
   });
 
-  it('inserts the new child with the clamped grade (not the age-suggested one), shows a success toast, and navigates back', async () => {
+  it('inserts the child with the grade the parent picked, shows a success toast, and navigates back', async () => {
     const { invalidateSpy } = renderScreen();
     await waitForFormReady();
 
     fireEvent.change(screen.getByPlaceholderText('Bijv. Emma of Liam'), { target: { value: 'Test Child' } });
-    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '8' } });
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '7' } });
+    // A 7-year-old can still be in the 1ste leerjaar; the parent knows.
+    fireEvent.click(gradeRadio('1ste leerjaar'));
+    expect(gradeRadio('1ste leerjaar')).toHaveAttribute('aria-checked', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'Kind toevoegen' }));
 
     await waitFor(() => expect(insertSpy).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Test Child',
-      age: 8,
+      age: 7,
       grade: 1,
       parent_id: 'parent-1',
     })));
@@ -145,6 +150,17 @@ describe('ParentAddChild', () => {
     // The children list must show the new child straight away.
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['parent-children'] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['parent-children-count'] });
+  });
+
+  it('without a pick, inserts the grade the age suggests', async () => {
+    renderScreen();
+    await waitForFormReady();
+
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Emma of Liam'), { target: { value: 'Test Child' } });
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '7' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kind toevoegen' }));
+
+    await waitFor(() => expect(insertSpy).toHaveBeenCalledWith(expect.objectContaining({ age: 7, grade: 2 })));
   });
 
   it('shows the locked max-children view and routes to the subscription screen from it', async () => {

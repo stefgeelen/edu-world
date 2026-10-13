@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { gradeForAge, getGradeAssignment, GRADE_LABELS } from '@/lib/gradeFromAge';
 
 // gradeForAge/getGradeAssignment used to be copy-pasted separately inside
@@ -90,8 +91,7 @@ describe('getGradeAssignment (clamped to MAX_SUPPORTED_GRADE)', () => {
     const result = getGradeAssignment(9)!;
     expect(result.suggestedGrade).toBe(4);
     expect(result.suggestedLabel).toBe('4de leerjaar');
-    expect(result.assignedGrade).toBe(1);
-    expect(result.assignedLabel).toBe('1ste leerjaar');
+    expect(result.assignedGrade).toBe(MAX_SUPPORTED_GRADE);
     expect(result.wasClamped).toBe(true);
   });
 });

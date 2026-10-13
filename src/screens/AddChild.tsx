@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
 import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 import { getGradeAssignment } from '@/lib/gradeFromAge';
+import { GradeChoice } from '@/components/GradeChoice';
 
 export function AddChild() {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export function AddChild() {
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [age, setAge] = useState<number | ''>('');
+  // Null until the parent picks a grade: then the age's suggestion applies.
+  const [chosenGrade, setChosenGrade] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [limitDialog, setLimitDialog] = useState<{ open: boolean; message?: string }>({ open: false });
 
@@ -32,7 +35,7 @@ export function AddChild() {
       const { error } = await supabase.from('children').insert({
         name: name.trim(),
         age: age as number,
-        grade: gradeAssignment?.assignedGrade ?? 1,
+        grade: chosenGrade ?? gradeAssignment?.assignedGrade ?? 1,
         parent_id: user.id,
       });
 
@@ -151,23 +154,9 @@ export function AddChild() {
               
               <div className="flex-1 bg-slate-50 rounded-2xl border-2 border-slate-100 p-4 flex flex-col justify-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-teal-100 rounded-full blur-2xl opacity-50 translate-x-1/2 -translate-y-1/2" />
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Voorgesteld niveau</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Leerjaar</span>
                 {gradeAssignment ? (
-                  <>
-                    <motion.span
-                      key={gradeAssignment.assignedLabel}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="text-lg sm:text-xl font-black text-teal-600 flex items-center gap-1 drop-shadow-sm"
-                    >
-                      {gradeAssignment.assignedLabel}
-                    </motion.span>
-                    {gradeAssignment.wasClamped && (
-                      <span className="text-[11px] text-slate-400 font-medium mt-1">
-                        Op basis van de leeftijd zou dit {gradeAssignment.suggestedLabel} zijn — dat leerjaar is nog niet beschikbaar in de app.
-                      </span>
-                    )}
-                  </>
+                  <GradeChoice assignment={gradeAssignment} chosen={chosenGrade} onChoose={setChosenGrade} />
                 ) : (
                   <span className="text-slate-400 font-medium italic text-sm sm:text-base">Vul leeftijd in</span>
                 )}

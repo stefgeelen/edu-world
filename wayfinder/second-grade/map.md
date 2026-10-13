@@ -70,6 +70,13 @@ Gebouwd op 2026-10-13 (`supabase/migrations/20261013210000_review_previous_grade
 - `complete_exercise` telt een herhaaloefening niet mee voor de trimesters en de promotie van het eigen leerjaar.
 - De app opent een herhaaloefening als `/app/exercises/dots/3?leerjaar=1`. `useExerciseGrade` laat `useExerciseId`, `useExerciseConfig` en `useDifficultyLevel` dan de rij van dat leerjaar laden.
 
+## Stap 4: leerjaar openzetten (gebouwd op 2026-10-13)
+
+- `MAX_SUPPORTED_GRADE = 2`.
+- Bij het aanmaken van een kind (`AddChild`, `ParentAddChild`) kiest de ouder het leerjaar met `GradeChoice`. Het leerjaar dat bij de leeftijd past, staat voorgeselecteerd.
+- In het ouderportaal werkt "Volgend leerjaar" weer van het 1ste naar het 2de leerjaar.
+- Taal voor het 2de leerjaar is er nog niet: een kind in het 2de leerjaar vindt de taaloefeningen onder Herhalen (versie 1ste leerjaar).
+
 ## Nog open
 
 - Tekeningen per groeivorm van de Buddy (later).

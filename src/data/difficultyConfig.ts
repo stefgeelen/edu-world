@@ -5,17 +5,16 @@
  * column, fetched via `useExerciseConfig()`. The DEFAULT_* constants here
  * are only the fallback used when a matching DB row has no config yet.
  *
- * ExerciseLanguage.tsx and ExerciseSentenceDoctor.tsx are NOT DB-driven —
- * their word/sentence pools are grade-1 vocabulary by construction, so they
- * keep using MAX_SUPPORTED_GRADE/clampToSupportedGrade below directly.
+ * ExerciseLanguage.tsx and ExerciseSentenceDoctor.tsx are NOT DB-driven:
+ * their word and sentence pools live in code, per grade.
  */
 
 /**
- * Highest grade with real content for the two content-pool-based exercises
- * above, and for worldThemes.ts's grade-2 theme unlock. Raise this once
- * their grade-2 content is authored.
+ * Highest grade a parent can pick or promote to. Grade 2 opened on
+ * 2026-10-13 with maths (wayfinder/second-grade/map.md); its language
+ * exercises still come from grade 1, under Herhalen.
  */
-export const MAX_SUPPORTED_GRADE = 1;
+export const MAX_SUPPORTED_GRADE = 2;
 
 export function clampToSupportedGrade(grade: number | null | undefined): number {
   return Math.max(1, Math.min(grade ?? 1, MAX_SUPPORTED_GRADE));

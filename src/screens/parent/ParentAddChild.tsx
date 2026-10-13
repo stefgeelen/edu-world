@@ -10,6 +10,7 @@ import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
 import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getGradeAssignment } from '@/lib/gradeFromAge';
+import { GradeChoice } from '@/components/GradeChoice';
 
 export function ParentAddChild() {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export function ParentAddChild() {
   const queryClient = useQueryClient();
   const [name, setName] = React.useState('');
   const [age, setAge] = React.useState<number | ''>('');
+  // Null until the parent picks a grade: then the age's suggestion applies.
+  const [chosenGrade, setChosenGrade] = React.useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [limitDialog, setLimitDialog] = React.useState<{ open: boolean; message?: string }>({ open: false });
 
@@ -62,7 +65,7 @@ export function ParentAddChild() {
       const { error } = await supabase.from('children').insert({
         name: name.trim(),
         age: age as number,
-        grade: gradeAssignment?.assignedGrade ?? 1,
+        grade: chosenGrade ?? gradeAssignment?.assignedGrade ?? 1,
         parent_id: user.id,
       });
       if (error) throw error;
@@ -152,14 +155,12 @@ export function ParentAddChild() {
               placeholder="0"
               className="w-20 bg-slate-50 border-2 border-slate-200 rounded-xl px-3 py-3 text-center text-xl font-black text-slate-800 focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
             />
-            {gradeAssignment && (
-              <span className="text-sm font-bold text-teal-600">→ {gradeAssignment.assignedLabel}</span>
-            )}
           </div>
-          {gradeAssignment?.wasClamped && (
-            <p className="text-[11px] text-slate-400 font-medium mt-2">
-              Op basis van de leeftijd zou dit {gradeAssignment.suggestedLabel} zijn — dat leerjaar is nog niet beschikbaar in de app.
-            </p>
+          {gradeAssignment && (
+            <div className="mt-4">
+              <p className="text-sm font-bold text-slate-700 mb-2">Leerjaar</p>
+              <GradeChoice assignment={gradeAssignment} chosen={chosenGrade} onChoose={setChosenGrade} />
+            </div>
           )}
         </div>
 
