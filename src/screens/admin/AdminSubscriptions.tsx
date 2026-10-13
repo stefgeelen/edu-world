@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { CreditCard, Loader2, Users, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatMaxChildren } from '@/lib/subscriptionPlans';
 
 export function AdminSubscriptions() {
   const { data: subscriptions = [], isLoading } = useQuery({
@@ -105,7 +106,7 @@ export function AdminSubscriptions() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="w-3 h-3" />
-                    Max {sub.max_children} kind{sub.max_children !== 1 ? 'eren' : ''}
+                    Max {formatMaxChildren(sub.max_children)}
                   </span>
                 </div>
               </div>

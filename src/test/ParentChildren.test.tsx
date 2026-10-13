@@ -88,6 +88,15 @@ describe('ParentChildren', () => {
     expect(screen.getByText('1 van 3 kinderen')).toBeInTheDocument();
   });
 
+  it('says "onbeperkt" instead of 999 on the School package', async () => {
+    childrenData = [CHILD_A];
+    subscriptionData = { plan: 'school', max_children: 999, status: 'active' };
+    renderScreen();
+
+    expect(await screen.findByText('1 kind · onbeperkt')).toBeInTheDocument();
+    expect(screen.queryByText(/999/)).not.toBeInTheDocument();
+  });
+
   it("shows each child's own Buddy, and no Buddy yet for a child that still has to choose", async () => {
     // A buddy_states row defaults to nootje before the child chooses; only
     // species_school_year says the child really picked one.

@@ -90,6 +90,9 @@ describe('ParentSubscription', () => {
     renderSubscription();
     await waitFor(() => expect(screen.getByText('School')).toBeInTheDocument());
     expect(screen.queryByText('Upgrade opties')).not.toBeInTheDocument();
+    // 999 is how School stores "unlimited"; the parent never sees the number.
+    expect(screen.getByText('Onbeperkt')).toBeInTheDocument();
+    expect(screen.queryByText('999')).not.toBeInTheDocument();
   });
 
   it('shows the cancel-subscription link for an active, non-free paid plan', async () => {

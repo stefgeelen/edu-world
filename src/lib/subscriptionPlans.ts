@@ -35,5 +35,8 @@ export function effectiveMaxChildren(plan: SubscriptionPlan, status: Subscriptio
   return PLANS.find(p => p.key === plan)?.maxChildren ?? 1;
 }
 
+/** The School package stores 999 for "onbeperkt". */
+export const isUnlimited = (max: number) => max >= 999;
+
 export const formatMaxChildren = (max: number) =>
-  max >= 999 ? 'onbeperkt' : `${max} ${max === 1 ? 'kind' : 'kinderen'}`;
+  isUnlimited(max) ? 'onbeperkt' : `${max} ${max === 1 ? 'kind' : 'kinderen'}`;

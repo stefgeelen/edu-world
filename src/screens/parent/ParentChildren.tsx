@@ -10,6 +10,7 @@ import { GRADE_LABELS } from '@/lib/gradeFromAge';
 import { useParentChildren } from '@/hooks/useParentChildren';
 import { buddySpecies } from '@/lib/buddy/species';
 import { ChooseActiveChildrenDialog } from '@/components/parent/ChooseActiveChildrenDialog';
+import { isUnlimited } from '@/lib/subscriptionPlans';
 
 export function ParentChildren() {
   const navigate = useNavigate();
@@ -52,7 +53,9 @@ export function ParentChildren() {
         <div>
           <h2 className="text-2xl font-black text-slate-900">Mijn Kinderen</h2>
           <p className="text-sm text-slate-500 font-medium">
-            {children.length} van {maxChildren} {maxChildren === 1 ? 'kind' : 'kinderen'}
+            {isUnlimited(maxChildren)
+              ? `${children.length} ${children.length === 1 ? 'kind' : 'kinderen'} · onbeperkt`
+              : `${children.length} van ${maxChildren} ${maxChildren === 1 ? 'kind' : 'kinderen'}`}
           </p>
         </div>
         <button

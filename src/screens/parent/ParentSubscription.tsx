@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { CreditCard, CheckCircle2, Users, Loader2, Crown, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { isUnlimited } from '@/lib/subscriptionPlans';
 
 const PLAN_DETAILS: Record<string, { label: string; color: string; features: string[] }> = {
   free: {
@@ -97,7 +98,9 @@ export function ParentSubscription() {
           </div>
           <div className="text-right">
             <p className="text-sm text-slate-400 font-medium">Max kinderen</p>
-            <p className="text-2xl font-black text-slate-900">{subscription?.max_children ?? 1}</p>
+            <p className="text-2xl font-black text-slate-900">
+              {isUnlimited(subscription?.max_children ?? 1) ? 'Onbeperkt' : subscription?.max_children ?? 1}
+            </p>
           </div>
         </div>
 
