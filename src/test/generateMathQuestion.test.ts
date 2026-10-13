@@ -1,55 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { type MathSumsConfig } from '@/data/difficultyConfig';
+import { generateMathQuestion } from '@/lib/mathQuestions';
 
 const TRIMESTER_1: MathSumsConfig = { operators: ['+', '-'], maxNumber: 6, allowNegative: false };
 const TRIMESTER_2: MathSumsConfig = { operators: ['+', '-'], maxNumber: 10, allowNegative: false };
 const TRIMESTER_3: MathSumsConfig = { operators: ['+', '-'], maxNumber: 20, allowNegative: false };
-
-// Copy the generation function from Exercise.tsx for testing
-function generateMathQuestion(config: MathSumsConfig) {
-  const { operators, maxNumber, allowNegative, maxDivisor } = config;
-  const op = operators[Math.floor(Math.random() * operators.length)];
-  let num1: number, num2: number, ans: number;
-
-  if (op === '÷') {
-    const divisor = Math.floor(Math.random() * (maxDivisor || 10)) + 1;
-    const quotient = Math.floor(Math.random() * 10) + 1;
-    num1 = divisor * quotient;
-    num2 = divisor;
-    ans = quotient;
-  } else if (op === '×') {
-    num1 = Math.floor(Math.random() * Math.min(maxNumber, 12)) + 1;
-    num2 = Math.floor(Math.random() * 10) + 1;
-    ans = num1 * num2;
-  } else if (op === '-') {
-    if (!allowNegative) {
-      num1 = Math.floor(Math.random() * maxNumber) + 1;
-      num2 = Math.floor(Math.random() * num1) + 1;
-    } else {
-      num1 = Math.floor(Math.random() * maxNumber) + 1;
-      num2 = Math.floor(Math.random() * maxNumber) + 1;
-    }
-    ans = num1 - num2;
-  } else {
-    num1 = Math.floor(Math.random() * maxNumber) + 1;
-    num2 = Math.floor(Math.random() * (maxNumber - num1)) + 1;
-    ans = num1 + num2;
-  }
-
-  const options = new Set([ans]);
-  while (options.size < 4) {
-    const offset = Math.floor(Math.random() * 10) - 5;
-    const candidate = ans + offset;
-    if (candidate !== ans && (!allowNegative ? candidate >= 0 : true)) {
-      options.add(candidate);
-    }
-  }
-
-  return {
-    question: { num1, num2, operator: op, answer: ans },
-    options: Array.from(options),
-  };
-}
 
 describe('generateMathQuestion', () => {
   it('trimester 1 only generates + and - with no negatives', () => {

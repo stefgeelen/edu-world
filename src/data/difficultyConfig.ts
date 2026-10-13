@@ -29,6 +29,11 @@ export interface MathSumsConfig {
   allowNegative: boolean;
   /** For division: max multiplier to generate clean divisions */
   maxDivisor?: number;
+  /**
+   * + and − only: 'with' = every sum goes over a ten (8 + 5, 38 + 25),
+   * 'without' = none does (34 + 25). Unset = either.
+   */
+  bridge?: 'with' | 'without';
 }
 
 export const DEFAULT_MATH_SUMS: MathSumsConfig = {
@@ -154,6 +159,10 @@ export const DEFAULT_PICTURE_WORD: PictureWordConfig = {
 
 export interface NumberLineConfig {
   maxNumber: number;
+  /** Count by one of these (e.g. [10] or [2, 5, 10]). Unset = by ones. */
+  steps?: number[];
+  /** Points on the line. Unset = the whole line 0..maxNumber. */
+  length?: number;
 }
 
 export const DEFAULT_NUMBER_LINE: NumberLineConfig = {
@@ -171,4 +180,16 @@ export interface SumSplitConfig {
 
 export const DEFAULT_SUM_SPLIT: SumSplitConfig = {
   minSum: 11, maxSum: 18,
+};
+
+// ── Even or odd (ExerciseEvenOdd.tsx) ──────────────────────────────────────
+
+export interface EvenOddConfig {
+  /** Even or odd numbers 1..maxNumber; doubles and halves stay at or below it. */
+  maxNumber: number;
+  kinds: Array<'even-odd' | 'double' | 'half'>;
+}
+
+export const DEFAULT_EVEN_ODD: EvenOddConfig = {
+  maxNumber: 20, kinds: ['even-odd'],
 };

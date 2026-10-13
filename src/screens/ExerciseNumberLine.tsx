@@ -10,6 +10,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
+import { makeNumberLineSlots, type NumberLineSlot } from '@/lib/mathQuestions';
 import { DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
@@ -17,32 +18,7 @@ import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
 import { exerciseExitPath } from '@/routes/paths';
 
 
-// ── Types ──────────────────────────────────────────────────────────────────
-
-interface Slot {
-  value: number;
-  isBlank: boolean;
-  filled: boolean;
-}
-
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-function makeSlots(maxNumber = 10): Slot[] {
-  // Build array of possible blank indices (1 to maxNumber-1, skipping 0 and maxNumber)
-  const indices: number[] = [];
-  for (let i = 1; i < maxNumber; i++) indices.push(i);
-  for (let i = indices.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp;
-  }
-  const blankCount = Math.min(3, indices.length);
-  const blanks = new Set(indices.slice(0, blankCount));
-  const result: Slot[] = [];
-  for (let n = 0; n <= maxNumber; n++) {
-    result.push({ value: n, isBlank: blanks.has(n), filled: false });
-  }
-  return result;
-}
 
 function getPosFromPointer(
   e: React.PointerEvent<HTMLCanvasElement>,
@@ -66,7 +42,7 @@ export function ExerciseNumberLine() {
   const startTime = useRef(Date.now());
 
 
-  const [slots, setSlots] = useState<Slot[]>(() => makeSlots(nlCfg.maxNumber));
+  const [slots, setSlots] = useState<NumberLineSlot[]>(() => makeNumberLineSlots(nlCfg));
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
@@ -85,6 +61,13 @@ export function ExerciseNumberLine() {
   const isDrawing = useRef(false);
   const lastPt = useRef<{ x: number; y: number } | null>(null);
   const drawnOnce = useRef(false);
+
+  // The DB config arrives after the first render; start over on it so the
+  // first round isn't played on the default line.
+  useEffect(() => {
+    setSlots(makeNumberLineSlots(nlCfg));
+    setActiveSlot(null);
+  }, [nlCfg]);
 
   const blanks = slots.filter(s => s.isBlank);
   const filled = blanks.filter(s => s.filled);
@@ -251,7 +234,7 @@ export function ExerciseNumberLine() {
         }
         navigate(exerciseExitPath());
       } else {
-        setSlots(makeSlots(nlCfg.maxNumber));
+        setSlots(makeNumberLineSlots(nlCfg));
         setRoundDone(false);
       }
     }, 2200);

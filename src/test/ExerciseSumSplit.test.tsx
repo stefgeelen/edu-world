@@ -2,36 +2,11 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react';
 
-/* ── Copied pure logic (not exported by ExerciseSumSplit.tsx) ────────────── */
-// Uses the real randomInt from '@/lib/random' — this file never mocks that
-// module, so these tests (and the component tests below, which read the
-// generated question straight out of the rendered DOM instead of trying to
-// control the RNG) exercise the actual generation logic.
-import { randomInt } from '@/lib/random';
-
-interface Question {
-  num1: number;
-  num2: number;
-  total: number;
-  leftPart: number;
-  rightPart: number;
-}
-
-function generateQuestion(minSum: number, maxSum: number): Question {
-  for (let i = 0; i < 50; i++) {
-    const num1 = randomInt(6, 9);
-    const minN2 = Math.max(11 - num1, minSum - num1, 2);
-    const maxN2 = Math.min(9, maxSum - num1);
-    if (maxN2 < minN2) continue;
-    const num2 = randomInt(minN2, maxN2);
-    const leftPart = 10 - num1;
-    const rightPart = num2 - leftPart;
-    if (leftPart >= 1 && rightPart >= 1) {
-      return { num1, num2, total: num1 + num2, leftPart, rightPart };
-    }
-  }
-  return { num1: 8, num2: 6, total: 14, leftPart: 2, rightPart: 4 };
-}
+/* ── Question generation ───────────────────────────────────────────────── */
+// The real generator from '@/lib/mathQuestions' (randomInt is never mocked
+// here); the component tests below read the generated question straight out
+// of the rendered DOM instead of trying to control the RNG.
+import { generateSumSplitQuestion as generateQuestion } from '@/lib/mathQuestions';
 
 describe('ExerciseSumSplit question generation', () => {
   const minSum = 11;

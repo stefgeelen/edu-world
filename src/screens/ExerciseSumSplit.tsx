@@ -11,35 +11,11 @@ import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exe
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_SUM_SPLIT } from '@/data/difficultyConfig';
-import { randomInt } from '@/lib/random';
+import { generateSumSplitQuestion as generateQuestion, type SumSplitQuestion as Question } from '@/lib/mathQuestions';
 import { exerciseExitPath } from '@/routes/paths';
 
 type Slot = 'left' | 'right' | 'result';
 type SlotStatus = 'idle' | 'correct' | 'incorrect';
-
-interface Question {
-  num1: number;
-  num2: number;
-  total: number;
-  leftPart: number;
-  rightPart: number;
-}
-
-function generateQuestion(minSum: number, maxSum: number): Question {
-  for (let i = 0; i < 50; i++) {
-    const num1 = randomInt(6, 9);
-    const minN2 = Math.max(11 - num1, minSum - num1, 2);
-    const maxN2 = Math.min(9, maxSum - num1);
-    if (maxN2 < minN2) continue;
-    const num2 = randomInt(minN2, maxN2);
-    const leftPart = 10 - num1;
-    const rightPart = num2 - leftPart;
-    if (leftPart >= 1 && rightPart >= 1) {
-      return { num1, num2, total: num1 + num2, leftPart, rightPart };
-    }
-  }
-  return { num1: 8, num2: 6, total: 14, leftPart: 2, rightPart: 4 };
-}
 
 export function ExerciseSumSplit() {
   const navigate = useNavigate();
@@ -305,7 +281,7 @@ export function ExerciseSumSplit() {
         className="min-h-full flex flex-col items-center z-10 relative px-4"
         style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 16 }}
       >
-        <ExercisePrompt>Splits om door 10 te springen!</ExercisePrompt>
+        <ExercisePrompt>Splits om door {question.num1 + question.leftPart} te springen!</ExercisePrompt>
 
         {/* Equation with result slot */}
         <motion.div

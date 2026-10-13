@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -34,6 +34,21 @@ const PRODUCTS = [
   { name: 'Sap', emoji: '🧃' },
   { name: 'Bal', emoji: '⚽' },
 ];
+
+/** For prices above €20 (2de leerjaar): an apple for €73 would be silly. */
+const PRICEY_PRODUCTS = [
+  { name: 'Step', emoji: '🛴' },
+  { name: 'Boekentas', emoji: '🎒' },
+  { name: 'Schoenen', emoji: '👟' },
+  { name: 'Spel', emoji: '🎲' },
+  { name: 'Puzzel', emoji: '🧩' },
+  { name: 'Vlieger', emoji: '🪁' },
+];
+
+function productFor(priceCents: number) {
+  const pool = priceCents > 2000 ? PRICEY_PRODUCTS : PRODUCTS;
+  return pool[randomInt(0, pool.length - 1)];
+}
 
 /* ── Denomination definitions ─────────────────────────────────── */
 interface DenominationDef {
@@ -181,8 +196,8 @@ export function ExerciseMoney() {
     [moneyCfg.denominations]
   );
 
-  const [product, setProduct] = useState(() => PRODUCTS[randomInt(0, PRODUCTS.length - 1)]);
   const [priceCents, setPriceCents] = useState(() => generatePrice(moneyCfg.maxPriceCents, moneyCfg.denominations));
+  const [product, setProduct] = useState(() => productFor(priceCents));
   const [droppedItems, setDroppedItems] = useState<{ id: string; denom: DenominationDef }[]>([]);
   const [dragId, setDragId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'too-little' | 'too-much' | null>(null);
@@ -194,11 +209,18 @@ export function ExerciseMoney() {
   );
 
   const nextQuestion = useCallback(() => {
-    setProduct(PRODUCTS[randomInt(0, PRODUCTS.length - 1)]);
-    setPriceCents(generatePrice(moneyCfg.maxPriceCents, moneyCfg.denominations));
+    const nextPrice = generatePrice(moneyCfg.maxPriceCents, moneyCfg.denominations);
+    setPriceCents(nextPrice);
+    setProduct(productFor(nextPrice));
     setDroppedItems([]);
     setFeedback(null);
-  }, [moneyCfg.maxPriceCents]);
+  }, [moneyCfg]);
+
+  // The DB config arrives after the first render; start over on it so the
+  // first price isn't drawn from the default config.
+  useEffect(() => {
+    nextQuestion();
+  }, [nextQuestion]);
 
   const exerciseId = useExerciseId();
   const {

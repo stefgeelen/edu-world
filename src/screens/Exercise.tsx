@@ -9,61 +9,10 @@ import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
-import { DEFAULT_MATH_SUMS, type MathSumsConfig } from '@/data/difficultyConfig';
+import { DEFAULT_MATH_SUMS } from '@/data/difficultyConfig';
+import { generateMathQuestion } from '@/lib/mathQuestions';
 import { exerciseExitPath } from '@/routes/paths';
 
-
-const OP_SPOKEN: Record<string, string> = { '+': 'plus', '-': 'min', '×': 'maal', '÷': 'gedeeld door' };
-
-function generateMathQuestion(config: MathSumsConfig) {
-  const { operators, maxNumber, allowNegative, maxDivisor } = config;
-  const op = operators[Math.floor(Math.random() * operators.length)];
-
-  let num1: number, num2: number, ans: number;
-
-  if (op === '÷') {
-    // Generate clean division: num2 * quotient = num1
-    const divisor = Math.floor(Math.random() * (maxDivisor || 10)) + 1;
-    const quotient = Math.floor(Math.random() * 10) + 1;
-    num1 = divisor * quotient;
-    num2 = divisor;
-    ans = quotient;
-  } else if (op === '×') {
-    num1 = Math.floor(Math.random() * Math.min(maxNumber, 12)) + 1;
-    num2 = Math.floor(Math.random() * 10) + 1;
-    ans = num1 * num2;
-  } else if (op === '-') {
-    if (!allowNegative) {
-      // Ensure num1 >= num2 so answer >= 0
-      num1 = Math.floor(Math.random() * maxNumber) + 1;
-      num2 = Math.floor(Math.random() * num1) + 1;
-    } else {
-      num1 = Math.floor(Math.random() * maxNumber) + 1;
-      num2 = Math.floor(Math.random() * maxNumber) + 1;
-    }
-    ans = num1 - num2;
-  } else {
-    // Addition
-    num1 = Math.floor(Math.random() * maxNumber) + 1;
-    num2 = Math.floor(Math.random() * (maxNumber - num1)) + 1;
-    ans = num1 + num2;
-  }
-
-  // Generate 4 unique options including the answer
-  const options = new Set([ans]);
-  while (options.size < 4) {
-    const offset = Math.floor(Math.random() * 10) - 5;
-    const candidate = ans + offset;
-    if (candidate !== ans && (!allowNegative ? candidate >= 0 : true)) {
-      options.add(candidate);
-    }
-  }
-
-  return {
-    question: { num1, num2, operator: op, answer: ans },
-    options: Array.from(options).sort(() => Math.random() - 0.5),
-  };
-}
 
 export function Exercise() {
   const navigate = useNavigate();

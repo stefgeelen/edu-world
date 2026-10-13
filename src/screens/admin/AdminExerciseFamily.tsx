@@ -8,6 +8,8 @@ import type { Json } from '@/integrations/supabase/types';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { CONFIG_FORMS } from '@/data/exerciseConfigFields';
+import { ExerciseConfigForm } from '@/components/admin/ExerciseConfigForm';
 
 const STAGE_LABELS: Record<string, string> = {
   'stage-1': 'Trimester 1',
@@ -17,8 +19,9 @@ const STAGE_LABELS: Record<string, string> = {
 
 const GRADES = [1, 2, 3, 4, 5, 6];
 
-function ConfigEditor({ exerciseId, initialConfig }: { exerciseId: string; initialConfig: unknown }) {
+function ConfigEditor({ exerciseId, routePrefix, initialConfig }: { exerciseId: string; routePrefix: string; initialConfig: unknown }) {
   const queryClient = useQueryClient();
+  const form = CONFIG_FORMS[routePrefix];
   const [text, setText] = useState(() => JSON.stringify(initialConfig ?? {}, null, 2));
 
   const saveMutation = useMutation({
@@ -27,14 +30,26 @@ function ConfigEditor({ exerciseId, initialConfig }: { exerciseId: string; initi
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Config opgeslagen.');
+      toast.success('Instellingen opgeslagen.');
       queryClient.invalidateQueries({ queryKey: ['admin-exercise-family'] });
       queryClient.invalidateQueries({ queryKey: ['admin-exercises'] });
       queryClient.invalidateQueries({ queryKey: ['exercise-config'] });
     },
-    onError: () => toast.error('Kon config niet opslaan.'),
+    onError: () => toast.error('Kon de instellingen niet opslaan.'),
   });
 
+  if (form) {
+    return (
+      <ExerciseConfigForm
+        form={form}
+        initialConfig={initialConfig}
+        saving={saveMutation.isPending}
+        onSave={(config) => saveMutation.mutate(config as Json)}
+      />
+    );
+  }
+
+  // Exercise types without settings of their own (e.g. the language exercises).
   const handleSave = () => {
     let parsed: Json;
     try {
@@ -178,7 +193,10 @@ export function AdminExerciseFamily() {
                   return (
                     <button
                       key={grade}
-                      onClick={() => toggleGradeMutation.mutate(grade)}
+                      onClick={() => {
+                        if (gradesPresent.has(grade) && !window.confirm(`Alle trimesters van graad ${grade} uitzetten voor deze oefening?`)) return;
+                        toggleGradeMutation.mutate(grade);
+                      }}
                       disabled={toggleGradeMutation.isPending}
                       className={cn(
                         'px-3 py-1.5 rounded-full text-sm font-bold border transition-colors',
@@ -226,7 +244,7 @@ export function AdminExerciseFamily() {
                         )}
                       </button>
                     </div>
-                    <ConfigEditor exerciseId={row.id} initialConfig={row.config} />
+                    <ConfigEditor exerciseId={row.id} routePrefix={routePrefix} initialConfig={row.config} />
                   </motion.div>
                 ))}
               </div>

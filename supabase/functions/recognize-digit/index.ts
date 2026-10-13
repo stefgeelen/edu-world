@@ -44,14 +44,14 @@ serve(async (req) => {
               },
               {
                 type: "text",
-                text: `You are a handwriting recognition system for a children's educational app. A child (age 5-7) has drawn a number on a canvas. Look at the image and determine what single number (1-10) they wrote. Children's handwriting may be messy or imperfect - be generous in your interpretation.
+                text: `You are a handwriting recognition system for a children's educational app. A child (age 5-8) has drawn a number on a canvas. Look at the image and determine what whole number (0-100) they wrote. Children's handwriting may be messy or imperfect - be generous in your interpretation.
 
 Rules:
 - Respond with ONLY a JSON object: {"recognized": <number>}
 - If you can identify a number, return it even if it's messy
-- The number should be between 1 and 10
+- The number should be between 0 and 100
 - If the drawing is completely unrecognizable as any number, return {"recognized": null}
-- "10" is two digits written together
+- Numbers like "10", "47" or "100" are several digits written next to each other: read them as one number
 - Be lenient - children's handwriting is imperfect`,
               },
             ],
