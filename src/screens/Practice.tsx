@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Loader2, RotateCcw, Volume2 } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Loader2, RotateCcw, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { APP_PATHS, exerciseUrl, startExerciseFrom } from '@/routes/paths';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
@@ -157,36 +157,48 @@ export function Practice() {
 }
 
 /** Herhalen: the exercises of lower grades, below the child's own subjects. */
+/**
+ * Herhalen: the exercises of lower grades, folded away behind one modest
+ * button below the child's own subjects, so the own grade stays the focus.
+ */
 function ReviewSection({ options, menu, onStart }: {
   options: PracticeOption[];
   menu: PracticeMenu;
   onStart: (option: PracticeOption) => void;
 }) {
+  const [open, setOpen] = useState(false);
   const grades = [...new Set(options.map((o) => o.grade).filter((g): g is number => !!g))].sort();
   const from = grades.map((g) => GRADE_LABELS[g] ?? `leerjaar ${g}`).join(' en ');
   return (
-    <section aria-labelledby="subject-review">
-      <div className="mb-3 flex items-center gap-3 rounded-2xl border-2 border-white/10 bg-gradient-to-r from-slate-500 to-slate-600 p-3 shadow-lg">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
-          <RotateCcw className="h-5 w-5 text-white" aria-hidden />
+    <section aria-label="Herhalen" className="flex flex-col items-center">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls="review-options"
+        className="flex items-center gap-2 rounded-full border-2 border-[#3b2d71] bg-[#0f0828]/60 px-4 py-2 text-sm font-bold text-[#9d8bce] transition-colors hover:border-violet-400/50 hover:text-white"
+      >
+        <RotateCcw className="h-4 w-4" aria-hidden />
+        Herhalen
+        <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} aria-hidden />
+      </button>
+      {open && (
+        <div id="review-options" className="mt-3 w-full">
+          <p className="mb-3 text-center text-xs font-semibold text-[#9d8bce]">Oefeningen uit het {from}</p>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            {options.map((option, i) => (
+              <OptionCard
+                key={option.exercise_id}
+                option={option}
+                index={i}
+                repeated={isRepeated(option, menu)}
+                wishBonus={menu.wish_bonus}
+                onStart={() => onStart(option)}
+              />
+            ))}
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h2 id="subject-review" className="text-base font-black text-white">Herhalen</h2>
-          <p className="text-xs font-semibold text-white/80">Oefeningen uit het {from}</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-        {options.map((option, i) => (
-          <OptionCard
-            key={option.exercise_id}
-            option={option}
-            index={i}
-            repeated={isRepeated(option, menu)}
-            wishBonus={menu.wish_bonus}
-            onStart={() => onStart(option)}
-          />
-        ))}
-      </div>
+      )}
     </section>
   );
 }

@@ -181,7 +181,7 @@ describe('Practice', () => {
     expect(screen.queryByText('Hier staan nog geen oefeningen')).not.toBeInTheDocument();
   });
 
-  it('shows Herhalen below the subjects and opens the lower grade version', () => {
+  it('keeps Herhalen folded behind a button, and opens the lower grade version', () => {
     menuState = {
       data: makeMenu({
         review: [option({ type_key: '/exercises/dots', title: 'Stippen tellen', subject: 'math', route: '/exercises/dots/3', grade: 1 })],
@@ -191,6 +191,12 @@ describe('Practice', () => {
     };
     renderPractice();
     const review = screen.getByRole('region', { name: 'Herhalen' });
+    const toggle = within(review).getByRole('button', { name: 'Herhalen' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', { name: /Stippen tellen/ })).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(within(review).getByText('Oefeningen uit het 1ste leerjaar')).toBeInTheDocument();
     // Its own tile, not mixed in with the child's grade.
     expect(within(screen.getByRole('region', { name: /Rekenen/ })).queryByRole('button', { name: /Stippen/ })).not.toBeInTheDocument();
