@@ -32,6 +32,8 @@ const minAtMostMax = (minKey: string, maxKey: string, label: string) =>
 
 const STEPS: Choice[] = [1, 2, 5, 10].map((n) => ({ value: n, label: `per ${n}` }));
 
+const TABLES: Choice[] = Array.from({ length: 10 }, (_, i) => ({ value: i + 1, label: `${i + 1}` }));
+
 const DENOMINATIONS: Choice[] = [
   { value: 5000, label: '€50' }, { value: 2000, label: '€20' }, { value: 1000, label: '€10' }, { value: 500, label: '€5' },
   { value: 200, label: '€2' }, { value: 100, label: '€1' }, { value: 50, label: '50c' }, { value: 20, label: '20c' },
@@ -83,6 +85,17 @@ export const CONFIG_FORMS: Record<string, ConfigForm> = {
         { value: 'even-odd', label: 'Even of oneven' }, { value: 'double', label: 'Dubbel' }, { value: 'half', label: 'Helft' },
       ] },
     ],
+  },
+  '/exercises/times-tables': {
+    fields: [
+      { kind: 'multi', key: 'tables', label: 'Tafels om te kiezen', choices: TABLES },
+      { kind: 'multi', key: 'divisionTables', label: 'Ook deeltafels bij', choices: TABLES, optional: true },
+    ],
+    check: (c) => {
+      const tables = c.tables as number[];
+      const extra = ((c.divisionTables as number[] | undefined) ?? []).filter((t) => !tables.includes(t));
+      return extra.length ? `Deeltafels kunnen alleen bij tafels die het kind kan kiezen (niet bij ${extra.join(', ')}).` : null;
+    },
   },
   '/exercises/money': {
     fields: [

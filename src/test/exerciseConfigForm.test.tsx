@@ -33,6 +33,17 @@ describe('validateConfig', () => {
     }
   });
 
+  it('accepts the Tafels configs of the 2de leerjaar', () => {
+    const sql = readFileSync(resolve(__dirname, '../../supabase/migrations/20261013180000_times_tables.sql'), 'utf8');
+    const configs = [...sql.matchAll(/'stage-\d', \d+, '([^']+)'::jsonb/g)].map((m) => JSON.parse(m[1]));
+    expect(configs).toHaveLength(3);
+    for (const config of configs) expect(validateConfig(CONFIG_FORMS['/exercises/times-tables'], config)).toBeNull();
+  });
+
+  it('refuses deeltafels for a table the child cannot pick', () => {
+    expect(validateConfig(CONFIG_FORMS['/exercises/times-tables'], { tables: [2, 5], divisionTables: [3] })).toMatch(/niet bij 3/);
+  });
+
   it('refuses numbers outside what the screen can show', () => {
     const form = CONFIG_FORMS['/exercises/comparison'];
     expect(validateConfig(form, { maxNumber: 100 })).toMatch(/tussen 2 en 99/);

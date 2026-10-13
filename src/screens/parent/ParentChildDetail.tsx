@@ -17,6 +17,7 @@ import {
 import { useChildInsights, type ChildInsight } from '@/hooks/useChildInsights';
 import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
+import { TimesTablesCard } from '@/components/parent/TimesTablesCard';
 
 const SUBJECT_CONFIG: Record<string, { label: string; icon: typeof Calculator; color: string; bg: string }> = {
   math: { label: 'Rekenen', icon: Calculator, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -363,6 +364,8 @@ export function ParentChildDetail() {
           </div>
         )}
       </div>
+
+      <TimesTablesCard childId={child.id} grade={child.grade} />
 
       {/* Trimester Progress */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">

@@ -193,3 +193,19 @@ export interface EvenOddConfig {
 export const DEFAULT_EVEN_ODD: EvenOddConfig = {
   maxNumber: 20, kinds: ['even-odd'],
 };
+
+// ── Times tables (ExerciseTimesTables.tsx) ─────────────────────────────────
+
+export interface TimesTablesConfig {
+  /** Tables the child can pick, e.g. [2, 5, 10]. */
+  tables: number[];
+  /** Tables that also ask divisions (15 : 5). */
+  divisionTables: number[];
+}
+
+export const DEFAULT_TIMES_TABLES: TimesTablesConfig = {
+  tables: [2, 5, 10], divisionTables: [],
+};
+
+/** Runs without a mistake before a table counts as known (sticker). */
+export const TABLE_STICKER_RUNS = 3;

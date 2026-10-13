@@ -4,7 +4,9 @@ import {
   generateEvenOddQuestion,
   generateMathQuestion,
   generateSumSplitQuestion,
+  generateTableRun,
   makeNumberLineSlots,
+  TABLE_RUN_LENGTH,
 } from '@/lib/mathQuestions';
 import type { MathSumsConfig } from '@/data/difficultyConfig';
 
@@ -166,5 +168,37 @@ describe('Even of oneven', () => {
       }
     }
     expect(kinds).toEqual(new Set(['even-odd', 'double', 'half']));
+  });
+});
+
+describe('Tafels', () => {
+  it('a run of the table of 5 asks 10 different facts of that table', () => {
+    for (let i = 0; i < 50; i++) {
+      const run = generateTableRun(5, false);
+      expect(run).toHaveLength(TABLE_RUN_LENGTH);
+      expect(new Set(run.map((q) => q.num1)).size).toBe(10);
+      for (const q of run) {
+        expect(q.operator).toBe('×');
+        expect(q.num2).toBe(5);
+        expect(q.answer).toBe(q.num1 * 5);
+      }
+    }
+  });
+
+  it('with divisions: half × and half :, every division comes out whole', () => {
+    for (let i = 0; i < 50; i++) {
+      const run = generateTableRun(4, true);
+      expect(run).toHaveLength(TABLE_RUN_LENGTH);
+      expect(run.filter((q) => q.operator === '×')).toHaveLength(5);
+      const divisions = run.filter((q) => q.operator === ':');
+      expect(divisions).toHaveLength(5);
+      for (const q of divisions) {
+        expect(q.num2).toBe(4);
+        expect(q.answer * 4).toBe(q.num1);
+        expect(q.answer).toBeGreaterThanOrEqual(1);
+        expect(q.answer).toBeLessThanOrEqual(10);
+      }
+      expect(new Set(run.map((q) => `${q.num1}${q.operator}${q.num2}`)).size).toBe(10);
+    }
   });
 });

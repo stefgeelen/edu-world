@@ -27,6 +27,8 @@ vi.mock('sonner', () => ({
 }));
 
 const useChildInsightsMock = vi.fn();
+// The tables card has its own test (TimesTablesCard.test.tsx).
+vi.mock('@/components/parent/TimesTablesCard', () => ({ TimesTablesCard: () => null }));
 vi.mock('@/hooks/useChildInsights', () => ({
   useChildInsights: (childId: string | undefined) => useChildInsightsMock(childId),
 }));

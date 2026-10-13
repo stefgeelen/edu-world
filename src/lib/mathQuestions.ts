@@ -199,3 +199,40 @@ export function generateEvenOddQuestion(config: EvenOddConfig): EvenOddQuestion 
   const number = randomInt(1, max);
   return { kind: 'even-odd', number, answer: number % 2 === 0 ? 'even' : 'oneven' };
 }
+
+// ── Tafels (ExerciseTimesTables.tsx) ───────────────────────────────────────
+
+export interface TableQuestion {
+  /** "3 × 5" or "15 : 5" (Flemish division sign). */
+  num1: number;
+  operator: '×' | ':';
+  num2: number;
+  answer: number;
+}
+
+/** Questions in one run of a table. */
+export const TABLE_RUN_LENGTH = 10;
+
+function shuffled<T>(items: T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/**
+ * One run of the table of `table`: 1 × n … 10 × n in random order. With
+ * `withDivision` half of the run is divisions (n : n … 10n : n), mixed in.
+ * No fact comes twice.
+ */
+export function generateTableRun(table: number, withDivision: boolean): TableQuestion[] {
+  const ks = Array.from({ length: 10 }, (_, i) => i + 1);
+  const times = ks.map((k): TableQuestion => ({ num1: k, operator: '×', num2: table, answer: k * table }));
+  if (!withDivision) return shuffled(times).slice(0, TABLE_RUN_LENGTH);
+
+  const divisions = ks.map((k): TableQuestion => ({ num1: k * table, operator: ':', num2: table, answer: k }));
+  const half = TABLE_RUN_LENGTH / 2;
+  return shuffled([...shuffled(times).slice(0, half), ...shuffled(divisions).slice(0, half)]);
+}

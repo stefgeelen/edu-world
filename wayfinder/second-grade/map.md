@@ -40,7 +40,7 @@ Kinderen uit het 2de leerjaar kunnen Leapio gebruiken met oefeningen op hun nive
 3. Groep "Herhalen" in de oefenlijst met de oefeningen van het 1ste leerjaar.
 4. Ouder kiest het leerjaar bij het aanmaken en in het ouderportaal; het slot op leerjaar 1 gaat open.
 
-## Stap 1: gebouwd op 2026-10-13
+## Stap 1: gebouwd en live op 2026-10-13
 
 - Rekenregels in `src/lib/mathQuestions.ts` (getest in `src/test/mathQuestionsGrade2.test.ts`). Rekensom heeft `bridge: 'with' | 'without'`, Getallenlijn heeft `steps` en `length`, en Splitsen werkt ook over het tiental (38 + 6).
 - Vergelijken toont getallen boven de 20 als staven van tien en losse blokjes ("5 tientallen en 8 eenheden").
@@ -49,6 +49,15 @@ Kinderen uit het 2de leerjaar kunnen Leapio gebruiken met oefeningen op hun nive
 - De handschriftherkenning (`recognize-digit`) leest nu 0–100 in plaats van 1–10.
 - De oefeningen van leerjaar 2 staan in `supabase/migrations/20261013120000_grade_2_maths.sql`. Dat is één rij per oefening per trimester; Vergelijken heeft er alleen een in trimester 1 en blijft daarna staan.
 - Let op voor stap 3 (Herhalen): de app zoekt een oefening op route + leerjaar van het kind (`useExerciseId`, `useExerciseConfig`). Een oefening van het 1ste leerjaar openen als kind uit het 2de leerjaar vraagt dus dat de app weet welk leerjaar bedoeld is.
+
+## Stap 2: Tafels (gebouwd op 2026-10-13)
+
+- Oefening `/exercises/times-tables` (`ExerciseTimesTables`). Het kind kiest eerst een tafel uit `config.tables`. Daarna volgen 10 vragen in willekeurige volgorde. Bij tafels in `config.divisionTables` is de helft deelsommen ("15 : 5"). Het kind tikt het antwoord in met het cijferklavier.
+- Trimester 1: tafels van 2, 5 en 10. Trimester 2: ook 3 en 4, plus de deeltafels van 2, 5 en 10. Trimester 3: alle tafels en deeltafels tot 10.
+- **Sticker** na 3 beurten zonder fout (`TABLE_STICKER_RUNS`). De beurten staan in `times_table_runs`, geschreven via `record_times_table_run` (niet voor gepauzeerde kinderen) en gelezen via `child_times_tables`. Een game-over wordt niet bewaard.
+- Munten en beloningen lopen gewoon via `complete_exercise`. Twee verschillende tafels op dezelfde dag tellen dus als herhaling van hetzelfde type (8, 8, 4 …).
+- In het ouderportaal toont de kaart "Tafels" per tafel: gekend, hoeveel beurten zonder fout, of nog niet geoefend.
+- Migratie: `supabase/migrations/20261013180000_times_tables.sql`.
 
 ## Nog open
 

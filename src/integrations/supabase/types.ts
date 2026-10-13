@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -726,6 +726,38 @@ export type Database = {
           },
         ]
       }
+      times_table_runs: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          mistakes: number
+          table_number: number
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          mistakes: number
+          table_number: number
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          mistakes?: number
+          table_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "times_table_runs_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trimester_progress: {
         Row: {
           child_id: string
@@ -985,6 +1017,15 @@ export type Database = {
           title: string
         }[]
       }
+      child_times_tables: {
+        Args: { p_child_id: string }
+        Returns: {
+          flawless_runs: number
+          last_run_at: string
+          runs: number
+          table_number: number
+        }[]
+      }
       complete_exercise: {
         Args: {
           p_answers?: Json
@@ -1023,6 +1064,10 @@ export type Database = {
           p_progress_pct: number
           p_reason: string
         }
+        Returns: undefined
+      }
+      record_times_table_run: {
+        Args: { p_child_id: string; p_mistakes: number; p_table_number: number }
         Returns: undefined
       }
       set_active_children: {
