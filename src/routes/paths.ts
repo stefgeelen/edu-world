@@ -68,3 +68,11 @@ export function resetExerciseOrigin() {
     // Nothing to clear.
   }
 }
+
+/**
+ * App URL of an exercise from the practice menu. A Herhalen exercise from a
+ * lower grade carries that grade, so the screen loads that grade's version.
+ */
+export function exerciseUrl(option: { route: string; grade?: number }): string {
+  return option.grade ? `/app${option.route}?leerjaar=${option.grade}` : `/app${option.route}`;
+}

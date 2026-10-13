@@ -19,6 +19,8 @@ export interface PracticeOption {
   next_munten: number;
   /** One of the Buddy's Wishes today. */
   wished: boolean;
+  /** Only on Herhalen options: the lower grade this version belongs to. */
+  grade?: number;
 }
 
 export interface BuddyWish {
@@ -36,6 +38,12 @@ export interface PracticeMenu {
   full_munten: number;
   exercises: PracticeOption[];
   wishes: BuddyWish[];
+  /**
+   * Herhalen: exercises from lower grades, one per type. Pay like any type,
+   * never a Wish, and stay out of the quick starts. Missing before the
+   * 20261013210000 migration.
+   */
+  review?: PracticeOption[];
 }
 
 /**

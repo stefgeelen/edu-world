@@ -15,8 +15,9 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 // useExerciseId now scopes its lookup by the child's grade; mock the child
 // directly so this test doesn't need a real AuthProvider in the tree.
+let childGrade = 1;
 vi.mock('@/hooks/useCompleteExercise', () => ({
-  useCurrentChild: () => ({ data: { grade: 1 } }),
+  useCurrentChild: () => ({ data: { grade: childGrade } }),
 }));
 
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -34,7 +35,10 @@ function wrapperFor(path: string) {
 }
 
 describe('useExerciseId', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    childGrade = 1;
+  });
 
   it('strips the /app prefix before looking up the route', async () => {
     fromMock.mockReturnValue(fakeSupabaseChain({ data: { id: 'ex-42' }, error: null }));
@@ -51,5 +55,41 @@ describe('useExerciseId', () => {
     const { result } = renderHook(() => useExerciseId(), { wrapper: wrapperFor('/app/not-a-real-route') });
 
     await waitFor(() => expect(result.current).toBeUndefined());
+  });
+
+  it("looks up the child's own grade", async () => {
+    childGrade = 2;
+    const chain = fakeSupabaseChain({ data: { id: 'ex-g2' }, error: null });
+    vi.spyOn(chain, 'eq');
+    fromMock.mockReturnValue(chain);
+
+    const { result } = renderHook(() => useExerciseId(), { wrapper: wrapperFor('/app/exercises/math/1') });
+
+    await waitFor(() => expect(result.current).toBe('ex-g2'));
+    expect(chain.eq).toHaveBeenCalledWith('grade', 2);
+  });
+
+  it('looks up the lower grade a Herhalen tile asked for', async () => {
+    childGrade = 2;
+    const chain = fakeSupabaseChain({ data: { id: 'ex-g1' }, error: null });
+    vi.spyOn(chain, 'eq');
+    fromMock.mockReturnValue(chain);
+
+    const { result } = renderHook(() => useExerciseId(), { wrapper: wrapperFor('/app/exercises/dots/3?leerjaar=1') });
+
+    await waitFor(() => expect(result.current).toBe('ex-g1'));
+    expect(chain.eq).toHaveBeenCalledWith('route', '/exercises/dots/3');
+    expect(chain.eq).toHaveBeenCalledWith('grade', 1);
+  });
+
+  it('ignores a leerjaar that is not a grade', async () => {
+    childGrade = 2;
+    const chain = fakeSupabaseChain({ data: { id: 'ex-g2' }, error: null });
+    vi.spyOn(chain, 'eq');
+    fromMock.mockReturnValue(chain);
+
+    renderHook(() => useExerciseId(), { wrapper: wrapperFor('/app/exercises/math/1?leerjaar=abc') });
+
+    await waitFor(() => expect(chain.eq).toHaveBeenCalledWith('grade', 2));
   });
 });

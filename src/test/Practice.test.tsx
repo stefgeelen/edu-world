@@ -181,6 +181,31 @@ describe('Practice', () => {
     expect(screen.queryByText('Hier staan nog geen oefeningen')).not.toBeInTheDocument();
   });
 
+  it('shows Herhalen below the subjects and opens the lower grade version', () => {
+    menuState = {
+      data: makeMenu({
+        review: [option({ type_key: '/exercises/dots', title: 'Stippen tellen', subject: 'math', route: '/exercises/dots/3', grade: 1 })],
+      }),
+      isLoading: false,
+      isError: false,
+    };
+    renderPractice();
+    const review = screen.getByRole('region', { name: 'Herhalen' });
+    expect(within(review).getByText('Oefeningen uit het 1ste leerjaar')).toBeInTheDocument();
+    // Its own tile, not mixed in with the child's grade.
+    expect(within(screen.getByRole('region', { name: /Rekenen/ })).queryByRole('button', { name: /Stippen/ })).not.toBeInTheDocument();
+
+    fireEvent.click(within(review).getByRole('button', { name: /Stippen tellen, 8 Munten/ }));
+    expect(navigateMock).toHaveBeenCalledWith('/app/exercises/dots/3?leerjaar=1');
+    expect(exerciseExitPath()).toBe('/app/oefenen');
+  });
+
+  it('has no Herhalen in the 1ste leerjaar', () => {
+    menuState = { data: makeMenu({ review: [] }), isLoading: false, isError: false };
+    renderPractice();
+    expect(screen.queryByRole('region', { name: 'Herhalen' })).not.toBeInTheDocument();
+  });
+
   it('leads back to the dashboard', () => {
     renderPractice();
     fireEvent.click(screen.getByRole('button', { name: 'Terug naar het dashboard' }));

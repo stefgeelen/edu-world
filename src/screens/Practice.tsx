@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Loader2, Volume2 } from 'lucide-react';
+import { ChevronLeft, Loader2, RotateCcw, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { APP_PATHS, startExerciseFrom } from '@/routes/paths';
+import { APP_PATHS, exerciseUrl, startExerciseFrom } from '@/routes/paths';
+import { GRADE_LABELS } from '@/lib/gradeFromAge';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useBuddy } from '@/hooks/useBuddy';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { firstTimeSpoken } from '@/lib/spokenOnce';
-import { isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
+import { isRepeated, usePracticeMenu, wishOpen, type PracticeMenu, type PracticeOption } from '@/hooks/usePracticeMenu';
 import { practiceGreeting } from '@/lib/buddy/messages';
 import { SUBJECTS } from '@/data/exerciseTypes';
 import { ExerciseTypeIcon } from '@/components/buddy/ExerciseTypeIcon';
@@ -130,7 +131,7 @@ export function Practice() {
                         wishBonus={menu.wish_bonus}
                         onStart={() => {
                           startExerciseFrom(APP_PATHS.practice);
-                          navigate(`/app${option.route}`);
+                          navigate(exerciseUrl(option));
                         }}
                       />
                     ))}
@@ -138,9 +139,55 @@ export function Practice() {
                 </section>
               );
             })}
+
+          {menu?.review && menu.review.length > 0 && (
+            <ReviewSection
+              options={menu.review}
+              menu={menu}
+              onStart={(option) => {
+                startExerciseFrom(APP_PATHS.practice);
+                navigate(exerciseUrl(option));
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+/** Herhalen: the exercises of lower grades, below the child's own subjects. */
+function ReviewSection({ options, menu, onStart }: {
+  options: PracticeOption[];
+  menu: PracticeMenu;
+  onStart: (option: PracticeOption) => void;
+}) {
+  const grades = [...new Set(options.map((o) => o.grade).filter((g): g is number => !!g))].sort();
+  const from = grades.map((g) => GRADE_LABELS[g] ?? `leerjaar ${g}`).join(' en ');
+  return (
+    <section aria-labelledby="subject-review">
+      <div className="mb-3 flex items-center gap-3 rounded-2xl border-2 border-white/10 bg-gradient-to-r from-slate-500 to-slate-600 p-3 shadow-lg">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+          <RotateCcw className="h-5 w-5 text-white" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 id="subject-review" className="text-base font-black text-white">Herhalen</h2>
+          <p className="text-xs font-semibold text-white/80">Oefeningen uit het {from}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        {options.map((option, i) => (
+          <OptionCard
+            key={option.exercise_id}
+            option={option}
+            index={i}
+            repeated={isRepeated(option, menu)}
+            wishBonus={menu.wish_bonus}
+            onStart={() => onStart(option)}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 

@@ -59,6 +59,17 @@ Kinderen uit het 2de leerjaar kunnen Leapio gebruiken met oefeningen op hun nive
 - In het ouderportaal toont de kaart "Tafels" per tafel: gekend, hoeveel beurten zonder fout, of nog niet geoefend.
 - Migratie: `supabase/migrations/20261013180000_times_tables.sql`.
 
+## Stap 3: Herhalen (beslist door Stef, 2026-10-13)
+
+- **Gewone Munten.** Een herhaaloefening uit het 1ste leerjaar betaalt zoals elke oefening (8, 8, 4, 2 … per type per dag).
+- **Een aparte groep "Herhalen" onderaan de oefenlijst**, met alle oefeningen van het 1ste leerjaar.
+
+Gebouwd op 2026-10-13 (`supabase/migrations/20261013210000_review_previous_grade.sql`):
+- `practice_menu` geeft een aparte lijst `review` terug: per type de versie uit het hoogste lagere leerjaar en daarin het hoogste trimester (`_child_review_options`). Wensen en Snel starten blijven bij het eigen leerjaar.
+- Herhaaloefeningen tellen voor de Munten mee met hetzelfde type (bv. sommen uit het 1ste en het 2de leerjaar samen: 8, 8, 4 …).
+- `complete_exercise` telt een herhaaloefening niet mee voor de trimesters en de promotie van het eigen leerjaar.
+- De app opent een herhaaloefening als `/app/exercises/dots/3?leerjaar=1`. `useExerciseGrade` laat `useExerciseId`, `useExerciseConfig` en `useDifficultyLevel` dan de rij van dat leerjaar laden.
+
 ## Nog open
 
 - Tekeningen per groeivorm van de Buddy (later).

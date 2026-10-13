@@ -1,20 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { useExerciseGrade } from '@/hooks/useExerciseGrade';
 
 /**
  * Resolves the database exercise ID from the current route.
  * Maps the app route (e.g. /app/exercise-bonds/1) to the DB route (/exercise-bonds/1).
  *
- * Filters by the child's grade so that once multiple grades share the same
+ * Filters by the exercise's grade (useExerciseGrade) so that once multiple grades share the same
  * `route` string (grade only disambiguates the row), this doesn't start
  * matching more than one exercise and erroring on `.maybeSingle()`.
  */
 export function useExerciseId() {
   const location = useLocation();
-  const { data: child } = useCurrentChild();
-  const grade = child?.grade ?? 1;
+  const grade = useExerciseGrade();
 
   // Strip /app prefix to match DB route format
   const dbRoute = location.pathname.replace(/^\/app/, '');
