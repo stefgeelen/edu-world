@@ -76,7 +76,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] overflow-y-auto pb-32 flex flex-col relative" style={{ fontFamily: "'Nunito', sans-serif" }}>
+    <div className="h-full w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] overflow-y-auto flex flex-col relative" style={{ fontFamily: "'Nunito', sans-serif" }}>
       <StarryBackground />
 
       {FOREST_DECORATIONS.map((el, i) => (
@@ -311,6 +311,10 @@ export function Dashboard() {
         </div>
       </div>
       </div>
+      {/* Room for the tab bar. A spacer, not pb-32: Safari leaves the bottom
+          padding of a flex scroll container out of the scroll height, so content
+          that ends just behind the tab bar could not be scrolled into view. */}
+      <div className="h-32 shrink-0" aria-hidden="true" />
     </div>
   );
 }

@@ -37,7 +37,7 @@ export function Practice() {
   }, [menu, child, greeting, speak]);
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-y-auto bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] pb-32" style={{ fontFamily: "'Nunito', sans-serif" }}>
+    <div className="relative flex h-full w-full flex-col overflow-y-auto bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618]" style={{ fontFamily: "'Nunito', sans-serif" }}>
       <StarryBackground />
 
       <div className="relative z-10 mx-auto w-full max-w-2xl px-4 pt-4 sm:px-5 sm:pt-6 lg:max-w-4xl">
@@ -152,6 +152,10 @@ export function Practice() {
           )}
         </div>
       </div>
+      {/* Room for the tab bar. A spacer, not pb-32: Safari leaves the bottom
+          padding of a flex scroll container out of the scroll height, so content
+          that ends just behind the tab bar could not be scrolled into view. */}
+      <div className="h-32 shrink-0" aria-hidden="true" />
     </div>
   );
 }
