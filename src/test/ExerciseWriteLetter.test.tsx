@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react';
 
 // ExerciseWriteLetter is ExerciseWriteDigit's sibling screen: same canvas
@@ -96,7 +96,7 @@ interface FakeCtx {
   setTransform: (...args: unknown[]) => void;
   setLineDash: (segments: number[]) => void;
   fillText: (text: string, x: number, y: number) => void;
-  getImageData: (...args: unknown[]) => { data: Uint8ClampedArray };
+  getImageData: Mock<(...args: unknown[]) => { data: Uint8ClampedArray }>;
   fillStyle: string;
   strokeStyle: string;
   lineWidth: number;

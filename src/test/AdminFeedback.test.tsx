@@ -52,7 +52,7 @@ const fromMock = vi.fn((table: string) => {
   return fakeSupabaseChain({ data: null, error: null });
 });
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => fromMock(...args) },
+  supabase: { from: (table: string) => fromMock(table) },
 }));
 
 import { AdminFeedback } from '@/screens/admin/AdminFeedback';

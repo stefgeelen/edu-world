@@ -19,8 +19,6 @@ export interface FixQuestion {
   distractors: string[];
 }
 
-type Question = BuildQuestion | FixQuestion;
-
 export const BUILD_SENTENCES_GRADE_1: string[][] = [
   ['de', 'poes', 'slaapt', 'op', 'de', 'mat'],
   ['ik', 'ga', 'naar', 'school'],

@@ -28,10 +28,12 @@ export function queryWrapper(queryClient: QueryClient) {
  * Usage:
  *   const supabase = { from: vi.fn((table) => fakeSupabaseChain(resultsByTable[table])) };
  */
-export function fakeSupabaseChain<T>(result: { data: T; error: unknown } | (() => { data: T; error: unknown })) {
-  const resolve = () => (typeof result === 'function' ? (result as () => { data: T; error: unknown })() : result);
+type FakeResult<T> = { data: T; error: unknown; count?: number | null };
 
-  const chain: Record<string, unknown> = {};
+export function fakeSupabaseChain<T>(result: FakeResult<T> | (() => FakeResult<T>)) {
+  const resolve = () => (typeof result === 'function' ? (result as () => FakeResult<T>)() : result);
+
+  const chain: Record<string, (...args: unknown[]) => unknown> = {};
   const methods = ['select', 'eq', 'order', 'limit', 'gte', 'lte', 'in', 'is', 'neq', 'like', 'insert', 'update', 'delete', 'upsert'];
   for (const m of methods) {
     chain[m] = () => chain;

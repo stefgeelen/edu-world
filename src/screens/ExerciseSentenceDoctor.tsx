@@ -34,6 +34,8 @@ interface BuildQuestion {
   correctOrder: WordItem[];
 }
 
+type Question = BuildQuestion | FixQuestion;
+
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */

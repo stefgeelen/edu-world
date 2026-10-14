@@ -1,0 +1,35 @@
+name: CI
+
+# Checks every change to main before (and while) Vercel deploys it: types,
+# tests and a production build. Tests never talk to the real Supabase: the URL
+# below points at a closed local port, so a stray request fails fast instead.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_SUPABASE_URL: http://127.0.0.1:9
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.app.json
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npm run build

@@ -76,7 +76,7 @@ describe('AdminBetaSignups', () => {
 
   describe('CSV export', () => {
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    const createObjectURLMock = vi.fn(() => 'blob:mock-url');
+    const createObjectURLMock = vi.fn((_blob: Blob) => 'blob:mock-url');
     const revokeObjectURLMock = vi.fn();
 
     beforeEach(() => {
