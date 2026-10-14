@@ -128,6 +128,10 @@ vi.mock('@/lib/confetti', () => ({ triggerConfetti: (...args: unknown[]) => trig
 // ExerciseShell (rendered by every exercise screen) calls useBuddyMessage(),
 // which needs GameProvider — mock it directly rather than wrapping every
 // exercise test in a full game/auth provider tree just to satisfy that call.
+vi.mock('@/context/GameContext', async () => {
+  const { BUDDY_SPECIES } = await import('@/lib/buddy/species');
+  return { useGame: () => ({ buddy: BUDDY_SPECIES.nootje }) };
+});
 vi.mock('@/hooks/useBuddyMessage', () => ({
   useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }),
 }));

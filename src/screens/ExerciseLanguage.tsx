@@ -8,6 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
@@ -166,6 +167,7 @@ export function ExerciseLanguage() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.language]}
       silenceBuddy
     >
       {/* Main Content Area */}

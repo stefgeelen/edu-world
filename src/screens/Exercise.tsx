@@ -5,6 +5,7 @@ import { Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN, sayCalculation } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -87,6 +88,7 @@ export function Exercise() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.math, sayCalculation(question.num1, question.operator, question.num2)]}
     >
       {/* Main Content */}
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-6 md:px-12 lg:px-16 pb-8 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full z-10 relative">

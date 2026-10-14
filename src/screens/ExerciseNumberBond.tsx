@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -105,6 +106,7 @@ export function ExerciseNumberBond() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.bonds, `Maak samen ${question.target}. Je hebt al ${question.known}. Hoeveel moet erbij?`]}
       onClick={() => setIsNumpadOpen(false)}
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">

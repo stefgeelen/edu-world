@@ -110,6 +110,10 @@ vi.mock('@/hooks/useCompleteExercise', () => ({
 }));
 const triggerConfettiMock = vi.fn();
 vi.mock('@/lib/confetti', () => ({ triggerConfetti: (...args: unknown[]) => triggerConfettiMock(...args) }));
+vi.mock('@/context/GameContext', async () => {
+  const { BUDDY_SPECIES } = await import('@/lib/buddy/species');
+  return { useGame: () => ({ buddy: BUDDY_SPECIES.nootje }) };
+});
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 // Force variation 1 (two-number, symbol-choice) so the test doesn't have to
 // branch on which UI variant the RNG happened to produce.

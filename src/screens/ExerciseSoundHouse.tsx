@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
@@ -139,6 +140,7 @@ export function ExerciseSoundHouse() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.soundHouse(current.spoken)]}
       buddyMood={buddyMood}
       silenceBuddy
     >

@@ -9,6 +9,10 @@ import { render, fireEvent } from '@testing-library/react';
 
 const recordMock = vi.fn();
 vi.mock('@/hooks/useRecordIncompleteExercise', () => ({ useRecordIncompleteExercise: () => recordMock }));
+vi.mock('@/context/GameContext', async () => {
+  const { BUDDY_SPECIES } = await import('@/lib/buddy/species');
+  return { useGame: () => ({ buddy: BUDDY_SPECIES.nootje }) };
+});
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null }) }));
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 

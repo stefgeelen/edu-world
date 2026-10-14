@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { explainGeometry } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseModePicker, type ExerciseMode } from '@/components/exercise/ExerciseModePicker';
 import { GeometryFigure } from '@/components/exercise/GeometryFigure';
@@ -117,7 +118,7 @@ export function ExerciseGeometryTerms() {
     status === 'correct' && isSelected ? 'correct' : status === 'incorrect' && isSelected ? 'wrong' : 'idle';
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} explain={explainGeometry(mode, question)}>
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="min-h-full flex flex-col items-center z-10 relative px-4 pb-10">
           <ExercisePrompt className="mb-6">{mode === null ? 'Wat wil je oefenen?' : question?.prompt}</ExercisePrompt>

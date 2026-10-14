@@ -8,6 +8,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { explainComparison } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -302,6 +303,7 @@ export function ExerciseComparison() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={explainComparison(question)}
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}

@@ -14,6 +14,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN, sayEuro } from '@/data/exerciseExplanations';
 import { CheckButton, ClearButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 
 import { useExerciseState } from '@/hooks/useExerciseState';
@@ -291,6 +292,7 @@ export function ExerciseMoney() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.money, `Het kost ${sayEuro(priceCents)}.`]}
     >
       <DndContext
         sensors={sensors}

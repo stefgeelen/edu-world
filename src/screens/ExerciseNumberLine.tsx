@@ -8,6 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { makeNumberLineSlots, type NumberLineSlot } from '@/lib/mathQuestions';
@@ -245,6 +246,7 @@ export function ExerciseNumberLine() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.numberLine]}
     >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col px-4 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">

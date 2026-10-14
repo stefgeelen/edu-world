@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { explainEvenOdd } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -130,7 +131,7 @@ export function ExerciseEvenOdd() {
   };
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} explain={explainEvenOdd(question)}>
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-6 md:px-12 pb-8 max-w-3xl mx-auto w-full z-10 relative">
         <ExercisePrompt>{promptFor(question)}</ExercisePrompt>
 

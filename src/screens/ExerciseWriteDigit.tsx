@@ -8,6 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { exerciseExitPath } from '@/routes/paths';
 
 
@@ -380,6 +381,7 @@ export function ExerciseWriteDigit() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.writeDigit, `Schrijf het cijfer ${currentDigit}.`]}
     >
       {/* ── Info bar ── */}
       <div className="px-4 pt-3 pb-2 max-w-md mx-auto w-full flex-shrink-0 z-10">

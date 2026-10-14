@@ -4,6 +4,7 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Check, X as XIcon, Stethoscope } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -166,7 +167,7 @@ export function ExerciseSentenceDoctor() {
   const isBuild = question.mode === 'build';
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} silenceBuddy>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} explain={[isBuild ? EXPLAIN.sentenceBuild : EXPLAIN.sentenceFix]} silenceBuddy>
       <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-10 w-full max-w-xl mx-auto">
 
         {/* Title */}

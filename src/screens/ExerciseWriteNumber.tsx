@@ -8,6 +8,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
@@ -267,6 +268,7 @@ export function ExerciseWriteNumber() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.writeNumber]}
     >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">

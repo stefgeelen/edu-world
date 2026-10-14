@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseState } from '@/hooks/useExerciseState';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -307,7 +308,7 @@ export function ExerciseClock() {
   }, [status, hourAngle, minuteAngle, task, handleCorrect, handleIncorrect]);
 
   return (
-    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())}>
+    <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} explain={[EXPLAIN.clock, `Zet de klok op ${task.label.replace(/^Het is /, '')}.`]}>
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-6 px-4 pb-6 z-10 max-w-2xl mx-auto w-full">
         <ExercisePrompt className="mb-0">Zet de klok juist!</ExercisePrompt>
 

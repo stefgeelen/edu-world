@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN, sayCalculation } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -182,6 +183,7 @@ export function ExerciseSubtractBox() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.subtractBox, question.mode === 'subtrahend' ? `${question.total} min hoeveel is ${question.result}?` : sayCalculation(question.total, '-', question.subtract)]}
       onClick={() => setIsNumpadOpen(false)}
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">

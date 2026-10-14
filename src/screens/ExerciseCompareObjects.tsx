@@ -7,6 +7,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARE_OBJECTS } from '@/data/difficultyConfig';
@@ -202,6 +203,7 @@ export function ExerciseCompareObjects() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.compareObjects]}
     >
       <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 

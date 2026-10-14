@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Heart, HeartCrack } from 'lucide-react';
 import { BuddyBubble } from '@/components/BuddyBubble';
+import { ExplainButton } from '@/components/exercise/ExplainButton';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useRecordIncompleteExercise } from '@/hooks/useRecordIncompleteExercise';
 import type { BuddyMood, BuddySituation } from '@/data/buddyMessages';
@@ -17,6 +18,11 @@ interface ExerciseShellProps {
   buddyMood?: BuddyMood | null;
   /** Disable TTS for the buddy bubble (e.g. in reading exercises that already speak). */
   silenceBuddy?: boolean;
+  /**
+   * What the Buddy says when the child taps it in the header: the explanation
+   * of the exercise, then the current question (texts: `exerciseExplanations`).
+   */
+  explain?: string[];
 }
 
 const START_LIVES = 3;
@@ -29,7 +35,7 @@ const START_LIVES = 3;
  * portal's Aandachtspunten: losing all hearts, and closing the exercise after
  * answering at least once. Neither pays out Munten, XP or rewards.
  */
-export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false }: ExerciseShellProps) {
+export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false, explain }: ExerciseShellProps) {
   const { getMessage } = useBuddyMessage();
   const recordIncomplete = useRecordIncompleteExercise();
 
@@ -122,6 +128,8 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
               <HeartCrack key={i} className="w-6 h-6 md:w-8 md:h-8 text-[#3b2d71] drop-shadow-md" />
           ))}
         </div>
+
+        {explain && explain.length > 0 && <ExplainButton lines={explain} />}
       </div>
 
       {/* Content */}

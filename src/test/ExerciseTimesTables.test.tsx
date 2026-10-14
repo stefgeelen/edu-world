@@ -24,6 +24,10 @@ vi.mock('@/hooks/useTimesTables', () => ({
   useRecordTimesTableRun: () => ({ mutate: recordMock }),
 }));
 vi.mock('@/lib/confetti', () => ({ triggerConfetti: vi.fn() }));
+vi.mock('@/context/GameContext', async () => {
+  const { BUDDY_SPECIES } = await import('@/lib/buddy/species');
+  return { useGame: () => ({ buddy: BUDDY_SPECIES.nootje }) };
+});
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 
 import { ExerciseTimesTables } from '@/screens/ExerciseTimesTables';

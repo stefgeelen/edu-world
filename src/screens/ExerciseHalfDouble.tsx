@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { explainHalfDouble } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { ExerciseModePicker, type ExerciseMode } from '@/components/exercise/ExerciseModePicker';
@@ -118,6 +119,7 @@ export function ExerciseHalfDouble() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={explainHalfDouble(mode, question, thing.plural)}
       onClick={() => mode !== null && setIsNumpadOpen(false)}
     >
       <div className="flex-1 min-h-0 overflow-y-auto">

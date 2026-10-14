@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { explainSplitBox } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -203,6 +204,7 @@ export function ExerciseSplitBox() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={explainSplitBox(question)}
       onClick={() => setIsNumpadOpen(false)}
     >
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">

@@ -35,6 +35,10 @@ vi.mock('@/hooks/useCompleteExercise', () => ({
 }));
 const triggerConfettiMock = vi.fn();
 vi.mock('@/lib/confetti', () => ({ triggerConfetti: (...args: unknown[]) => triggerConfettiMock(...args) }));
+vi.mock('@/context/GameContext', async () => {
+  const { BUDDY_SPECIES } = await import('@/lib/buddy/species');
+  return { useGame: () => ({ buddy: BUDDY_SPECIES.nootje }) };
+});
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 // speak() is chained with .finally() in the auto-play effect and playWord(),
 // so the mock must resolve to a real promise, not undefined.

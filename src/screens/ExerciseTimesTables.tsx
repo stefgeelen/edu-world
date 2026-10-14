@@ -5,6 +5,7 @@ import { Sparkles, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN, sayCalculation } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useCompleteExercise, useCurrentChild } from '@/hooks/useCompleteExercise';
@@ -161,6 +162,7 @@ export function ExerciseTimesTables() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={table === null || !question ? [EXPLAIN.tablesPick] : [EXPLAIN.tables, sayCalculation(question.num1, question.operator, question.num2)]}
       onClick={() => table !== null && setIsNumpadOpen(false)}
     >
       <div className="flex-1 min-h-0 overflow-y-auto">

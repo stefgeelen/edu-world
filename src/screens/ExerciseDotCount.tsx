@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { CheckButton, ClearButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_DOT_COUNT } from '@/data/difficultyConfig';
@@ -117,6 +118,7 @@ export function ExerciseDotCount() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.dots, `Zet ${target} ${target === 1 ? 'stip' : 'stippen'}.`]}
     >
       {/* ── Scrollable content ── */}
       <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
@@ -191,6 +192,7 @@ export function ExercisePictureWord() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
+      explain={[EXPLAIN.pictureWord]}
       buddyMood={buddyMood}
       silenceBuddy
     >

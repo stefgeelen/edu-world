@@ -71,8 +71,15 @@ async function audioUrlFor(text: string): Promise<string> {
   return url;
 }
 
+/**
+ * Bumped by every new utterance and by `stopSpeaking`, so a running
+ * `speakLines` sees that it was cut off and doesn't start its next line.
+ */
+let sequence = 0;
+
 export async function speakText(text: string): Promise<void> {
   if (!text) return;
+  sequence += 1;
 
   try {
     const url = await audioUrlFor(text);
@@ -88,9 +95,65 @@ export async function speakText(text: string): Promise<void> {
   }
 }
 
+/** Plays one clip and resolves when it ends, or when it is stopped. */
+async function playToEnd(url: string): Promise<void> {
+  currentAudio?.pause();
+  const audio = new Audio(url);
+  currentAudio = audio;
+  await new Promise<void>((resolve) => {
+    audio.onended = () => resolve();
+    audio.onpause = () => resolve();
+    audio.onerror = () => resolve();
+    audio.play().catch(() => resolve());
+  });
+}
+
+function browserSpeakToEnd(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    const synth = window.speechSynthesis;
+    if (!synth) return resolve();
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'nl-NL';
+    utterance.rate = 0.75;
+    const voices = voicesCache.length > 0 ? voicesCache : synth.getVoices();
+    const dutch = voices.find((v) => v.lang === 'nl-NL') ?? voices.find((v) => v.lang.startsWith('nl'));
+    if (dutch) utterance.voice = dutch;
+    utterance.onend = () => resolve();
+    utterance.onerror = () => resolve();
+    synth.speak(utterance);
+  });
+}
+
+/**
+ * Says the lines one after the other and resolves when the last one has
+ * finished, or as soon as something else speaks or `stopSpeaking` is called.
+ * All lines are fetched at once, so there is no pause between them.
+ */
+export async function speakLines(lines: string[]): Promise<void> {
+  const id = ++sequence;
+  const said = lines.filter(Boolean);
+  const urls = said.map((line) => audioUrlFor(line).catch(() => null));
+  for (let i = 0; i < said.length; i++) {
+    const url = await urls[i];
+    if (id !== sequence) return;
+    if (url) await playToEnd(url);
+    else await browserSpeakToEnd(said[i]);
+    if (id !== sequence) return;
+  }
+}
+
+/** Stops whatever is being said right now. */
+export function stopSpeaking() {
+  sequence += 1;
+  currentAudio?.pause();
+  if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
+}
+
 export function useSpeech() {
   useEffect(() => {
     const synth = window.speechSynthesis;
+    if (!synth) return;
     const load = () => {
       const v = synth.getVoices();
       if (v.length > 0) voicesCache = v;
@@ -102,5 +165,5 @@ export function useSpeech() {
 
   const speak = useCallback((text: string) => speakText(text), []);
 
-  return { speak };
+  return { speak, speakLines, stopSpeaking };
 }

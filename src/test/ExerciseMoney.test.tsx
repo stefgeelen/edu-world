@@ -103,6 +103,10 @@ vi.mock('@/hooks/useCompleteExercise', () => ({
 }));
 const triggerConfettiMock = vi.fn();
 vi.mock('@/lib/confetti', () => ({ triggerConfetti: (...args: unknown[]) => triggerConfettiMock(...args) }));
+vi.mock('@/context/GameContext', async () => {
+  const { BUDDY_SPECIES } = await import('@/lib/buddy/species');
+  return { useGame: () => ({ buddy: BUDDY_SPECIES.nootje }) };
+});
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 // Deterministic product pick (min=0 -> "Appel") and price factor (min=1 -> 3),
 // so with the '1-1' config (denominations [1000,500,200,100,50], smallest 50)
