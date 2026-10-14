@@ -62,7 +62,7 @@ describe('what the Buddy says in an exercise', () => {
       'Tik het hoekpunt aan.',
     ]);
     expect(explainGeometry('lines', { prompt: 'Tik de gebogen lijn aan.', format: 'pick' })).toEqual([
-      EXPLAIN.geometryPick,
+      EXPLAIN.geometryChoose,
       'Tik de gebogen lijn aan.',
     ]);
   });

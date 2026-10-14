@@ -44,7 +44,7 @@ export const EXPLAIN = {
   tables: 'Reken de keersom uit en typ het antwoord. Maak je geen fout? Dan verdien je een sticker voor die tafel.',
   geometryPick: 'Wat wil je oefenen? Tik erop.',
   geometryName: 'Kijk goed naar de tekening. Hoe heet wat je ziet? Tik op het juiste woord.',
-  geometryPick: 'Kijk goed naar de tekeningen. Welke past bij de vraag? Tik erop.',
+  geometryChoose: 'Kijk goed naar de tekeningen. Welke past bij de vraag? Tik erop.',
   geometryTap: 'Kijk goed naar de hoek. Tik in de tekening op het stuk dat ik vraag.',
   language: 'Tik op de luidspreker en luister naar het woord. Zoek dat woord en tik erop.',
   pictureWord: 'Tik op de luidspreker en luister. Sleep het juiste woord naar de prent.',
@@ -137,5 +137,5 @@ function sayChoices(options: string[]): string {
 export function explainGeometry(mode: string | null, q: { prompt: string; format: string; options?: string[] } | undefined): string[] {
   if (mode === null || !q) return [EXPLAIN.geometryPick];
   if (q.format === 'name' && q.options) return [EXPLAIN.geometryName, `${q.prompt} ${sayChoices(q.options)}?`];
-  return [q.format === 'tap' ? EXPLAIN.geometryTap : EXPLAIN.geometryPick, q.prompt];
+  return [q.format === 'tap' ? EXPLAIN.geometryTap : EXPLAIN.geometryChoose, q.prompt];
 }
