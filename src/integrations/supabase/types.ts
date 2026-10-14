@@ -331,7 +331,9 @@ export type Database = {
         Row: {
           answers: Json | null
           child_id: string
+          client_attempt_id: string | null
           completed_at: string
+          completion_result: Json | null
           exercise_id: string
           id: string
           max_score: number
@@ -342,7 +344,9 @@ export type Database = {
         Insert: {
           answers?: Json | null
           child_id: string
+          client_attempt_id?: string | null
           completed_at?: string
+          completion_result?: Json | null
           exercise_id: string
           id?: string
           max_score?: number
@@ -353,7 +357,9 @@ export type Database = {
         Update: {
           answers?: Json | null
           child_id?: string
+          client_attempt_id?: string | null
           completed_at?: string
+          completion_result?: Json | null
           exercise_id?: string
           id?: string
           max_score?: number
@@ -907,6 +913,18 @@ export type Database = {
           type_key: string
         }[]
       }
+      _complete_exercise_core: {
+        Args: {
+          p_answers?: Json
+          p_child_id: string
+          p_exercise_id: string
+          p_max_score: number
+          p_score: number
+          p_stars: number
+          p_time_spent: number
+        }
+        Returns: Json
+      }
       _practice_day_start: { Args: never; Returns: string }
       admin_engagement_stats: { Args: never; Returns: Json }
       admin_set_subscription: {
@@ -1048,6 +1066,7 @@ export type Database = {
         Args: {
           p_answers?: Json
           p_child_id: string
+          p_client_attempt_id?: string
           p_exercise_id: string
           p_max_score: number
           p_score: number

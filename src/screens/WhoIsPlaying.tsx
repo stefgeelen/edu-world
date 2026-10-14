@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { Ornaments, StarryBackground } from '@/components/dashboard/Vitrine';
 import { VITRINE } from '@/components/dashboard/vitrineStyles';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { LoadError } from '@/components/LoadError';
+import { loadFailed } from '@/lib/queryStatus';
 import { APP_PATHS } from '@/routes/paths';
 
 /**
@@ -21,10 +23,12 @@ export function WhoIsPlaying() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const playingChildId = usePlayingChildId(user?.id);
-  const { data: players, isLoading } = usePlayers();
+  const playersQuery = usePlayers();
+  const { data: players } = playersQuery;
 
-  if (isLoading) return <LoadingSpinner />;
-  if (!players || players.length === 0) return <Navigate to={APP_PATHS.start} replace />;
+  if (loadFailed(playersQuery)) return <LoadError onRetry={() => void playersQuery.refetch()} />;
+  if (players === undefined) return <LoadingSpinner />;
+  if (players.length === 0) return <Navigate to={APP_PATHS.start} replace />;
 
   const play = (player: Player) => {
     if (player.paused || !user) return;

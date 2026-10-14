@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUser, UPSTREAM_TIMEOUT_MS } from "../_shared/requireUser.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// The longest line the app speaks is about 220 characters. ElevenLabs bills per
+// character, so a cap keeps one request from costing more than a sentence.
+const MAX_TEXT_LENGTH = 500;
 
 // Voice + model are read from environment variables so you can swap the voice
 // (paste the ID straight from your ElevenLabs dashboard) without redeploying
@@ -33,11 +38,24 @@ serve(async (req) => {
   }
 
   try {
+    if (!(await requireUser(req))) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { text } = await req.json();
 
     if (!text || typeof text !== "string") {
       return new Response(JSON.stringify({ error: "Missing text" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (text.length > MAX_TEXT_LENGTH) {
+      return new Response(JSON.stringify({ error: "Text too long" }), {
+        status: 413,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -54,6 +72,7 @@ serve(async (req) => {
       `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
       {
         method: "POST",
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
         headers: {
           "xi-api-key": apiKey,
           "Content-Type": "application/json",
@@ -76,17 +95,11 @@ serve(async (req) => {
     if (!response.ok) {
       const errText = await response.text();
       console.error("ElevenLabs TTS error:", response.status, errText);
-      // Return the real ElevenLabs message (not just the status) so plan/voice
-      // problems are visible during testing instead of being hidden behind the
-      // client's silent browser-TTS fallback. E.g. a 401 "voice not found" here
-      // means the configured voice isn't available on the current plan.
+      // The full ElevenLabs message (e.g. a 401 "voice not found" when the
+      // voice isn't on the current plan) is in the function log above; the
+      // caller only gets the status.
       return new Response(
-        JSON.stringify({
-          error: `ElevenLabs TTS returned ${response.status}`,
-          details: errText,
-          voiceId: VOICE_ID,
-          modelId: MODEL_ID,
-        }),
+        JSON.stringify({ error: `ElevenLabs TTS returned ${response.status}` }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -107,7 +120,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in synthesize-speech:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Speech failed" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

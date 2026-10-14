@@ -1,9 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUser, UPSTREAM_TIMEOUT_MS } from "../_shared/requireUser.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// A child's drawing is a few tens of KB; anything far bigger is not from the app.
+const MAX_IMAGE_BASE64_LENGTH = 2_000_000;
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,17 +21,20 @@ serve(async (req) => {
   }
 
   try {
+    if (!(await requireUser(req))) return json({ error: "Unauthorized" }, 401);
+
     const { imageBase64, target } = await req.json();
 
-    if (!imageBase64 || target === undefined) {
-      return new Response(JSON.stringify({ error: "Missing imageBase64 or target" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (typeof imageBase64 !== "string" || !imageBase64 || typeof target !== "number") {
+      return json({ error: "Missing imageBase64 or target" }, 400);
+    }
+    if (imageBase64.length > MAX_IMAGE_BASE64_LENGTH) {
+      return json({ error: "Image too large" }, 413);
     }
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       headers: {
         "Content-Type": "application/json",
         "x-api-key": Deno.env.get("ANTHROPIC_API_KEY") ?? "",
@@ -89,9 +102,6 @@ Rules:
     );
   } catch (error) {
     console.error("Error in recognize-digit:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ error: "Recognition failed" }, 500);
   }
 });

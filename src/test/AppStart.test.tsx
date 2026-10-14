@@ -10,11 +10,16 @@ import { schoolYear } from '@/lib/buddy/species';
 let playersFixture: Player[] = [];
 vi.mock('@/hooks/usePlayers', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/hooks/usePlayers')>();
-  return { ...actual, usePlayers: () => ({ data: playersFixture, isLoading: false }) };
+  return { ...actual, usePlayers: () => ({ data: playersFixture, isLoading: false, refetch: vi.fn() }) };
 });
 
-let childFixture: { id: string } | null = null;
-vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: childFixture, isLoading: false }) }));
+let childFixture: { id: string } | null | undefined = null;
+// Extra query state for the failure cases (error, paused while offline).
+let childQueryState: Record<string, unknown> = {};
+const refetchChild = vi.fn();
+vi.mock('@/hooks/useCompleteExercise', () => ({
+  useCurrentChild: () => ({ data: childFixture, isLoading: false, refetch: refetchChild, ...childQueryState }),
+}));
 
 let buddyFixture: { species_school_year: number | null } | undefined;
 vi.mock('@/hooks/useBuddy', () => ({ useBuddyRow: () => ({ data: buddyFixture, isError: false }) }));
@@ -45,6 +50,25 @@ describe('AppStart', () => {
     playersFixture = [player('child-1')];
     childFixture = { id: 'child-1' };
     buddyFixture = { species_school_year: schoolYear(new Date()) };
+    childQueryState = {};
+  });
+
+  it('offers a retry instead of "kind toevoegen" when the child could not be loaded', () => {
+    childFixture = undefined;
+    childQueryState = { isError: true, fetchStatus: 'idle' };
+    renderStart();
+    expect(screen.queryByText('add-child')).not.toBeInTheDocument();
+    screen.getByRole('button', { name: 'Opnieuw proberen' }).click();
+    expect(refetchChild).toHaveBeenCalled();
+  });
+
+  it('offers a retry instead of "kind toevoegen" while offline', () => {
+    // Offline React Query pauses the request: not loading, no error, no data.
+    childFixture = undefined;
+    childQueryState = { isError: false, fetchStatus: 'paused' };
+    renderStart();
+    expect(screen.queryByText('add-child')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Opnieuw proberen' })).toBeInTheDocument();
   });
 
   it('sends a parent without children to add one', () => {

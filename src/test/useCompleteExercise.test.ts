@@ -34,8 +34,12 @@ vi.mock('@/context/CelebrationContext', () => ({
 }));
 
 const buddyCheer = vi.fn();
+const buddyOops = vi.fn();
 vi.mock('@/components/feedback/BuddyToast', () => ({
-  buddyToast: { cheer: (...args: unknown[]) => buddyCheer(...args), oops: vi.fn() },
+  buddyToast: {
+    cheer: (...args: unknown[]) => buddyCheer(...args),
+    oops: (...args: unknown[]) => buddyOops(...args),
+  },
 }));
 
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
@@ -111,15 +115,49 @@ describe('useCompleteExercise', () => {
     expect(rpcMock).not.toHaveBeenCalled();
   });
 
-  it('propagates a Supabase RPC error instead of swallowing it', async () => {
-    rpcMock.mockResolvedValue({ data: null, error: new Error('rpc failed') });
+  it('propagates a Supabase RPC error instead of swallowing it, and tells the child', async () => {
+    // A database error carries a code: retrying would fail the same way.
+    const dbError = { message: 'rpc failed', code: 'P0001' };
+    rpcMock.mockResolvedValue({ data: null, error: dbError });
 
     const { result } = renderHook(() => useCompleteExercise(), { wrapper: makeWrapper(queryClient) });
     await waitForChildQuery(queryClient);
     result.current.mutate({ exerciseId: 'ex-1', score: 1, maxScore: 1, stars: 1, timeSpent: 1 });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(result.current.error).toEqual(new Error('rpc failed'));
+    expect(result.current.error).toEqual(dbError);
+    expect(rpcMock).toHaveBeenCalledTimes(1);
+    expect(buddyOops).toHaveBeenCalledWith(expect.stringContaining('niet bewaard'));
+  });
+
+  it('retries a call that never reached the database, with the same attempt id', async () => {
+    rpcMock
+      .mockResolvedValueOnce({ data: null, error: { message: 'Failed to fetch', code: '' } })
+      .mockResolvedValueOnce({ data: { attempt_id: 'a1', completed_rewards: [] }, error: null });
+
+    const { result } = renderHook(() => useCompleteExercise(), { wrapper: makeWrapper(queryClient) });
+    await waitForChildQuery(queryClient);
+    result.current.mutate({ exerciseId: 'ex-1', score: 1, maxScore: 1, stars: 1, timeSpent: 1 });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true), { timeout: 3000 });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    const ids = rpcMock.mock.calls.map(([, args]) => (args as { p_client_attempt_id: string }).p_client_attempt_id);
+    expect(ids[0]).toEqual(expect.any(String));
+    expect(ids[1]).toBe(ids[0]);
+  });
+
+  it('completes a run only once, however often the screen calls it', async () => {
+    rpcMock.mockResolvedValue({ data: { attempt_id: 'a1', completed_rewards: [] }, error: null });
+
+    const { result } = renderHook(() => useCompleteExercise(), { wrapper: makeWrapper(queryClient) });
+    await waitForChildQuery(queryClient);
+    const params = { exerciseId: 'ex-1', score: 5, maxScore: 5, stars: 3, timeSpent: 20 };
+    result.current.mutate(params);
+    result.current.mutate(params);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    result.current.mutate(params);
+
+    expect(rpcMock).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates every progress-related query key on success', async () => {

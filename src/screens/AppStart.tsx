@@ -6,6 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { usePlayingChildId } from '@/lib/playingChild';
 import { buddyChoiceMode } from '@/lib/buddy/species';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { LoadError } from '@/components/LoadError';
+import { loadFailed } from '@/lib/queryStatus';
 import { APP_PATHS } from '@/routes/paths';
 
 /**
@@ -18,11 +20,25 @@ import { APP_PATHS } from '@/routes/paths';
 export function AppStart() {
   const { user } = useAuth();
   const playingChildId = usePlayingChildId(user?.id);
-  const { data: players, isLoading: playersLoading } = usePlayers();
-  const { data: child, isLoading } = useCurrentChild();
+  const playersQuery = usePlayers();
+  const childQuery = useCurrentChild();
+  const { data: players } = playersQuery;
+  const { data: child } = childQuery;
   const { data: buddyRow, isError: buddyError } = useBuddyRow();
 
-  if (isLoading || playersLoading) return <LoadingSpinner />;
+  // Not `isLoading`: offline that is false with no data, and "no data" here
+  // used to mean "no child" — a known family landed on "kind toevoegen".
+  if (loadFailed(playersQuery) || loadFailed(childQuery)) {
+    return (
+      <LoadError
+        onRetry={() => {
+          void playersQuery.refetch();
+          void childQuery.refetch();
+        }}
+      />
+    );
+  }
+  if (players === undefined || child === undefined) return <LoadingSpinner />;
   if (players && needsPlayerPick(players, playingChildId)) {
     return <Navigate to={APP_PATHS.whoIsPlaying} replace />;
   }

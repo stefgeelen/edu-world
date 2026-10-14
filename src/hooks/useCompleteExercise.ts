@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -76,16 +77,34 @@ interface CompleteExerciseResult extends Payout {
 }
 
 /**
+ * A failed call is retried only when it never reached the database (offline,
+ * dropped connection). A database error has a code and would fail again.
+ */
+function isRetryable(failureCount: number, error: unknown): boolean {
+  if (failureCount >= 3) return false;
+  const code = (error as { code?: unknown })?.code;
+  const message = (error as { message?: unknown })?.message;
+  return !(typeof code === 'string' && code !== '') && message !== 'No child found';
+}
+
+/**
  * Mutation that calls the complete_exercise database function.
  * Invalidates what an exercise changes (payouts, Munten, rewards, badges) and
  * lets the Buddy react to what it earned.
+ *
+ * One exercise screen is one run, so `mutate` only goes through once per
+ * mount: a double tap on the last answer can't pay twice. Every call of a run
+ * carries the same `p_client_attempt_id`, so a retry after a dropped
+ * connection is not paid twice by the server either.
  */
 export function useCompleteExercise() {
   const queryClient = useQueryClient();
   const { data: child } = useCurrentChild();
   const { celebrateRewards } = useCelebration();
+  const attemptId = useRef<string>(crypto.randomUUID());
+  const sent = useRef(false);
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (params: CompleteExerciseParams) => {
       if (!child?.id) throw new Error('No child found');
 
@@ -97,10 +116,15 @@ export function useCompleteExercise() {
         p_stars: params.stars,
         p_time_spent: params.timeSpent,
         p_answers: JSON.stringify(params.answers ?? []),
+        p_client_attempt_id: attemptId.current,
       });
 
       if (error) throw error;
       return data as unknown as CompleteExerciseResult;
+    },
+    retry: isRetryable,
+    onError: () => {
+      buddyToast.oops('Oei, je Munten zijn niet bewaard. Probeer de oefening straks nog eens.');
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['practice-menu'] });
@@ -120,5 +144,14 @@ export function useCompleteExercise() {
       if (line) buddyToast.cheer(line, { duration: 4000 });
     },
   });
+
+  const { mutate: rawMutate } = mutation;
+  const mutate = useCallback<typeof rawMutate>((...args) => {
+    if (sent.current) return;
+    sent.current = true;
+    rawMutate(...args);
+  }, [rawMutate]);
+
+  return { ...mutation, mutate };
 }
 
