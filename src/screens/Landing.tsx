@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Bath, BookOpen, Check, Coins, Gamepad2, Heart, LockKeyhole,
-  ShoppingBag, Sparkles, Sprout, Star, Utensils, Volume2, Zap,
+  ArrowRight, Bath, BookOpen, Check, Coins, Gamepad2, Hand, Heart, LockKeyhole,
+  MessageCircle, ShoppingBag, Sparkles, Sprout, Star, Utensils, Volume2, X, Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { SEO } from '@/components/SEO';
@@ -46,6 +46,24 @@ const LOOP: { title: string; description: string; icon: LucideIcon }[] = [
   { title: 'Oefenen', description: 'Kies zelf uit 18 oefentypes voor rekenen, lezen en schrijven.', icon: BookOpen },
   { title: 'Munten verdienen', description: 'Elke afgeronde oefening telt. Afwisseling en de wens van je Buddy leveren extra op.', icon: Sparkles },
   { title: 'Verzorgen', description: 'Voer, speel, was en laat je Buddy slapen. Morgen wacht hij weer op je.', icon: Heart },
+];
+
+const EXPLAIN_POINTS: { title: string; description: string; icon: LucideIcon }[] = [
+  {
+    title: 'Uitleg bij elke oefening',
+    description: 'Eén tik op de Buddy en die vertelt in kindertaal wat de bedoeling is.',
+    icon: MessageCircle,
+  },
+  {
+    title: 'Rekenvragen voorgelezen',
+    description: 'Ook wie nog niet vlot leest, kan rekenen. In de leesoefeningen leest je kind wel zelf.',
+    icon: Volume2,
+  },
+  {
+    title: 'Alleen als je kind erom vraagt',
+    description: 'De Buddy praat pas na een tik. Wie het al snapt, oefent ongestoord verder.',
+    icon: Hand,
+  },
 ];
 
 const PARENT_POINTS = [
@@ -101,6 +119,7 @@ export function Landing() {
           <div className="hidden items-center gap-8 text-sm font-semibold text-lp-cream/80 md:flex">
             <a href="#zo-werkt-het" className="transition-colors hover:text-lp-gold">Zo werkt het</a>
             <a href="#buddies" className="transition-colors hover:text-lp-gold">De Buddy’s</a>
+            <a href="#zelfstandig" className="transition-colors hover:text-lp-gold">Zelfstandig oefenen</a>
             <a href="#voor-ouders" className="transition-colors hover:text-lp-gold">Voor ouders</a>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -151,7 +170,7 @@ export function Landing() {
             </div>
             <div className="absolute right-0 top-2 rounded-2xl bg-lp-cream p-3 text-lp-night shadow-xl sm:right-8 sm:top-14 sm:p-4">
               <p className="text-sm font-bold">“Zullen we samen oefenen?”</p>
-              <p className="mt-1 text-xs text-lp-night/60">Nootje praat en moedigt aan</p>
+              <p className="mt-1 text-xs text-lp-night/60">Nootje legt uit en moedigt aan</p>
             </div>
           </div>
         </div>
@@ -324,6 +343,81 @@ export function Landing() {
                 <p className="mt-3 leading-relaxed text-lp-cream/65">{description}</p>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───── ZELFSTANDIG OEFENEN ───── */}
+      <section id="zelfstandig" className="relative bg-lp-night px-5 py-20 text-lp-cream sm:px-8 lg:py-28">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20">
+          <div>
+            <p className="font-bold uppercase text-lp-gold">Zelfstandig oefenen</p>
+            <h2 className="mt-3 text-4xl font-extrabold sm:text-6xl">Vastgelopen? De Buddy legt het uit.</h2>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-lp-cream/70">
+              Je kind hoeft niet te wachten tot jij tijd hebt. De Buddy zit bij elke oefening klaar om te vertellen wat de bedoeling is. Zo oefent je kind helemaal alleen, en hoef jij er niet naast te zitten.
+            </p>
+            <ul className="mt-9 space-y-6">
+              {EXPLAIN_POINTS.map(({ title, description, icon: Icon }) => (
+                <li key={title} className="flex gap-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-lp-gold text-lp-night">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="font-lp-display text-xl font-bold">{title}</p>
+                    <p className="mt-1 leading-relaxed text-lp-cream/60">{description}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div aria-hidden="true">
+            {/* Een nagebouwd oefenscherm waarin de Buddy uitleg geeft, puur ter illustratie. */}
+            <div className="mx-auto max-w-md rounded-[2.2rem] border-[5px] border-lp-night-soft bg-lp-panel p-2 shadow-[12px_14px_0_hsl(var(--lp-gold))] sm:p-3">
+              <div className="overflow-hidden rounded-[1.65rem] bg-lp-night">
+                <div className="flex items-center justify-between gap-3 border-b-2 border-lp-night-soft bg-lp-panel px-4 py-3">
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-lp-night-soft text-lp-cream/70">
+                    <X className="h-4 w-4" />
+                  </span>
+                  <div className="flex gap-1 text-lp-coral">
+                    {[0, 1, 2].map((i) => <Heart key={i} className="h-5 w-5 fill-current" />)}
+                  </div>
+                  <span className="relative grid h-12 w-12 place-items-center rounded-full bg-lp-gold/25 ring-4 ring-lp-gold motion-safe:animate-pulse">
+                    <img src={vosje} alt="" loading="lazy" className="h-11 w-11 object-contain" />
+                  </span>
+                </div>
+
+                <div className="relative px-5 pb-6 pt-5">
+                  <div className="relative ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-lp-cream px-4 py-3 text-lp-night shadow-lg">
+                    <p className="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase text-lp-coral">
+                      <Volume2 className="h-3.5 w-3.5" /> Vosje legt uit
+                    </p>
+                    <p className="mt-1 text-sm font-bold leading-snug">
+                      “Reken de som uit. Tik dan op het juiste antwoord. Hoeveel is 7 plus 5?”
+                    </p>
+                  </div>
+
+                  <p className="mt-6 text-center text-sm font-semibold text-lp-cream/60">Reken uit</p>
+                  <p className="mt-2 text-center font-lp-display text-6xl font-extrabold">7 + 5</p>
+
+                  <div className="mt-7 grid grid-cols-2 gap-3">
+                    {[11, 12, 13, 15].map((n) => (
+                      <div
+                        key={n}
+                        className={cn(
+                          'grid h-16 place-items-center rounded-2xl border-2 font-lp-display text-2xl font-extrabold',
+                          n === 12
+                            ? 'border-lp-teal bg-lp-teal/20 text-lp-teal'
+                            : 'border-lp-night-soft bg-lp-panel text-lp-cream',
+                        )}
+                      >
+                        {n}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
