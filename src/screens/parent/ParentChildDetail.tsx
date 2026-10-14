@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   ChevronLeft, GraduationCap, Zap, Flame, Calculator, BookOpen, PenTool,
-  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock, Heart,
+  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock, Heart, Triangle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -23,6 +23,7 @@ const SUBJECT_CONFIG: Record<string, { label: string; icon: typeof Calculator; c
   math: { label: 'Rekenen', icon: Calculator, color: 'text-blue-600', bg: 'bg-blue-50' },
   reading: { label: 'Lezen', icon: BookOpen, color: 'text-violet-600', bg: 'bg-violet-50' },
   writing: { label: 'Schrijven', icon: PenTool, color: 'text-orange-600', bg: 'bg-orange-50' },
+  geometry: { label: 'Meetkunde', icon: Triangle, color: 'text-pink-600', bg: 'bg-pink-50' },
 };
 
 function formatTime(seconds: number): string {

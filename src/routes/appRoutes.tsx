@@ -29,6 +29,7 @@ const ExercisePictureWord = lazy(() => import('@/screens/ExercisePictureWord').t
 const ExerciseWriteLetter = lazy(() => import('@/screens/ExerciseWriteLetter').then(m => ({ default: m.ExerciseWriteLetter })));
 const ExerciseSumSplit = lazy(() => import('@/screens/ExerciseSumSplit').then(m => ({ default: m.ExerciseSumSplit })));
 const ExerciseEvenOdd = lazy(() => import('@/screens/ExerciseEvenOdd').then(m => ({ default: m.ExerciseEvenOdd })));
+const ExerciseGeometryTerms = lazy(() => import('@/screens/ExerciseGeometryTerms').then(m => ({ default: m.ExerciseGeometryTerms })));
 const ExerciseHalfDouble = lazy(() => import('@/screens/ExerciseHalfDouble').then(m => ({ default: m.ExerciseHalfDouble })));
 const ExerciseTimesTables = lazy(() => import('@/screens/ExerciseTimesTables').then(m => ({ default: m.ExerciseTimesTables })));
 const Dashboard = lazy(() => import('@/screens/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -82,6 +83,7 @@ export const appRoutes = (
     <Route path="exercises/even-odd/:id" element={<S><ExerciseEvenOdd /></S>} />
     <Route path="exercises/half-double/:id" element={<S><ExerciseHalfDouble /></S>} />
     <Route path="exercises/times-tables/:id" element={<S><ExerciseTimesTables /></S>} />
+    <Route path="exercises/geometry-terms/:id" element={<S><ExerciseGeometryTerms /></S>} />
     <Route path="badges" element={<S><BadgeOverview /></S>} />
     <Route path="badges/:id" element={<S><BadgeDetail /></S>} />
 

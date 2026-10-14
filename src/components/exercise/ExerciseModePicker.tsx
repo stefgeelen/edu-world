@@ -19,6 +19,7 @@ const COLORS = [
   'from-amber-400 to-orange-500 border-orange-700',
   'from-violet-500 to-fuchsia-600 border-violet-800',
   'from-teal-500 to-emerald-600 border-emerald-800',
+  'from-pink-500 to-rose-600 border-rose-800',
 ];
 
 export function ExerciseModePicker<V extends string>({ modes, onPick }: {

@@ -89,6 +89,14 @@ export const CONFIG_FORMS: Record<string, ConfigForm> = {
   '/exercises/half-double': {
     fields: [{ kind: 'number', key: 'maxNumber', label: 'Hoogste getal', min: 4, max: 100, hint: 'Dubbel van getallen tot de helft hiervan, helft van even getallen tot dit getal.' }],
   },
+  '/exercises/geometry-terms': {
+    fields: [
+      { kind: 'multi', key: 'topics', label: 'Onderdelen', choices: [
+        { value: 'lines', label: 'Lijnen' }, { value: 'point-line-segment', label: 'Punt, rechte, lijnstuk' },
+        { value: 'angles', label: 'Hoeken' }, { value: 'parallel', label: 'Evenwijdig en snijdend' },
+      ] },
+    ],
+  },
   '/exercises/times-tables': {
     fields: [
       { kind: 'multi', key: 'tables', label: 'Tafels om te kiezen', choices: TABLES },

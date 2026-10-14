@@ -11,6 +11,7 @@ const SUBJECT_LABELS: Record<string, { label: string; color: string }> = {
   reading: { label: 'Lezen',      color: 'bg-violet-100 text-violet-700' },
   writing: { label: 'Schrijven',  color: 'bg-orange-100 text-orange-700' },
   other:   { label: 'Andere',     color: 'bg-teal-100 text-teal-700' },
+  geometry: { label: 'Meetkunde', color: 'bg-pink-100 text-pink-700' },
 };
 
 function familyKeyFor(route: string): string {

@@ -20,6 +20,7 @@ import {
   SquareSplitHorizontal,
   Stethoscope,
   Target,
+  Triangle,
   Type,
   type LucideIcon,
 } from 'lucide-react';
@@ -41,6 +42,7 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   '/exercises/even-odd': Divide,
   '/exercises/half-double': SquareSplitHorizontal,
   '/exercises/times-tables': Grid3x3,
+  '/exercises/geometry-terms': Triangle,
   '/exercises/write-number': Type,
   '/exercises/write-digit': Pencil,
   '/exercises/write-letter': PenTool,
@@ -66,6 +68,7 @@ export const SUBJECTS: SubjectStyle[] = [
   { id: 'math', label: 'Rekenen', icon: Calculator, gradient: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   { id: 'reading', label: 'Lezen', icon: BookOpen, gradient: 'from-violet-500 to-violet-600', bg: 'bg-violet-50', border: 'border-violet-200' },
   { id: 'writing', label: 'Schrijven', icon: PenTool, gradient: 'from-orange-500 to-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
+  { id: 'geometry', label: 'Meetkunde', icon: Triangle, gradient: 'from-pink-500 to-pink-600', bg: 'bg-pink-50', border: 'border-pink-200' },
   { id: 'other', label: 'Andere', icon: Target, gradient: 'from-teal-500 to-teal-600', bg: 'bg-teal-50', border: 'border-teal-200' },
 ];
 
@@ -82,5 +85,6 @@ export const SUBJECT_EXERCISES: Record<Subject, string> = {
   math: 'rekenoefeningen',
   reading: 'leesoefeningen',
   writing: 'schrijfoefeningen',
+  geometry: 'meetkundeoefeningen',
   other: 'oefeningen',
 };

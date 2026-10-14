@@ -204,6 +204,19 @@ export const DEFAULT_HALF_DOUBLE: HalfDoubleConfig = {
   maxNumber: 20,
 };
 
+// ── Lijnen en hoeken (ExerciseGeometryTerms.tsx) ───────────────────────────
+
+export type GeometryTopic = 'lines' | 'point-line-segment' | 'angles' | 'parallel';
+
+export interface GeometryConfig {
+  /** The parts the child can pick from; "Door elkaar" mixes these. */
+  topics: GeometryTopic[];
+}
+
+export const DEFAULT_GEOMETRY: GeometryConfig = {
+  topics: ['lines', 'point-line-segment', 'angles', 'parallel'],
+};
+
 // ── Times tables (ExerciseTimesTables.tsx) ─────────────────────────────────
 
 export interface TimesTablesConfig {

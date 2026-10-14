@@ -1089,7 +1089,7 @@ export type Database = {
       app_role: "admin" | "moderator" | "user"
       exercise_status: "completed" | "available" | "locked"
       org_role: "owner" | "admin" | "teacher"
-      subject_type: "math" | "reading" | "writing" | "other"
+      subject_type: "math" | "reading" | "writing" | "other" | "geometry"
       subscription_plan: "free" | "basic" | "family" | "school"
       subscription_status:
         | "trialing"
@@ -1231,7 +1231,7 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
       exercise_status: ["completed", "available", "locked"],
       org_role: ["owner", "admin", "teacher"],
-      subject_type: ["math", "reading", "writing", "other"],
+      subject_type: ["math", "reading", "writing", "other", "geometry"],
       subscription_plan: ["free", "basic", "family", "school"],
       subscription_status: [
         "trialing",
