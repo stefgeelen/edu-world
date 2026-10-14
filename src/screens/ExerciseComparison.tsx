@@ -13,6 +13,7 @@ import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARISON } from '@/data/difficultyConfig';
 import { KwadraatGrid } from '@/components/exercise/KwadraatGrid';
+import { TensAndOnes, countLabel } from '@/components/exercise/CountPicture';
 import { exerciseExitPath } from '@/routes/paths';
 
 
@@ -69,39 +70,6 @@ function DotsDisplay({ count }: { count: number }) {
       <KwadraatGrid count={count - 10} offset={10} total={count} />
     </div>
   );
-}
-
-/** Above 20 (2de leerjaar): one rod of ten per ten, loose blocks for the units. */
-function TensAndOnes({ count }: { count: number }) {
-  const tens = Math.floor(count / 10);
-  const ones = count % 10;
-  return (
-    <div className="flex items-end gap-1.5" aria-label={dotsLabel(count)}>
-      {Array.from({ length: tens }).map((_, t) => (
-        <div key={t} className="flex flex-col gap-0.5 p-0.5 rounded-md bg-orange-600/40 border border-orange-600">
-          {Array.from({ length: 10 }).map((__, b) => (
-            <div key={b} className="w-3 h-2 rounded-[2px] bg-gradient-to-br from-orange-400 to-orange-500" />
-          ))}
-        </div>
-      ))}
-      {ones > 0 && (
-        <div className="grid grid-rows-5 grid-flow-col gap-1 ml-1.5">
-          {Array.from({ length: ones }).map((_, o) => (
-            <div key={o} className="w-3.5 h-3.5 rounded-[3px] bg-gradient-to-br from-orange-400 to-orange-500 border border-orange-600" />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function dotsLabel(count: number): string {
-  if (count > 20) {
-    const tens = Math.floor(count / 10);
-    const ones = count % 10;
-    return `${tens} tientallen en ${ones} ${ones === 1 ? 'eenheid' : 'eenheden'}`;
-  }
-  return `${count} ${count === 1 ? 'stip' : 'stippen'}`;
 }
 
 function NumBubble({ value, color }: { value: number | string; color: 'blue' | 'violet' | 'orange-filled' | 'orange-empty' }) {
@@ -264,7 +232,7 @@ export function ExerciseComparison() {
     ) : (
       <div className="flex flex-col items-center gap-1.5">
         <DotsDisplay count={leftValue} />
-        <span className="text-xs font-bold text-white/40">{dotsLabel(leftValue)}</span>
+        <span className="text-xs font-bold text-white/40">{countLabel(leftValue)}</span>
       </div>
     );
 
@@ -292,7 +260,7 @@ export function ExerciseComparison() {
     const bottomContent = variation === 2 ? (
       <div className="flex flex-col items-center gap-1.5">
         <DotsDisplay count={rightValue} />
-        <span className="text-xs font-bold text-white/40">{dotsLabel(rightValue)}</span>
+        <span className="text-xs font-bold text-white/40">{countLabel(rightValue)}</span>
       </div>
     ) : (
       <motion.button

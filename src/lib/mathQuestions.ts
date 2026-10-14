@@ -1,6 +1,7 @@
 import { randomInt } from '@/lib/random';
 import type {
   EvenOddConfig,
+  HalfDoubleConfig,
   MathSumsConfig,
   NumberLineConfig,
 } from '@/data/difficultyConfig';
@@ -198,6 +199,48 @@ export function generateEvenOddQuestion(config: EvenOddConfig): EvenOddQuestion 
   }
   const number = randomInt(1, max);
   return { kind: 'even-odd', number, answer: number % 2 === 0 ? 'even' : 'oneven' };
+}
+
+// ── Helft en dubbel (ExerciseHalfDouble.tsx) ───────────────────────────────
+
+export type HalfDoubleMode = 'half' | 'double' | 'mix';
+
+export interface HalfDoubleQuestion {
+  kind: 'half' | 'double';
+  /** "De helft van 8", "Het dubbel van 4". */
+  number: number;
+  answer: number;
+  /** Show the number as a picture next to the words. */
+  picture: boolean;
+}
+
+export const HALF_DOUBLE_RUN_LENGTH = 6;
+
+/**
+ * One run of HALF_DOUBLE_RUN_LENGTH questions. Doubles of 1..max/2, halves of
+ * even numbers 2..max, so neither the question nor the answer goes over max.
+ * "Door elkaar" is half halves, half doubles; half of the questions, at random,
+ * come with a picture. No number is asked twice for the same kind.
+ */
+export function generateHalfDoubleRun(mode: HalfDoubleMode, config: HalfDoubleConfig): HalfDoubleQuestion[] {
+  const max = Math.max(4, config.maxNumber);
+  const half = Math.floor(HALF_DOUBLE_RUN_LENGTH / 2);
+  const kinds: Array<'half' | 'double'> = mode === 'mix'
+    ? shuffled([...Array(half).fill('half'), ...Array(HALF_DOUBLE_RUN_LENGTH - half).fill('double')])
+    : Array(HALF_DOUBLE_RUN_LENGTH).fill(mode);
+  const pictures = shuffled(Array.from({ length: HALF_DOUBLE_RUN_LENGTH }, (_, i) => i < half));
+
+  // 1..max/2 is the double's number and the half's answer alike.
+  const pools = {
+    double: shuffled(Array.from({ length: Math.floor(max / 2) }, (_, i) => i + 1)),
+    half: shuffled(Array.from({ length: Math.floor(max / 2) }, (_, i) => (i + 1) * 2)),
+  };
+
+  return kinds.map((kind, i) => {
+    const pool = pools[kind];
+    const number = pool[i % pool.length];
+    return { kind, number, answer: kind === 'double' ? number * 2 : number / 2, picture: pictures[i] };
+  });
 }
 
 // ── Tafels (ExerciseTimesTables.tsx) ───────────────────────────────────────

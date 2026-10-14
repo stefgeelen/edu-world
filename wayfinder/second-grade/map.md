@@ -77,6 +77,15 @@ Gebouwd op 2026-10-13 (`supabase/migrations/20261013210000_review_previous_grade
 - In het ouderportaal werkt "Volgend leerjaar" weer van het 1ste naar het 2de leerjaar.
 - Taal voor het 2de leerjaar is er nog niet: een kind in het 2de leerjaar vindt de taaloefeningen onder Herhalen (versie 1ste leerjaar).
 
+## Helft en dubbel (gebouwd op 2026-10-14)
+
+Beslist door Stef: alleen het 2de leerjaar, trimester 1 tot 20, trimester 2 tot 50 en trimester 3 tot 100. Prentjes komen willekeurig. Even of oneven blijft zoals het is, met dubbel en helft in trimester 2.
+
+- Oefening `/exercises/half-double` (`ExerciseHalfDouble`). Eerst een **tussenscherm**: "De helft", "Het dubbel" of "Door elkaar". Daarna volgen 6 vragen ("De helft van 8 = ?"), die het kind intikt met het cijferklavier.
+- Het tussenscherm is een algemeen onderdeel (`ExerciseModePicker`), zodat andere oefeningen er ook een kunnen krijgen. De keuze zit alleen in de app en betaalt hetzelfde.
+- De helft van de vragen, willekeurig, toont een prentje. Tot 20 zijn het voorwerpen in rijen van vijf, daarboven staven van tien en losse blokjes (`CountPicture`, ook gebruikt door Vergelijken).
+- `maxNumber` per trimester: dubbel van 1 tot max/2, helft van even getallen tot max. Migratie: `supabase/migrations/20261014120000_half_double.sql`.
+
 ## Nog open
 
 - Tekeningen per groeivorm van de Buddy (later).

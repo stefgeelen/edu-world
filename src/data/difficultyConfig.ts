@@ -193,6 +193,17 @@ export const DEFAULT_EVEN_ODD: EvenOddConfig = {
   maxNumber: 20, kinds: ['even-odd'],
 };
 
+// ── Helft en dubbel (ExerciseHalfDouble.tsx) ───────────────────────────────
+
+export interface HalfDoubleConfig {
+  /** Largest number in a question or answer: doubles of 1..max/2, halves of even 2..max. */
+  maxNumber: number;
+}
+
+export const DEFAULT_HALF_DOUBLE: HalfDoubleConfig = {
+  maxNumber: 20,
+};
+
 // ── Times tables (ExerciseTimesTables.tsx) ─────────────────────────────────
 
 export interface TimesTablesConfig {

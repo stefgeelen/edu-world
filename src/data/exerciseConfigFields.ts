@@ -86,6 +86,9 @@ export const CONFIG_FORMS: Record<string, ConfigForm> = {
       ] },
     ],
   },
+  '/exercises/half-double': {
+    fields: [{ kind: 'number', key: 'maxNumber', label: 'Hoogste getal', min: 4, max: 100, hint: 'Dubbel van getallen tot de helft hiervan, helft van even getallen tot dit getal.' }],
+  },
   '/exercises/times-tables': {
     fields: [
       { kind: 'multi', key: 'tables', label: 'Tafels om te kiezen', choices: TABLES },

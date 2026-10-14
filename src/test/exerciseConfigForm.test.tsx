@@ -24,6 +24,7 @@ describe('validateConfig', () => {
     const all = [
       ...configsFromMigration('20260831150000_backfill_exercise_config.sql'),
       ...configsFromMigration('20261013120000_grade_2_maths.sql'),
+      ...configsFromMigration('20261014120000_half_double.sql'),
     ];
     expect(all.length).toBeGreaterThan(40);
     for (const { family, config } of all) {
