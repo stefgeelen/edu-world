@@ -59,6 +59,17 @@ describe('AdminExercises', () => {
     expect(screen.getByText('Lezen: korte woorden')).toBeInTheDocument();
   });
 
+  it('marks a family that is still in test', async () => {
+    fromMock.mockReturnValue(fakeSupabaseChain({
+      data: [...EXERCISES, { id: 'ex-4', title: 'Nieuw', route: '/exercises/new/1', subject: 'math', grade: 1, stage: 'stage-1', display_order: 2, is_active: true, admin_only: true }],
+      error: null,
+    }));
+    renderScreen();
+    await waitFor(() => expect(screen.getByText('Nieuw')).toBeInTheDocument());
+    expect(screen.getAllByText('Test')).toHaveLength(1);
+    expect(screen.getByText('Nieuw')).toHaveTextContent('Test');
+  });
+
   it('filters the list by the search input', async () => {
     fromMock.mockReturnValue(fakeSupabaseChain({ data: EXERCISES, error: null }));
     renderScreen();

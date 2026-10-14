@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, ToggleLeft, ToggleRight, Save } from 'lucide-react';
+import { ArrowLeft, FlaskConical, Globe, Loader2, ToggleLeft, ToggleRight, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { Textarea } from '@/components/ui/textarea';
@@ -117,6 +117,26 @@ export function AdminExerciseFamily() {
     onError: () => toast.error('Kon status niet bijwerken.'),
   });
 
+  // Test = only admins see and play it (exercises.admin_only, enforced
+  // server-side). Always set for the whole family, so a type is either in
+  // test or live for every grade and trimester.
+  const setTestMutation = useMutation({
+    mutationFn: async (adminOnly: boolean) => {
+      const { error } = await supabase
+        .from('exercises')
+        .update({ admin_only: adminOnly })
+        .like('route', `${routePrefix}/%`);
+      if (error) throw error;
+    },
+    onSuccess: (_data, adminOnly) => {
+      toast.success(adminOnly ? 'Oefening staat in test: enkel admins zien ze.' : 'Oefening staat live voor iedereen.');
+      queryClient.invalidateQueries({ queryKey: ['admin-exercise-family', routePrefix] });
+      queryClient.invalidateQueries({ queryKey: ['admin-exercises'] });
+      queryClient.invalidateQueries({ queryKey: ['practice-menu'] });
+    },
+    onError: () => toast.error('Kon de zichtbaarheid niet bijwerken.'),
+  });
+
   const toggleGradeMutation = useMutation({
     mutationFn: async (grade: number) => {
       const existingForGrade = rows.filter((r) => r.grade === grade);
@@ -142,6 +162,7 @@ export function AdminExerciseFamily() {
         display_order: template.display_order,
         xp_reward: template.xp_reward,
         is_active: false,
+        admin_only: template.admin_only,
         config: null,
       }));
       const { error } = await supabase.from('exercises').insert(inserts);
@@ -155,6 +176,7 @@ export function AdminExerciseFamily() {
   });
 
   const familyTitle = rows[0]?.title ?? routePrefix;
+  const inTest = rows.some((r) => r.admin_only);
   const gradesPresent = new Set(rows.map((r) => r.grade));
   const rowsByGrade = new Map<number, typeof rows>();
   for (const row of rows) {
@@ -184,6 +206,51 @@ export function AdminExerciseFamily() {
 
         {!isLoading && (
           <>
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-6 shadow-sm">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Zichtbaarheid</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    if (!inTest && !window.confirm('Deze oefening verbergen voor alle kinderen en enkel zelf testen?')) return;
+                    setTestMutation.mutate(true);
+                  }}
+                  disabled={setTestMutation.isPending || inTest}
+                  aria-pressed={inTest}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border transition-colors',
+                    inTest
+                      ? 'bg-sky-600 border-sky-600 text-white'
+                      : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+                  )}
+                >
+                  <FlaskConical className="w-4 h-4" />
+                  Test (enkel admins)
+                </button>
+                <button
+                  onClick={() => {
+                    if (inTest && !window.confirm('Deze oefening live zetten voor alle kinderen?')) return;
+                    setTestMutation.mutate(false);
+                  }}
+                  disabled={setTestMutation.isPending || !inTest}
+                  aria-pressed={!inTest}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border transition-colors',
+                    !inTest
+                      ? 'bg-emerald-600 border-emerald-600 text-white'
+                      : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+                  )}
+                >
+                  <Globe className="w-4 h-4" />
+                  Live (iedereen)
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mt-3">
+                {inTest
+                  ? 'Enkel admins zien deze oefening, met hun eigen kind, onder Oefenen met het label "Test". Ze wordt nooit een Wens of Snel starten.'
+                  : 'Alle kinderen van de aangezette graden kunnen deze oefening kiezen.'}
+              </p>
+            </div>
+
             <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-6 shadow-sm">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Beschikbaar voor graad</p>
               <div className="flex flex-wrap gap-2">

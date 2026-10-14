@@ -425,6 +425,7 @@ export type Database = {
       }
       exercises: {
         Row: {
+          admin_only: boolean
           config: Json | null
           created_at: string
           display_order: number
@@ -438,6 +439,7 @@ export type Database = {
           xp_reward: number
         }
         Insert: {
+          admin_only?: boolean
           config?: Json | null
           created_at?: string
           display_order?: number
@@ -451,6 +453,7 @@ export type Database = {
           xp_reward?: number
         }
         Update: {
+          admin_only?: boolean
           config?: Json | null
           created_at?: string
           display_order?: number
@@ -877,13 +880,28 @@ export type Database = {
         Args: { p_child: Database["public"]["Tables"]["children"]["Row"] }
         Returns: boolean
       }
+      _can_see_exercise: { Args: { p_admin_only: boolean }; Returns: boolean }
       _child_practice_options: {
         Args: { p_child_id: string }
         Returns: {
+          admin_only: boolean
           display_order: number
           exercise_id: string
           route: string
           stage_num: number
+          subject: Database["public"]["Enums"]["subject_type"]
+          title: string
+          type_key: string
+        }[]
+      }
+      _child_review_options: {
+        Args: { p_child_id: string }
+        Returns: {
+          admin_only: boolean
+          display_order: number
+          exercise_id: string
+          grade: number
+          route: string
           subject: Database["public"]["Enums"]["subject_type"]
           title: string
           type_key: string

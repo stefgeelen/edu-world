@@ -32,7 +32,7 @@ export function fakeSupabaseChain<T>(result: { data: T; error: unknown } | (() =
   const resolve = () => (typeof result === 'function' ? (result as () => { data: T; error: unknown })() : result);
 
   const chain: Record<string, unknown> = {};
-  const methods = ['select', 'eq', 'order', 'limit', 'gte', 'lte', 'in', 'is', 'neq', 'insert', 'update', 'delete', 'upsert'];
+  const methods = ['select', 'eq', 'order', 'limit', 'gte', 'lte', 'in', 'is', 'neq', 'like', 'insert', 'update', 'delete', 'upsert'];
   for (const m of methods) {
     chain[m] = () => chain;
   }

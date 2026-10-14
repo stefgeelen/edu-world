@@ -48,6 +48,7 @@ export function AdminExercises() {
     subject: rows[0].subject,
     grades: [...new Set(rows.map((r) => r.grade))].sort((a, b) => a - b),
     activeCount: rows.filter((r) => r.is_active).length,
+    inTest: rows.some((r) => r.admin_only),
     totalCount: rows.length,
   }));
 
@@ -124,7 +125,14 @@ export function AdminExercises() {
                   >
                     {/* Name */}
                     <div className="flex flex-col">
-                      <span className="font-semibold text-sm text-slate-900">{family.title}</span>
+                      <span className="font-semibold text-sm text-slate-900">
+                        {family.title}
+                        {family.inTest && (
+                          <span className="ml-2 px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold uppercase align-middle">
+                            Test
+                          </span>
+                        )}
+                      </span>
                       <span className="text-xs text-slate-400 font-mono">{family.familyKey}</span>
                     </div>
 

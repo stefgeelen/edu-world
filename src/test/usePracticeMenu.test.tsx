@@ -90,4 +90,8 @@ describe('quickStarts', () => {
   it('keeps the list order among equals and never offers more than asked', () => {
     expect(quickStarts(menu([o('x'), o('y'), o('z')]), 2).map((p) => p.type_key)).toEqual(['x', 'y']);
   });
+
+  it('never offers an exercise that is still in test', () => {
+    expect(quickStarts(menu([o('new', { admin_only: true }), o('old', { done_today: 2 })])).map((p) => p.type_key)).toEqual(['old']);
+  });
 });

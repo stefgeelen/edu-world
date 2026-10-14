@@ -248,6 +248,11 @@ function OptionCard({
           : 'border-[#3b2d71] bg-[#1a103c]/80 hover:border-violet-400/50'
       )}
     >
+      {option.admin_only && (
+        <span className="absolute -top-2 left-2 rounded-full bg-sky-400 px-1.5 py-0.5 text-[9px] font-black uppercase text-[#1a103c] shadow">
+          Test
+        </span>
+      )}
       {wish && (
         <span className="absolute -top-2 right-2 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-black uppercase text-[#1a103c] shadow">
           Wens

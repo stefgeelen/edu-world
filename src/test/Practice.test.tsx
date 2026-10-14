@@ -104,6 +104,18 @@ describe('Practice', () => {
     expect(screen.getByRole('button', { name: /Woordjes/ })).not.toHaveTextContent('Ken ik al!');
   });
 
+  it('labels an exercise that is still in test, for the admin', () => {
+    menuState.data = makeMenu({
+      exercises: [
+        option({ type_key: '/exercises/new', title: 'Nieuwe oefening', subject: 'math', admin_only: true }),
+        option({ type_key: '/exercises/language', title: 'Woordjes', subject: 'reading' }),
+      ],
+    });
+    renderPractice();
+    expect(screen.getByRole('button', { name: /Nieuwe oefening/ })).toHaveTextContent('Test');
+    expect(screen.getByRole('button', { name: /Woordjes/ })).not.toHaveTextContent('Test');
+  });
+
   it('drops the wish ribbon once the wish is fulfilled today', () => {
     menuState.data = makeMenu({
       exercises: [option({ type_key: '/exercises/clock', title: 'Klok lezen', subject: 'math', wished: true, done_today: 1 })],

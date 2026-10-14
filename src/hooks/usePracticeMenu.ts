@@ -21,6 +21,8 @@ export interface PracticeOption {
   wished: boolean;
   /** Only on Herhalen options: the lower grade this version belongs to. */
   grade?: number;
+  /** Still in test: only admins get it. Never a Wish, never a quick start. */
+  admin_only?: boolean;
 }
 
 export interface BuddyWish {
@@ -79,11 +81,13 @@ export const wishOpen = (option: PracticeOption) => option.wished && option.done
 /**
  * A handful of exercises to start with one tap: the Buddy's open wishes first,
  * then types the child hasn't done today, then the rest — least done first, so
- * the shortcut itself nudges towards variety.
+ * the shortcut itself nudges towards variety. Exercises still in test only
+ * show up in the full list.
  */
 export function quickStarts(menu: PracticeMenu, count = 4): PracticeOption[] {
   const rank = (o: PracticeOption) => (wishOpen(o) ? 0 : o.done_today === 0 ? 1 : 2);
   return menu.exercises
+    .filter((o) => !o.admin_only)
     .map((o, i) => ({ o, i }))
     .sort((a, b) => rank(a.o) - rank(b.o) || a.o.done_today - b.o.done_today || a.i - b.i)
     .slice(0, count)
