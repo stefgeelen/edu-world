@@ -128,6 +128,18 @@ describe('ParentAddChild', () => {
     expect(screen.queryByText(/nog niet beschikbaar/)).not.toBeInTheDocument();
   });
 
+  it('follows the age again when it changes after the parent picked a grade', async () => {
+    renderScreen();
+    await waitForFormReady();
+
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '7' } });
+    fireEvent.click(gradeRadio('1ste leerjaar'));
+    expect(gradeRadio('1ste leerjaar')).toHaveAttribute('aria-checked', 'true');
+
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '8' } });
+    expect(gradeRadio('2de leerjaar')).toHaveAttribute('aria-checked', 'true');
+  });
+
   it('inserts the child with the grade the parent picked, shows a success toast, and navigates back', async () => {
     const { invalidateSpy } = renderScreen();
     await waitForFormReady();

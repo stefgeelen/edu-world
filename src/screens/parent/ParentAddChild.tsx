@@ -151,7 +151,11 @@ export function ParentAddChild() {
               min="4"
               max="14"
               value={age}
-              onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : '')}
+              onChange={(e) => {
+                setAge(e.target.value ? parseInt(e.target.value) : '');
+                // A new age brings a new suggestion; an earlier pick no longer applies.
+                setChosenGrade(null);
+              }}
               placeholder="0"
               className="w-20 bg-slate-50 border-2 border-slate-200 rounded-xl px-3 py-3 text-center text-xl font-black text-slate-800 focus:outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
             />

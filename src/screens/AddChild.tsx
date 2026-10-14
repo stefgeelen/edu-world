@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { UserPlus, ArrowRight, Baby, GraduationCap } from 'lucide-react';
+import { UserPlus, ArrowRight, ArrowLeft, Baby, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -65,6 +65,16 @@ export function AddChild() {
       {/* Background decorations */}
       <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[50%] bg-gradient-to-br from-blue-400 to-teal-300 rounded-[100%] blur-3xl opacity-20 pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[120%] h-[50%] bg-gradient-to-tl from-orange-400 to-pink-300 rounded-[100%] blur-3xl opacity-20 pointer-events-none" />
+
+      {/* Back: there is no screen before this one in the app, so it leaves to the website. */}
+      <button
+        type="button"
+        onClick={() => navigate('/')}
+        aria-label="Terug"
+        className="absolute top-4 left-4 z-20 w-11 h-11 rounded-2xl bg-white/80 border-2 border-slate-100 shadow-sm flex items-center justify-center text-slate-600 hover:bg-white transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+      </button>
 
       {/* Header */}
       <div className="pt-12 pb-6 px-6 relative z-10 text-center">
@@ -147,7 +157,11 @@ export function AddChild() {
                 min="4"
                 max="14"
                 value={age}
-                onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : '')}
+                onChange={(e) => {
+                  setAge(e.target.value ? parseInt(e.target.value) : '');
+                  // A new age brings a new suggestion; an earlier pick no longer applies.
+                  setChosenGrade(null);
+                }}
                 placeholder="0"
                 className="w-24 bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 py-4 text-center text-3xl font-black text-slate-800 focus:outline-none focus:border-teal-400 focus:bg-white transition-colors focus:ring-4 focus:ring-teal-100"
               />
@@ -172,7 +186,7 @@ export function AddChild() {
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ delay: 0.5, type: "spring", stiffness: 200, damping: 20 }}
-        className="fixed bottom-0 left-0 right-0 p-6 pb-safe bg-white border-t border-slate-200 shadow-[0_-20px_40px_rgba(0,0,0,0.08)] z-50 rounded-t-[2.5rem] flex justify-center"
+        className="fixed bottom-0 left-0 right-0 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-white border-t border-slate-200 shadow-[0_-20px_40px_rgba(0,0,0,0.08)] z-50 rounded-t-[2.5rem] flex justify-center"
       >
         <button
           onClick={handleSubmit}
