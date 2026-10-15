@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff, Check } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { isPasswordValid, validatePassword, PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
 
@@ -14,11 +14,15 @@ const GoogleIcon = () => (
   </svg>
 );
 
-
-
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { mapAuthError } from '@/lib/errorMessages';
+import { StarryBackground, Ornaments } from '@/components/dashboard/Vitrine';
+import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
+
+// Same dark "vitrine" look as the dashboard.
+const FIELD = 'bg-[#0f0828]/70 rounded-2xl border-2 border-[#3b2d71] p-4 flex items-center gap-3 focus-within:border-amber-400 transition-colors';
+const INPUT = 'flex-1 min-w-0 bg-transparent text-white font-bold placeholder:text-[#9d8bce] placeholder:font-semibold outline-none text-base';
 
 export function Auth() {
   const navigate = useNavigate();
@@ -96,76 +100,67 @@ export function Auth() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden px-6 py-12">
-      {/* Background blobs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-gradient-to-br from-teal-300 to-cyan-200 rounded-full blur-3xl opacity-20 pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[80%] h-[60%] bg-gradient-to-tl from-orange-300 to-amber-200 rounded-full blur-3xl opacity-20 pointer-events-none" />
+    <div
+      className="min-h-[100dvh] w-full bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] flex flex-col items-center justify-center relative overflow-hidden px-6 py-12"
+      style={{ fontFamily: "'Nunito', sans-serif" }}
+    >
+      <StarryBackground />
+      <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[90%] max-w-xl h-[45%] bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Logo / Brand */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', bounce: 0.5 }}
-        className="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-[2rem] shadow-xl shadow-teal-500/20 flex items-center justify-center mb-6 transform -rotate-3"
-      >
-        <Sparkles className="w-10 h-10 text-white" strokeWidth={2.5} />
-      </motion.div>
-
       <motion.h1
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="text-3xl font-black text-slate-800 mb-1 tracking-tight"
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', bounce: 0.5 }}
+        className="relative z-10 mb-3"
       >
-        Leapio
+        <img src={leapioLogo} alt="Leapio" className="h-14 w-auto" />
       </motion.h1>
       <motion.p
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.15 }}
-        className="text-slate-500 font-medium mb-8"
+        className="relative z-10 text-[#c9bdf0] font-bold mb-6"
       >
         {mode === 'login' ? 'Welkom terug!' : mode === 'signup' ? 'Maak een account aan' : 'Wachtwoord resetten'}
       </motion.p>
 
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="relative z-10 w-full max-w-sm bg-gradient-to-br from-[#1a103c]/90 via-[#241650]/80 to-[#1a103c]/90 backdrop-blur-xl rounded-3xl p-5 border-[3px] border-amber-400/30 shadow-[0_8px_32px_rgba(251,191,36,0.12)]"
+      >
+        <Ornaments tone="border-amber-400/40" />
+
       {/* Tab Switcher */}
       {mode !== 'forgot' && (
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl p-1.5 flex gap-1 mb-6 shadow-sm border border-slate-200 w-full max-w-sm"
-        >
+        <div className="bg-[#0f0828]/80 rounded-2xl p-1.5 flex gap-1 mb-5 border border-[#3b2d71]">
           {(['login', 'signup'] as const).map((m) => (
             <button
               key={m}
               onClick={() => switchMode(m)}
               className={cn(
-                'flex-1 py-3 rounded-xl font-bold text-sm transition-all',
+                'flex-1 py-3 rounded-xl font-extrabold text-sm transition-all',
                 mode === m
-                  ? 'bg-teal-500 text-white shadow-md'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-amber-400 text-[#1a103c] shadow-md shadow-amber-400/20'
+                  : 'text-[#9d8bce] hover:text-white'
               )}
             >
               {m === 'login' ? 'Inloggen' : 'Registreren'}
             </button>
           ))}
-        </motion.div>
+        </div>
       )}
 
       {/* Social login */}
       {mode !== 'forgot' && (
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.25 }}
-          className="w-full max-w-sm space-y-3"
-        >
+        <div className="space-y-3 mb-4">
           <button
             type="button"
             onClick={async () => { setLoading(true); await signInWithOAuth('google'); setLoading(false); }}
             disabled={loading}
-            className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 hover:border-slate-300 hover:shadow-md font-bold text-slate-700 flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm border-b-4 border-b-slate-200 active:border-b-2 active:translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full h-14 rounded-2xl bg-white hover:bg-slate-50 font-bold text-slate-700 flex items-center justify-center gap-3 transition-all active:scale-[0.98] border-b-4 border-slate-300 active:border-b-2 active:translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
@@ -177,27 +172,21 @@ export function Auth() {
             )}
           </button>
           <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="text-xs font-semibold text-slate-400">of</span>
-            <div className="flex-1 h-px bg-slate-200" />
+            <div className="flex-1 h-px bg-[#3b2d71]" />
+            <span className="text-xs font-bold text-[#9d8bce]">of</span>
+            <div className="flex-1 h-px bg-[#3b2d71]" />
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Form */}
-      <motion.form
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.25 }}
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="space-y-4">
         {(mode === 'forgot' && resetSent) || (mode === 'signup' && confirmSent) ? (
-          <div className="bg-white rounded-2xl border-2 border-emerald-200 p-6 text-center space-y-4">
-            <div className="w-12 h-12 mx-auto bg-emerald-100 rounded-full flex items-center justify-center">
-              <Check className="w-6 h-6 text-emerald-600" strokeWidth={3} />
+          <div className="bg-[#0f0828]/70 rounded-2xl border-2 border-emerald-400/40 p-6 text-center space-y-4">
+            <div className="w-12 h-12 mx-auto bg-emerald-400/15 rounded-full flex items-center justify-center">
+              <Check className="w-6 h-6 text-emerald-300" strokeWidth={3} />
             </div>
-            <p className="text-slate-600 font-medium text-sm">
+            <p className="text-[#e4dcff] font-semibold text-sm">
               {confirmSent
                 ? 'Je account is aangemaakt. We hebben je een e-mail gestuurd — klik op de link daarin om je adres te bevestigen. Daarna stel je je toegangscode in en voeg je je kind toe.'
                 : 'Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een e-mail met een link om je wachtwoord opnieuw in te stellen.'}
@@ -205,7 +194,7 @@ export function Auth() {
             <button
               type="button"
               onClick={() => switchMode('login')}
-              className="text-sm font-bold text-teal-600 hover:text-teal-700 transition-colors"
+              className="text-sm font-bold text-amber-300 hover:text-amber-200 transition-colors"
             >
               Terug naar inloggen
             </button>
@@ -222,47 +211,48 @@ export function Auth() {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 flex items-center gap-3 focus-within:border-teal-400 transition-colors">
-                <User className="w-5 h-5 text-slate-400 shrink-0" />
+              <div className={FIELD}>
+                <User className="w-5 h-5 text-[#9d8bce] shrink-0" />
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Volledige naam"
-                  className="flex-1 bg-transparent text-slate-800 font-semibold placeholder:text-slate-400 placeholder:font-medium outline-none text-base"
+                  className={INPUT}
                 />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 flex items-center gap-3 focus-within:border-teal-400 transition-colors">
-          <Mail className="w-5 h-5 text-slate-400 shrink-0" />
+        <div className={FIELD}>
+          <Mail className="w-5 h-5 text-[#9d8bce] shrink-0" />
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="E-mailadres"
-            className="flex-1 bg-transparent text-slate-800 font-semibold placeholder:text-slate-400 placeholder:font-medium outline-none text-base"
+            className={INPUT}
             autoComplete="email"
           />
         </div>
 
         {mode !== 'forgot' && (
-          <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 flex items-center gap-3 focus-within:border-teal-400 transition-colors">
-            <Lock className="w-5 h-5 text-slate-400 shrink-0" />
+          <div className={FIELD}>
+            <Lock className="w-5 h-5 text-[#9d8bce] shrink-0" />
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Wachtwoord"
-              className="flex-1 bg-transparent text-slate-800 font-semibold placeholder:text-slate-400 placeholder:font-medium outline-none text-base"
+              className={INPUT}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-[#9d8bce] hover:text-white transition-colors"
+              aria-label={showPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -273,7 +263,7 @@ export function Auth() {
           <button
             type="button"
             onClick={() => { setMode('forgot'); setResetSent(false); }}
-            className="block text-sm font-semibold text-teal-600 hover:text-teal-700 transition-colors -mt-2"
+            className="block text-sm font-bold text-amber-300 hover:text-amber-200 transition-colors -mt-2"
           >
             Wachtwoord vergeten?
           </button>
@@ -287,11 +277,11 @@ export function Auth() {
               { ok: pwReq.lowercase, text: 'Minimaal één kleine letter' },
               { ok: pwReq.digit,     text: 'Minimaal één cijfer' },
             ].map((r, i) => (
-              <li key={i} className="flex items-center gap-2 text-xs font-semibold">
-                <div className={cn('w-4 h-4 rounded-full flex items-center justify-center', r.ok ? 'bg-emerald-500' : 'bg-slate-200')}>
-                  {r.ok && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+              <li key={i} className="flex items-center gap-2 text-xs font-bold">
+                <div className={cn('w-4 h-4 rounded-full flex items-center justify-center', r.ok ? 'bg-emerald-400' : 'bg-[#3b2d71]')}>
+                  {r.ok && <Check className="w-3 h-3 text-[#1a103c]" strokeWidth={3} />}
                 </div>
-                <span className={r.ok ? 'text-emerald-600' : 'text-slate-500'}>{r.text}</span>
+                <span className={r.ok ? 'text-emerald-300' : 'text-[#9d8bce]'}>{r.text}</span>
               </li>
             ))}
           </ul>
@@ -301,14 +291,14 @@ export function Auth() {
           type="submit"
           disabled={!isValid || loading}
           className={cn(
-            'w-full h-16 rounded-2xl font-extrabold text-lg flex items-center justify-center gap-3 transition-all duration-300',
+            'w-full h-16 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all duration-300',
             isValid && !loading
-              ? 'bg-gradient-to-r from-teal-500 to-teal-400 hover:from-teal-400 hover:to-teal-500 text-white shadow-lg shadow-teal-500/30 active:scale-[0.98] border-b-4 border-teal-600 active:border-b-0 active:translate-y-1'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed border-b-4 border-slate-200'
+              ? 'bg-amber-400 hover:bg-amber-300 text-[#1a103c] shadow-lg shadow-amber-400/25 active:scale-[0.98] border-b-4 border-amber-600 active:border-b-0 active:translate-y-1'
+              : 'bg-[#2d1b54] text-[#7e6db8] cursor-not-allowed border-b-4 border-[#3b2d71]'
           )}
         >
           {loading ? (
-            <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-3 border-[#1a103c] border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               {mode === 'login' ? 'Inloggen' : mode === 'signup' ? 'Account Aanmaken' : 'Verstuur resetlink'}
@@ -321,14 +311,15 @@ export function Auth() {
           <button
             type="button"
             onClick={() => switchMode('login')}
-            className="block w-full text-center text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors"
+            className="block w-full text-center text-sm font-bold text-[#9d8bce] hover:text-white transition-colors"
           >
             Terug naar inloggen
           </button>
         )}
         </>
         )}
-      </motion.form>
+      </form>
+      </motion.div>
     </div>
   );
 }
