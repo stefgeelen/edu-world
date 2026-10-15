@@ -24,8 +24,10 @@ fi
 render() {
   local size="$1" out="$2" tmp
   tmp="$(mktemp -d)"
+  # Always shoot at the SVG's own 512px and let sips scale down: with a small
+  # window, Chrome shows only the top-left corner of the 512px drawing.
   "$CHROME" --headless --disable-gpu --hide-scrollbars \
-    --screenshot="$tmp/shot.png" --window-size="$size,$size" \
+    --screenshot="$tmp/shot.png" --window-size=512,512 \
     --force-device-scale-factor=1 "file://$SVG" >/dev/null 2>&1
   sips -Z "$size" "$tmp/shot.png" --out "$out" >/dev/null
   rm -rf "$tmp"

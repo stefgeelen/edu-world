@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Leapio">
+  <title>Leapio</title>
+<defs>
+    <linearGradient id="lsky" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#3a2580"/>
+      <stop offset="1" stop-color="#1d1145"/>
+    </linearGradient>
+    <radialGradient id="lball" cx="0.36" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="0.55" stop-color="#f2bf3c"/>
+      <stop offset="1" stop-color="#e3a21f"/>
+    </radialGradient></defs><g transform="translate(-14 0)"><path d="M164 112V318Q164 400 246 400H262Q340 400 368 300" fill="none" stroke="#f8f3e2" stroke-width="68" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="396" cy="168" r="50" fill="url(#lball)"/></g>
+</svg>

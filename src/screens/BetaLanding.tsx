@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
 import {
-  Sparkles, BookOpen, BarChart3, Gift, Clock,
+  BookOpen, BarChart3, Gift, Clock,
   CheckCircle2, MapPin, Smartphone, Heart, Star, ChevronDown, Sprout
 } from 'lucide-react';
 import { useState } from 'react';
 import heroImg from '@/assets/beta-hero.jpg';
+import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 import { BetaSignupForm } from '@/components/beta/BetaSignupForm';
 import { SEO } from '@/components/SEO';
 
@@ -142,12 +143,7 @@ export default function BetaLanding() {
 
           {/* Top brand bar */}
           <div className="relative flex items-center justify-between mb-10 md:mb-16">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30">
-                <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
-              </div>
-              <span className="text-xl font-black tracking-tight">Leapio</span>
-            </div>
+            <img src={leapioLogo} alt="Leapio" className="h-10 w-auto" />
             <span className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-xs font-bold">
               <Clock className="w-3.5 h-3.5" /> Beta start binnenkort
             </span>
@@ -348,8 +344,7 @@ export default function BetaLanding() {
         <footer className="px-6 py-10 bg-slate-950 text-slate-400 text-sm">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="font-bold text-white">Leapio</span>
+              <img src={leapioLogo} alt="Leapio" className="h-5 w-auto" />
               <span>© 2026</span>
             </div>
             <div className="flex items-center gap-6">

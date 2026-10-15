@@ -12,6 +12,7 @@ import nootje from '@/assets/landing/nootje.png';
 import vosje from '@/assets/landing/vosje.png';
 import prikkel from '@/assets/landing/prikkel.png';
 import loeka from '@/assets/landing/loeka.png';
+import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 
 /** Gold "press me" button with a hard shadow underneath, as in the design. */
 const GOLD_BUTTON =
@@ -82,11 +83,8 @@ const PARENT_SUBJECTS = [
 
 function Logo() {
   return (
-    <a href="#top" className="flex items-center gap-2 font-lp-display text-2xl font-extrabold text-lp-cream" aria-label="Leapio startpagina">
-      <span className="grid h-9 w-9 place-items-center rounded-full bg-lp-gold text-lp-night shadow-md">
-        <Sparkles className="h-5 w-5" />
-      </span>
-      Leapio
+    <a href="#top" className="flex items-center" aria-label="Leapio startpagina">
+      <img src={leapioLogo} alt="" className="h-9 w-auto" />
     </a>
   );
 }

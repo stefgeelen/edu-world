@@ -7,8 +7,8 @@
   "start_url": "/app",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#1d1145",
+  "theme_color": "#1d1145",
   "categories": ["education", "kids"],
   "lang": "nl-BE",
   "icons": [
