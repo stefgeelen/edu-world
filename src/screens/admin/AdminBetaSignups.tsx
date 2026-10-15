@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Download, Mail, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { campaignOf } from '@/lib/signupSource';
 
 interface BetaSignup {
   id: string;
@@ -61,6 +62,13 @@ export function AdminBetaSignups() {
   }
 
   const rows = data || [];
+  const perCampaign = Object.entries(
+    rows.reduce<Record<string, number>>((acc, r) => {
+      const campaign = campaignOf(r.source);
+      acc[campaign] = (acc[campaign] ?? 0) + 1;
+      return acc;
+    }, {})
+  ).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="space-y-6">
@@ -77,6 +85,20 @@ export function AdminBetaSignups() {
           <Download className="w-4 h-4" /> Export CSV
         </button>
       </div>
+
+      {perCampaign.length > 0 && (
+        <div className="flex flex-wrap gap-2" aria-label="Aanmeldingen per bron">
+          {perCampaign.map(([campaign, count]) => (
+            <span
+              key={campaign}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-slate-100 rounded-xl text-sm"
+            >
+              <span className="font-bold text-slate-700">{campaign}</span>
+              <span className="font-black text-indigo-600">{count}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border-2 border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">

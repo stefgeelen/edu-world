@@ -7,6 +7,7 @@ import { ArrowRight, CheckCircle2, Loader2, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { signupSource } from '@/lib/signupSource';
 
 const schema = z.object({
   email: z.string().trim().email({ message: 'Vul een geldig e-mailadres in' }).max(255),
@@ -37,7 +38,10 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
       email: values.email.trim().toLowerCase(),
       full_name: values.full_name?.trim() || null,
       child_grade: values.child_grade || null,
-      source: source || (typeof window !== 'undefined' ? window.location.pathname : null),
+      source: signupSource(
+        source || (typeof window !== 'undefined' ? window.location.pathname : null),
+        typeof window !== 'undefined' ? window.location.search : ''
+      ),
       user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
     });
 
@@ -60,7 +64,10 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
     const shareText = encodeURIComponent(
       'Ontdek Leapio: je kind oefent voor het 1ste leerjaar en verzorgt zo een eigen Buddy. Schrijf je in voor de beta:'
     );
-    const shareUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '');
+    // Zonder ?bron=…: wie via een gedeelde link komt, telt niet als Instagram.
+    const shareUrl = encodeURIComponent(
+      typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''
+    );
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}

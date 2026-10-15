@@ -66,6 +66,16 @@ describe('AdminBetaSignups', () => {
     expect(row2.textContent).toMatch(/—/);
   });
 
+  it('counts signups per campaign, older ones without a campaign as "website"', async () => {
+    const fromInstagram = { ...SIGNUP_1, id: 'signup-3', email: 'parent3@example.test', source: 'instagram · hero' };
+    const fromInstagram2 = { ...SIGNUP_1, id: 'signup-4', email: 'parent4@example.test', source: 'instagram · footer' };
+    fromMock.mockReturnValue(fakeSupabaseChain({ data: [SIGNUP_1, SIGNUP_2, fromInstagram, fromInstagram2], error: null }));
+    renderScreen();
+
+    const summary = await screen.findByLabelText('Aanmeldingen per bron');
+    expect(summary.textContent).toBe('website2instagram2');
+  });
+
   it('shows the empty state and disables export when there are no signups', async () => {
     fromMock.mockReturnValue(fakeSupabaseChain({ data: [], error: null }));
     renderScreen();
