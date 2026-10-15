@@ -13,42 +13,27 @@ import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { canvasToRecognitionBase64 } from '@/lib/canvasRecognition';
 import { exerciseExitPath } from '@/routes/paths';
+import { GETALBEELD_GRID } from '@/lib/getalbeeld';
 
 
 function getRandomTarget() {
   return Math.floor(Math.random() * 10) + 1;
 }
 
-function TenFrameDots({ count }: { count: number }) {
+/** The number as a getalbeeld: two rows, filled column by column. */
+function NumberImageDots({ count }: { count: number }) {
   return (
-    <div className="flex flex-col gap-2">
-      {[0, 1].map(row => (
-        <div key={row} className="flex gap-2">
-          {[0, 1, 2, 3, 4].map(col => {
-            const idx = row * 5 + col;
-            const filled = idx < count;
-            return (
-              <motion.div
-                key={col}
-                initial={filled ? { scale: 0 } : false}
-                animate={filled ? { scale: 1 } : {}}
-                transition={{ delay: idx * 0.06, type: 'spring', bounce: 0.5 }}
-                className={cn(
-                  'w-10 h-10 rounded-full border-2 shadow-sm transition-colors',
-                  filled
-                    ? 'bg-gradient-to-br from-violet-400 to-violet-600 border-violet-700 shadow-violet-200/30'
-                    : 'bg-[#1c1134] border-[#3b2d71]'
-                )}
-              >
-                {filled && (
-                  <div className="w-full h-full rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-white/40" />
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
+    <div className={cn(GETALBEELD_GRID, 'gap-2 w-fit')} aria-label={`${count} ${count === 1 ? 'stip' : 'stippen'}`}>
+      {Array.from({ length: count }).map((_, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: idx * 0.06, type: 'spring', bounce: 0.5 }}
+          className="w-10 h-10 rounded-full border-2 shadow-sm bg-gradient-to-br from-violet-400 to-violet-600 border-violet-700 shadow-violet-200/30 flex items-center justify-center"
+        >
+          <div className="w-3 h-3 rounded-full bg-white/40" />
+        </motion.div>
       ))}
     </div>
   );
@@ -289,7 +274,7 @@ export function ExerciseWriteNumber() {
           >
             <div>
               <p className="font-black text-white mb-1">Hoeveel stippen zie je?</p>
-              <TenFrameDots count={target} />
+              <NumberImageDots count={target} />
             </div>
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-400 to-fuchsia-500 flex items-center justify-center shadow-lg ml-4 flex-shrink-0 ring-4 ring-violet-200/20">
               <span className="font-black text-white" style={{ fontSize: 36 }}>?</span>

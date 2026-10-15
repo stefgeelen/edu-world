@@ -3,8 +3,9 @@
  * Up to 20 the child can count things one by one; above 20 (2de leerjaar)
  * tens become rods so the picture stays countable.
  */
+import { GETALBEELD_GRID, inTens } from '@/lib/getalbeeld';
 
-/** Above 20: one rod of ten per ten, loose blocks for the units. */
+/** Above 20: one rod of ten per ten, the units as a getalbeeld. */
 export function TensAndOnes({ count }: { count: number }) {
   const tens = Math.floor(count / 10);
   const ones = count % 10;
@@ -18,7 +19,7 @@ export function TensAndOnes({ count }: { count: number }) {
         </div>
       ))}
       {ones > 0 && (
-        <div className="grid grid-rows-5 grid-flow-col gap-1 ml-1.5">
+        <div className={`${GETALBEELD_GRID} gap-1 ml-1.5`}>
           {Array.from({ length: ones }).map((_, o) => (
             <div key={o} className="w-3.5 h-3.5 rounded-[3px] bg-gradient-to-br from-orange-400 to-orange-500 border border-orange-600" />
           ))}
@@ -38,16 +39,15 @@ export function countLabel(count: number): string {
 }
 
 /**
- * Up to 20 things (one emoji) in rows of five, a gap after each ten, so the
- * child can count them; above 20 the tens rods.
+ * Up to 20 things (one emoji) as getalbeelden, one per ten, so the child can
+ * count them; above 20 the tens rods.
  */
 export function ObjectsPicture({ count, emoji, label }: { count: number; emoji: string; label: string }) {
   if (count > 20) return <TensAndOnes count={count} />;
-  const groups = count > 10 ? [10, count - 10] : [count];
   return (
     <div className="flex flex-wrap items-start justify-center gap-4" role="img" aria-label={label} data-testid="count-picture">
-      {groups.map((size, g) => (
-        <div key={g} className="grid grid-cols-5 gap-1.5 md:gap-2">
+      {inTens(count).map((size, g) => (
+        <div key={g} className={`${GETALBEELD_GRID} gap-1.5 md:gap-2`}>
           {Array.from({ length: size }).map((_, i) => (
             <span key={i} className="text-3xl md:text-4xl leading-none" aria-hidden="true">{emoji}</span>
           ))}

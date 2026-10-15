@@ -12,26 +12,34 @@ import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_EVEN_ODD } from '@/data/difficultyConfig';
 import { generateEvenOddQuestion, type EvenOddQuestion } from '@/lib/mathQuestions';
 import { exerciseExitPath } from '@/routes/paths';
+import { inTens } from '@/lib/getalbeeld';
 
 type Answer = string | number;
 
-/** Up to 20 the number is shown as pairs, so an odd one sticks out. */
+const PAIR_DOT = 'w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 border-2 border-orange-600';
+
+/**
+ * Up to 20 the number is shown as a getalbeeld (one per ten) in pairs, top and
+ * bottom, so an odd one sticks out on top at the end.
+ */
 function Pairs({ count }: { count: number }) {
-  const pairs = Math.floor(count / 2);
-  const odd = count % 2 === 1;
   return (
-    <div className="flex items-start justify-center gap-1.5 flex-wrap" aria-hidden="true">
-      {Array.from({ length: pairs }).map((_, i) => (
-        <div key={i} className="flex flex-col gap-1.5 p-1 rounded-xl bg-white/5 border border-white/10">
-          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 border-2 border-orange-600" />
-          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 border-2 border-orange-600" />
+    <div className="flex items-start justify-center gap-4" aria-hidden="true">
+      {inTens(count).map((size, g) => (
+        <div key={g} className="flex items-start gap-1.5">
+          {Array.from({ length: Math.floor(size / 2) }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-1.5 p-1 rounded-xl bg-white/5 border border-white/10">
+              <div className={PAIR_DOT} />
+              <div className={PAIR_DOT} />
+            </div>
+          ))}
+          {size % 2 === 1 && (
+            <div className="p-1 rounded-xl bg-white/5 border border-dashed border-white/20">
+              <div className={PAIR_DOT} />
+            </div>
+          )}
         </div>
       ))}
-      {odd && (
-        <div className="p-1 rounded-xl bg-white/5 border border-dashed border-white/20">
-          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 border-2 border-orange-600" />
-        </div>
-      )}
     </div>
   );
 }

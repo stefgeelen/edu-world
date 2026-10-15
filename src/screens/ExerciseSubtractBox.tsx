@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { GETALBEELD_GRID } from '@/lib/getalbeeld';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -272,7 +273,7 @@ function TokenGrid({ total, crossedOut, status }: TokenGridProps) {
   const renderTokens = (from: number, to: number) => {
     const count = to - from;
     return (
-      <div className="grid grid-rows-2 grid-flow-col gap-2 md:gap-3">
+      <div className={cn(GETALBEELD_GRID, 'gap-2 md:gap-3')}>
         {Array.from({ length: count }).map((_, j) => {
           const combinedIndex = from + j;
           const isCrossed = combinedIndex >= crossThreshold;

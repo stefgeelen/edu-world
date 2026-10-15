@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { GETALBEELD_GRID } from '@/lib/getalbeeld';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -340,7 +341,7 @@ function SplitHalf({ count, showQuestion, status, isAnswerSide }: SplitHalfProps
   const gapClass = isLargeCount ? 'gap-1' : 'gap-1.5 md:gap-2.5';
 
   const renderDotGrid = (from: number, to: number) => (
-    <div className={cn('grid grid-rows-2 grid-flow-col', gapClass)}>
+    <div className={cn(GETALBEELD_GRID, gapClass)}>
       {Array.from({ length: to - from }).map((_, j) => {
         const i = from + j;
         return (

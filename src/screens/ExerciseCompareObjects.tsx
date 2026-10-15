@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { GETALBEELD_GRID, inTens } from '@/lib/getalbeeld';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -91,10 +92,14 @@ function ObjectGrid({ obj, count, highlight }: { obj: ObjectType; count: number;
           ? 'bg-red-500/15 border-red-400/50'
           : 'bg-[#1c1134]/60 backdrop-blur-sm border-[#3b2d71]',
     )}>
-      {/* Emoji grid — wraps at 4 per row */}
-      <div className="flex flex-wrap justify-center gap-1.5 min-h-[40px]">
-        {Array.from({ length: count }).map((_, i) => (
-          <span key={i} className="text-3xl leading-none select-none">{obj.emoji}</span>
+      {/* Emoji as a getalbeeld, one per ten */}
+      <div className="flex justify-center gap-3 min-h-[40px]">
+        {inTens(count).map((size, g) => (
+          <div key={g} className={`${GETALBEELD_GRID} gap-1.5`}>
+            {Array.from({ length: size }).map((_, i) => (
+              <span key={i} className="text-3xl leading-none select-none">{obj.emoji}</span>
+            ))}
+          </div>
         ))}
       </div>
       {/* Count label */}

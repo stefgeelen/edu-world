@@ -1,4 +1,5 @@
 import React from 'react';
+import { GETALBEELD_GRID } from '@/lib/getalbeeld';
 
 interface KwadraatGridProps {
   /** Number of filled dots in this grid (1–10) */
@@ -41,7 +42,7 @@ export function KwadraatGrid({
   const crossThreshold = effectiveTotal - crossedOut;
 
   return (
-    <div className="grid grid-rows-2 grid-flow-col gap-2">
+    <div className={`${GETALBEELD_GRID} gap-2`}>
       {Array.from({ length: count }).map((_, j) => {
         const combinedIndex = offset + j;
         const isCrossed = crossedOut > 0 && combinedIndex >= crossThreshold;
