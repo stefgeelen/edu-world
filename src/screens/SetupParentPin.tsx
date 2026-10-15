@@ -6,6 +6,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useSetParentPin, useHasParentPin } from '@/hooks/useParentPin';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { NightSkyScreen, VitrineCard } from '@/components/auth/NightSky';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -102,7 +103,7 @@ export function SetupParentPin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [second]);
 
-  if (authLoading || !user || isLoading) return <LoadingSpinner />;
+  if (authLoading || !user || isLoading) return <LoadingSpinner tone="dark" />;
 
   const isConfirm = step === 'confirm';
   const value = isConfirm ? second : first;
@@ -112,21 +113,23 @@ export function SetupParentPin() {
     else setFirst(digits);
   };
 
+  const slotClass = 'w-14 h-16 text-2xl font-black text-white bg-[#0f0828]/70 border-[#3b2d71] ring-amber-400 ring-offset-[#1a103c] [&_.animate-caret-blink]:bg-amber-300';
+
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex flex-col items-center justify-center px-6 py-10">
+    <NightSkyScreen className="justify-center px-6 py-10">
       <motion.div
         initial={{ scale: 0, rotate: -10 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', bounce: 0.5 }}
-        className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-xl shadow-blue-500/30 flex items-center justify-center mb-6"
+        className="relative z-10 w-20 h-20 bg-amber-400 rounded-3xl shadow-xl shadow-amber-400/25 border-b-4 border-amber-600 flex items-center justify-center mb-6"
       >
-        <Lock className="w-10 h-10 text-white" strokeWidth={2.5} />
+        <Lock className="w-10 h-10 text-[#1a103c]" strokeWidth={2.5} />
       </motion.div>
 
       <motion.h1
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="text-2xl md:text-3xl font-black text-slate-900 mb-2 text-center"
+        className="relative z-10 text-2xl md:text-3xl font-black text-white mb-2 text-center"
       >
         {isConfirm ? 'Bevestig je nieuwe code' : (isChange ? 'Wijzig je toegangscode' : 'Maak je toegangscode')}
       </motion.h1>
@@ -134,7 +137,7 @@ export function SetupParentPin() {
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="text-slate-500 font-medium mb-8 text-center max-w-sm"
+        className="relative z-10 text-[#c9bdf0] font-bold mb-8 text-center max-w-sm"
       >
         {isConfirm
           ? 'Voer dezelfde 4 cijfers nogmaals in.'
@@ -146,54 +149,56 @@ export function SetupParentPin() {
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white rounded-3xl border-2 border-slate-200 p-6 md:p-8 shadow-lg w-full max-w-sm flex flex-col items-center gap-5"
+        className="relative z-10 w-full max-w-sm"
       >
-        <div className="flex items-center gap-2 w-full">
-          <div className={cn('flex-1 h-1.5 rounded-full', step === 'choose' ? 'bg-blue-500' : 'bg-emerald-500')} />
-          <div className={cn('flex-1 h-1.5 rounded-full', step === 'confirm' ? 'bg-blue-500' : 'bg-slate-200')} />
-        </div>
+        <VitrineCard className="p-6 md:p-8 flex flex-col items-center gap-5">
+          <div className="flex items-center gap-2 w-full">
+            <div className={cn('flex-1 h-1.5 rounded-full', step === 'choose' ? 'bg-amber-400' : 'bg-emerald-400')} />
+            <div className={cn('flex-1 h-1.5 rounded-full', step === 'confirm' ? 'bg-amber-400' : 'bg-[#3b2d71]')} />
+          </div>
 
-        <InputOTP
-          key={step}
-          maxLength={4}
-          value={value}
-          onChange={onChange}
-          disabled={setPin.isPending}
-          autoFocus
-          inputMode="numeric"
-        >
-          <InputOTPGroup>
-            <InputOTPSlot index={0} className="w-14 h-16 text-2xl font-black" />
-            <InputOTPSlot index={1} className="w-14 h-16 text-2xl font-black" />
-            <InputOTPSlot index={2} className="w-14 h-16 text-2xl font-black" />
-            <InputOTPSlot index={3} className="w-14 h-16 text-2xl font-black" />
-          </InputOTPGroup>
-        </InputOTP>
-
-        {setPin.isPending && (
-          <p className="text-xs font-bold text-slate-500">Opslaan…</p>
-        )}
-
-        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          Versleuteld opgeslagen
-        </div>
-
-        {isConfirm && (
-          <button
-            type="button"
-            onClick={() => { setSecond(''); setFirst(''); setStep('choose'); }}
-            className="text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
+          <InputOTP
+            key={step}
+            maxLength={4}
+            value={value}
+            onChange={onChange}
+            disabled={setPin.isPending}
+            autoFocus
+            inputMode="numeric"
           >
-            Andere code kiezen
-          </button>
-        )}
+            <InputOTPGroup>
+              <InputOTPSlot index={0} className={slotClass} />
+              <InputOTPSlot index={1} className={slotClass} />
+              <InputOTPSlot index={2} className={slotClass} />
+              <InputOTPSlot index={3} className={slotClass} />
+            </InputOTPGroup>
+          </InputOTP>
+
+          {setPin.isPending && (
+            <p className="text-xs font-bold text-[#c9bdf0]">Opslaan…</p>
+          )}
+
+          <div className="flex items-center gap-2 text-[11px] font-bold text-[#9d8bce] uppercase tracking-widest">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Versleuteld opgeslagen
+          </div>
+
+          {isConfirm && (
+            <button
+              type="button"
+              onClick={() => { setSecond(''); setFirst(''); setStep('choose'); }}
+              className="text-xs font-bold text-amber-300 hover:text-amber-200 transition-colors"
+            >
+              Andere code kiezen
+            </button>
+          )}
+        </VitrineCard>
       </motion.div>
 
-      <p className="text-xs font-bold text-slate-400 mt-6 flex items-center gap-1.5">
+      <p className="relative z-10 text-xs font-bold text-[#9d8bce] mt-6 flex items-center gap-1.5">
         <ArrowRight className="w-3.5 h-3.5" />
         Je kunt deze code later wijzigen in het ouderportaal.
       </p>
-    </div>
+    </NightSkyScreen>
   );
 }

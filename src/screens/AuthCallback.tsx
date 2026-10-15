@@ -35,9 +35,5 @@ export function AuthCallback() {
     });
   }, [loading, user, navigate]);
 
-  return (
-    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-slate-50">
-      <LoadingSpinner />
-    </div>
-  );
+  return <LoadingSpinner tone="dark" />;
 }

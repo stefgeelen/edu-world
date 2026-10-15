@@ -42,6 +42,10 @@ const BadgeDetail = lazy(() => import('@/screens/BadgeDetail').then(m => ({ defa
 const S = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
 );
+// Onboarding screens are dark (night sky), so their fallback is too.
+const DarkS = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<LoadingSpinner tone="dark" />}>{children}</Suspense>
+);
 
 /** Keeps `?cat=` so an old "buy food" link still opens the food tab. */
 function ShopRedirect() {
@@ -54,10 +58,10 @@ export const appRoutes = (
   // forest fallback for /app only, instead of taking down the whole app the way
   // the single root boundary would. Parent/admin trees already do this.
   <Route path="/app" element={<ProtectedRoute><ErrorBoundary><Layout /></ErrorBoundary></ProtectedRoute>}>
-    <Route index element={<S><AppStart /></S>} />
-    <Route path="add-child" element={<S><AddChild /></S>} />
-    <Route path="wie-speelt-er" element={<S><WhoIsPlaying /></S>} />
-    <Route path="kies-je-buddy" element={<S><ChooseBuddy /></S>} />
+    <Route index element={<DarkS><AppStart /></DarkS>} />
+    <Route path="add-child" element={<DarkS><AddChild /></DarkS>} />
+    <Route path="wie-speelt-er" element={<DarkS><WhoIsPlaying /></DarkS>} />
+    <Route path="kies-je-buddy" element={<DarkS><ChooseBuddy /></DarkS>} />
     <Route path="home" element={<S><BuddyRoom /></S>} />
     <Route path="dashboard" element={<S><Dashboard /></S>} />
     <Route path="oefenen" element={<S><Practice /></S>} />

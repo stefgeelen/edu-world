@@ -10,12 +10,15 @@ const GRADES = Array.from({ length: MAX_SUPPORTED_GRADE }, (_, i) => i + 1);
  * which stays selected until the parent picks another. Only grades the app
  * has content for can be picked.
  */
-export function GradeChoice({ assignment, chosen, onChoose, size = 'md' }: {
+export function GradeChoice({ assignment, chosen, onChoose, size = 'md', tone = 'light' }: {
   assignment: GradeAssignment | null;
   chosen: number | null;
   onChoose: (grade: number) => void;
   size?: 'md' | 'lg';
+  /** 'dark' on the night-sky onboarding screens. */
+  tone?: 'light' | 'dark';
 }) {
+  const dark = tone === 'dark';
   const selected = chosen ?? assignment?.assignedGrade ?? null;
   return (
     <div>
@@ -33,8 +36,12 @@ export function GradeChoice({ assignment, chosen, onChoose, size = 'md' }: {
                 'rounded-xl border-2 font-black transition-colors',
                 size === 'lg' ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm',
                 on
-                  ? 'border-teal-500 bg-teal-500 text-white shadow-sm'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-teal-300',
+                  ? dark
+                    ? 'border-amber-400 bg-amber-400 text-[#1a103c] shadow-sm'
+                    : 'border-teal-500 bg-teal-500 text-white shadow-sm'
+                  : dark
+                    ? 'border-[#3b2d71] bg-[#0f0828]/70 text-[#c9bdf0] hover:border-amber-400'
+                    : 'border-slate-200 bg-white text-slate-500 hover:border-teal-300',
               )}
             >
               {GRADE_LABELS[grade]}
@@ -43,7 +50,7 @@ export function GradeChoice({ assignment, chosen, onChoose, size = 'md' }: {
         })}
       </div>
       {assignment && chosen === null && (
-        <p className="mt-2 text-[11px] font-medium text-slate-400">
+        <p className={cn('mt-2 text-[11px] font-medium', dark ? 'text-[#9d8bce]' : 'text-slate-400')}>
           {assignment.wasClamped
             ? `Op basis van de leeftijd zou dit het ${assignment.suggestedLabel} zijn. Dat leerjaar is nog niet beschikbaar in de app.`
             : 'Voorgesteld op basis van de leeftijd. Kies gerust een ander leerjaar.'}

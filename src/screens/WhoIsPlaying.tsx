@@ -12,6 +12,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LoadError } from '@/components/LoadError';
 import { loadFailed } from '@/lib/queryStatus';
 import { APP_PATHS } from '@/routes/paths';
+import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 
 /**
  * "Wie speelt er?": each child taps their own Buddy. This device remembers the
@@ -26,8 +27,8 @@ export function WhoIsPlaying() {
   const playersQuery = usePlayers();
   const { data: players } = playersQuery;
 
-  if (loadFailed(playersQuery)) return <LoadError onRetry={() => void playersQuery.refetch()} />;
-  if (players === undefined) return <LoadingSpinner />;
+  if (loadFailed(playersQuery)) return <LoadError tone="dark" onRetry={() => void playersQuery.refetch()} />;
+  if (players === undefined) return <LoadingSpinner tone="dark" />;
   if (players.length === 0) return <Navigate to={APP_PATHS.start} replace />;
 
   const play = (player: Player) => {
@@ -39,9 +40,11 @@ export function WhoIsPlaying() {
   return (
     <div className="relative flex h-full w-full flex-col overflow-y-auto bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] pb-10" style={{ fontFamily: "'Nunito', sans-serif" }}>
       <StarryBackground />
+      <div className="pointer-events-none absolute left-1/2 top-[-15%] h-[45%] w-[90%] max-w-xl -translate-x-1/2 rounded-full bg-amber-400/15 blur-3xl" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-10 sm:pt-14">
         <header className="text-center">
+          <img src={leapioLogo} alt="Leapio" className="mx-auto mb-5 h-9 w-auto" />
           <h1 className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-3xl font-black leading-tight text-transparent">
             Wie speelt er?
           </h1>

@@ -31,6 +31,7 @@ export function AppStart() {
   if (loadFailed(playersQuery) || loadFailed(childQuery)) {
     return (
       <LoadError
+        tone="dark"
         onRetry={() => {
           void playersQuery.refetch();
           void childQuery.refetch();
@@ -38,14 +39,14 @@ export function AppStart() {
       />
     );
   }
-  if (players === undefined || child === undefined) return <LoadingSpinner />;
+  if (players === undefined || child === undefined) return <LoadingSpinner tone="dark" />;
   if (players && needsPlayerPick(players, playingChildId)) {
     return <Navigate to={APP_PATHS.whoIsPlaying} replace />;
   }
   if (!child) return <Navigate to={APP_PATHS.addChild} replace />;
   // Lukt het laden van de Buddy niet, dan toont de kamer zelf de fout.
   if (buddyError) return <Navigate to={APP_PATHS.home} replace />;
-  if (!buddyRow) return <LoadingSpinner />;
+  if (!buddyRow) return <LoadingSpinner tone="dark" />;
 
   const choice = buddyChoiceMode(buddyRow.species_school_year, new Date());
   return <Navigate to={choice ? APP_PATHS.chooseBuddy : APP_PATHS.home} replace />;

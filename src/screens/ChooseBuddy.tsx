@@ -14,7 +14,9 @@ import { BUDDY_SPECIES_LIST, buddyChoiceMode, buddySpecies, type BuddySpeciesId 
 import { Ornaments, StarryBackground } from '@/components/dashboard/Vitrine';
 import { VITRINE } from '@/components/dashboard/vitrineStyles';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { PRIMARY_BUTTON, DISABLED_BUTTON } from '@/components/auth/NightSky';
 import { APP_PATHS } from '@/routes/paths';
+import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 
 /**
  * Het kind kiest zijn Buddy: de eerste keer, en daarna één keer per schooljaar
@@ -46,7 +48,7 @@ export function ChooseBuddy() {
     onError: (e) => toast.error(mapDbError(e) || 'Je Buddy kiezen lukte niet. Probeer het nog eens.'),
   });
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner tone="dark" />;
   // Niets te kiezen (of geen kind): gewoon naar de Buddy.
   if (!child || !buddyRow || !mode) return <Navigate to={APP_PATHS.home} replace />;
 
@@ -65,9 +67,11 @@ export function ChooseBuddy() {
   return (
     <div className="relative flex h-full w-full flex-col overflow-y-auto bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] pb-10" style={{ fontFamily: "'Nunito', sans-serif" }}>
       <StarryBackground />
+      <div className="pointer-events-none absolute left-1/2 top-[-15%] h-[45%] w-[90%] max-w-xl -translate-x-1/2 rounded-full bg-amber-400/15 blur-3xl" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-8 sm:pt-12">
         <header className="text-center">
+          <img src={leapioLogo} alt="Leapio" className="mx-auto mb-5 h-9 w-auto" />
           <h1 className="bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-2xl font-black leading-tight text-transparent sm:text-3xl">
             {title}
           </h1>
@@ -121,7 +125,7 @@ export function ChooseBuddy() {
           type="button"
           disabled={!selected || choose.isPending}
           onClick={() => selected && choose.mutate(selected)}
-          className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-b-[5px] border-amber-700 bg-gradient-to-b from-amber-300 to-amber-500 text-lg font-black text-[#1a103c] shadow-lg transition-all active:translate-y-1 active:border-b-0 disabled:opacity-40"
+          className={cn('mt-4 flex h-16 w-full items-center justify-center gap-2 rounded-2xl text-lg font-black transition-all duration-300', selected && !choose.isPending ? PRIMARY_BUTTON : DISABLED_BUTTON)}
         >
           {choose.isPending && <Loader2 className="h-5 w-5 animate-spin" aria-hidden />}
           {!selected ? 'Kies een Buddy' : staying ? `Ik blijf bij ${buddySpecies(selected).name}!` : `Ja, ${buddySpecies(selected).name}!`}

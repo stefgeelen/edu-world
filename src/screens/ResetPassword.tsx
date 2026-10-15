@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { mapAuthError } from '@/lib/errorMessages';
 import { cn } from '@/lib/utils';
 import { PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
+import { NightSkyScreen, VitrineCard, FIELD, INPUT, PRIMARY_BUTTON, DISABLED_BUTTON } from '@/components/auth/NightSky';
+import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 
 const MIN_LENGTH = PASSWORD_MIN_LENGTH;
 const MIN_STRENGTH_SCORE = 2; // require at least "Goed"
@@ -22,7 +24,7 @@ export function ResetPassword() {
   const [done, setDone] = useState(false);
 
   const strength = useMemo(() => {
-    if (password.length === 0) return { score: 0, label: '', color: 'bg-slate-200' };
+    if (password.length === 0) return { score: 0, label: '', color: 'bg-[#3b2d71]' };
     let score = 0;
     if (password.length >= 6) score++;
     if (password.length >= 10) score++;
@@ -32,8 +34,8 @@ export function ResetPassword() {
       { label: 'Te kort', color: 'bg-red-400' },
       { label: 'Zwak', color: 'bg-orange-400' },
       { label: 'Goed', color: 'bg-amber-400' },
-      { label: 'Sterk', color: 'bg-emerald-500' },
-      { label: 'Heel sterk', color: 'bg-emerald-600' },
+      { label: 'Sterk', color: 'bg-emerald-400' },
+      { label: 'Heel sterk', color: 'bg-emerald-300' },
     ];
     return { score, ...map[score] };
   }, [password]);
@@ -88,31 +90,33 @@ export function ResetPassword() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-slate-50 flex flex-col items-center justify-center px-6 py-10">
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 bg-teal-500 rounded-2xl flex items-center justify-center mb-6">
-        {done ? <Check className="w-8 h-8 text-white" /> : <Lock className="w-8 h-8 text-white" />}
+    <NightSkyScreen className="justify-center px-6 py-10">
+      <img src={leapioLogo} alt="Leapio" className="relative z-10 h-12 w-auto mb-6" />
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="relative z-10 w-16 h-16 bg-amber-400 rounded-2xl border-b-4 border-amber-600 shadow-lg shadow-amber-400/25 flex items-center justify-center mb-4">
+        {done ? <Check className="w-8 h-8 text-[#1a103c]" strokeWidth={3} /> : <Lock className="w-8 h-8 text-[#1a103c]" />}
       </motion.div>
-      <h1 className="text-2xl font-black text-slate-800 mb-2">Nieuw wachtwoord</h1>
-      <p className="text-slate-500 font-medium mb-8 text-center">Kies een nieuw wachtwoord voor je account</p>
+      <h1 className="relative z-10 text-2xl font-black text-white mb-2">Nieuw wachtwoord</h1>
+      <p className="relative z-10 text-[#c9bdf0] font-bold mb-6 text-center">Kies een nieuw wachtwoord voor je account</p>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4" noValidate>
+      <VitrineCard className="z-10 max-w-sm">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {/* Password */}
         <div>
-          <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 flex items-center gap-3 focus-within:border-teal-400 transition-colors">
-            <Lock className="w-5 h-5 text-slate-400 shrink-0" />
+          <div className={FIELD}>
+            <Lock className="w-5 h-5 text-[#9d8bce] shrink-0" />
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={`Nieuw wachtwoord (min. ${MIN_LENGTH} tekens)`}
-              className="flex-1 bg-transparent text-slate-800 font-semibold placeholder:text-slate-400 outline-none"
+              className={INPUT}
               autoComplete="new-password"
               aria-describedby="password-requirements"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-[#9d8bce] hover:text-white transition-colors"
               aria-label={showPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -127,14 +131,14 @@ export function ResetPassword() {
                     key={i}
                     className={cn(
                       'flex-1 h-1.5 rounded-full transition-colors',
-                      i < strength.score ? strength.color : 'bg-slate-200'
+                      i < strength.score ? strength.color : 'bg-[#3b2d71]'
                     )}
                   />
                 ))}
               </div>
               <p className={cn(
                 'text-xs font-bold',
-                strongEnough ? 'text-emerald-600' : 'text-slate-500'
+                strongEnough ? 'text-emerald-300' : 'text-[#c9bdf0]'
               )}>
                 {strength.label}
                 {!strongEnough && password.length > 0 && ' — kies iets sterkers'}
@@ -150,14 +154,14 @@ export function ResetPassword() {
               { ok: requirements.lowercase, text: 'Minimaal één kleine letter' },
               { ok: requirements.digit,     text: 'Minimaal één cijfer' },
             ].map((req, i) => (
-              <li key={i} className="flex items-center gap-2 text-xs font-semibold">
+              <li key={i} className="flex items-center gap-2 text-xs font-bold">
                 <div className={cn(
                   'w-4 h-4 rounded-full flex items-center justify-center transition-colors',
-                  req.ok ? 'bg-emerald-500' : 'bg-slate-200'
+                  req.ok ? 'bg-emerald-400' : 'bg-[#3b2d71]'
                 )}>
-                  {req.ok && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                  {req.ok && <Check className="w-3 h-3 text-[#1a103c]" strokeWidth={3} />}
                 </div>
-                <span className={req.ok ? 'text-emerald-600' : 'text-slate-500'}>
+                <span className={req.ok ? 'text-emerald-300' : 'text-[#9d8bce]'}>
                   {req.text}
                 </span>
               </li>
@@ -168,19 +172,17 @@ export function ResetPassword() {
         {/* Confirm password */}
         <div>
           <div className={cn(
-            'bg-white rounded-2xl border-2 p-4 flex items-center gap-3 transition-colors',
-            showMismatch
-              ? 'border-red-400 focus-within:border-red-500'
-              : 'border-slate-200 focus-within:border-teal-400'
+            FIELD,
+            showMismatch && 'border-red-400 focus-within:border-red-400'
           )}>
-            <Lock className="w-5 h-5 text-slate-400 shrink-0" />
+            <Lock className="w-5 h-5 text-[#9d8bce] shrink-0" />
             <input
               type={showConfirm ? 'text' : 'password'}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               onBlur={() => setConfirmTouched(true)}
               placeholder="Bevestig wachtwoord"
-              className="flex-1 bg-transparent text-slate-800 font-semibold placeholder:text-slate-400 outline-none"
+              className={INPUT}
               autoComplete="new-password"
               aria-invalid={showMismatch}
               aria-describedby={showMismatch ? 'confirm-error' : undefined}
@@ -188,7 +190,7 @@ export function ResetPassword() {
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
-              className="text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-[#9d8bce] hover:text-white transition-colors"
               aria-label={showConfirm ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
             >
               {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -197,14 +199,14 @@ export function ResetPassword() {
           {showMismatch && (
             <p
               id="confirm-error"
-              className="mt-2 flex items-center gap-1.5 text-xs font-bold text-red-500"
+              className="mt-2 flex items-center gap-1.5 text-xs font-bold text-red-300"
             >
               <AlertCircle className="w-3.5 h-3.5" />
               De wachtwoorden komen niet overeen
             </p>
           )}
           {confirmTouched && passwordsMatch && (
-            <p className="mt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+            <p className="mt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-300">
               <Check className="w-3.5 h-3.5" strokeWidth={3} />
               Wachtwoorden komen overeen
             </p>
@@ -215,16 +217,15 @@ export function ResetPassword() {
           type="submit"
           disabled={!canSubmit}
           className={cn(
-            'w-full h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all',
-            canSubmit
-              ? 'bg-teal-500 text-white shadow-lg active:scale-[0.98]'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+            'w-full h-16 rounded-2xl font-black text-lg flex items-center justify-center gap-2 transition-all duration-300',
+            canSubmit ? PRIMARY_BUTTON : DISABLED_BUTTON
           )}
         >
           {loading ? 'Bezig…' : done ? 'Gelukt!' : 'Opslaan'}
-          {!loading && !done && <ArrowRight className="w-5 h-5" />}
+          {!loading && !done && <ArrowRight className="w-5 h-5" strokeWidth={3} />}
         </button>
       </form>
-    </div>
+      </VitrineCard>
+    </NightSkyScreen>
   );
 }
