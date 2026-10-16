@@ -768,4 +768,4 @@ A sequence, not a backlog — each step makes the next one safer.
 9. **Zod-validate `exercises.config`** (R10) before grade-2 provisioning makes malformed configs likely.
 10. **Decide Munten vs Eikel** (R3) before more Dutch copy is written against the wrong term.
 11. **Service worker, or drop the install prompt** (R6). More pressing now that the iOS install flow actively recruits installs.
-12. ~~**Point DNS at `leapio.app`** (R13).~~ Done 2026-10-16 on `leapio.be`; still to do: redirect `leapio.vercel.app` once Supabase auth URLs point at `leapio.be`.
+12. ~~**Point DNS at `leapio.app`** (R13).~~ Done 2026-10-16 on `leapio.be`; `vercel.json` redirects `leapio.vercel.app` there (308, path kept).

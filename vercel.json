@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "leapio.vercel.app" }],
+      "destination": "https://leapio.be/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
