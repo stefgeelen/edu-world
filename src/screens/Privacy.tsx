@@ -55,8 +55,13 @@ export default function Privacy() {
 
         <Section title="Wie zijn wij?">
           <p>
-            Leapio is verantwoordelijk voor de verwerking van je gegevens. Voor elke vraag over privacy
-            kan je ons bereiken via <Mail />.
+            Leapio is een oefenapp uit Vlaanderen, gemaakt voor het Vlaamse 1ste en 2de leerjaar. Leapio
+            is verantwoordelijk voor de verwerking van je gegevens. Dat betekent dat wij beslissen welke
+            gegevens nodig zijn en dat wij ervoor instaan dat ze veilig zijn.
+          </p>
+          <p>
+            Voor elke vraag over je gegevens of over privacy kan je ons bereiken via <Mail />. Je krijgt
+            antwoord van een mens, niet van een automatisch systeem.
           </p>
         </Section>
 
@@ -125,7 +130,7 @@ export default function Privacy() {
             opdracht en volgens een verwerkersovereenkomst:
           </p>
           <ul>
-            <li><strong>Supabase</strong>: onze database, de logins en de mails over je account.</li>
+            <li><strong>Supabase</strong>: onze database, de logins en de mails over je account. De database staat in Ierland, binnen de Europese Unie.</li>
             <li><strong>Vercel</strong>: de hosting van de website en de app.</li>
             <li><strong>Google</strong>: alleen als je kiest om met Google in te loggen, en voor een lettertype op de website.</li>
             <li>
@@ -139,8 +144,8 @@ export default function Privacy() {
             </li>
           </ul>
           <p>
-            Sommige van deze diensten zijn Amerikaanse bedrijven. Gegevens die daardoor buiten de Europese
-            Unie terechtkomen, zijn beschermd door de standaardcontractbepalingen van de Europese Commissie
+            De gegevens van jou en je kind staan dus in de Europese Unie. Sommige van deze diensten zijn wel
+            Amerikaanse bedrijven. Gegevens die daardoor toch buiten de Europese Unie terechtkomen, zijn beschermd door de standaardcontractbepalingen van de Europese Commissie
             of het EU-VS-kader voor gegevensbescherming.
           </p>
         </Section>
