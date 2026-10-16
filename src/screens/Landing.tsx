@@ -90,7 +90,7 @@ function Logo() {
 }
 
 export function Landing() {
-  const canonical = typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://leapio.app/';
+  const canonical = 'https://leapio.be/';
 
   return (
     <main id="top" className="overflow-hidden bg-lp-cream font-lp-body text-lp-night [&_h1]:font-lp-display [&_h2]:font-lp-display [&_h3]:font-lp-display">

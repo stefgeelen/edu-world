@@ -50,7 +50,7 @@ export function AddToHomeScreen({
       await navigator.clipboard.writeText(window.location.origin);
       toast.success('Link gekopieerd — plak hem in Safari');
     } catch {
-      toast.error('Kopiëren lukte niet. Typ leapio.app in Safari.');
+      toast.error('Kopiëren lukte niet. Typ leapio.be in Safari.');
     }
   };
 

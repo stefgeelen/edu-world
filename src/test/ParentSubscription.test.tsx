@@ -81,7 +81,7 @@ describe('ParentSubscription', () => {
     expect(screen.queryByText('Upgrade naar Basis')).not.toBeInTheDocument();
 
     const link = screen.getByText('Upgrade naar Familie').closest('a');
-    expect(link).toHaveAttribute('href', expect.stringContaining('mailto:support@leapio.app'));
+    expect(link).toHaveAttribute('href', expect.stringContaining('mailto:support@leapio.be'));
     expect(link?.getAttribute('href')).toContain(encodeURIComponent('parent@example.test'));
   });
 

@@ -531,7 +531,7 @@ Boundaries: `<ErrorBoundary>` (root, and again inside `/app`) with a forest-them
 
 ### 10.3 SEO & marketing surface
 
-`<SEO>` (react-helmet-async) plus `public/sitemap.xml` and `robots.txt`. The Lovable scaffold metadata in `index.html` was cleaned up on 2026-09-28: own `og-image.jpg` (1200×630, with size and alt), no Lovable author/twitter tags, Leapio descriptions. **Every absolute URL (OG image, `og:url`, sitemap, the beta page's fallback canonical) points at `leapio.app`, which has no DNS yet**, so link previews will not render an image until it does. The beta page is narrowed to the 1ste leerjaar, and both marketing pages describe the Buddy-centred app (R18). `SEO-AUDIT.md` covers SEO separately.
+`<SEO>` (react-helmet-async) plus `public/sitemap.xml` and `robots.txt`. The Lovable scaffold metadata in `index.html` was cleaned up on 2026-09-28: own `og-image.jpg` (1200×630, with size and alt), no Lovable author/twitter tags, Leapio descriptions. Every absolute URL (OG image, `og:url`, sitemap, `robots.txt`, the canonical of both marketing pages) points at `https://leapio.be` (live since 2026-10-16). The beta page is narrowed to the 1ste leerjaar, and both marketing pages describe the Buddy-centred app (R18). `SEO-AUDIT.md` covers SEO separately.
 
 ### 10.4 Activity & install telemetry
 
@@ -582,7 +582,7 @@ The only GitHub Actions workflow is `Supabase Keep-Alive` — a cron ping (Mon/T
 | Migrations | Applied via Supabase CLI against a single hosted project. No staging project, no migration step in CI |
 | DB safety | Free tier: **no automated backups.** The keep-alive workflow is the only thing standing between an idle period and permanent data loss |
 | Lovable | `lovable-tagger` runs in dev mode only; `.lovable/` remains. The public metadata no longer references Lovable. |
-| Domain | `leapio.app` is the intended production domain; it has no DNS yet |
+| Domain | `leapio.be` (registered and DNS at OVH, mail on OVH MX Plan with SPF/DKIM/DMARC; site on Vercel, `www` redirects to the bare domain) |
 
 Single environment. A migration lands in production the moment it is pushed, and `main` is the deploy branch.
 
@@ -641,7 +641,7 @@ Decay rates, the care window, the death rule and item strengths exist in `lib/bu
 `subscriptions.stripe_customer_id` / `stripe_subscription_id` and the full plan/status enums exist; there is no Stripe SDK, no checkout, no webhook. Plans are set by hand in `/admin/subscriptions`. Fine as a placeholder — worth an explicit note so nobody assumes billing works.
 
 ### R13 · Public URLs point at a domain that does not resolve — **Low (but public)**
-The Lovable metadata is gone (2026-09-28). The OG image, `og:url`, sitemap and fallback canonical now all use `leapio.app`, which has no DNS, so a shared link previews without an image until the domain is live.
+The Lovable metadata is gone (2026-09-28). The OG image, `og:url`, sitemap and fallback canonical now all use `leapio.be`.
 
 ### R14 · Dead code in `GameContext` — **Low**
 `hexToColorClass(hex)` ignores its argument and returns the constant `'bg-slate-400'`; badge colours come from `gradientFrom`/`gradientTo` anyway. `GameContext` also re-exports `avatars`/`badgesData` "for backwards compatibility" and mirrors `dbBadges` into `useState` via an effect when a derived value would do.
@@ -768,4 +768,4 @@ A sequence, not a backlog — each step makes the next one safer.
 9. **Zod-validate `exercises.config`** (R10) before grade-2 provisioning makes malformed configs likely.
 10. **Decide Munten vs Eikel** (R3) before more Dutch copy is written against the wrong term.
 11. **Service worker, or drop the install prompt** (R6). More pressing now that the iOS install flow actively recruits installs.
-12. **Point DNS at `leapio.app`** (R13).
+12. ~~**Point DNS at `leapio.app`** (R13).~~ Done 2026-10-16 on `leapio.be`; still to do: redirect `leapio.vercel.app` once Supabase auth URLs point at `leapio.be`.

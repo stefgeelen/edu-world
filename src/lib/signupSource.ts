@@ -1,6 +1,6 @@
 /**
  * Waar een beta-inschrijving vandaan komt. Een link als
- * `leapio.app/beta?bron=instagram` (of `?utm_source=instagram`) geeft de
+ * `leapio.be/beta?bron=instagram` (of `?utm_source=instagram`) geeft de
  * campagne; de plek van het formulier op de pagina (hero, footer) komt erachter.
  * Opgeslagen als "instagram · hero", of enkel "hero" zonder campagne.
  */
