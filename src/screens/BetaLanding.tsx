@@ -348,7 +348,7 @@ export default function BetaLanding() {
               <span>© 2026</span>
             </div>
             <div className="flex items-center gap-6">
-              <a href="mailto:hallo@leapio.be" className="hover:text-white transition-colors">Contact</a>
+              <a href="mailto:info@leapio.be" className="hover:text-white transition-colors">Contact</a>
               <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
             </div>
           </div>

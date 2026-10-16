@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Bevestig je nieuwe e-mailadres</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f1fb;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Bevestig je nieuwe e-mailadres voor Leapio.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f1fb;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background:#ffffff;border-radius:20px;">
+        <tr>
+          <td align="center" style="padding:28px 32px 4px;">
+            <a href="https://leapio.be" style="text-decoration:none;"><img src="https://leapio.be/email-logo.jpg" width="160" height="160" alt="Leapio" style="display:block;border:0;width:160px;height:160px;"></a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 32px;font-family:Nunito,'Segoe UI',Arial,sans-serif;color:#4a4366;font-size:16px;line-height:1.6;">
+            <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;color:#3b2d71;font-weight:800;text-align:center;">Bevestig je nieuwe e-mailadres</h1>
+            <p style="margin:0 0 12px;">Je wilt het e-mailadres van je Leapio-account wijzigen van <strong>{{ .Email }}</strong> naar <strong>{{ .NewEmail }}</strong>. Klik op de knop om dat te bevestigen.</p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:24px 32px 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="border-radius:999px;background:#5b34b8;">
+                  <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 32px;font-family:Nunito,'Segoe UI',Arial,sans-serif;font-size:17px;font-weight:800;color:#ffffff;text-decoration:none;border-radius:999px;">Bevestig mijn nieuwe adres</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 32px 28px;font-family:Nunito,'Segoe UI',Arial,sans-serif;color:#4a4366;font-size:15px;line-height:1.6;">
+            <p style="margin:0 0 12px;">Tot je bevestigt, blijft je oude adres in gebruik.</p>
+            <p style="margin:16px 0 0;font-size:13px;color:#8a83a3;">Werkt de knop niet? Kopieer dan deze link in je browser:<br><a href="{{ .ConfirmationURL }}" style="color:#5b34b8;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 32px;"><div style="height:3px;background:#f5b82e;border-radius:3px;"></div></td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px 28px;font-family:Nunito,'Segoe UI',Arial,sans-serif;color:#8a83a3;font-size:13px;line-height:1.5;text-align:center;">
+            Heb jij dit niet gevraagd? Negeer deze mail dan en wijzig voor de zekerheid je wachtwoord.<br>
+            Vragen? Mail ons op <a href="mailto:info@leapio.be" style="color:#5b34b8;">info@leapio.be</a>.<br><br>
+            <strong style="color:#3b2d71;">Leapio</strong> &middot; oefenen met je eigen Buddy &middot; <a href="https://leapio.be" style="color:#5b34b8;text-decoration:none;">leapio.be</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
