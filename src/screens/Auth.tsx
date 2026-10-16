@@ -310,6 +310,7 @@ export function Auth() {
         {mode === 'signup' && (
           <p className="text-center text-xs text-[#9d8bce]">
             Met je account ga je akkoord met onze{' '}
+            <Link to="/voorwaarden" className="font-bold text-amber-300 hover:text-amber-200">voorwaarden</Link> en{' '}
             <Link to="/privacy" className="font-bold text-amber-300 hover:text-amber-200">privacyverklaring</Link>.
           </p>
         )}

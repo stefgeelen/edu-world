@@ -361,7 +361,8 @@ export function ParentAccount() {
       <p className="text-sm text-slate-500">
         Lees in onze{' '}
         <Link to="/privacy" className="font-bold text-slate-700 underline underline-offset-2">privacyverklaring</Link>{' '}
-        welke gegevens we bewaren en wat je rechten zijn.
+        welke gegevens we bewaren en wat je rechten zijn. De afspraken over je account en pakket staan in
+        onze <Link to="/voorwaarden" className="font-bold text-slate-700 underline underline-offset-2">voorwaarden</Link>.
       </p>
 
       {/* Danger zone */}

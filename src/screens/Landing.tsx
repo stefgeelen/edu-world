@@ -515,6 +515,9 @@ export function Landing() {
             © {new Date().getFullYear()} Leapio · Gemaakt voor nieuwsgierige kinderen en betrokken ouders.
           </p>
           <div className="flex items-center gap-6">
+            <Link to="/voorwaarden" className="font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold">
+              Voorwaarden
+            </Link>
             <Link to="/privacy" className="font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold">
               Privacy
             </Link>
