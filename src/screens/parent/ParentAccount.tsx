@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -357,6 +357,12 @@ export function ParentAccount() {
           />
         </div>
       </Card>
+
+      <p className="text-sm text-slate-500">
+        Lees in onze{' '}
+        <Link to="/privacy" className="font-bold text-slate-700 underline underline-offset-2">privacyverklaring</Link>{' '}
+        welke gegevens we bewaren en wat je rechten zijn.
+      </p>
 
       {/* Danger zone */}
       <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-5">

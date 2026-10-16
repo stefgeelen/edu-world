@@ -514,9 +514,14 @@ export function Landing() {
           <p className="text-center">
             © {new Date().getFullYear()} Leapio · Gemaakt voor nieuwsgierige kinderen en betrokken ouders.
           </p>
-          <Link to="/auth" className="font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold">
-            Inloggen
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link to="/privacy" className="font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold">
+              Privacy
+            </Link>
+            <Link to="/auth" className="font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold">
+              Inloggen
+            </Link>
+          </div>
         </div>
       </footer>
     </main>

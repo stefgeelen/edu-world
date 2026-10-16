@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -306,6 +306,13 @@ export function Auth() {
             </>
           )}
         </button>
+
+        {mode === 'signup' && (
+          <p className="text-center text-xs text-[#9d8bce]">
+            Met je account ga je akkoord met onze{' '}
+            <Link to="/privacy" className="font-bold text-amber-300 hover:text-amber-200">privacyverklaring</Link>.
+          </p>
+        )}
 
         {mode === 'forgot' && (
           <button

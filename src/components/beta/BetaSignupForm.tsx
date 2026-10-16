@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -190,7 +191,8 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
         </button>
 
         <p className={cn('text-xs text-center', isInline ? 'text-white/70' : 'text-slate-500')}>
-          Geen spam. Je kan je op elk moment uitschrijven.
+          Geen spam. Je kan je op elk moment uitschrijven.{' '}
+          <Link to="/privacy" className="underline underline-offset-2">Privacyverklaring</Link>
         </p>
       </div>
     </form>

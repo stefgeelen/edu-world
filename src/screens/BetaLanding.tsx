@@ -4,6 +4,7 @@ import {
   CheckCircle2, MapPin, Smartphone, Heart, Star, ChevronDown, Sprout
 } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import heroImg from '@/assets/beta-hero.jpg';
 import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 import { BetaSignupForm } from '@/components/beta/BetaSignupForm';
@@ -40,7 +41,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Hoe zit het met privacy?',
-    a: 'Je e-mail wordt enkel gebruikt om je over de beta te informeren. We verkopen geen data en delen niets met derden.',
+    a: 'Je e-mail gebruiken we enkel om je over de beta te informeren. We verkopen nooit gegevens en tonen geen reclame. We werken alleen met diensten die Leapio nodig heeft om te werken, zoals onze database en hosting. Alles staat in onze privacyverklaring op leapio.be/privacy.',
   },
 ];
 
@@ -350,6 +351,7 @@ export default function BetaLanding() {
             <div className="flex items-center gap-6">
               <a href="mailto:info@leapio.be" className="hover:text-white transition-colors">Contact</a>
               <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             </div>
           </div>
         </footer>
