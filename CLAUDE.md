@@ -27,7 +27,7 @@ src/
 ```
 
 ## Auth Flow
-1. `/auth` — sign up/login (email + password)
+1. `/auth` — sign up/login (email + password, or Google). **Beta (since 19 Oct 2026):** a new account only for an email on the waiting list (`beta_signups`); a trigger on `auth.users` refuses others (`20261019120000_signup_only_from_beta_list.sql`, drop the trigger to open up). Existing accounts are unaffected.
 2. `/auth/setup-pin` — set 4-digit parental PIN (stored via Supabase, verified via `useParentPin`)
 3. `/app/add-child` — create child profile (inserts to `children` table)
 4. `/app` — redirect only (`AppStart`): to `/app/add-child` if no child, to `/app/wie-speelt-er` if several children can play and the device doesn't know who, to `/app/kies-je-buddy` (`ChooseBuddy`) if the child never chose a Buddy or a new school year started, else `/app/home`

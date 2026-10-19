@@ -33,11 +33,28 @@ function normalize(error: AnyError): NormalizedError {
   return { message: String(error) };
 }
 
+/**
+ * Tijdens de beta weigert de database een nieuw account voor wie niet op de
+ * wachtlijst staat (enforce_beta_signup_list). Registreren met e-mail krijgt
+ * "not on beta list" terug; na Google kan het ook "Database error saving new
+ * user" zijn.
+ */
+export const NOT_ON_BETA_LIST_MESSAGE =
+  'Tijdens de beta maak je een account met het e-mailadres waarmee je je op de wachtlijst zette. Nog niet ingeschreven? Dat kan op leapio.be/beta.';
+
+export function isNotOnBetaListError(error: AnyError): boolean {
+  const lower = normalize(error).message.toLowerCase();
+  return lower.includes('not on beta list') || lower.includes('database error saving new user');
+}
+
 /** Auth-errors (Supabase GoTrue). */
 export function mapAuthError(error: AnyError): string {
   const { message, code, status } = normalize(error);
   const lower = message.toLowerCase();
 
+  if (isNotOnBetaListError(error)) {
+    return NOT_ON_BETA_LIST_MESSAGE;
+  }
   if (code === 'invalid_credentials' || lower.includes('invalid login credentials')) {
     return 'Verkeerd e-mailadres of wachtwoord.';
   }

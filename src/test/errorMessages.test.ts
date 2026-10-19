@@ -1,7 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { mapAuthError, mapDbError, mapAnyError, isSubscriptionLimitError } from '@/lib/errorMessages';
+import { mapAuthError, mapDbError, mapAnyError, isSubscriptionLimitError, NOT_ON_BETA_LIST_MESSAGE } from '@/lib/errorMessages';
 
 describe('mapAuthError', () => {
+  it('maps a refused signup (not on the beta list) to the waiting-list message', () => {
+    expect(mapAuthError({ code: 'unexpected_failure', message: 'Database error saving new user', status: 500 }))
+      .toBe(NOT_ON_BETA_LIST_MESSAGE);
+  });
+
+  it('maps the beta-list refusal as Supabase returns it for an email signup', () => {
+    expect(mapAuthError({ code: 'P0001', message: 'not on beta list' })).toBe(NOT_ON_BETA_LIST_MESSAGE);
+  });
+
   it('maps invalid credentials', () => {
     expect(mapAuthError({ code: 'invalid_credentials', message: 'Invalid login credentials' }))
       .toBe('Verkeerd e-mailadres of wachtwoord.');

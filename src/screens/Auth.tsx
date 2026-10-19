@@ -16,7 +16,7 @@ const GoogleIcon = () => (
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { mapAuthError } from '@/lib/errorMessages';
+import { isNotOnBetaListError, mapAuthError } from '@/lib/errorMessages';
 import { StarryBackground, Ornaments } from '@/components/dashboard/Vitrine';
 import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 
@@ -76,7 +76,7 @@ export function Auth() {
     } else if (mode === 'signup') {
       const { error, needsEmailConfirmation } = await signUp(email.trim(), password, fullName.trim());
       if (error) {
-        toast.error(mapAuthError(error));
+        toast.error(mapAuthError(error), { duration: isNotOnBetaListError(error) ? 10000 : undefined });
       } else if (needsEmailConfirmation) {
         // No session yet — every screen behind this point (PIN setup, add-child)
         // needs auth.uid(), so sending them there strands them on a form that
@@ -306,6 +306,13 @@ export function Auth() {
             </>
           )}
         </button>
+
+        {mode === 'signup' && (
+          <p className="text-center text-xs text-[#9d8bce]">
+            Tijdens de beta maak je een account met het e-mailadres van de{' '}
+            <Link to="/beta" className="font-bold text-amber-300 hover:text-amber-200">wachtlijst</Link>.
+          </p>
+        )}
 
         {mode === 'signup' && (
           <p className="text-center text-xs text-[#9d8bce]">
