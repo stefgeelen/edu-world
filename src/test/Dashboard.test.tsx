@@ -164,7 +164,7 @@ describe('Dashboard', () => {
   it('signs out and returns to the login screen', async () => {
     renderDashboard();
     fireEvent.click(screen.getByRole('button', { name: 'Uitloggen' }));
-    await vi.waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/toegang-7k2q'));
+    await vi.waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/toegang'));
     expect(signOut).toHaveBeenCalled();
   });
 

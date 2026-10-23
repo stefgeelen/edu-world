@@ -90,6 +90,6 @@ describe('ParentLayout', () => {
     fireEvent.click(screen.getByTitle('Uitloggen'));
     expect(lockMock).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(signOutMock).toHaveBeenCalled());
-    expect(navigateMock).toHaveBeenCalledWith('/toegang-7k2q');
+    expect(navigateMock).toHaveBeenCalledWith('/toegang');
   });
 });

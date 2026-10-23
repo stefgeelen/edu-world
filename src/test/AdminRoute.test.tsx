@@ -18,7 +18,7 @@ function renderAdminRoute() {
   return render(
     <MemoryRouter initialEntries={['/app/admin']}>
       <Routes>
-        <Route path="/toegang-7k2q" element={<div>Auth screen</div>} />
+        <Route path="/toegang" element={<div>Auth screen</div>} />
         <Route path="/app/home" element={<div>Regular dashboard</div>} />
         <Route
           path="/app/admin"

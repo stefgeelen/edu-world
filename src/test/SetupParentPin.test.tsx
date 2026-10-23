@@ -51,7 +51,7 @@ describe('SetupParentPin session guard', () => {
     getSession.mockResolvedValue({ data: { session: null } });
     renderScreen();
 
-    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/toegang-7k2q', { replace: true }));
+    await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/toegang', { replace: true }));
   });
 
   it('never shows the PIN form while unauthenticated', async () => {
@@ -71,14 +71,14 @@ describe('SetupParentPin session guard', () => {
     renderScreen();
 
     await waitFor(() => expect(getSession).toHaveBeenCalled());
-    expect(navigateMock).not.toHaveBeenCalledWith('/toegang-7k2q', { replace: true });
+    expect(navigateMock).not.toHaveBeenCalledWith('/toegang', { replace: true });
   });
 
   it('does not bounce an authenticated parent', async () => {
     authState = { user: { id: 'user-1' }, loading: false };
     renderScreen();
 
-    await waitFor(() => expect(navigateMock).not.toHaveBeenCalledWith('/toegang-7k2q', { replace: true }));
+    await waitFor(() => expect(navigateMock).not.toHaveBeenCalledWith('/toegang', { replace: true }));
     expect(getSession).not.toHaveBeenCalled();
   });
 
@@ -87,6 +87,6 @@ describe('SetupParentPin session guard', () => {
     renderScreen();
 
     await waitFor(() => expect(getSession).not.toHaveBeenCalled());
-    expect(navigateMock).not.toHaveBeenCalledWith('/toegang-7k2q', { replace: true });
+    expect(navigateMock).not.toHaveBeenCalledWith('/toegang', { replace: true });
   });
 });

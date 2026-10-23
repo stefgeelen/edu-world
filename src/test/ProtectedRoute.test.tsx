@@ -13,7 +13,7 @@ function renderProtected() {
   return render(
     <MemoryRouter initialEntries={['/app/dashboard']}>
       <Routes>
-        <Route path="/toegang-7k2q" element={<div>Auth screen</div>} />
+        <Route path="/toegang" element={<div>Auth screen</div>} />
         <Route
           path="/app/dashboard"
           element={

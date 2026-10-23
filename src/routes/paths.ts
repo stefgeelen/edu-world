@@ -25,7 +25,7 @@ export const APP_PATHS = {
  * The login screen. Not linked from the public site (beta): only people who
  * know it find it. Old `/auth` links go to the landing page.
  */
-export const LOGIN_PATH = '/toegang-7k2q';
+export const LOGIN_PATH = '/toegang';
 
 /** The screens an exercise can be started from, and so returns to. */
 export type ExerciseOrigin = typeof APP_PATHS.dashboard | typeof APP_PATHS.practice;

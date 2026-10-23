@@ -73,6 +73,6 @@ describe('AdminDashboard', () => {
     render(<AdminDashboard />);
     fireEvent.click(screen.getByText('Uitloggen'));
     await waitFor(() => expect(signOutMock).toHaveBeenCalled());
-    expect(navigateMock).toHaveBeenCalledWith('/toegang-7k2q');
+    expect(navigateMock).toHaveBeenCalledWith('/toegang');
   });
 });
