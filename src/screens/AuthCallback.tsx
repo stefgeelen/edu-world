@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { NOT_ON_BETA_LIST_MESSAGE, isNotOnBetaListError } from '@/lib/errorMessages';
+import { LOGIN_PATH } from '@/routes/paths';
 
 /** Supabase sends a failed sign-in back with ?error_description= (or in the hash). */
 function errorFromUrl(): string | null {
@@ -28,7 +29,7 @@ export function AuthCallback() {
         isNotOnBetaListError(urlError) ? NOT_ON_BETA_LIST_MESSAGE : 'Inloggen mislukt. Probeer het opnieuw.',
         { duration: 10000 }
       );
-      navigate('/auth', { replace: true });
+      navigate(LOGIN_PATH, { replace: true });
       return;
     }
 
@@ -37,7 +38,7 @@ export function AuthCallback() {
     supabase.rpc('has_parent_pin').then(({ data, error }) => {
       if (error) {
         toast.error('Er ging iets mis. Probeer het opnieuw.');
-        navigate('/auth', { replace: true });
+        navigate(LOGIN_PATH, { replace: true });
         return;
       }
       if (data) {

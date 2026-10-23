@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
-import { Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
+import { LOGIN_PATH } from '@/routes/paths';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 const Index = lazy(() => import('@/pages/Index'));
@@ -17,7 +18,9 @@ export const publicRoutes = (
     <Route path="/beta" element={<Suspense fallback={<LoadingSpinner />}><BetaLanding /></Suspense>} />
     <Route path="/privacy" element={<Suspense fallback={<LoadingSpinner />}><Privacy /></Suspense>} />
     <Route path="/voorwaarden" element={<Suspense fallback={<LoadingSpinner />}><Terms /></Suspense>} />
-    <Route path="/auth" element={<Suspense fallback={<LoadingSpinner tone="dark" />}><Auth /></Suspense>} />
+    <Route path={LOGIN_PATH} element={<Suspense fallback={<LoadingSpinner tone="dark" />}><Auth /></Suspense>} />
+    {/* The login is not public during the beta: the old address shows the landing page. */}
+    <Route path="/auth" element={<Navigate to="/" replace />} />
     <Route path="/auth/setup-pin" element={<Suspense fallback={<LoadingSpinner tone="dark" />}><SetupParentPin /></Suspense>} />
     <Route path="/auth/callback" element={<Suspense fallback={<LoadingSpinner tone="dark" />}><AuthCallback /></Suspense>} />
     <Route path="/reset-password" element={<Suspense fallback={<LoadingSpinner tone="dark" />}><ResetPassword /></Suspense>} />

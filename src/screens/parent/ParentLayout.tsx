@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { parentPinSession } from '@/hooks/useParentPin';
 import { toast } from 'sonner';
-import { APP_PATHS } from '@/routes/paths';
+import { APP_PATHS, LOGIN_PATH } from '@/routes/paths';
 
 const NAV_ITEMS = [
   { path: '/app/parent', label: 'Kinderen', icon: Users, exact: true },
@@ -71,7 +71,7 @@ export function ParentLayout() {
                 onClick={async () => {
                   parentPinSession.lock();
                   await supabase.auth.signOut();
-                  navigate('/auth');
+                  navigate(LOGIN_PATH);
                 }}
                 className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                 title="Uitloggen"

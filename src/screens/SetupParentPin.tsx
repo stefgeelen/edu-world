@@ -11,6 +11,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { mapDbError } from '@/lib/errorMessages';
+import { LOGIN_PATH } from '@/routes/paths';
 
 type Step = 'choose' | 'confirm';
 
@@ -41,7 +42,7 @@ export function SetupParentPin() {
     if (authLoading || user) return;
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
-      if (!cancelled && !data.session) navigate('/auth', { replace: true });
+      if (!cancelled && !data.session) navigate(LOGIN_PATH, { replace: true });
     });
     return () => { cancelled = true; };
   }, [authLoading, user, navigate]);

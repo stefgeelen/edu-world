@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Users, CreditCard, BarChart3, Shield, ChevronLeft, LogOut, Sparkles, BookOpen, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { APP_PATHS } from '@/routes/paths';
+import { APP_PATHS, LOGIN_PATH } from '@/routes/paths';
 
 const NAV_ITEMS = [
   { path: '/admin/users', label: 'Gebruikers', icon: Users },
@@ -36,7 +36,7 @@ export function AdminDashboard() {
           </div>
         </div>
         <button
-          onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }}
+          onClick={async () => { await supabase.auth.signOut(); navigate(LOGIN_PATH); }}
           className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
         >
           <LogOut className="w-4 h-4" />

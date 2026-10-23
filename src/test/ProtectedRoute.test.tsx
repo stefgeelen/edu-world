@@ -13,7 +13,7 @@ function renderProtected() {
   return render(
     <MemoryRouter initialEntries={['/app/dashboard']}>
       <Routes>
-        <Route path="/auth" element={<div>Auth screen</div>} />
+        <Route path="/toegang-7k2q" element={<div>Auth screen</div>} />
         <Route
           path="/app/dashboard"
           element={
@@ -38,7 +38,7 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByText('Secret dashboard')).not.toBeInTheDocument();
   });
 
-  it('redirects to /auth when there is no user', () => {
+  it('redirects to the login when there is no user', () => {
     useAuthMock.mockReturnValue({ user: null, loading: false });
     renderProtected();
 

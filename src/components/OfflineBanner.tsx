@@ -3,8 +3,9 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WifiOff } from 'lucide-react';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { LOGIN_PATH } from '@/routes/paths';
 
-const PARENT_ROUTE_PREFIXES = ['/app/parent', '/admin', '/auth'];
+const PARENT_ROUTE_PREFIXES = ['/app/parent', '/admin', '/auth', LOGIN_PATH];
 
 /**
  * Globale offline-banner. Toont een aangepaste boodschap voor kind- of

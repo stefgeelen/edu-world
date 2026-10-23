@@ -4,6 +4,7 @@ import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { AddToHomeScreen } from '@/components/AddToHomeScreen';
 import { Download, X, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LOGIN_PATH } from '@/routes/paths';
 
 /**
  * Bottom banner offering to put Leapio on the home screen.
@@ -21,7 +22,7 @@ const APPEAR_AFTER_MS = 4000;
 
 /** Screens where an install offer makes sense: the app itself and the door to it. */
 function isRelevantRoute(pathname: string) {
-  return pathname.startsWith('/app') || pathname === '/auth';
+  return pathname.startsWith('/app') || pathname === LOGIN_PATH;
 }
 
 export function InstallPrompt() {

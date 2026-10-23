@@ -15,7 +15,7 @@ import { useChildRewards, rewardCountdown } from '@/hooks/useChildRewards';
 import { quickStarts, isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { ExerciseTypeIcon } from '@/components/buddy/ExerciseTypeIcon';
-import { APP_PATHS, startExerciseFrom } from '@/routes/paths';
+import { APP_PATHS, startExerciseFrom, LOGIN_PATH } from '@/routes/paths';
 import { cn } from '@/lib/utils';
 import { Ornaments, Payout, StarryBackground } from '@/components/dashboard/Vitrine';
 import { VITRINE } from '@/components/dashboard/vitrineStyles';
@@ -71,7 +71,7 @@ export function Dashboard() {
       await supabase.auth.signOut();
     } finally {
       queryClient.clear();
-      navigate('/auth');
+      navigate(LOGIN_PATH);
     }
   };
 

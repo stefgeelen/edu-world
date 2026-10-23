@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { Loader2 } from 'lucide-react';
-import { APP_PATHS } from '@/routes/paths';
+import { APP_PATHS, LOGIN_PATH } from '@/routes/paths';
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -16,7 +16,7 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to={LOGIN_PATH} replace />;
   if (!isAdmin) return <Navigate to={APP_PATHS.home} replace />;
 
   return <>{children}</>;

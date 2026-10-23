@@ -18,7 +18,7 @@ function renderAdminRoute() {
   return render(
     <MemoryRouter initialEntries={['/app/admin']}>
       <Routes>
-        <Route path="/auth" element={<div>Auth screen</div>} />
+        <Route path="/toegang-7k2q" element={<div>Auth screen</div>} />
         <Route path="/app/home" element={<div>Regular dashboard</div>} />
         <Route
           path="/app/admin"
@@ -53,7 +53,7 @@ describe('AdminRoute', () => {
     expect(screen.queryByText('Admin panel')).not.toBeInTheDocument();
   });
 
-  it('redirects to /auth when there is no user', () => {
+  it('redirects to the login when there is no user', () => {
     useAuthMock.mockReturnValue({ user: null, loading: false });
     useAdminRoleMock.mockReturnValue({ isAdmin: false, isLoading: false });
     renderAdminRoute();
@@ -61,7 +61,7 @@ describe('AdminRoute', () => {
     expect(screen.getByText('Auth screen')).toBeInTheDocument();
   });
 
-  it('redirects a signed-in non-admin to the regular dashboard, not /auth', () => {
+  it('redirects a signed-in non-admin to the regular dashboard, not the login', () => {
     useAuthMock.mockReturnValue({ user: { id: 'user-1' }, loading: false });
     useAdminRoleMock.mockReturnValue({ isAdmin: false, isLoading: false });
     renderAdminRoute();

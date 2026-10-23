@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
 import { NightSkyScreen, VitrineCard, FIELD, INPUT, PRIMARY_BUTTON, DISABLED_BUTTON } from '@/components/auth/NightSky';
 import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
+import { LOGIN_PATH } from '@/routes/paths';
 
 const MIN_LENGTH = PASSWORD_MIN_LENGTH;
 const MIN_STRENGTH_SCORE = 2; // require at least "Goed"
@@ -58,7 +59,7 @@ export function ResetPassword() {
   useEffect(() => {
     const hash = window.location.hash;
     if (!hash.includes('type=recovery')) {
-      navigate('/auth', { replace: true });
+      navigate(LOGIN_PATH, { replace: true });
     }
   }, [navigate]);
 

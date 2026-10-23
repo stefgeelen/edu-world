@@ -23,7 +23,7 @@ test.describe('onboarding: signup through first dashboard view', () => {
   test('a brand-new parent can sign up, set a PIN, add a child, and reach the dashboard', async ({ page }) => {
     const email = uniqueEmail();
 
-    await page.goto('/auth');
+    await page.goto('/toegang-7k2q');
     await page.getByRole('button', { name: 'Registreren' }).click();
 
     await page.getByPlaceholder('Volledige naam').fill('QA Ouder');
@@ -47,7 +47,7 @@ test.describe('onboarding: signup through first dashboard view', () => {
   });
 
   test('signing in with the wrong password shows an error and does not navigate', async ({ page }) => {
-    await page.goto('/auth');
+    await page.goto('/toegang-7k2q');
     await page.getByPlaceholder('E-mailadres').fill(uniqueEmail());
     await page.getByPlaceholder('Wachtwoord').fill('whatever-wrong-1');
     await page.getByRole('button', { name: 'Inloggen' }).click();
