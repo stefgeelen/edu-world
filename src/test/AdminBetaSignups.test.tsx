@@ -3,11 +3,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { createTestQueryClient, queryWrapper, fakeSupabaseChain } from './testUtils';
 
-// AdminBetaSignups is a read-only table + CSV export. No mutation, so the
-// coverage here is: loading, error, rendered rows (incl. null-field
-// fallbacks), empty state (export disabled), and the export action itself.
+// AdminBetaSignups is the waiting list table + CSV export, plus "Toegang
+// geven": the admin puts an email on the list so that address can sign up.
 
 const fromMock = vi.fn();
+const toastSuccess = vi.fn();
+const toastInfo = vi.fn();
+const toastError = vi.fn();
+vi.mock('sonner', () => ({
+  toast: {
+    success: (...a: unknown[]) => toastSuccess(...a),
+    info: (...a: unknown[]) => toastInfo(...a),
+    error: (...a: unknown[]) => toastError(...a),
+  },
+}));
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: { from: (...args: unknown[]) => fromMock(...args) },
 }));
@@ -112,6 +122,127 @@ describe('AdminBetaSignups', () => {
       expect(blob.type).toBe('text/csv;charset=utf-8;');
       expect(clickSpy).toHaveBeenCalledTimes(1);
       expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:mock-url');
+    });
+  });
+
+  describe('Toegang geven', () => {
+    function chainWithInsert(insertResult: { data: null; error: unknown }) {
+      const insertSpy = vi.fn();
+      fromMock.mockImplementation(() => {
+        const chain = fakeSupabaseChain({ data: [SIGNUP_1], error: null });
+        chain.insert = (row: unknown) => {
+          insertSpy(row);
+          return fakeSupabaseChain(insertResult);
+        };
+        return chain;
+      });
+      return insertSpy;
+    }
+
+    it('keeps the button disabled until a valid email is typed', async () => {
+      chainWithInsert({ data: null, error: null });
+      renderScreen();
+      await screen.findByText('1 aanmelding');
+
+      const button = screen.getByRole('button', { name: /Toegang geven/ });
+      expect(button).toBeDisabled();
+      fireEvent.change(screen.getByLabelText('E-mailadres'), { target: { value: 'geen-adres' } });
+      expect(button).toBeDisabled();
+      fireEvent.change(screen.getByLabelText('E-mailadres'), { target: { value: 'nieuw@example.test' } });
+      expect(button).toBeEnabled();
+    });
+
+    it('puts the email (lowercased) on the list with source "admin · toegang"', async () => {
+      const insertSpy = chainWithInsert({ data: null, error: null });
+      renderScreen();
+      await screen.findByText('1 aanmelding');
+
+      fireEvent.change(screen.getByLabelText('E-mailadres'), { target: { value: '  Nieuw@Example.test ' } });
+      fireEvent.click(screen.getByRole('button', { name: /Toegang geven/ }));
+
+      await waitFor(() => expect(toastSuccess).toHaveBeenCalled());
+      expect(insertSpy).toHaveBeenCalledWith({ email: 'nieuw@example.test', source: 'admin · toegang' });
+      expect(screen.getByLabelText('E-mailadres')).toHaveValue('');
+    });
+
+    it('says the address already has access when it is on the list', async () => {
+      chainWithInsert({ data: null, error: { code: '23505', message: 'duplicate' } });
+      renderScreen();
+      await screen.findByText('1 aanmelding');
+
+      fireEvent.change(screen.getByLabelText('E-mailadres'), { target: { value: 'parent1@example.test' } });
+      fireEvent.click(screen.getByRole('button', { name: /Toegang geven/ }));
+
+      await waitFor(() => expect(toastInfo).toHaveBeenCalled());
+      expect(toastError).not.toHaveBeenCalled();
+    });
+
+    it('shows an error toast when saving fails', async () => {
+      chainWithInsert({ data: null, error: { code: '42501', message: 'denied' } });
+      renderScreen();
+      await screen.findByText('1 aanmelding');
+
+      fireEvent.change(screen.getByLabelText('E-mailadres'), { target: { value: 'nieuw@example.test' } });
+      fireEvent.click(screen.getByRole('button', { name: /Toegang geven/ }));
+
+      await waitFor(() => expect(toastError).toHaveBeenCalled());
+    });
+  });
+
+  describe('Verwijderen', () => {
+    function chainWithDelete(deleteResult: { data: unknown; error: unknown }) {
+      const deleteSpy = vi.fn();
+      fromMock.mockImplementation(() => {
+        const chain = fakeSupabaseChain({ data: [SIGNUP_1, SIGNUP_2], error: null });
+        chain.delete = () => {
+          const del = fakeSupabaseChain(deleteResult);
+          del.eq = (col: unknown, val: unknown) => {
+            deleteSpy(col, val);
+            return del;
+          };
+          return del;
+        };
+        return chain;
+      });
+      return deleteSpy;
+    }
+
+    async function openDialogFor(email: string) {
+      renderScreen();
+      await screen.findByText('2 aanmeldingen');
+      fireEvent.click(screen.getByRole('button', { name: `${email} verwijderen` }));
+      return screen.findByRole('alertdialog');
+    }
+
+    it('asks for confirmation before deleting anything', async () => {
+      const deleteSpy = chainWithDelete({ data: [{ id: 'signup-1' }], error: null });
+      const dialog = await openDialogFor('parent1@example.test');
+
+      expect(dialog.textContent).toContain('parent1@example.test');
+      fireEvent.click(screen.getByRole('button', { name: 'Annuleren' }));
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+      expect(deleteSpy).not.toHaveBeenCalled();
+    });
+
+    it('deletes the chosen row after confirming', async () => {
+      const deleteSpy = chainWithDelete({ data: [{ id: 'signup-2' }], error: null });
+      await openDialogFor('parent2@example.test');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Verwijderen' }));
+
+      await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Van de wachtlijst gehaald.'));
+      expect(deleteSpy).toHaveBeenCalledWith('id', 'signup-2');
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    });
+
+    it('shows an error when nothing was deleted (silent RLS denial)', async () => {
+      chainWithDelete({ data: [], error: null });
+      await openDialogFor('parent1@example.test');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Verwijderen' }));
+
+      await waitFor(() => expect(toastError).toHaveBeenCalled());
+      expect(toastSuccess).not.toHaveBeenCalled();
     });
   });
 });
