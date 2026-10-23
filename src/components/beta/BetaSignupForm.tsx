@@ -35,8 +35,9 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
   });
 
   const onSubmit = async (values: FormValues) => {
+    const email = values.email.trim().toLowerCase();
     const { error } = await supabase.from('beta_signups').insert({
-      email: values.email.trim().toLowerCase(),
+      email,
       full_name: values.full_name?.trim() || null,
       child_grade: values.child_grade || null,
       source: signupSource(
@@ -56,6 +57,14 @@ export function BetaSignupForm({ variant = 'hero', source }: Props) {
       console.error('beta signup error', error);
       return;
     }
+
+    // De bevestigingsmail mag de inschrijving nooit tegenhouden: niet wachten,
+    // een fout enkel loggen.
+    void supabase.functions
+      .invoke('beta-signup-confirmation', { body: { email } })
+      .then(({ error: mailError }) => {
+        if (mailError) console.error('beta confirmation mail error', mailError);
+      });
 
     toast.success('Aanmelding gelukt! We sturen je een bericht zodra de beta opent.');
     setSuccess(true);
