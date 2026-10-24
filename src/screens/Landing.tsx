@@ -20,6 +20,9 @@ const GOLD_BUTTON =
   'shadow-[0_8px_0_hsl(var(--lp-gold-shadow))] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_0_hsl(var(--lp-gold-shadow))] ' +
   'active:translate-y-1 active:shadow-[0_4px_0_hsl(var(--lp-gold-shadow))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lp-cream';
 
+const INSTAGRAM_URL = 'https://www.instagram.com/leapio.be/';
+const INSTAGRAM_GRADIENT = 'bg-[linear-gradient(45deg,#f58529_0%,#dd2a7b_50%,#8134af_100%)]';
+
 const STARS = [
   'left-[7%] top-[18%]',
   'left-[20%] top-[42%]',
@@ -121,6 +124,19 @@ export function Landing() {
             <a href="#voor-ouders" className="transition-colors hover:text-lp-gold">Voor ouders</a>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Volg Leapio op Instagram"
+              className={cn(
+                INSTAGRAM_GRADIENT,
+                'inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-3 text-sm font-bold text-white shadow-lg transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lp-cream sm:px-4',
+              )}
+            >
+              <Instagram className="h-5 w-5" aria-hidden="true" />
+              <span className="hidden sm:inline">Volg ons</span>
+            </a>
             <a href="#beta" className={cn(GOLD_BUTTON, 'h-10 shrink-0 px-4 text-sm sm:px-5')}>
               Naar de beta
             </a>
@@ -144,6 +160,20 @@ export function Landing() {
               </a>
               <span className="text-sm font-semibold text-lp-cream/60">Gratis inschrijven · geen account nodig</span>
             </div>
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-6 inline-flex items-center gap-3 rounded-2xl border border-lp-cream/15 bg-lp-cream/5 py-2 pl-2 pr-4 text-left transition-colors hover:border-lp-cream/30 hover:bg-lp-cream/10"
+            >
+              <span className={cn(INSTAGRAM_GRADIENT, 'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white')}>
+                <Instagram className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block text-sm font-bold text-lp-cream">Volg Nootje en zijn vriendjes op Instagram</span>
+                <span className="block text-xs font-semibold text-lp-cream/60 group-hover:text-lp-gold">@leapio.be</span>
+              </span>
+            </a>
           </div>
 
           <div className="relative mx-auto h-[335px] w-full max-w-2xl sm:h-[520px]">
@@ -510,7 +540,7 @@ export function Landing() {
           </p>
           <div className="flex items-center gap-6">
             <a
-              href="https://www.instagram.com/leapio.be/"
+              href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold"
