@@ -6,9 +6,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Mail, KeyRound, Lock, User, Trash2, Loader2, CreditCard, Calendar, Save, AlertTriangle, Smartphone, CheckCircle2 } from 'lucide-react';
+import { Mail, KeyRound, Lock, User, Trash2, Loader2, CreditCard, Calendar, Save, AlertTriangle, Smartphone, CheckCircle2, Bell } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { AddToHomeScreen } from '@/components/AddToHomeScreen';
+import { PushNotificationsSettings } from '@/components/parent/PushNotificationsSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
 import { useAuth } from '@/context/AuthContext';
@@ -329,6 +330,11 @@ export function ParentAccount() {
             </button>
           </>
         )}
+      </Card>
+
+      {/* Push notifications — also offered once during onboarding (SetupNotifications) */}
+      <Card title="Meldingen" icon={Bell}>
+        <PushNotificationsSettings installMode={install.mode} onShowInstall={() => setShowInstall(true)} />
       </Card>
 
       {/* PIN change */}

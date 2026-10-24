@@ -11,6 +11,7 @@ import { useParentChildren } from '@/hooks/useParentChildren';
 import { buddySpecies } from '@/lib/buddy/species';
 import { ChooseActiveChildrenDialog } from '@/components/parent/ChooseActiveChildrenDialog';
 import { isUnlimited } from '@/lib/subscriptionPlans';
+import { PushNudge } from '@/components/parent/PushNudge';
 
 export function ParentChildren() {
   const navigate = useNavigate();
@@ -48,6 +49,8 @@ export function ParentChildren() {
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-5xl mx-auto w-full space-y-6 pb-20">
+      <PushNudge />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

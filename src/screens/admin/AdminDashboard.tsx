@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, CreditCard, BarChart3, Shield, ChevronLeft, LogOut, Sparkles, BookOpen, MessageSquare } from 'lucide-react';
+import { Users, CreditCard, BarChart3, Shield, ChevronLeft, LogOut, Sparkles, BookOpen, MessageSquare, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { APP_PATHS, LOGIN_PATH } from '@/routes/paths';
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { path: '/admin/stats', label: 'Statistieken', icon: BarChart3 },
   { path: '/admin/exercises', label: 'Oefeningen', icon: BookOpen },
   { path: '/admin/beta', label: 'Beta', icon: Sparkles },
+  { path: '/admin/meldingen', label: 'Meldingen', icon: Bell },
   { path: '/admin/feedback', label: 'Feedback', icon: MessageSquare },
 ];
 

@@ -11,6 +11,7 @@ const AdminStats = lazy(() => import('@/screens/admin/AdminStats').then(m => ({ 
 const AdminBetaSignups = lazy(() => import('@/screens/admin/AdminBetaSignups').then(m => ({ default: m.AdminBetaSignups })));
 const AdminExercises = lazy(() => import('@/screens/admin/AdminExercises').then(m => ({ default: m.AdminExercises })));
 const AdminExerciseFamily = lazy(() => import('@/screens/admin/AdminExerciseFamily').then(m => ({ default: m.AdminExerciseFamily })));
+const AdminPush = lazy(() => import('@/screens/admin/AdminPush').then(m => ({ default: m.AdminPush })));
 const AdminFeedback = lazy(() => import('@/screens/admin/AdminFeedback').then(m => ({ default: m.AdminFeedback })));
 
 export const adminRoutes = (
@@ -31,6 +32,7 @@ export const adminRoutes = (
     <Route path="exercises" element={<Suspense fallback={<LoadingSpinner />}><AdminExercises /></Suspense>} />
     <Route path="exercises/:familyKey" element={<Suspense fallback={<LoadingSpinner />}><AdminExerciseFamily /></Suspense>} />
     <Route path="beta" element={<Suspense fallback={<LoadingSpinner />}><AdminBetaSignups /></Suspense>} />
+    <Route path="meldingen" element={<Suspense fallback={<LoadingSpinner />}><AdminPush /></Suspense>} />
     <Route path="feedback" element={<Suspense fallback={<LoadingSpinner />}><AdminFeedback /></Suspense>} />
   </Route>
 );

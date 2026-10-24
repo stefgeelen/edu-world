@@ -2,3 +2,8 @@ project_id = "txtrbkbthibwgopzdbnq"
 
 [functions.admin-delete-user]
 verify_jwt = false
+
+# Called by pg_cron with a shared secret (x-push-cron-secret), not a user JWT.
+# Parent test calls are checked in the function itself (requireUser).
+[functions.send-push-notifications]
+verify_jwt = false

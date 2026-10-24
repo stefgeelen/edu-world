@@ -78,6 +78,7 @@ export type Database = {
       beta_signups: {
         Row: {
           child_grade: string | null
+          confirmation_sent_at: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -87,6 +88,7 @@ export type Database = {
         }
         Insert: {
           child_grade?: string | null
+          confirmation_sent_at?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -96,6 +98,7 @@ export type Database = {
         }
         Update: {
           child_grade?: string | null
+          confirmation_sent_at?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -632,6 +635,138 @@ export type Database = {
         }
         Relationships: []
       }
+      push_notifications: {
+        Row: {
+          body: string
+          child_id: string | null
+          created_at: string
+          devices: number
+          exercise_id: string | null
+          id: string
+          kind: string
+          parent_id: string
+          sent_at: string | null
+          status: string
+          title: string
+          url: string
+        }
+        Insert: {
+          body: string
+          child_id?: string | null
+          created_at?: string
+          devices?: number
+          exercise_id?: string | null
+          id?: string
+          kind: string
+          parent_id: string
+          sent_at?: string | null
+          status?: string
+          title: string
+          url: string
+        }
+        Update: {
+          body?: string
+          child_id?: string | null
+          created_at?: string
+          devices?: number
+          exercise_id?: string | null
+          id?: string
+          kind?: string
+          parent_id?: string
+          sent_at?: string | null
+          status?: string
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_notifications_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_notifications_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_preferences: {
+        Row: {
+          buddy: boolean
+          insights: boolean
+          parent_id: string
+          updated_at: string
+        }
+        Insert: {
+          buddy?: boolean
+          insights?: boolean
+          parent_id: string
+          updated_at?: string
+        }
+        Update: {
+          buddy?: boolean
+          insights?: boolean
+          parent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      push_settings: {
+        Row: {
+          id: boolean
+          mode: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          mode?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          mode?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_success_at: string | null
+          p256dh: string
+          parent_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_success_at?: string | null
+          p256dh: string
+          parent_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_success_at?: string | null
+          p256dh?: string
+          parent_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       rewards: {
         Row: {
           child_id: string
@@ -837,6 +972,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _buddy_display_name: { Args: { p_species: string }; Returns: string }
       _buddy_ensure_row: {
         Args: { p_child_id: string; p_parent_id: string }
         Returns: undefined
@@ -926,7 +1062,12 @@ export type Database = {
         Returns: Json
       }
       _practice_day_start: { Args: never; Returns: string }
+      _push_cron_active: { Args: never; Returns: boolean }
+      _push_cron_secret: { Args: never; Returns: string }
+      _push_in_window: { Args: { p_at: string }; Returns: boolean }
       admin_engagement_stats: { Args: never; Returns: Json }
+      admin_push_stats: { Args: never; Returns: Json }
+      admin_set_push_mode: { Args: { p_mode: string }; Returns: undefined }
       admin_set_subscription: {
         Args: {
           p_plan: Database["public"]["Enums"]["subscription_plan"]
@@ -1093,6 +1234,52 @@ export type Database = {
       practice_menu: { Args: { p_child_id: string }; Returns: Json }
       practice_munten_for: { Args: { p_nth: number }; Returns: number }
       practice_wish_bonus: { Args: never; Returns: number }
+      push_claim_due: {
+        Args: never
+        Returns: {
+          body: string
+          child_id: string | null
+          created_at: string
+          devices: number
+          exercise_id: string | null
+          id: string
+          kind: string
+          parent_id: string
+          sent_at: string | null
+          status: string
+          title: string
+          url: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "push_notifications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      push_claim_test: {
+        Args: never
+        Returns: {
+          body: string
+          child_id: string | null
+          created_at: string
+          devices: number
+          exercise_id: string | null
+          id: string
+          kind: string
+          parent_id: string
+          sent_at: string | null
+          status: string
+          title: string
+          url: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "push_notifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       record_incomplete_exercise: {
         Args: {
           p_child_id: string
@@ -1105,6 +1292,19 @@ export type Database = {
       }
       record_times_table_run: {
         Args: { p_child_id: string; p_mistakes: number; p_table_number: number }
+        Returns: undefined
+      }
+      remove_push_subscription: {
+        Args: { p_endpoint: string }
+        Returns: undefined
+      }
+      save_push_subscription: {
+        Args: {
+          p_auth: string
+          p_endpoint: string
+          p_p256dh: string
+          p_user_agent: string
+        }
         Returns: undefined
       }
       set_active_children: {

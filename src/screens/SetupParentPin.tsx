@@ -92,7 +92,8 @@ export function SetupParentPin() {
     setPin.mutate(second, {
       onSuccess: () => {
         toast.success(isChange ? 'Toegangscode gewijzigd' : 'Toegangscode ingesteld');
-        navigate(redirectTo, { replace: true });
+        // First time: ask about notifications before going on (it skips itself when there is nothing to ask).
+        navigate(isChange ? redirectTo : `/auth/meldingen?redirect=${encodeURIComponent(redirectTo)}`, { replace: true });
       },
       onError: (e: any) => {
         toast.error(mapDbError(e) || 'Kon code niet opslaan');
