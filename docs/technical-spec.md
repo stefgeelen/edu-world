@@ -1,7 +1,7 @@
 # Leapio — Technical Specification
 
 > **Audience:** engineers and architects working on Leapio. Assumes the reader can read the code; this document exists to explain what is where, why it is shaped that way, and where the sharp edges are.
-> **Last reviewed:** 2026-10-02 (against `main` @ `ca97805`: the Buddy-centred redesign, engagement/install tracking, the iOS install flow)
+> **Last reviewed:** 2026-10-02 (against `main` @ `ca97805`: the Buddy-centred redesign, engagement/install tracking, the iOS install flow); touched 2026-10-24 for parent push notifications (§10.5, against `main` @ `0e462e6`)
 > **Companion docs:** [CONTEXT.md](../CONTEXT.md) (domain vocabulary — authoritative for naming), [CLAUDE.md](../CLAUDE.md) (working conventions), [EXERCISES.md](../EXERCISES.md) (didactic design), `wayfinder/buddy-care/` (Buddy Care design tickets), `wayfinder/buddy-centred-app/map.md` (decisions behind the October 2026 redesign).
 
 ---
@@ -169,7 +169,8 @@ All route trees are lazy-loaded. Each route has its **own** `<Suspense>` boundar
 | `/` | `pages/Index` | Landing |
 | `/beta` | `BetaLanding` | Beta signup → `beta_signups` |
 | `/auth` | `Auth` | Email+password sign-up/sign-in, Google OAuth |
-| `/auth/setup-pin` | `SetupParentPin` | Accepts `?redirect=` |
+| `/auth/setup-pin` | `SetupParentPin` | Accepts `?redirect=`; a first-time PIN continues to `/auth/meldingen?redirect=…` |
+| `/auth/meldingen` | `SetupNotifications` | Inside `<ProtectedRoute>`. One-time push question (§10.5); navigates on by itself when status is `on`, `denied` or `unsupported` |
 | `/auth/callback` | `AuthCallback` | Lands email confirmation + OAuth; the only screen that picks the session up and routes on into onboarding |
 | `/reset-password` | `ResetPassword` | |
 
@@ -216,17 +217,17 @@ Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage nu
 
 ### 5.3 Parent portal (`/app/parent/*`) — `<ProtectedRoute>` → `<ParentPinGate>` → `<ParentErrorBoundary>` → `<ParentLayout>`
 
-`index` → `ParentChildren` · `child/:childId` → `ParentChildDetail` · `rewards` · `subscription` · `add-child` · `account` (incl. account deletion) · `feedback`.
+`index` → `ParentChildren` (with `PushNudge`) · `child/:childId` → `ParentChildDetail` · `rewards` · `subscription` · `add-child` · `account` (incl. account deletion and the Meldingen card, `PushNotificationsSettings`) · `feedback`.
 
 ### 5.4 Admin (`/admin/*`) — `<AdminRoute>` → `<ParentErrorBoundary>` → `<AdminDashboard>`
 
-`index` → redirect to `users` · `users` · `subscriptions` · `stats` (engagement + home-screen adoption, from `admin_engagement_stats`) · `exercises` · `exercises/:familyKey` (`AdminExerciseFamily`, per-family difficulty config editor) · `beta` · `feedback`.
+`index` → redirect to `users` · `users` · `subscriptions` · `stats` (engagement + home-screen adoption, from `admin_engagement_stats`) · `exercises` · `exercises/:familyKey` (`AdminExerciseFamily`, per-family difficulty config editor) · `beta` · `meldingen` (`AdminPush`: push switch + `admin_push_stats`) · `feedback`.
 
 ---
 
 ## 6. Data Layer
 
-### 6.1 Tables (17)
+### 6.1 Tables (17, plus 4 for push since 2026-10-24)
 
 | Table | Purpose | Key columns |
 |---|---|---|
@@ -245,6 +246,10 @@ Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage nu
 | `user_roles` | Platform roles | `app_role` (admin/moderator/user) |
 | `feedback` | In-app parent feedback → admin triage | `category`, `status`, `admin_notes` |
 | `beta_signups` | Public beta list | `email`, `child_grade`, `source`, `user_agent` |
+| `push_settings` | Singleton (`id = true`): the admin push switch | `mode` (`off`/`admins`/`all`), starts `off` |
+| `push_subscriptions` | One row per device with push on | `parent_id`, unique `endpoint`, `p256dh`, `auth`, `user_agent`, `last_success_at`. Parent SELECT own; writes only via RPC |
+| `push_preferences` | Which kinds a parent wants (no row = all on) | `buddy`, `insights`. Parent SELECT/INSERT/UPDATE own |
+| `push_notifications` | Log of every notification, also the source for limits and stats | `kind` (`buddy_needs`/`buddy_ill`/`buddy_gone`/`insight`/`test`), `child_id`, `exercise_id`, `status` (`pending`/`sent`/`failed`), `devices`, `sent_at`. Admin SELECT only |
 
 **Enums:** `app_role`, `org_role`, `user_type`, `subject_type` (`math`/`reading`/`writing`/`other`), `subscription_plan` (`free`/`basic`/`family`/`school`), `subscription_status` (`trialing`/`active`/`past_due`/`canceled`/`expired`), `exercise_status`.
 
@@ -265,6 +270,11 @@ Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage nu
 | `has_role(user, role)` | DEFINER | RLS policies, `useAdminRole` | Role check used inside policies |
 | `touch_activity(child?, standalone?)` | DEFINER | `ActivityTracker` (`useActivityPing`) | Stamps `last_seen_at` / `last_opened_at`, and `installed_at` / `last_standalone_at` when running standalone. Client-throttled to 5 min. Dropped and recreated (not replaced) when `p_standalone` was added, so a one-argument call is unambiguous. |
 | `admin_engagement_stats()` | DEFINER + admin check inside | `useAdminEngagement` | One JSON payload for `/admin/stats`: tiles, funnel, cohorts, activity, install adoption |
+| `save_push_subscription(endpoint, p256dh, auth, user_agent)` / `remove_push_subscription(endpoint)` | DEFINER + `auth.uid()` | `lib/push.ts` | Upsert on `endpoint` re-assigns the device to the caller (another parent on the same browser) |
+| `push_claim_due()` | DEFINER, **service_role only** | `send-push-notifications` (cron) | Every push rule: window, 1/day + 3/7 days, Buddy step via `_buddy_tick`, red Aandachtspunt, dedupe. Inserts the chosen rows as `pending` and returns them. Advisory lock against overlapping runs |
+| `push_claim_test()` | DEFINER + `auth.uid()` | `send-push-notifications` (parent test) | Logs a `test` row; max 3/hour |
+| `admin_set_push_mode(mode)` / `admin_push_stats()` | DEFINER + admin check inside | `AdminPush` | Switch; JSON with devices, sent, failed, played-within-24h overall and per kind |
+| `_push_in_window(at)`, `_push_cron_active()`, `_push_cron_secret()`, `_buddy_display_name(species)` | Internal (EXECUTE revoked; `_push_cron_secret` granted to `service_role`) | pg_cron, the RPCs above, the edge function | Send window (Europe/Brussels); "should cron call at all"; the Vault secret; Buddy name for copy |
 | `_buddy_ensure_row`, `_buddy_tick`, `_buddy_item`, `_buddy_window_hours`, `_child_practice_options`, `_can_access_child` | DEFINER, **EXECUTE revoked from `anon`/`authenticated`** | Internal only | Buddy simulation; pickable exercises per child; the shared ownership predicate |
 | `exercise_type_key(route)`, `practice_munten_for(n)`, `practice_wish_bonus()`, `_practice_day_start()`, `buddy_growth_target(grade, day)`, `buddy_next_growth(current, target)` | IMMUTABLE/STABLE SQL helpers | Internal | The economy and growth rules in one place each (§9.7, §9.8) |
 
@@ -307,7 +317,10 @@ A child navigating to `/app/exercises/math/2` triggers three independent lookups
 ['admin-subscriptions']                          ['admin-subscriptions-detail']
 ['admin-stats-subscriptions']                    ['admin-engagement']
 ['admin-exercises']    ['admin-exercise-family', routePrefix]
-['admin-beta-signups'] ['admin-feedback']
+['admin-beta-signups'] ['admin-feedback']   ['admin-push-stats']
+
+// Push notifications (parent, per device / per account)
+['push-status', userId]   ['push-preferences', userId]   ['push-devices', userId]
 ```
 
 Removed with the map and the daily quests: `stage-exercises-progress`, `stage-mastery`, `child-progress`, `trimester-progress`, `recent-attempts`, `daily-quest-*`. (`AdminExerciseFamily` still invalidates the dead `['stage-mastery']` and does **not** invalidate `['practice-menu']`; see R20.)
@@ -386,6 +399,8 @@ An RLS denial is not an error. Supabase returns `[]` or `null` with `error === n
 | `ANTHROPIC_API_KEY` | `recognize-digit` | Server-side only |
 | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL_ID` | `synthesize-speech` | Voice/model overridable per environment |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (GitHub secrets) | Keep-alive workflow | |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | `send-push-notifications` | Web Push signing. The public half is also hard-coded in `src/lib/pushConfig.ts` (public by design); rotating the pair invalidates every stored subscription |
+| Vault `push_cron_secret` | Database only | Created by the migration with a random value; pg_cron sends it as `x-push-cron-secret`, the function compares it via `_push_cron_secret()`. Never in an env var or file |
 
 `.env` and `.env.*` are gitignored. The local `.env` carries both prefixed and unprefixed copies of the URL/key pair; only the `VITE_`-prefixed ones reach the bundle.
 
@@ -527,7 +542,7 @@ Boundaries: `<ErrorBoundary>` (root, and again inside `/app`) with a forest-them
 
 `useInstallPrompt` reports an `InstallMode`: `installed` · `native` (`beforeinstallprompt` available) · `ios-safari` (guided Share → *Zet op beginscherm* steps) · `ios-other` (asks to open in Safari) · `none`. Dismissal is stored as a timestamp and holds for 14 days. `lib/platform.ts` `isStandalone()` also feeds `touch_activity`. `useOnlineStatus` / `<OfflineBanner>` surface connectivity.
 
-**There is no service worker.** The app is installable but not offline-capable: an installed Leapio opened without connectivity shows a browser error, not the banner. The banner only helps a tab that is already loaded. See §13 R6.
+**The only service worker is `public/sw.js`, for push** (§10.5): no fetch handler, nothing cached. The app is installable but not offline-capable: an installed Leapio opened without connectivity shows a browser error, not the banner. The banner only helps a tab that is already loaded. See §13 R6.
 
 ### 10.3 SEO & marketing surface
 
@@ -536,6 +551,29 @@ Boundaries: `<ErrorBoundary>` (root, and again inside `/app`) with a forest-them
 ### 10.4 Activity & install telemetry
 
 `<ActivityTracker>` (in `App`) calls `touch_activity(p_child_id, p_standalone)` on load and on tab focus, throttled to once per 5 minutes in module state, fire-and-forget. It is the only usage signal besides a completed exercise: it separates "opens the app and stalls" from "never came back", and counts home-screen installs (`installed_at`) versus installed use (`last_standalone_at`). `admin_engagement_stats` turns it into the `/admin/stats` screen.
+
+### 10.5 Push notifications (since 2026-10-24)
+
+Web Push to parents; FSD module 17 holds the product rules.
+
+```
+pg_cron 'send-push-notifications'  */15 * * * *
+  └─ SELECT net.http_post(... functions/v1/send-push-notifications,
+                          header x-push-cron-secret = Vault push_cron_secret)
+     WHERE _push_cron_active()          -- switch not 'off' AND inside the window
+        └─ edge function (verify_jwt = false)
+             ├─ header present → compare with _push_cron_secret() → push_claim_due()
+             │     └─ per returned row: send to every push_subscriptions row of the parent
+             │          (npm:web-push, TTL 4 h, tag kind:child) → status sent/failed,
+             │          404/410 → delete subscription
+             └─ no header → requireUser → push_claim_test() as the user → send
+```
+
+- **All rules live in `push_claim_due`**, not in the function: change them there. It calls `_buddy_tick` (a write) for each active child of a candidate parent, so the Buddy state the parent is told about is current.
+- Client: `lib/push.ts` (`pushSupport`, `readPushStatus`, `enablePush`, `disablePush`, `currentPushEndpoint`, `deviceLabel`), `hooks/usePushNotifications.ts` (`usePushStatus`, `usePushPreferences`, `useOtherPushDevices`). `enablePush` calls `Notification.requestPermission()` before any other await, because Safari only prompts inside a user gesture. `readPushStatus` re-saves an existing subscription, so the device follows whoever is logged in.
+- iOS: `PushManager` only exists in the home-screen app; in Safari `pushSupport()` returns `needs-install` and the UI reuses `AddToHomeScreen`.
+- The service worker claims open clients on activate so a notification tap can `navigate()` an existing window; otherwise it opens a new one. Only same-origin URLs.
+- Status is per device, preferences per account. An empty `VAPID_PUBLIC_KEY` makes every device report `unsupported` (kill switch on the client side).
 
 ---
 
@@ -580,6 +618,7 @@ The only GitHub Actions workflow is `Supabase Keep-Alive` — a cron ping (Mon/T
 | Dev server | Vite on port 8080, host `::`, HMR overlay off |
 | RUM | `@vercel/speed-insights` |
 | Migrations | Applied via Supabase CLI against a single hosted project. No staging project, no migration step in CI |
+| Scheduled jobs | pg_cron + pg_net (since 2026-10-24): `send-push-notifications` every 15 min. Edge functions are deployed by hand (`supabase functions deploy <name>`) |
 | DB safety | Free tier: **no automated backups.** The keep-alive workflow is the only thing standing between an idle period and permanent data loss |
 | Lovable | `lovable-tagger` runs in dev mode only; `.lovable/` remains. The public metadata no longer references Lovable. |
 | Domain | `leapio.be` (registered and DNS at OVH, mail on OVH MX Plan with SPF/DKIM/DMARC; site on Vercel, `www` redirects to the bare domain) |
@@ -668,6 +707,12 @@ It is called on every Dashboard and exercise-list load, takes a `FOR UPDATE` on 
 ### R21 · Per-device state for tour and growth — **Low (by design)**
 The first-visit tour and the "Buddy grew" moment are remembered in `localStorage`, so a second tablet replays them and a private window always shows them. Accepted: a replayed celebration is harmless and not worth a write per visit.
 
+### R22 · Push rules only testable in production — **Medium**
+`push_claim_due` is plpgsql that ticks Buddies, applies limits and writes the log. With no local or staging database it was applied to production untested; the admin switch (`admins` mode) is the only rehearsal. A bug there either spams parents or silently sends nothing. Watch `failed_30d` and the sent counts in Admin → Meldingen.
+
+### R23 · "Played within 24 h" is not causal — **Low (measurement)**
+`admin_push_stats` counts any exercise by any child of the parent after a notification. It cannot separate the notification's effect from normal play; there is no control group.
+
 ### 13.1 High-risk files
 
 | File | Lines | Why |
@@ -685,6 +730,8 @@ The first-visit tour and the "Buddy grew" moment are remembered in `localStorage
 | `src/screens/parent/ParentChildDetail.tsx` | 512 | Multiple queries, insights, revival, grade/trimester changes that reach the child's keys |
 | `src/screens/Dashboard.tsx` | 422 | Menu, Wishes, badges, rewards in one screen |
 | `src/hooks/useParentPin.ts` + `ParentPinGate.tsx` | — | Security-critical (R1) |
+| `supabase/migrations/20261024120000_parent_push_notifications.sql` | 632 | Every push rule, the cron job, the Vault secret (R22) |
+| `supabase/functions/send-push-notifications/index.ts` | 162 | Cron + parent test entry points; `verify_jwt = false`, so its own checks are the only gate |
 | `src/integrations/supabase/types.ts` | 1046 | Generated; regenerate after every migration |
 
 ---
@@ -713,6 +760,9 @@ Decisions already made, with the reasoning, so they are not silently reversed.
 | D16 | XP/level/streak columns kept although the child never sees them | The parent portal and badges read them, and the live app had to keep working across the switch. All of `20261001120000` is additive. |
 | D17 | Two tabs (Buddy, Dashboard), one dark style on every child screen | Product call on 2026-10-02 after the tab-less version felt cluttered. Shared pieces in `components/dashboard`. |
 | D18 | Parent rewards count every exercise fully, repeats included | Product call: accepted that a child working for a reward can stick to one type. |
+| D19 | Push via Web Push only, to parents only (2026-10-24) | Product call: no e-mail fallback, no notifications to the child. Accepted cost: iPhone parents outside the home-screen app are unreachable. No third-party push service, so no extra vendor or cost. |
+| D20 | Push rules in one SQL function, the edge function only delivers | Same reasoning as D13: one place decides, and the log row is written before sending, so overlapping runs cannot double-send. |
+| D21 | The cron secret is generated inside the database (Vault), not set by hand | The CLI cannot run ad-hoc SQL and a secret in a migration file would be in history; this way it is never written down anywhere. |
 
 ---
 
