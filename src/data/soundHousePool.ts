@@ -35,16 +35,16 @@ export const SOUND_WORD_POOL: SoundWord[] = [
   { word: 'neus', display: 'neus', sound: 's', spoken: 'sss', position: 'end',   fromStage: 2 },
 
   // — p —
-  { word: 'pop',  display: 'pop',  sound: 'p', spoken: 'p',   position: 'begin', fromStage: 1 },
-  { word: 'pen',  display: 'pen',  sound: 'p', spoken: 'p',   position: 'begin', fromStage: 1 },
-  { word: 'kop',  display: 'kop',  sound: 'p', spoken: 'p',   position: 'end',   fromStage: 1 },
-  { word: 'sap',  display: 'sap',  sound: 'p', spoken: 'p',   position: 'end',   fromStage: 1 },
+  { word: 'pop',  display: 'pop',  sound: 'p', spoken: 'puh', position: 'begin', fromStage: 1 },
+  { word: 'pen',  display: 'pen',  sound: 'p', spoken: 'puh', position: 'begin', fromStage: 1 },
+  { word: 'kop',  display: 'kop',  sound: 'p', spoken: 'puh', position: 'end',   fromStage: 1 },
+  { word: 'sap',  display: 'sap',  sound: 'p', spoken: 'puh', position: 'end',   fromStage: 1 },
 
   // — k —
-  { word: 'kat',  display: 'kat',  sound: 'k', spoken: 'k',   position: 'begin', fromStage: 1 },
-  { word: 'koe',  display: 'koe',  sound: 'k', spoken: 'k',   position: 'begin', fromStage: 1 },
-  { word: 'sok',  display: 'sok',  sound: 'k', spoken: 'k',   position: 'end',   fromStage: 2 },
-  { word: 'tak',  display: 'tak',  sound: 'k', spoken: 'k',   position: 'end',   fromStage: 2 },
+  { word: 'kat',  display: 'kat',  sound: 'k', spoken: 'kuh', position: 'begin', fromStage: 1 },
+  { word: 'koe',  display: 'koe',  sound: 'k', spoken: 'kuh', position: 'begin', fromStage: 1 },
+  { word: 'sok',  display: 'sok',  sound: 'k', spoken: 'kuh', position: 'end',   fromStage: 2 },
+  { word: 'tak',  display: 'tak',  sound: 'k', spoken: 'kuh', position: 'end',   fromStage: 2 },
 
   // — r —
   { word: 'roos', display: 'roos', sound: 'r', spoken: 'rrr', position: 'begin', fromStage: 2 },
@@ -69,9 +69,9 @@ export const SOUND_WORD_POOL: SoundWord[] = [
   { word: 'noot', display: 'noot', sound: 'oo', spoken: 'ooo', position: 'middle', fromStage: 3 },
 
   // — ie —
-  { word: 'vier', display: 'vier', sound: 'ie', spoken: 'iii', position: 'middle', fromStage: 3 },
-  { word: 'kiel', display: 'kiel', sound: 'ie', spoken: 'iii', position: 'middle', fromStage: 3 },
-  { word: 'fiets',display: 'fiets',sound: 'ie', spoken: 'iii', position: 'middle', fromStage: 4 },
+  { word: 'vier', display: 'vier', sound: 'ie', spoken: 'ie',  position: 'middle', fromStage: 3 },
+  { word: 'kiel', display: 'kiel', sound: 'ie', spoken: 'ie',  position: 'middle', fromStage: 3 },
+  { word: 'fiets',display: 'fiets',sound: 'ie', spoken: 'ie',  position: 'middle', fromStage: 4 },
 ];
 
 export interface SoundHouseRound {

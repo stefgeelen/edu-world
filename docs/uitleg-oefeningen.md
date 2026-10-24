@@ -122,7 +122,7 @@ Hier legt de Buddy alleen uit wat je moet doen. De woorden en zinnen leest de lu
 
 ### Letter schrijven
 - **Uitleg:** "Volg de stippellijn met je vinger en schrijf de letter na. Elke keer helpt de lijn een beetje minder."
-- **Vraag:** "Schrijf de letter {b}." Het kind schrijft hier en leest niet, dus de letter noemen mag.
+- **Vraag:** "Schrijf de {buh}." Het kind schrijft hier en leest niet, dus de letter noemen mag. De Buddy zegt de klank zoals in de klas ("buh", "mmm"), niet de letternaam ("bee"): `src/data/letterSounds.ts`. Ook in het Klankhuis zegt hij de klank ("puh", niet "pee").
 
 ---
 

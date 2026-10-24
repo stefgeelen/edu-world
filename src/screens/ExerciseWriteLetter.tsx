@@ -7,6 +7,7 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { EXPLAIN } from '@/data/exerciseExplanations';
+import { letterSound } from '@/data/letterSounds';
 import { CheckButton, ClearButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
 
 import { LETTER_FILLED, LETTER_X_EXTENT } from './letterFilledPaths';
@@ -289,7 +290,7 @@ export function ExerciseWriteLetter() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
-      explain={[EXPLAIN.writeLetter, `Schrijf de letter ${letter}.`]}
+      explain={[EXPLAIN.writeLetter, `Schrijf de ${letterSound(letter)}.`]}
     >
       <div className="px-4 max-w-md mx-auto w-full flex-shrink-0 z-10">
         <ExercisePrompt className="mb-1">
