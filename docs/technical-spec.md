@@ -1,7 +1,7 @@
 # Leapio — Technical Specification
 
 > **Audience:** engineers and architects working on Leapio. Assumes the reader can read the code; this document exists to explain what is where, why it is shaped that way, and where the sharp edges are.
-> **Last reviewed:** 2026-10-24 (full review against `main` @ `d1ed0c8`: several children and paused children, Buddy choice, struggle-based Aandachtspunten, game-over pays nothing, 2de leerjaar + Tafels + Herhalen + Meetkunde, test exercises, payout lock-down, release safety + CI, leapio.be, beta-only signup, push notifications). Previous full review 2026-10-02 @ `ca97805`.
+> **Last reviewed:** 2026-10-24 (full review against `main` @ `d1ed0c8`: several children and paused children, Buddy choice, struggle-based Aandachtspunten, game-over pays nothing, 2de leerjaar + Tafels + Herhalen + Meetkunde, test exercises, payout lock-down, release safety + CI, leapio.be, beta-only signup, push notifications; touched `7eb517b`: letterSounds.ts — Buddy zegt letterklank). Previous full review 2026-10-02 @ `ca97805`.
 > **Companion docs:** [CONTEXT.md](../CONTEXT.md) (domain vocabulary — authoritative for naming), [CLAUDE.md](../CLAUDE.md) (working conventions), [EXERCISES.md](../EXERCISES.md) (didactic design), [uitleg-oefeningen.md](uitleg-oefeningen.md) (the Buddy's exercise explanations), `wayfinder/buddy-care/` (Buddy Care design tickets), `wayfinder/buddy-centred-app/map.md` (decisions behind the October 2026 redesign), `wayfinder/second-grade/map.md` (2de leerjaar rollout).
 
 ---
@@ -81,7 +81,7 @@ src/
 ├── context/            # AuthContext, GameContext, CelebrationContext
 ├── hooks/              # 28 hooks (data access, game logic, platform)
 ├── routes/             # publicRoutes, appRoutes, parentRoutes, adminRoutes, paths.ts (APP_PATHS, LOGIN_PATH, exercise origin)
-├── data/               # Static config & content pools (9 modules, incl. exerciseExplanations, exerciseConfigFields)
+├── data/               # Static config & content pools (10 modules, incl. exerciseExplanations, exerciseConfigFields, letterSounds)
 ├── lib/                # Cross-cutting utilities (incl. playingChild, geometryQuestions, getalbeeld, reloadOnStaleChunk, push)
 │   └── buddy/          # Buddy domain logic (catalog, constants, schedule, state, messages, growth, payout, species)
 ├── types/              # game.ts
@@ -513,7 +513,7 @@ Every edge-function call goes through [invokeFunction.ts](../src/lib/invokeFunct
 
 ### 8.4 Text-to-speech
 
-`useSpeech` / `speakText` calls the `synthesize-speech` edge function (ElevenLabs, Flemish voice; signed-in users only), plays the returned base64 MP3, and **falls back to the Web Speech API** (`nl-NL`, rate 0.75) if the function fails; where `speechSynthesis` is missing it no longer crashes. `speakLines` / `stopSpeaking` (added for `ExplainButton`) play a sequence and cancel it. `lib/speechUnlock.ts` is imported by `Layout` for its side effect: iOS Safari requires a user gesture before any audio can play. Decoded audio for the **last 60 lines** is cached in memory (LRU), because the Buddy repeats a small sentence set on every arrival, Care Action and tap; `lib/spokenOnce.ts` keeps the greeting from being re-read within a session. Consumers: `ExerciseSoundHouse` (where audio is the exercise, not an enhancement), `ExerciseLanguage`, `ExercisePictureWord`, `ExerciseSentenceDoctor`, `ExplainButton` (every exercise), `BuddyBubble`, `BuddyToast`, `BuddyRoom`, `ChooseBuddy` (each Buddy introduces itself), `GrowthMoment`, `Practice`. Reading exercises never read aloud what the child must read; counting exercises never say the count.
+`useSpeech` / `speakText` calls the `synthesize-speech` edge function (ElevenLabs, Flemish voice; signed-in users only), plays the returned base64 MP3, and **falls back to the Web Speech API** (`nl-NL`, rate 0.75) if the function fails; where `speechSynthesis` is missing it no longer crashes. `speakLines` / `stopSpeaking` (added for `ExplainButton`) play a sequence and cancel it. `lib/speechUnlock.ts` is imported by `Layout` for its side effect: iOS Safari requires a user gesture before any audio can play. Decoded audio for the **last 60 lines** is cached in memory (LRU), because the Buddy repeats a small sentence set on every arrival, Care Action and tap; `lib/spokenOnce.ts` keeps the greeting from being re-read within a session. Consumers: `ExerciseSoundHouse` (where audio is the exercise, not an enhancement), `ExerciseLanguage`, `ExercisePictureWord`, `ExerciseSentenceDoctor`, `ExplainButton` (every exercise), `BuddyBubble`, `BuddyToast`, `BuddyRoom`, `ChooseBuddy` (each Buddy introduces itself), `GrowthMoment`, `Practice`. Reading exercises never read aloud what the child must read; counting exercises never say the count. **Letter schrijven and Klankhuis say the letter's *klank* ("buh", "puh", "kuh"), not its alphabet name ("bee", "pee", "kay")**; the mapping lives in `src/data/letterSounds.ts` (`LETTER_SOUND` record + `letterSound()` helper, added 2026-10-24).
 
 ---
 
