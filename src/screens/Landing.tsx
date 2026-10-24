@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Bath, BookOpen, Check, Coins, Gamepad2, Hand, Heart, LockKeyhole,
+  ArrowRight, Bath, BookOpen, Check, Coins, Gamepad2, Hand, Heart, Instagram, LockKeyhole,
   MessageCircle, ShoppingBag, Sparkles, Sprout, Star, Utensils, Volume2, X, Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -509,6 +509,15 @@ export function Landing() {
             © {new Date().getFullYear()} Leapio · Gemaakt voor nieuwsgierige kinderen en betrokken ouders.
           </p>
           <div className="flex items-center gap-6">
+            <a
+              href="https://www.instagram.com/leapio.be/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold"
+            >
+              <Instagram className="h-4 w-4" aria-hidden="true" />
+              Instagram
+            </a>
             <Link to="/voorwaarden" className="font-semibold text-lp-cream/80 transition-colors hover:text-lp-gold">
               Voorwaarden
             </Link>
