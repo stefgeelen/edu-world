@@ -22,7 +22,7 @@ vi.mock('@/lib/platform', () => ({
   isStandalone: () => standalone,
 }));
 
-import { pushSupport, readPushStatus, enablePush, disablePush } from '@/lib/push';
+import { pushSupport, readPushStatus, enablePush, disablePush, deviceLabel } from '@/lib/push';
 
 const subscription = {
   endpoint: 'https://push.example/abc',
@@ -159,6 +159,17 @@ describe('push', () => {
       expect(await disablePush()).toBe('off');
       expect(rpc).toHaveBeenCalledWith('remove_push_subscription', { p_endpoint: 'https://push.example/abc' });
       expect(subscription.unsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('deviceLabel', () => {
+    it.each([
+      ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', 'je iPhone'],
+      ['Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile Safari', 'je Android-telefoon'],
+      ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'je computer'],
+      [null, 'een ander toestel'],
+    ])('names %s as %s', (ua, label) => {
+      expect(deviceLabel(ua)).toBe(label);
     });
   });
 });

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { invokeFunction } from '@/lib/invokeFunction';
 import { mapDbError } from '@/lib/errorMessages';
-import { disablePush, enablePush, readPushStatus, type PushStatus } from '@/lib/push';
+import { currentPushEndpoint, deviceLabel, disablePush, enablePush, readPushStatus, type PushStatus } from '@/lib/push';
 
 export interface PushPreferences {
   buddy: boolean;
@@ -29,6 +29,7 @@ export function usePushStatus() {
   const onSettled = (next: PushStatus | undefined) => {
     if (next) queryClient.setQueryData(queryKey, next);
     queryClient.invalidateQueries({ queryKey: ['push-status'] });
+    queryClient.invalidateQueries({ queryKey: ['push-devices'] });
   };
 
   const enable = useMutation({
@@ -99,4 +100,29 @@ export function usePushPreferences() {
   });
 
   return { preferences: preferences.data ?? DEFAULT_PREFERENCES, isLoading: preferences.isLoading, update };
+}
+
+/**
+ * The parent's other devices with notifications on (not this one), as labels
+ * like "je iPhone". Notifications are per device, so without this a laptop
+ * reads "off" while the parent's phone gets them fine.
+ */
+export function useOtherPushDevices() {
+  const { user } = useAuth();
+
+  const devices = useQuery({
+    queryKey: ['push-devices', user?.id],
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from('push_subscriptions')
+        .select('endpoint, user_agent')
+        .eq('parent_id', user!.id);
+      if (error) throw error;
+      const own = await currentPushEndpoint();
+      return (data ?? []).filter((d) => d.endpoint !== own).map((d) => deviceLabel(d.user_agent));
+    },
+    enabled: !!user,
+  });
+
+  return devices.data ?? [];
 }

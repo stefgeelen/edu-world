@@ -25,9 +25,11 @@ let pushState: {
 };
 let prefsState: { preferences: { buddy: boolean; insights: boolean }; isLoading: boolean; update: ReturnType<typeof mutation> };
 
+let otherDevices: string[] = [];
 vi.mock('@/hooks/usePushNotifications', () => ({
   usePushStatus: () => pushState,
   usePushPreferences: () => prefsState,
+  useOtherPushDevices: () => otherDevices,
 }));
 
 vi.mock('@/hooks/useInstallPrompt', () => ({
@@ -53,6 +55,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   pushState = { status: 'off', isLoading: false, enable: mutation(), disable: mutation(), sendTest: mutation() };
   prefsState = { preferences: { buddy: true, insights: true }, isLoading: false, update: mutation() };
+  otherDevices = [];
 });
 
 describe('SetupNotifications (onboarding)', () => {
@@ -112,6 +115,25 @@ describe('PushNotificationsSettings (Mijn account)', () => {
     renderCard();
     fireEvent.click(screen.getByRole('switch', { name: /Aandachtspunten/ }));
     expect(prefsState.update.mutate).toHaveBeenCalledWith({ buddy: true, insights: false });
+  });
+
+  it('says notifications are already on on the parent\'s phone when this device is off', () => {
+    otherDevices = ['je iPhone'];
+    renderCard();
+    expect(screen.getByText('Meldingen staan al aan op je iPhone.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Meldingen aanzetten op dit toestel' })).toBeTruthy();
+  });
+
+  it('counts several other devices, and says "ook" when this one is on too', () => {
+    pushState.status = 'on';
+    otherDevices = ['je iPhone', 'je computer'];
+    renderCard();
+    expect(screen.getByText('Ook aan op 2 andere toestellen.')).toBeTruthy();
+  });
+
+  it('shows no line without other devices', () => {
+    renderCard();
+    expect(screen.queryByText(/staan al aan|Ook aan/)).toBeNull();
   });
 
   it('explains a blocked device instead of offering a button', () => {

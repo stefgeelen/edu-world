@@ -45,6 +45,23 @@ async function currentSubscription(): Promise<PushSubscription | null> {
   return registration ? registration.pushManager.getSubscription() : null;
 }
 
+/** This device's push address, or null when it has none (or cannot have one). */
+export async function currentPushEndpoint(): Promise<string | null> {
+  if (!browserCanPush()) return null;
+  const subscription = await currentSubscription();
+  return subscription?.endpoint ?? null;
+}
+
+/** "je iPhone", "je computer"… from a stored user agent, for "also on" lines. */
+export function deviceLabel(userAgent: string | null): string {
+  const ua = userAgent ?? '';
+  if (/iPhone/.test(ua)) return 'je iPhone';
+  if (/iPad/.test(ua)) return 'je iPad';
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'je Android-telefoon' : 'je Android-tablet';
+  if (/Macintosh|Windows|Linux|CrOS/.test(ua)) return 'je computer';
+  return 'een ander toestel';
+}
+
 async function saveSubscription(subscription: PushSubscription): Promise<void> {
   const json = subscription.toJSON();
   const { error } = await supabase.rpc('save_push_subscription', {

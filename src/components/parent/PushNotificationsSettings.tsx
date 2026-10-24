@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { usePushPreferences, usePushStatus } from '@/hooks/usePushNotifications';
+import { useOtherPushDevices, usePushPreferences, usePushStatus } from '@/hooks/usePushNotifications';
 import type { InstallMode } from '@/hooks/useInstallPrompt';
 
 /**
@@ -17,22 +17,29 @@ export function PushNotificationsSettings({
 }) {
   const { status, isLoading, enable, disable, sendTest } = usePushStatus();
   const { preferences, update } = usePushPreferences();
+  const otherDevices = useOtherPushDevices();
 
   if (isLoading || !status) {
     return <Loader2 className="w-5 h-5 animate-spin text-slate-400" />;
   }
 
+  const elsewhere = <OtherDevices devices={otherDevices} also={status === 'on'} />;
+
   if (status === 'unsupported') {
     return (
-      <p className="text-sm text-slate-500">
-        Deze browser kan geen meldingen ontvangen. Open Leapio op je telefoon om ze aan te zetten.
-      </p>
+      <>
+        {elsewhere}
+        <p className="text-sm text-slate-500">
+          Deze browser kan geen meldingen ontvangen. Open Leapio op je telefoon om ze aan te zetten.
+        </p>
+      </>
     );
   }
 
   if (status === 'needs-install') {
     return (
       <>
+        {elsewhere}
         <p className="text-sm text-slate-500 mb-3">
           Op een iPhone of iPad werken meldingen alleen als Leapio op je beginscherm staat. Zet Leapio
           op je beginscherm, open het van daar en kom hier terug.
@@ -48,10 +55,13 @@ export function PushNotificationsSettings({
 
   if (status === 'denied') {
     return (
-      <p className="text-sm text-slate-500">
-        Meldingen voor Leapio zijn geblokkeerd op dit toestel. Zet ze aan in de instellingen van je
-        browser of telefoon en kom dan hier terug.
-      </p>
+      <>
+        {elsewhere}
+        <p className="text-sm text-slate-500">
+          Meldingen voor Leapio zijn geblokkeerd op dit toestel. Zet ze aan in de instellingen van je
+          browser of telefoon en kom dan hier terug.
+        </p>
+      </>
     );
   }
 
@@ -63,6 +73,8 @@ export function PushNotificationsSettings({
       <p className="text-sm text-slate-500">
         Hooguit één melding per dag, na schooltijd, en nooit &apos;s avonds laat.
       </p>
+
+      {elsewhere}
 
       {status === 'on' ? (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -113,6 +125,18 @@ export function PushNotificationsSettings({
         />
       </div>
     </div>
+  );
+}
+
+/** "Meldingen staan al aan op je iPhone." — nothing when there are no other devices. */
+function OtherDevices({ devices, also }: { devices: string[]; also: boolean }) {
+  if (devices.length === 0) return null;
+  const where = devices.length === 1 ? devices[0] : `${devices.length} andere toestellen`;
+  return (
+    <p className="text-sm text-slate-700 font-semibold flex items-center gap-2 mb-3">
+      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+      {also ? `Ook aan op ${where}.` : `Meldingen staan al aan op ${where}.`}
+    </p>
   );
 }
 
