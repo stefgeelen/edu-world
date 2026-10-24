@@ -85,4 +85,30 @@ describe('speakLines', () => {
     expect(played).toHaveLength(2);
     expect(invokeFunction.mock.calls.map((c) => c[1].text)).toContain('kat');
   });
+
+  it('plays a recorded sound from its file, without asking the voice', async () => {
+    const { speakLines } = await import('@/hooks/useSpeech');
+    const done = speakLines([{ clip: '/klanken/p.mp3', text: 'puh' }]);
+
+    await flush();
+    expect(played).toEqual(['/klanken/p.mp3']);
+    expect(invokeFunction).not.toHaveBeenCalled();
+
+    audios[0].end();
+    await done;
+  });
+
+  it('lets the voice say the sound when the recording is missing', async () => {
+    const { speakLines } = await import('@/hooks/useSpeech');
+    const done = speakLines([{ clip: '/klanken/p.mp3', text: 'puh' }]);
+
+    await flush();
+    audios[0].onerror?.();
+    await flush();
+    expect(invokeFunction.mock.calls.map((c) => c[1].text)).toEqual(['puh']);
+    expect(played).toHaveLength(2);
+
+    audios[1].end();
+    await done;
+  });
 });

@@ -1,3 +1,5 @@
+import type { SpeechLine } from '@/hooks/useSpeech';
+
 /**
  * Wat de Buddy zegt als het kind in een oefening op hem tikt: eerst de vaste
  * uitleg, dan (bij rekenen) de vraag van dat moment. Bron en afspraken:
@@ -48,8 +50,13 @@ export const EXPLAIN = {
   geometryTap: 'Kijk goed naar de hoek. Tik in de tekening op het stuk dat ik vraag.',
   language: 'Tik op de luidspreker en luister naar het woord. Zoek dat woord en tik erop.',
   pictureWord: 'Tik op de luidspreker en luister. Sleep het juiste woord naar de prent.',
-  soundHouse: (sound: string) =>
-    `Luister naar het woord. Waar hoor je de ${sound}? Vooraan, in het midden of achteraan? Tik op het juiste raam van het huis.`,
+  // The sound itself is its own line (a recording when there is one), so the
+  // sentence is split around it.
+  soundHouse: (sound: SpeechLine): SpeechLine[] => [
+    'Luister naar het woord. Waar hoor je deze klank?',
+    sound,
+    'Vooraan, in het midden of achteraan? Tik op het juiste raam van het huis.',
+  ],
   sentenceBuild:
     'Sleep de woorden in de juiste volgorde, zodat het een goede zin wordt. Tik op de luidspreker als je hulp nodig hebt.',
   sentenceFix: 'In de zin zit één fout woord. Tik erop en kies het juiste woord.',

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { EXPLAIN } from '@/data/exerciseExplanations';
+import { soundLine } from '@/data/letterSounds';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
@@ -31,7 +32,7 @@ export function ExerciseSoundHouse() {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { speak } = useSpeech();
+  const { speak, speakLines } = useSpeech();
   const cfg = useExerciseConfig(DEFAULT_SOUND_HOUSE);
 
   const startTime = useRef(Date.now());
@@ -71,8 +72,8 @@ export function ExerciseSoundHouse() {
 
   const playSound = useCallback(() => {
     if (!current) return;
-    speak(current.spoken);
-  }, [current, speak]);
+    speakLines([soundLine(current.sound, current.spoken)]);
+  }, [current, speakLines]);
 
   const finish = useCallback(() => {
     if (exerciseId) {
@@ -140,7 +141,7 @@ export function ExerciseSoundHouse() {
       progress={progress}
       lives={lives}
       onClose={() => navigate(exerciseExitPath())}
-      explain={[EXPLAIN.soundHouse(current.spoken)]}
+      explain={EXPLAIN.soundHouse(soundLine(current.sound, current.spoken))}
       buddyMood={buddyMood}
       silenceBuddy
     >

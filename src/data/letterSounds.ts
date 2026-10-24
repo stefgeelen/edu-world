@@ -1,3 +1,5 @@
+import type { SpeechLine } from '@/hooks/useSpeech';
+
 /**
  * How the voice says a single letter: as the sound the child learns in class
  * (klankmethode), not as its name in the alphabet. Text-to-speech reads a lone
@@ -37,4 +39,20 @@ export const LETTER_SOUND: Record<string, string> = {
 /** The sound of a letter for the voice; falls back to the letter itself. */
 export function letterSound(letter: string): string {
   return LETTER_SOUND[letter.toLowerCase()] ?? letter;
+}
+
+/**
+ * Sounds that have a recording in `public/klanken/<sound>.mp3` (made with the
+ * ElevenLabs Voice Changer, in the app's voice). The voice can't say a lone
+ * sound well, so a recording always wins; add a sound here with its file.
+ */
+export const RECORDED_SOUNDS: ReadonlySet<string> = new Set<string>([]);
+
+/**
+ * A letter sound as the Buddy says it: the recording when there is one, else
+ * the voice with `text` (the spelled-out sound, e.g. "mmm").
+ */
+export function soundLine(sound: string, text = letterSound(sound)): SpeechLine {
+  const key = sound.toLowerCase();
+  return RECORDED_SOUNDS.has(key) ? { clip: `/klanken/${key}.mp3`, text } : text;
 }

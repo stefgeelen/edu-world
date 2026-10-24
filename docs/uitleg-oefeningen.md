@@ -113,7 +113,8 @@ Hier legt de Buddy alleen uit wat je moet doen. De woorden en zinnen leest de lu
 - **Uitleg:** "Tik op de luidspreker en luister. Sleep het juiste woord naar de prent."
 
 ### Klankhuis
-- **Uitleg:** "Luister naar het woord. Waar hoor je de {m}? Vooraan, in het midden of achteraan? Tik op het juiste raam van het huis."
+- **Uitleg:** "Luister naar het woord. Waar hoor je deze klank?" + de klank + "Vooraan, in het midden of achteraan? Tik op het juiste raam van het huis."
+- De klank zelf is een opname (`public/klanken/`) als die er is, anders zegt de stem hem ("mmm", "puh"). Een computerstem zegt een losse klank slecht, daarom de opnames.
 - De klank noemen mag: de klank is geen leesopdracht. Het woord zelf zegt de Buddy niet, dat zit achter de bestaande luidspreker.
 
 ### Zinsdokter
@@ -122,7 +123,7 @@ Hier legt de Buddy alleen uit wat je moet doen. De woorden en zinnen leest de lu
 
 ### Letter schrijven
 - **Uitleg:** "Volg de stippellijn met je vinger en schrijf de letter na. Elke keer helpt de lijn een beetje minder."
-- **Vraag:** "Schrijf de {buh}." Het kind schrijft hier en leest niet, dus de letter noemen mag. De Buddy zegt de klank zoals in de klas ("buh", "mmm"), niet de letternaam ("bee"): `src/data/letterSounds.ts`. Ook in het Klankhuis zegt hij de klank ("puh", niet "pee").
+- **Vraag:** "Schrijf deze letter:" + de klank (opname of stem, zoals in het Klankhuis). Het kind schrijft hier en leest niet, dus de letter noemen mag. De Buddy zegt de klank zoals in de klas ("buh", "mmm"), niet de letternaam ("bee"): `src/data/letterSounds.ts`. Ook in het Klankhuis zegt hij de klank ("puh", niet "pee").
 
 ---
 

@@ -6,6 +6,7 @@ import { ExplainButton } from '@/components/exercise/ExplainButton';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useRecordIncompleteExercise } from '@/hooks/useRecordIncompleteExercise';
 import type { BuddyMood, BuddySituation } from '@/data/buddyMessages';
+import type { SpeechLine } from '@/hooks/useSpeech';
 
 interface ExerciseShellProps {
   children: React.ReactNode;
@@ -22,7 +23,7 @@ interface ExerciseShellProps {
    * What the Buddy says when the child taps it in the header: the explanation
    * of the exercise, then the current question (texts: `exerciseExplanations`).
    */
-  explain?: string[];
+  explain?: SpeechLine[];
 }
 
 const START_LIVES = 3;

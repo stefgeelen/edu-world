@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGame } from '@/context/GameContext';
-import { useSpeech } from '@/hooks/useSpeech';
+import { useSpeech, type SpeechLine } from '@/hooks/useSpeech';
 
 /**
  * The Buddy's face in the exercise header. Tapped, the Buddy explains the
@@ -9,14 +9,14 @@ import { useSpeech } from '@/hooks/useSpeech';
  * on a tap, never by itself. Tapping again, or tapping anything else on the
  * screen (an answer, the numpad), stops it; so does the next question.
  */
-export function ExplainButton({ lines }: { lines: string[] }) {
+export function ExplainButton({ lines }: { lines: SpeechLine[] }) {
   const { buddy } = useGame();
   const { speakLines, stopSpeaking } = useSpeech();
   const [playing, setPlaying] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const run = useRef(0);
 
-  const key = lines.join('\n');
+  const key = lines.map((line) => (typeof line === 'string' ? line : line.clip)).join('\n');
   const playingRef = useRef(false);
   playingRef.current = playing;
 

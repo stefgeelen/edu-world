@@ -95,16 +95,19 @@ export async function speakText(text: string): Promise<void> {
   }
 }
 
-/** Plays one clip and resolves when it ends, or when it is stopped. */
-async function playToEnd(url: string): Promise<void> {
+/**
+ * Plays one clip and resolves when it ends, or when it is stopped. Resolves
+ * false when the clip could not be played at all (missing or broken file).
+ */
+async function playToEnd(url: string): Promise<boolean> {
   currentAudio?.pause();
   const audio = new Audio(url);
   currentAudio = audio;
-  await new Promise<void>((resolve) => {
-    audio.onended = () => resolve();
-    audio.onpause = () => resolve();
-    audio.onerror = () => resolve();
-    audio.play().catch(() => resolve());
+  return new Promise<boolean>((resolve) => {
+    audio.onended = () => resolve(true);
+    audio.onpause = () => resolve(true);
+    audio.onerror = () => resolve(false);
+    audio.play().catch(() => resolve(false));
   });
 }
 
@@ -126,19 +129,37 @@ function browserSpeakToEnd(text: string): Promise<void> {
 }
 
 /**
+ * One thing the Buddy says: a sentence for the voice, or a recorded clip (a
+ * letter sound, see `src/data/letterSounds.ts`) with the text the voice says
+ * instead when the clip cannot be played.
+ */
+export type SpeechLine = string | { clip: string; text: string };
+
+const lineText = (line: SpeechLine) => (typeof line === 'string' ? line : line.text);
+
+/**
  * Says the lines one after the other and resolves when the last one has
  * finished, or as soon as something else speaks or `stopSpeaking` is called.
  * All lines are fetched at once, so there is no pause between them.
  */
-export async function speakLines(lines: string[]): Promise<void> {
+export async function speakLines(lines: SpeechLine[]): Promise<void> {
   const id = ++sequence;
-  const said = lines.filter(Boolean);
-  const urls = said.map((line) => audioUrlFor(line).catch(() => null));
+  const said = lines.filter((line) => lineText(line));
+  const urls = said.map((line) => (typeof line === 'string' ? audioUrlFor(line).catch(() => null) : null));
   for (let i = 0; i < said.length; i++) {
+    const line = said[i];
     const url = await urls[i];
     if (id !== sequence) return;
-    if (url) await playToEnd(url);
-    else await browserSpeakToEnd(said[i]);
+    if (typeof line === 'string') {
+      if (url) await playToEnd(url);
+      else await browserSpeakToEnd(line);
+    } else if (!(await playToEnd(line.clip)) && id === sequence) {
+      // The recording is missing: the voice says the sound instead.
+      const spoken = await audioUrlFor(line.text).catch(() => null);
+      if (id !== sequence) return;
+      if (spoken) await playToEnd(spoken);
+      else await browserSpeakToEnd(line.text);
+    }
     if (id !== sequence) return;
   }
 }
