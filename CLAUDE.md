@@ -14,7 +14,7 @@
 ## Project Structure
 ```
 src/
-  screens/       # Full-page components (31 files, incl. 14 exercise types)
+  screens/       # Full-page components (41 files, incl. 22 exercise types)
   components/    # Reusable UI (ui/, exercise/, feedback/, figma/)
   hooks/         # Custom hooks for data fetching and game logic
   context/       # AuthContext, GameContext, CelebrationContext
@@ -23,7 +23,7 @@ src/
   lib/           # Utilities (errorMessages, confetti, speech, utils)
   types/         # game.ts, stage.ts
   integrations/  # Auto-generated Supabase types
-  test/          # Vitest tests (math generation, difficulty config only)
+  test/          # Vitest tests (98 files, see Running Tests)
 ```
 
 ## Auth Flow
@@ -113,7 +113,7 @@ npm test          # run all tests (Vitest)
 npm run lint      # ESLint
 ```
 
-**What has tests** (72 files under `src/test/`, ~660 cases):
+**What has tests** (98 test files under `src/test/`, ~870 cases):
 - All 14 exercise screens, plus `Exercise`, `ChooseBuddy`, `BuddyRoom` (incl. first-visit tour, growth), `Dashboard`, `TabBar`, `Practice`, `BuddyShop`, the Prijzenkast (badge screens), app-route redirects, and the admin + parent portals
 - Auth flow (`Auth`, `AuthContext`, `ProtectedRoute`, `AdminRoute`, PIN session, password validation)
 - Data hooks (`useCompleteExercise`, `usePracticeMenu`, `useChildInsights` (struggle rule), `ExerciseShell` (saving game-overs/abandons), `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`)
@@ -121,7 +121,7 @@ npm run lint      # ESLint
 - Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `addChildLogic`, Buddy growth + payout copy)
 - E2E: `e2e/onboarding.spec.ts` (Playwright) — signup through first exercise only
 
-**What still has NO tests:** landing pages, `SetupParentPin`, `ResetPassword`, `AuthCallback`; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt and exercise-config hooks.
+**What still has NO tests:** landing pages, `ResetPassword`, `AuthCallback`, and `SetupParentPin` beyond its session guard; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt and exercise-config hooks.
 
 **Conventions:** shared helpers live in `src/test/testUtils.tsx` (`createTestQueryClient`, `queryWrapper`, `fakeSupabaseChain`). Mock Supabase/auth at the module boundary and assert on behaviour, not implementation. Anchor time-sensitive fixtures to `Date.now()` — hooks that tick against the real clock will decay a fixed past timestamp out from under the test.
 
