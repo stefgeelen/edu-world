@@ -1,0 +1,13 @@
+#!/bin/sh
+# Na elke commit: kijk op de achtergrond na of de FSD en de TSD bij moeten
+# (scripts/doc-sync.sh). Blokkeert de commit nooit. Overslaan: LEAPIO_DOC_SYNC=0.
+
+[ "${LEAPIO_DOC_SYNC:-1}" = "0" ] && exit 0
+git_dir=$(git rev-parse --git-dir)
+# Midden in een rebase of merge niet: de run daarna neemt alles mee.
+[ -d "$git_dir/rebase-merge" ] || [ -d "$git_dir/rebase-apply" ] || [ -f "$git_dir/MERGE_HEAD" ] && exit 0
+command -v claude >/dev/null 2>&1 || exit 0
+
+root=$(git rev-parse --show-toplevel)
+nohup "$root/scripts/doc-sync.sh" >/dev/null 2>&1 &
+exit 0

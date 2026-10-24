@@ -107,6 +107,11 @@ Caring for the Buddy is the game; exercises are how you care for it. **Two tabs*
 - Auth forms use manual validation (not Zod) — inconsistent with React Hook Form + Zod used elsewhere
 - Form state not reset after failed submission in some screens
 
+## Keeping the FSD and TSD current
+After every commit, the git hook `.githooks/post-commit` starts `scripts/doc-sync.sh` in the background. It runs the `doc-sync` agent (`.claude/agents/doc-sync.md`, Sonnet, headless `claude -p`) over all commits since the last run (`.git/doc-sync/last-reviewed`). The agent updates the FSD (`../../Functional specs/`) and `docs/technical-spec.md` where needed. It never commits; its edits stay in the working tree. Docs-only commits are skipped, and so is anything during a rebase or merge. A macOS notification gives the one-line result; the log is in `.git/doc-sync/log.txt`.
+- Turn on per clone: `git config core.hooksPath .githooks` (not versioned). The `claude` CLI must be logged in.
+- Skip once: `LEAPIO_DOC_SYNC=0 git commit …`. Dry run: `DRY_RUN=1 scripts/doc-sync.sh`.
+
 ## Running Tests
 ```bash
 npm test          # run all tests (Vitest)
