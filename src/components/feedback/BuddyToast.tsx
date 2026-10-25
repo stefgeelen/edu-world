@@ -32,23 +32,24 @@ function renderBubble(
 ) {
   const { emoji, art, munten, onRetry, retryLabel = 'Probeer opnieuw' } = opts;
   const defaultEmoji = variant === 'oops' ? '🤖' : '🎉';
-  const border = variant === 'oops' ? 'border-orange-400/50' : 'border-amber-400/40';
+  const border = variant === 'oops' ? 'border-orange-400/60' : 'border-amber-400/60';
 
   return (
     <div
-      className={`flex w-full items-center gap-3 rounded-3xl border-[3px] ${border} bg-gradient-to-br from-[#241650] to-[#1a103c] p-3 text-white shadow-[0_8px_32px_rgba(251,191,36,0.15)]`}
+      className={`flex w-full items-center gap-4 rounded-3xl border-[3px] ${border} bg-gradient-to-br from-[#2d1b54] via-[#241650] to-[#1a103c] p-4 text-white shadow-[0_12px_40px_rgba(0,0,0,0.45),0_0_24px_rgba(251,191,36,0.25)]`}
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
-      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-[#3b2d71] bg-[#0f0828]/80 text-2xl">
-        {art ? <img src={art} alt="" className="h-11 w-11 object-contain" /> : (emoji ?? defaultEmoji)}
+      <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center text-4xl">
+        {art ? <img src={art} alt="" className="h-16 w-16 object-contain drop-shadow-lg" /> : (emoji ?? defaultEmoji)}
       </div>
       <div className="min-w-0 flex-1">
         {munten !== undefined && (
-          <span className="mb-1 inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-sm font-black text-amber-200">
-            +{munten} <span aria-hidden>🪙</span>
-          </span>
+          <p className="flex items-center gap-1.5 text-3xl font-black leading-none text-amber-300">
+            +{munten} <span aria-hidden className="text-2xl">🪙</span>
+            <span className="sr-only">Munten</span>
+          </p>
         )}
-        <p className="text-base font-bold leading-snug text-white/90">{message}</p>
+        <p className={`${munten !== undefined ? 'mt-1.5 ' : ''}text-base font-extrabold leading-snug text-white`}>{message}</p>
         {onRetry && (
           <button
             type="button"
@@ -63,6 +64,17 @@ function renderBubble(
   );
 }
 
+/**
+ * The app's Toaster gives every toast a white card (components/ui/sonner).
+ * The Buddy draws its own card, so that one is switched off here, and it
+ * shows at the top in the middle, where a child looks.
+ */
+const BUDDY_TOAST = {
+  unstyled: true,
+  position: 'top-center',
+  className: '!w-[min(356px,calc(100vw-32px))] !bg-transparent !border-0 !shadow-none !p-0',
+} as const;
+
 function spoken(message: string, munten?: number): string {
   const line = stripEmoji(message);
   return munten === undefined ? line : `${spokenMunten(munten)}! ${line}`;
@@ -72,15 +84,15 @@ export const buddyToast = {
   oops(message: string, opts: BuddyToastOptions = {}) {
     void speakText(spoken(message, opts.munten));
     return toast.custom(() => renderBubble(message, 'oops', opts), {
+      ...BUDDY_TOAST,
       duration: opts.duration ?? 5000,
-      unstyled: true,
     });
   },
   cheer(message: string, opts: BuddyToastOptions = {}) {
     void speakText(spoken(message, opts.munten));
     return toast.custom(() => renderBubble(message, 'cheer', opts), {
+      ...BUDDY_TOAST,
       duration: opts.duration ?? 4000,
-      unstyled: true,
     });
   },
 };
