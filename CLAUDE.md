@@ -64,6 +64,9 @@ Caring for the Buddy is the game; exercises are how you care for it. **Two tabs*
 **PIN:** Verified and stored in `sessionStorage` via `useParentPin`. Cleared on auth state change.  
 **Protected routes:** `<ProtectedRoute>` checks `user && !loading`. `<AdminRoute>` additionally checks `user_roles` table.
 
+## Design System
+Three looks, never mixed: **child app** (dark night sky, Nunito, gold + green), **parent portal & admin** (light, slate/blue, indigo for admin), **website** (`lp-*` tokens, Outfit/Figtree). Read `docs/design-system.md` before building or restyling a screen; reuse `VITRINE`/`DARK_ROW`, `ExerciseParts`, `BuddyBubble`, `TabBar` instead of copying classes. The browsable version is the Leapio Design System artifact (link in that file); update both when the style changes.
+
 ## React Query Conventions
 - Query keys: always arrays, scoped by resource + user/child ID, e.g. `['my-child', user?.id]`, `['game-badges', child?.id]`
 - Every mutation **must** call `queryClient.invalidateQueries()` on success
