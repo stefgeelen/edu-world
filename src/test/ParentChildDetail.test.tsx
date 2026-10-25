@@ -214,6 +214,43 @@ describe('ParentChildDetail', () => {
     expect(screen.getByText('Volgend leerjaar is nog in ontwikkeling en daarom nog niet beschikbaar.')).toBeInTheDocument();
   });
 
+  it('lets the parent fix the child\'s name, trimmed, and refreshes every screen that shows it', async () => {
+    const { queryClient } = renderScreen();
+    await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Naam wijzigen' }));
+    const input = await screen.findByRole('textbox', { name: 'Naam' });
+    expect(input).toHaveValue('Test Child');
+    // Unchanged or empty: nothing to save.
+    expect(screen.getByRole('button', { name: 'Opslaan' })).toBeDisabled();
+    fireEvent.change(input, { target: { value: '   ' } });
+    expect(screen.getByRole('button', { name: 'Opslaan' })).toBeDisabled();
+
+    fireEvent.change(input, { target: { value: '  Test Kind ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Opslaan' }));
+
+    await waitFor(() => expect(updateSpy).toHaveBeenCalledWith({ name: 'Test Kind' }));
+    expect(toastSuccessMock).toHaveBeenCalledWith('De naam is aangepast naar Test Kind.');
+    for (const key of [['parent-child', 'child-1'], ['parent-children'], ['my-child'], ['players']]) {
+      expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: key }));
+    }
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Naam' })).not.toBeInTheDocument());
+  });
+
+  it('keeps the name dialog open and shows the error when renaming fails', async () => {
+    updateResult = { data: null, error: { message: 'boom' } };
+    renderScreen();
+    await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Naam wijzigen' }));
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Naam' }), { target: { value: 'Test Kind' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Opslaan' }));
+
+    await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('boom'));
+    expect(screen.getByRole('textbox', { name: 'Naam' })).toHaveValue('Test Kind');
+  });
+
   it('surfaces a mapped Supabase error via toast when the trimester unlock mutation fails', async () => {
     updateResult = { data: null, error: { message: 'boom' } };
     renderScreen('leerstof');

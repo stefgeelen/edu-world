@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ChevronLeft, GraduationCap, Calculator, BookOpen, PenTool,
-  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock, Heart, Triangle,
+  ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock, Heart, Triangle, Pencil,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +13,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { useChildInsights, type ChildInsight } from '@/hooks/useChildInsights';
 import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
@@ -201,6 +204,33 @@ export function ParentChildDetail() {
     onError: (e) => toast.error(mapDbError(e)),
   });
 
+  // Fixing a typo in the child's name. Null while the dialog is closed.
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
+
+  const renameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const { error } = await supabase
+        .from('children')
+        .update({ name })
+        .eq('id', childId!)
+        .eq('parent_id', user!.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, name) => {
+      queryClient.invalidateQueries({ queryKey: ['parent-child', childId] });
+      queryClient.invalidateQueries({ queryKey: ['parent-children'] });
+      // The child's own screens greet it by name, and so does "Wie speelt er?".
+      queryClient.invalidateQueries({ queryKey: ['my-child'] });
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      setNameDraft(null);
+      toast.success(`De naam is aangepast naar ${name}.`);
+    },
+    onError: (e) => toast.error(mapDbError(e)),
+  });
+
+  const trimmedName = nameDraft?.trim() ?? '';
+  const canSaveName = trimmedName.length > 0 && trimmedName !== child?.name && !renameMutation.isPending;
+
   if (childLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -227,8 +257,18 @@ export function ParentChildDetail() {
         >
           <ChevronLeft className="w-5 h-5 text-slate-600" />
         </button>
-        <div className="flex-1">
-          <h2 className="text-2xl font-black text-slate-900">{child.name}</h2>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-2xl font-black text-slate-900 truncate">{child.name}</h2>
+            <button
+              onClick={() => setNameDraft(child.name)}
+              aria-label="Naam wijzigen"
+              title="Naam wijzigen"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          </div>
           <p className="text-sm text-slate-500 font-medium flex items-center gap-1">
             <GraduationCap className="w-3.5 h-3.5" />
             {GRADE_LABELS[child.grade] ?? `Groep ${child.grade}`}
@@ -500,6 +540,47 @@ export function ParentChildDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={nameDraft !== null} onOpenChange={(o) => !o && setNameDraft(null)}>
+        <DialogContent className="sm:max-w-md">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (canSaveName) renameMutation.mutate(trimmedName);
+            }}
+            className="space-y-4"
+          >
+            <DialogHeader>
+              <DialogTitle>Naam wijzigen</DialogTitle>
+              <DialogDescription>Een schrijffout gemaakt? Pas de naam hier aan.</DialogDescription>
+            </DialogHeader>
+            <input
+              type="text"
+              aria-label="Naam"
+              value={nameDraft ?? ''}
+              onChange={(e) => setNameDraft(e.target.value)}
+              autoFocus
+              className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            />
+            <DialogFooter className="gap-2 sm:gap-0">
+              <button
+                type="button"
+                onClick={() => setNameDraft(null)}
+                className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors"
+              >
+                Annuleren
+              </button>
+              <button
+                type="submit"
+                disabled={!canSaveName}
+                className="px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors sm:ml-2"
+              >
+                {renameMutation.isPending ? 'Opslaan...' : 'Opslaan'}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={reviveConfirmOpen} onOpenChange={setReviveConfirmOpen}>
         <AlertDialogContent>
