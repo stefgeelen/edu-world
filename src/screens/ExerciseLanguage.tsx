@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
@@ -12,33 +12,9 @@ import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useDifficultyLevel } from '@/hooks/useDifficultyLevel';
+import { useReadingTheme } from '@/hooks/useReadingTheme';
+import { READING_THEME_COUNT, wordsUpToTheme } from '@/data/readingThemes';
 import { exerciseExitPath } from '@/routes/paths';
-
-// Curated Vlaamse woordenschat per leerjaar — gevarieerd en fonetisch geordend.
-// Grade 1: korte klinkers (CVC), dan lange klinkers (aa/oo/ee/ie/oe), dan
-// meerlettergrepige woorden. Same pool used across all 3 stages (this
-// exercise has never split content by stage, only by grade).
-const WORD_POOL_GRADE_1 = [
-  // — korte klinkers —
-  'kat', 'pot', 'vis', 'bed', 'bus',
-  'dak', 'mes', 'kip', 'bom', 'pet',
-  'pak', 'bol', 'top', 'mug', 'zak',
-  'sap', 'hok', 'rem', 'rug', 'put',
-  'vel', 'dam', 'lip', 'gom', 'tak',
-  'nek', 'dop', 'pit', 'bek', 'mol',
-  // — lange klinkers / tweeklanken —
-  'maan', 'roos', 'boom', 'beer', 'muur',
-  'naam', 'boot', 'peer', 'jaar', 'toon',
-  'kaas', 'raam', 'vaas', 'boon', 'meer',
-  'veer', 'keel', 'heel', 'biet', 'wiel',
-  'boek', 'tuin', 'deur', 'neus', 'zaag',
-  'lied', 'zaal', 'heer', 'riet', 'loon',
-  // — vierlettrige woorden —
-  'lamp', 'kind', 'lift', 'band', 'hond',
-  'ring', 'hand', 'tand', 'wolk', 'been',
-  'rood', 'geel', 'brug', 'klas', 'melk',
-  'fles', 'berg', 'gras', 'ster', 'zon',
-];
 
 // GRADE-2 PILOT — placeholder pool (consonant clusters / medeklinkerclusters).
 // Not curriculum-reviewed: needs a native-speaker/curriculum pass before
@@ -50,8 +26,9 @@ const WORD_POOL_GRADE_2 = [
   'zacht', 'echt', 'macht', 'trein', 'winkel',
 ];
 
+// The 1ste leerjaar follows the reading themes (src/data/readingThemes.ts):
+// only words with letters the child already knows.
 const WORD_POOLS: Record<number, string[]> = {
-  1: WORD_POOL_GRADE_1,
   2: WORD_POOL_GRADE_2,
 };
 
@@ -69,7 +46,12 @@ export function ExerciseLanguage() {
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
   const { grade } = useDifficultyLevel();
-  const wordPool = WORD_POOLS[grade] ?? WORD_POOL_GRADE_1;
+  const theme = useReadingTheme();
+  const wordPool = useMemo(() => {
+    if (theme === undefined) return null;
+    if (theme !== null) return wordsUpToTheme(theme);
+    return WORD_POOLS[grade] ?? wordsUpToTheme(READING_THEME_COUNT);
+  }, [theme, grade]);
   const correctCount = useRef(0);
   const startTime = useRef(Date.now());
   const { speak } = useSpeech();
@@ -85,6 +67,7 @@ export function ExerciseLanguage() {
   const [lives, setLives] = useState(3);
 
   const generateQuestion = () => {
+    if (!wordPool) return;
     const shuffled = fisherYates(wordPool);
 
     // Prefer words not yet used as correct answer this session
@@ -102,9 +85,11 @@ export function ExerciseLanguage() {
     setStatus('idle');
   };
 
+  // Once the words are known (the reading theme loads first).
   useEffect(() => {
     generateQuestion();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wordPool]);
 
   useEffect(() => {
     if (correctWord) {

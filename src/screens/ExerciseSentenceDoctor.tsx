@@ -18,6 +18,8 @@ import {
   FIX_SENTENCES_GRADE_1,
   type FixQuestion,
 } from '@/data/sentenceDoctorSentences';
+import { buildSentencesUpTo, fixSentencesUpTo } from '@/data/readingThemes';
+import { useReadingTheme } from '@/hooks/useReadingTheme';
 import { exerciseExitPath } from '@/routes/paths';
 
 /* ------------------------------------------------------------------ */
@@ -77,8 +79,30 @@ export function ExerciseSentenceDoctor() {
   const navigate = useNavigate();
   const { speak } = useSpeech();
   const { grade } = useDifficultyLevel();
-  const buildSentences = BUILD_SENTENCES_BY_GRADE[grade] ?? BUILD_SENTENCES_GRADE_1;
-  const fixSentences = FIX_SENTENCES_BY_GRADE[grade] ?? FIX_SENTENCES_GRADE_1;
+  // The 1ste leerjaar follows the reading theme: sentences from thema 5 on,
+  // a wrong word to fix from thema 6 on.
+  const theme = useReadingTheme();
+  const { buildSentences, fixSentences } = useMemo(() => {
+    if (theme === undefined) return { buildSentences: [], fixSentences: [] };
+    if (theme === null) {
+      return {
+        buildSentences: BUILD_SENTENCES_BY_GRADE[grade] ?? BUILD_SENTENCES_GRADE_1,
+        fixSentences: FIX_SENTENCES_BY_GRADE[grade] ?? FIX_SENTENCES_GRADE_1,
+      };
+    }
+    const t = Math.max(theme, 5);
+    return {
+      buildSentences: buildSentencesUpTo(t),
+      fixSentences: fixSentencesUpTo(t).map((q): FixQuestion => ({
+        mode: 'fix',
+        sentence: q.sentence,
+        wrongIndex: q.wrongIndex,
+        wrongWord: q.sentence[q.wrongIndex],
+        correctWord: q.correctWord,
+        distractors: q.distractors,
+      })),
+    };
+  }, [theme, grade]);
 
   const [question, setQuestion] = useState<Question | null>(null);
   // build mode
@@ -93,7 +117,8 @@ export function ExerciseSentenceDoctor() {
   const usedFixIndices = useRef<Set<number>>(new Set());
 
   const generateQuestion = useCallback(() => {
-    const mode = Math.random() < 0.5 ? 'build' : 'fix';
+    if (buildSentences.length === 0) return;
+    const mode = fixSentences.length > 0 && Math.random() >= 0.5 ? 'fix' : 'build';
     if (mode === 'build') {
       const { item: words, index } = pickUnused(buildSentences, usedBuildIndices.current);
       usedBuildIndices.current.add(index);

@@ -18,6 +18,7 @@ import { useChildInsights, type ChildInsight } from '@/hooks/useChildInsights';
 import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
 import { TimesTablesCard } from '@/components/parent/TimesTablesCard';
+import { ReadingThemeCard } from '@/components/parent/ReadingThemeCard';
 
 const SUBJECT_CONFIG: Record<string, { label: string; icon: typeof Calculator; color: string; bg: string }> = {
   math: { label: 'Rekenen', icon: Calculator, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -164,10 +165,11 @@ export function ParentChildDetail() {
     mutationFn: async (newGrade: number) => {
       // max_unlocked_stage is a single override column, not scoped per grade —
       // reset it on any grade change so trimester access starts fresh instead
-      // of carrying over whatever was unlocked in the previous grade.
+      // of carrying over whatever was unlocked in the previous grade. The same
+      // for the reading theme the parent picked: back to the calendar.
       const { error } = await supabase
         .from('children')
-        .update({ grade: newGrade, pending_promotion: false, max_unlocked_stage: 1 })
+        .update({ grade: newGrade, pending_promotion: false, max_unlocked_stage: 1, reading_theme: null })
         .eq('id', childId!)
         .eq('parent_id', user!.id);
       if (error) throw error;
@@ -181,6 +183,7 @@ export function ParentChildDetail() {
       queryClient.invalidateQueries({ queryKey: ['my-child'] });
       queryClient.invalidateQueries({ queryKey: ['practice-menu', childId] });
       queryClient.invalidateQueries({ queryKey: ['buddy-state', childId] });
+      queryClient.invalidateQueries({ queryKey: ['reading-theme', childId] });
       toast.success(`${child?.name} is nu in ${GRADE_LABELS[newGrade] ?? `groep ${newGrade}`}!`);
     },
     onError: (e) => toast.error(mapDbError(e)),
@@ -365,6 +368,8 @@ export function ParentChildDetail() {
           </div>
         )}
       </div>
+
+      <ReadingThemeCard childId={child.id} childName={child.name} grade={child.grade} />
 
       <TimesTablesCard childId={child.id} grade={child.grade} />
 

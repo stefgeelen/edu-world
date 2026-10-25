@@ -23,6 +23,8 @@ vi.mock('react-router-dom', async (importOriginal) => {
 });
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-1', stage: 1, grade: 1 }) }));
 vi.mock('@/hooks/useExerciseConfig', () => ({ useExerciseConfig: (fallback: unknown) => fallback }));
+// Not the reading themes: these tests pin the grade pools.
+vi.mock('@/hooks/useReadingTheme', () => ({ useReadingTheme: () => null }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => 'picture-word-exercise-id' }));
 vi.mock('@/hooks/useRecordIncompleteExercise', () => ({ useRecordIncompleteExercise: () => vi.fn() }));
 const completeExerciseMutateMock = vi.fn();
@@ -43,6 +45,7 @@ vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) })
 // "hond" and "vis" as the wrong options — avoids depending on the real
 // Unsplash-backed picture pool for deterministic drag targets.
 vi.mock('@/data/picturePool', () => ({
+  PICTURE_POOL: [],
   generatePictureRound: () => ({
     correct: { word: 'kat', imageUrl: 'kat.jpg', category: 'dieren' },
     options: [

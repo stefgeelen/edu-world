@@ -117,6 +117,10 @@ Hier legt de Buddy alleen uit wat je moet doen. De woorden en zinnen leest de lu
 - De klank zelf is een opname (`public/klanken/`) als die er is, anders zegt de stem hem ("mmm", "puh"). Een computerstem zegt een losse klank slecht, daarom de opnames.
 - De klank noemen mag: de klank is geen leesopdracht. Het woord zelf zegt de Buddy niet, dat zit achter de bestaande luidspreker.
 
+### Woordenmaker
+- **Uitleg:** "Luister naar het woord. Een stukje staat er al. Welke letter moet ervoor? Tik erop."
+- Het woord zelf zit achter de luidsprekerknop, zoals bij Woord kiezen.
+
 ### Zinsdokter
 - **Uitleg (zin maken):** "Sleep de woorden in de juiste volgorde, zodat het een goede zin wordt. Tik op de luidspreker als je hulp nodig hebt."
 - **Uitleg (zin genezen):** "In de zin zit één fout woord. Tik erop en kies het juiste woord."

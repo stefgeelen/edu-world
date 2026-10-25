@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Blocks,
   BookOpen,
   Boxes,
   Calculator,
@@ -50,6 +51,7 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   '/exercises/sentence-doctor': Stethoscope,
   '/exercises/sound-house': Home,
   '/exercises/picture-word': Image,
+  '/exercises/word-maker': Blocks,
 };
 
 export interface SubjectStyle {

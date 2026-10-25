@@ -60,29 +60,34 @@ function shuffle<T>(arr: T[]): T[] {
 
 /**
  * Generate a question round.
- * - When mixed=false: pick `optionCount` words from a single random category.
+ * - When mixed=false: pick `optionCount` words from a single random category,
+ *   or from the whole pool when no category has that many words.
  * - When mixed=true: pick `optionCount` words, each from a different category.
+ * `pool` narrows the words, e.g. to those the child can read (reading themes).
  * Returns the correct word + options (already shuffled).
  */
 export function generatePictureRound(
   optionCount: 3 | 4,
   mixed: boolean,
   excludeWord?: string,
+  pool: PictureItem[] = PICTURE_POOL,
 ): { correct: PictureItem; options: PictureItem[] } {
-  let pool: PictureItem[];
+  const words = pool.filter((p) => p.word !== excludeWord);
+  let options: PictureItem[];
 
   if (mixed) {
     const cats = shuffle(CATEGORIES).slice(0, optionCount);
-    pool = cats.map((c) => {
-      const candidates = PICTURE_POOL.filter((p) => p.category === c && p.word !== excludeWord);
-      return shuffle(candidates)[0];
-    });
+    options = cats
+      .map((c) => shuffle(words.filter((p) => p.category === c))[0])
+      .filter((p): p is PictureItem => p !== undefined);
   } else {
-    const cat = shuffle(CATEGORIES)[0];
-    const candidates = PICTURE_POOL.filter((p) => p.category === cat && p.word !== excludeWord);
-    pool = shuffle(candidates).slice(0, optionCount);
+    const cats = shuffle(CATEGORIES).filter(
+      (c) => words.filter((p) => p.category === c).length >= optionCount,
+    );
+    const candidates = cats.length > 0 ? words.filter((p) => p.category === cats[0]) : words;
+    options = shuffle(candidates).slice(0, optionCount);
   }
 
-  const correct = pool[Math.floor(Math.random() * pool.length)];
-  return { correct, options: shuffle(pool) };
+  const correct = options[Math.floor(Math.random() * options.length)];
+  return { correct, options: shuffle(options) };
 }

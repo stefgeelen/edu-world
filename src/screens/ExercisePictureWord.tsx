@@ -12,7 +12,9 @@ import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_PICTURE_WORD } from '@/data/difficultyConfig';
 import { useSpeech } from '@/hooks/useSpeech';
-import { generatePictureRound, type PictureItem } from '@/data/picturePool';
+import { generatePictureRound, PICTURE_POOL, type PictureItem } from '@/data/picturePool';
+import { pictureOptionCount, picturesUpToTheme } from '@/data/readingThemes';
+import { useReadingTheme } from '@/hooks/useReadingTheme';
 import type { BuddyMood } from '@/data/buddyMessages';
 import { exerciseExitPath } from '@/routes/paths';
 
@@ -34,7 +36,13 @@ export function ExercisePictureWord() {
   const { speak } = useSpeech();
 
   const picCfg = useExerciseConfig(DEFAULT_PICTURE_WORD);
-  const optionCount = picCfg.optionCount;
+  // The 1ste leerjaar follows the reading theme: only words the child can read.
+  const theme = useReadingTheme();
+  const optionCount = typeof theme === 'number' ? pictureOptionCount(theme) : picCfg.optionCount;
+  const pool = useMemo(
+    () => (typeof theme === 'number' ? picturesUpToTheme(theme) : PICTURE_POOL),
+    [theme],
+  );
   const mixed = false;
 
   const startTime = useRef(Date.now());
@@ -55,10 +63,11 @@ export function ExercisePictureWord() {
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
 
-  // Generate first question
+  // Generate first question, once the reading theme is known
   useEffect(() => {
-    setQuestion(generatePictureRound(optionCount, mixed));
-  }, [optionCount, mixed]);
+    if (theme === undefined) return;
+    setQuestion(generatePictureRound(optionCount, mixed, undefined, pool));
+  }, [optionCount, mixed, pool, theme]);
 
   // Speak word when new question appears
   useEffect(() => {
@@ -133,7 +142,7 @@ export function ExercisePictureWord() {
         finishExercise();
       } else {
         setRound(nextRound);
-        setQuestion(generatePictureRound(optionCount, mixed, question?.correct.word));
+        setQuestion(generatePictureRound(optionCount, mixed, question?.correct.word, pool));
         setStatus('idle');
         setBuddyMood(null);
       }

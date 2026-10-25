@@ -274,6 +274,7 @@ export type Database = {
           parent_id: string | null
           paused: boolean
           pending_promotion: boolean
+          reading_theme: number | null
           streak: number
           updated_at: string
           xp: number
@@ -295,6 +296,7 @@ export type Database = {
           parent_id?: string | null
           paused?: boolean
           pending_promotion?: boolean
+          reading_theme?: number | null
           streak?: number
           updated_at?: string
           xp?: number
@@ -316,6 +318,7 @@ export type Database = {
           parent_id?: string | null
           paused?: boolean
           pending_promotion?: boolean
+          reading_theme?: number | null
           streak?: number
           updated_at?: string
           xp?: number
@@ -438,6 +441,7 @@ export type Database = {
           config: Json | null
           created_at: string
           display_order: number
+          from_reading_theme: number | null
           grade: number
           id: string
           is_active: boolean
@@ -452,6 +456,7 @@ export type Database = {
           config?: Json | null
           created_at?: string
           display_order?: number
+          from_reading_theme?: number | null
           grade?: number
           id?: string
           is_active?: boolean
@@ -466,6 +471,7 @@ export type Database = {
           config?: Json | null
           created_at?: string
           display_order?: number
+          from_reading_theme?: number | null
           grade?: number
           id?: string
           is_active?: boolean
@@ -1194,6 +1200,7 @@ export type Database = {
           title: string
         }[]
       }
+      child_reading_theme: { Args: { p_child_id: string }; Returns: Json }
       child_times_tables: {
         Args: { p_child_id: string }
         Returns: {
@@ -1234,6 +1241,7 @@ export type Database = {
       practice_menu: { Args: { p_child_id: string }; Returns: Json }
       practice_munten_for: { Args: { p_nth: number }; Returns: number }
       practice_wish_bonus: { Args: never; Returns: number }
+      reading_theme_for_date: { Args: { p_day: string }; Returns: number }
       push_claim_due: {
         Args: never
         Returns: {

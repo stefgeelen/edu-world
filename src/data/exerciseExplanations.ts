@@ -50,6 +50,7 @@ export const EXPLAIN = {
   geometryTap: 'Kijk goed naar de hoek. Tik in de tekening op het stuk dat ik vraag.',
   language: 'Tik op de luidspreker en luister naar het woord. Zoek dat woord en tik erop.',
   pictureWord: 'Tik op de luidspreker en luister. Sleep het juiste woord naar de prent.',
+  wordMaker: 'Luister naar het woord. Een stukje staat er al. Welke letter moet ervoor? Tik erop.',
   // The sound itself is its own line (a recording when there is one), so the
   // sentence is split around it.
   soundHouse: (sound: SpeechLine): SpeechLine[] => [

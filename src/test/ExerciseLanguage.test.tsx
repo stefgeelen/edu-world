@@ -18,6 +18,8 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => navigateMock };
 });
 vi.mock('@/hooks/useDifficultyLevel', () => ({ useDifficultyLevel: () => ({ key: '1-1', stage: 1, grade: 1 }) }));
+// Not the reading themes: these tests pin the grade pools.
+vi.mock('@/hooks/useReadingTheme', () => ({ useReadingTheme: () => null }));
 vi.mock('@/hooks/useExerciseId', () => ({ useExerciseId: () => 'language-exercise-id' }));
 vi.mock('@/hooks/useRecordIncompleteExercise', () => ({ useRecordIncompleteExercise: () => vi.fn() }));
 const completeExerciseMutateMock = vi.fn();

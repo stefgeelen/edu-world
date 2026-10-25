@@ -13,6 +13,8 @@ import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { useSpeech } from '@/hooks/useSpeech';
 import { DEFAULT_SOUND_HOUSE } from '@/data/difficultyConfig';
 import { generateSoundHouseRound, type SoundPosition, type SoundWord } from '@/data/soundHousePool';
+import { themedSoundHouseRound } from '@/data/readingThemes';
+import { useReadingTheme } from '@/hooks/useReadingTheme';
 import type { BuddyMood } from '@/data/buddyMessages';
 import { exerciseExitPath } from '@/routes/paths';
 
@@ -34,6 +36,7 @@ export function ExerciseSoundHouse() {
   const completeExercise = useCompleteExercise();
   const { speak, speakLines } = useSpeech();
   const cfg = useExerciseConfig(DEFAULT_SOUND_HOUSE);
+  const theme = useReadingTheme();
 
   const startTime = useRef(Date.now());
   const correctCount = useRef(0);
@@ -49,10 +52,14 @@ export function ExerciseSoundHouse() {
 
   const current = questions[round];
 
-  // Init round
+  // Init round. The 1ste leerjaar follows the reading theme: only sounds the
+  // child already knows. Waits until the theme has loaded.
   useEffect(() => {
-    setQuestions(generateSoundHouseRound(cfg.poolStage, TOTAL_ROUNDS));
-  }, [cfg.poolStage]);
+    if (theme === undefined) return;
+    setQuestions(theme === null
+      ? generateSoundHouseRound(cfg.poolStage, TOTAL_ROUNDS)
+      : themedSoundHouseRound(theme, TOTAL_ROUNDS));
+  }, [cfg.poolStage, theme]);
 
   // Speak the word automatically when a new question appears
   useEffect(() => {

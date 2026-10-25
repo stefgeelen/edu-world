@@ -29,6 +29,7 @@ vi.mock('sonner', () => ({
 const useChildInsightsMock = vi.fn();
 // The tables card has its own test (TimesTablesCard.test.tsx).
 vi.mock('@/components/parent/TimesTablesCard', () => ({ TimesTablesCard: () => null }));
+vi.mock('@/components/parent/ReadingThemeCard', () => ({ ReadingThemeCard: () => null }));
 vi.mock('@/hooks/useChildInsights', () => ({
   useChildInsights: (childId: string | undefined) => useChildInsightsMock(childId),
 }));
@@ -179,7 +180,7 @@ describe('ParentChildDetail', () => {
     fireEvent.click(screen.getByText('Bevestigen'));
 
     await waitFor(() =>
-      expect(updateSpy).toHaveBeenCalledWith({ grade: 2, pending_promotion: false, max_unlocked_stage: 1 })
+      expect(updateSpy).toHaveBeenCalledWith({ grade: 2, pending_promotion: false, max_unlocked_stage: 1, reading_theme: null })
     );
     expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is nu in 2de leerjaar!');
     expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['parent-children'] }));
