@@ -30,3 +30,4 @@ dist-ssr
 # Supabase CLI scratch state (regenerated on every run; the project link
 # itself lives in the tracked supabase/config.toml)
 supabase/.temp
+public/klanken/*.m4a

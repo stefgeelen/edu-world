@@ -46,13 +46,20 @@ export function letterSound(letter: string): string {
  * ElevenLabs Voice Changer, in the app's voice). The voice can't say a lone
  * sound well, so a recording always wins; add a sound here with its file.
  */
-export const RECORDED_SOUNDS: ReadonlySet<string> = new Set<string>(['b', 'k', 'm', 'p']);
+export const RECORDED_SOUNDS: ReadonlySet<string> = new Set<string>([
+  'a', 'aa', 'au', 'b', 'd', 'e', 'ee', 'eu', 'f', 'g', 'h', 'i', 'ie', 'ij', 'j', 'k',
+  'l', 'm', 'n', 'o', 'oe', 'oo', 'p', 'r', 's', 't', 'u', 'ui', 'uu', 'v', 'w', 'z',
+]);
+
+/** Two spellings of one sound share a recording: "ou" sounds as "au", "ei" as "ij". */
+const SAME_SOUND: Record<string, string> = { ou: 'au', ei: 'ij' };
 
 /**
  * A letter sound as the Buddy says it: the recording when there is one, else
  * the voice with `text` (the spelled-out sound, e.g. "mmm").
  */
 export function soundLine(sound: string, text = letterSound(sound)): SpeechLine {
-  const key = sound.toLowerCase();
+  const lower = sound.toLowerCase();
+  const key = SAME_SOUND[lower] ?? lower;
   return RECORDED_SOUNDS.has(key) ? { clip: `/klanken/${key}.mp3`, text } : text;
 }
