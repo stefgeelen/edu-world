@@ -1,7 +1,9 @@
 /**
  * iOS Safari requires speechSynthesis.speak() to have been called at least
  * once from a synchronous user-gesture handler before it will work from
- * timers or React effects (useEffect + setTimeout).
+ * timers or React effects (useEffect + setTimeout). The same goes for the
+ * audio element that plays the Buddy's voice and the recorded sounds
+ * (`unlockAudio` in useSpeech).
  *
  * This module registers capture-phase click/touchstart listeners as early as
  * possible (at import time). It must be imported from an eagerly-loaded module
@@ -11,16 +13,20 @@
  * Layout.tsx imports this module, which loads at app startup.
  */
 
+import { unlockAudio } from '@/hooks/useSpeech';
+
 let unlocked = false;
 
 if (typeof window !== 'undefined') {
   const prime = () => {
     if (unlocked) return;
+    // First the audio element: devices without speechSynthesis still need it.
+    unlockAudio();
     // A silent utterance called from within the user-gesture handler is enough
     // to unlock speechSynthesis for subsequent calls from timers/effects.
     const u = new SpeechSynthesisUtterance(' ');
     u.volume = 0;
-    window.speechSynthesis.speak(u);
+    window.speechSynthesis?.speak(u);
     unlocked = true;
     document.removeEventListener('click', prime, true);
     document.removeEventListener('touchstart', prime, true);

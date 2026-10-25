@@ -9,22 +9,32 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
 const played: string[] = [];
 let audios: FakeAudio[] = [];
+/** Stands in for the one audio element that plays everything (src changes per line). */
 class FakeAudio {
-  src: string;
-  onended: (() => void) | null = null;
-  onpause: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  constructor(src: string) {
-    this.src = src;
+  src = '';
+  private listeners: Record<string, Set<() => void>> = {};
+  constructor() {
     audios.push(this);
+  }
+  addEventListener(type: string, fn: () => void) {
+    (this.listeners[type] ??= new Set()).add(fn);
+  }
+  removeEventListener(type: string, fn: () => void) {
+    this.listeners[type]?.delete(fn);
+  }
+  private emit(type: string) {
+    [...(this.listeners[type] ?? [])].forEach((fn) => fn());
   }
   play = vi.fn(() => {
     played.push(this.src);
     return Promise.resolve();
   });
-  pause = vi.fn(() => this.onpause?.());
+  pause = vi.fn();
   end() {
-    this.onended?.();
+    this.emit('ended');
+  }
+  fail() {
+    this.emit('error');
   }
 }
 
@@ -57,8 +67,10 @@ describe('speakLines', () => {
     await flush();
     expect(played).toHaveLength(2);
 
-    audios[1].end();
+    audios[0].end();
     await expect(done).resolves.toBeUndefined();
+    // One element plays every line: iOS only allows the one unlocked by a tap.
+    expect(audios).toHaveLength(1);
   });
 
   it('stops after the current line when stopped', async () => {
@@ -103,12 +115,12 @@ describe('speakLines', () => {
     const done = speakLines([{ clip: '/klanken/p.mp3', text: 'puh' }]);
 
     await flush();
-    audios[0].onerror?.();
+    audios[0].fail();
     await flush();
     expect(invokeFunction.mock.calls.map((c) => c[1].text)).toEqual(['puh']);
     expect(played).toHaveLength(2);
 
-    audios[1].end();
+    audios[0].end();
     await done;
   });
 
@@ -127,7 +139,27 @@ describe('speakLines', () => {
     // The pause asks nothing of the voice.
     expect(invokeFunction).toHaveBeenCalledTimes(2);
 
-    audios[1].end();
+    audios[0].end();
     await done;
+  });
+
+  it('never lets the device\'s robot voice say a lone sound', async () => {
+    const speakSynth = vi.fn();
+    vi.stubGlobal('speechSynthesis', { speak: speakSynth, cancel: vi.fn(), getVoices: () => [] });
+    invokeFunction.mockRejectedValue(new Error('offline'));
+    const { speakLines } = await import('@/hooks/useSpeech');
+    const done = speakLines([{ clip: '/klanken/r.mp3', text: 'rrr' }]);
+
+    await flush();
+    audios[0].fail();
+    await done;
+    expect(speakSynth).not.toHaveBeenCalled();
+  });
+
+  it('unlocks the one audio element with a moment of silence on the first tap', async () => {
+    const { unlockAudio } = await import('@/hooks/useSpeech');
+    unlockAudio();
+    expect(audios).toHaveLength(1);
+    expect(played[0]).toMatch(/^data:audio\/mpeg;base64,/);
   });
 });

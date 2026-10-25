@@ -10,12 +10,11 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
 const play = vi.fn().mockResolvedValue(undefined);
 class FakeAudio {
-  src: string;
-  constructor(src: string) {
-    this.src = src;
-  }
+  src = '';
   play = play;
   pause = vi.fn();
+  addEventListener = vi.fn();
+  removeEventListener = vi.fn();
 }
 
 beforeEach(() => {

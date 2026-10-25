@@ -8,7 +8,30 @@ import { invokeFunction } from '@/lib/invokeFunction';
  */
 
 let voicesCache: SpeechSynthesisVoice[] = [];
-let currentAudio: HTMLAudioElement | null = null;
+
+/**
+ * One audio element plays everything the Buddy says. iOS only lets a page
+ * play sound from an element that started playing during a tap; a new
+ * element per line was refused once the tap was a few seconds ago (late in a
+ * row of lines, e.g. the last sound in Klanken plakken), and the robot voice
+ * took over. `unlockAudio` starts this element on the first tap.
+ */
+let player: HTMLAudioElement | null = null;
+const sharedPlayer = () => (player ??= new Audio());
+
+/** Resolves the line that is playing now; set while one plays. */
+let finishCurrent: ((ok: boolean) => void) | null = null;
+
+/** A twentieth of a second of silence, to unlock the player during a tap. */
+const SILENCE = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYyLjEyLjEwMQAAAAAAAAAAAAAA//NAxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEWwAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
+
+/** Called from a tap (src/lib/speechUnlock.ts): from then on the Buddy may speak from timers too. */
+export function unlockAudio() {
+  if (typeof Audio === 'undefined' || finishCurrent) return;
+  const audio = sharedPlayer();
+  audio.src = SILENCE;
+  audio.play().catch(() => {});
+}
 
 function browserSpeak(text: string) {
   if (!text || typeof window === 'undefined') return;
@@ -66,7 +89,7 @@ async function audioUrlFor(text: string): Promise<string> {
   if (audioCache.size > AUDIO_CACHE_LIMIT) {
     const [oldestText, oldestUrl] = audioCache.entries().next().value as [string, string];
     audioCache.delete(oldestText);
-    if (currentAudio?.src !== oldestUrl) URL.revokeObjectURL(oldestUrl);
+    if (player?.src !== oldestUrl) URL.revokeObjectURL(oldestUrl);
   }
   return url;
 }
@@ -82,34 +105,49 @@ export async function speakText(text: string): Promise<void> {
   sequence += 1;
 
   try {
-    const url = await audioUrlFor(text);
-
     // Cached URLs are reused, so they're only revoked on eviction, never on stop.
-    currentAudio?.pause();
-
-    const audio = new Audio(url);
-    currentAudio = audio;
-    await audio.play();
+    const url = await audioUrlFor(text);
+    const { started } = play(url);
+    if (!(await started)) browserSpeak(text);
   } catch {
     browserSpeak(text);
   }
 }
 
 /**
- * Plays one clip and resolves when it ends, or when it is stopped. Resolves
- * false when the clip could not be played at all (missing or broken file).
+ * Plays a url on the shared player. `started` resolves once it plays (false
+ * if it cannot), `ended` when it has finished or was cut off by the next line
+ * or a stop (true), or could not be played at all (false).
  */
-async function playToEnd(url: string): Promise<boolean> {
-  currentAudio?.pause();
-  const audio = new Audio(url);
-  currentAudio = audio;
-  return new Promise<boolean>((resolve) => {
-    audio.onended = () => resolve(true);
-    audio.onpause = () => resolve(true);
-    audio.onerror = () => resolve(false);
-    audio.play().catch(() => resolve(false));
-  });
+function play(url: string): { started: Promise<boolean>; ended: Promise<boolean> } {
+  finishCurrent?.(true);
+  const audio = sharedPlayer();
+  let resolveEnded!: (ok: boolean) => void;
+  const ended = new Promise<boolean>((resolve) => { resolveEnded = resolve; });
+  const finish = (ok: boolean) => {
+    if (finishCurrent !== finish) return;
+    finishCurrent = null;
+    audio.removeEventListener('ended', onEnded);
+    audio.removeEventListener('error', onError);
+    resolveEnded(ok);
+  };
+  const onEnded = () => finish(true);
+  const onError = () => finish(false);
+  finishCurrent = finish;
+  audio.addEventListener('ended', onEnded);
+  audio.addEventListener('error', onError);
+  audio.src = url;
+  const started = audio.play().then(
+    () => true,
+    () => {
+      finish(false);
+      return false;
+    },
+  );
+  return { started, ended };
 }
+
+const playToEnd = (url: string) => play(url).ended;
 
 function browserSpeakToEnd(text: string): Promise<void> {
   return new Promise((resolve) => {
@@ -159,11 +197,11 @@ export async function speakLines(lines: SpeechLine[]): Promise<void> {
       if (url) await playToEnd(url);
       else await browserSpeakToEnd(line);
     } else if (!(await playToEnd(line.clip)) && id === sequence) {
-      // The recording is missing: the voice says the sound instead.
+      // The recording is missing: the voice says the sound instead. Never the
+      // device's own voice: its "rrr" is a different sound, worse than none.
       const spoken = await audioUrlFor(line.text).catch(() => null);
       if (id !== sequence) return;
       if (spoken) await playToEnd(spoken);
-      else await browserSpeakToEnd(line.text);
     }
     if (id !== sequence) return;
   }
@@ -172,7 +210,8 @@ export async function speakLines(lines: SpeechLine[]): Promise<void> {
 /** Stops whatever is being said right now. */
 export function stopSpeaking() {
   sequence += 1;
-  currentAudio?.pause();
+  finishCurrent?.(true);
+  player?.pause();
   if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
 }
 
