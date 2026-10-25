@@ -27,6 +27,7 @@ vi.mock('@/hooks/useBuddy', () => ({
 }));
 
 vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: { id: 'child-1' } }) }));
+vi.mock('@/hooks/useKindergarten', () => ({ useKindergartenMode: () => ({ mode: 'admins', live: false, isLoading: false }) }));
 
 const TOUR_KEY = 'leapio:buddy-tour-done:child-1';
 const GROWTH_KEY = 'leapio:buddy-growth-seen:child-1';

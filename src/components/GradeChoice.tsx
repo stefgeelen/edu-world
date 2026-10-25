@@ -3,27 +3,30 @@ import { cn } from '@/lib/utils';
 import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { GRADE_LABELS, type GradeAssignment } from '@/lib/gradeFromAge';
 
-const GRADES = Array.from({ length: MAX_SUPPORTED_GRADE }, (_, i) => i + 1);
+const SCHOOL_GRADES = Array.from({ length: MAX_SUPPORTED_GRADE }, (_, i) => i + 1);
 
 /**
  * The parent picks the child's grade. The age suggests one (`assignment`),
  * which stays selected until the parent picks another. Only grades the app
- * has content for can be picked.
+ * has content for can be picked; the 3de kleuterklas (0) only when it is open
+ * to this parent (`useKindergarten`).
  */
-export function GradeChoice({ assignment, chosen, onChoose, size = 'md', tone = 'light' }: {
+export function GradeChoice({ assignment, chosen, onChoose, kindergartenOpen = false, size = 'md', tone = 'light' }: {
   assignment: GradeAssignment | null;
   chosen: number | null;
   onChoose: (grade: number) => void;
+  kindergartenOpen?: boolean;
   size?: 'md' | 'lg';
   /** 'dark' on the night-sky onboarding screens. */
   tone?: 'light' | 'dark';
 }) {
   const dark = tone === 'dark';
   const selected = chosen ?? assignment?.assignedGrade ?? null;
+  const grades = kindergartenOpen ? [0, ...SCHOOL_GRADES] : SCHOOL_GRADES;
   return (
     <div>
       <div role="radiogroup" aria-label="Leerjaar" className="flex flex-wrap gap-2">
-        {GRADES.map((grade) => {
+        {grades.map((grade) => {
           const on = grade === selected;
           return (
             <button

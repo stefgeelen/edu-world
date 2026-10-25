@@ -504,6 +504,24 @@ export type Database = {
         }
         Relationships: []
       }
+      kindergarten_settings: {
+        Row: {
+          id: boolean
+          mode: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          mode?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          mode?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -1011,6 +1029,10 @@ export type Database = {
       _push_in_window: { Args: { p_at: string }; Returns: boolean }
       admin_engagement_stats: { Args: never; Returns: Json }
       admin_push_stats: { Args: never; Returns: Json }
+      admin_set_kindergarten_mode: {
+        Args: { p_mode: string }
+        Returns: undefined
+      }
       admin_set_push_mode: { Args: { p_mode: string }; Returns: undefined }
       admin_set_subscription: {
         Args: {

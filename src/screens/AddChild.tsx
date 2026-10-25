@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
 import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 import { getGradeAssignment } from '@/lib/gradeFromAge';
+import { useKindergarten } from '@/hooks/useKindergarten';
 import { GradeChoice } from '@/components/GradeChoice';
 import { NightSkyScreen, PRIMARY_BUTTON, DISABLED_BUTTON } from '@/components/auth/NightSky';
 import { Ornaments } from '@/components/dashboard/Vitrine';
@@ -29,7 +30,8 @@ export function AddChild() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [limitDialog, setLimitDialog] = useState<{ open: boolean; message?: string }>({ open: false });
 
-  const gradeAssignment = getGradeAssignment(age);
+  const { open: kindergartenOpen } = useKindergarten();
+  const gradeAssignment = getGradeAssignment(age, kindergartenOpen);
   const isFormValid = name.trim().length > 0 && age !== '' && age > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -173,7 +175,7 @@ export function AddChild() {
               <div className="flex-1 bg-[#0f0828]/50 rounded-2xl border-2 border-[#3b2d71] p-4 flex flex-col justify-center relative overflow-hidden">
                 <span className="text-xs font-bold text-[#9d8bce] uppercase tracking-wider mb-2">Leerjaar</span>
                 {gradeAssignment ? (
-                  <GradeChoice assignment={gradeAssignment} chosen={chosenGrade} onChoose={setChosenGrade} tone="dark" />
+                  <GradeChoice assignment={gradeAssignment} chosen={chosenGrade} onChoose={setChosenGrade} kindergartenOpen={kindergartenOpen} tone="dark" />
                 ) : (
                   <span className="text-[#9d8bce] font-semibold italic text-sm sm:text-base">Vul leeftijd in</span>
                 )}

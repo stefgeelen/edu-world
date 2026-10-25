@@ -7,6 +7,7 @@ import { buddyMessage, careActionMessage, growthCountdown } from '@/lib/buddy/me
 import { BuddyFxProvider, useBuddy } from '@/hooks/useBuddy';
 import { useSpeech } from '@/hooks/useSpeech';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { useKindergartenMode } from '@/hooks/useKindergarten';
 import { useBuddyTour, type BuddyTourStep } from '@/hooks/useBuddyTour';
 import { CarePanel } from '@/components/buddy/CarePanel';
 import { BuddyStage } from '@/components/buddy/BuddyStage';
@@ -59,7 +60,8 @@ function BuddyRoomContent() {
   const tour = useBuddyTour(child?.id);
   const location = useLocation();
   const navigate = useNavigate();
-  const form = growthForm(buddy.growthStage, buddy.name);
+  const { live: kindergartenLive } = useKindergartenMode();
+  const form = growthForm(buddy.growthStage, buddy.name, kindergartenLive);
   const growthMoment = useGrowthMoment(child?.id, buddy.growthStage, loaded);
   const countdown = loaded && now ? growthCountdown(buddy.name, daysUntilNextGrowth(now)) : null;
 

@@ -21,8 +21,17 @@ vi.mock('react-router-dom', async () => {
 });
 
 const fromMock = vi.fn();
+const rpcMock = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => fromMock(...args) },
+  supabase: {
+    from: (...args: unknown[]) => fromMock(...args),
+    rpc: (...args: unknown[]) => rpcMock(...args),
+  },
+}));
+
+const kindergarten = { live: false };
+vi.mock('@/hooks/useKindergarten', () => ({
+  useKindergartenMode: () => ({ mode: kindergarten.live ? 'all' : 'admins', live: kindergarten.live, isLoading: false }),
 }));
 
 import { AdminExercises } from '@/screens/admin/AdminExercises';
@@ -36,6 +45,7 @@ function renderScreen() {
 describe('AdminExercises', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    kindergarten.live = false;
   });
 
   it('shows a loading spinner while exercises are being fetched', () => {
@@ -99,5 +109,44 @@ describe('AdminExercises', () => {
     fireEvent.click(screen.getByText('Optellen'));
 
     expect(navigateMock).toHaveBeenCalledWith(`/admin/exercises/${encodeURIComponent('/exercises/math')}`);
+  });
+});
+
+describe('AdminExercises — 3de kleuterklas switch', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    kindergarten.live = false;
+    fromMock.mockReturnValue(fakeSupabaseChain({ data: EXERCISES, error: null }));
+    rpcMock.mockResolvedValue({ data: null, error: null });
+  });
+
+  it('starts in Test and puts it live after confirming', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderScreen();
+
+    expect(screen.getByRole('button', { name: /Test \(enkel admins\)/ })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: /Live \(iedereen\)/ }));
+
+    expect(confirm).toHaveBeenCalled();
+    await waitFor(() => expect(rpcMock).toHaveBeenCalledWith('admin_set_kindergarten_mode', { p_mode: 'all' }));
+    confirm.mockRestore();
+  });
+
+  it('does nothing when the admin cancels', () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderScreen();
+    fireEvent.click(screen.getByRole('button', { name: /Live \(iedereen\)/ }));
+    expect(rpcMock).not.toHaveBeenCalled();
+    confirm.mockRestore();
+  });
+
+  it('can go back to Test when it is live', async () => {
+    kindergarten.live = true;
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderScreen();
+    expect(screen.getByRole('button', { name: /Live \(iedereen\)/ })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: /Test \(enkel admins\)/ }));
+    await waitFor(() => expect(rpcMock).toHaveBeenCalledWith('admin_set_kindergarten_mode', { p_mode: 'admins' }));
+    confirm.mockRestore();
   });
 });

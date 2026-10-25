@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { daysUntilNextGrowth, growthForm, phaseOfMonth, MAX_GROWTH_STAGE } from '@/lib/buddy/growth';
+import { daysUntilNextGrowth, growthForm, phaseOfMonth, MAX_GROWTH_STAGE, MIN_GROWTH_STAGE } from '@/lib/buddy/growth';
 import { growthCountdown } from '@/lib/buddy/messages';
 
 // Middag in Vlaanderen, zodat de UTC-datum en de lokale datum gelijk zijn.
@@ -41,9 +41,37 @@ describe('growthForm', () => {
   });
 
   it('clamps nonsense stages from the server instead of crashing', () => {
-    expect(growthForm(0).stage).toBe(1);
+    expect(growthForm(-10).stage).toBe(MIN_GROWTH_STAGE);
     expect(growthForm(99).stage).toBe(MAX_GROWTH_STAGE);
     expect(growthForm(Number.NaN).stage).toBe(1);
+  });
+});
+
+describe('growthForm — 3de kleuterklas', () => {
+  it('reads stages -2..0 as the three trimesters of the 3de kleuterklas', () => {
+    expect([-2, -1, 0].map((s) => growthForm(s, 'Nootje', true))).toMatchObject([
+      { grade: 0, phase: 1, title: 'Baby Nootje', accessories: [] },
+      { grade: 0, phase: 2, title: 'Baby Nootje', accessories: ['🍃'] },
+      { grade: 0, phase: 3, title: 'Baby Nootje', accessories: ['🌼'] },
+    ]);
+  });
+
+  it('shifts every form one grade once it is live: Kleine in the 1ste, Meester in the 6de', () => {
+    const live = [-2, 1, 4, 7, 10, 13, 16].map((s) => growthForm(s, 'Nootje', true).title);
+    expect(live).toEqual(['Baby Nootje', 'Kleine Nootje', 'Nootje', 'Flinke Nootje', 'Grote Nootje', 'Wijze Nootje', 'Meester Nootje']);
+    expect(growthForm(16, 'Vosje', true).accessories).toEqual(['🎓']);
+  });
+
+  it('keeps today\'s names while it is in Test, also for a test kleuter', () => {
+    expect(growthForm(1, 'Nootje', false).title).toBe('Baby Nootje');
+    expect(growthForm(16, 'Nootje', false).title).toBe('Wijze Nootje');
+    expect(growthForm(-2, 'Nootje', false).title).toBe('Baby Nootje');
+  });
+
+  it('only ever grows, from the kleuterklas to the end of the 6de leerjaar', () => {
+    for (let s = MIN_GROWTH_STAGE + 1; s <= MAX_GROWTH_STAGE; s++) {
+      expect(growthForm(s, 'Nootje', true).scale).toBeGreaterThanOrEqual(growthForm(s - 1, 'Nootje', true).scale);
+    }
   });
 });
 

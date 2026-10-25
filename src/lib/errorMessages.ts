@@ -101,6 +101,11 @@ export function mapDbError(error: AnyError): string {
     return 'Dit kind is gepauzeerd en kan nu niet spelen. Een ouder kan dat aanpassen in het ouderportaal.';
   }
 
+  // 3de kleuterklas staat nog in Test (uit children_check_grade trigger)
+  if (lower.includes('kindergarten not available')) {
+    return 'De 3de kleuterklas is nog niet beschikbaar. Kies een ander leerjaar.';
+  }
+
   // PIN-validatie (uit set_parent_pin RPC)
   if (lower.includes('pin moet exact 4 cijfers')) {
     return 'De toegangscode moet uit precies 4 cijfers bestaan.';

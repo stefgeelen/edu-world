@@ -16,6 +16,7 @@ import {
 import { useChildInsights, type ChildInsight } from '@/hooks/useChildInsights';
 import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
+import { useKindergarten } from '@/hooks/useKindergarten';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TimesTablesCard } from '@/components/parent/TimesTablesCard';
 import { ReadingThemeCard } from '@/components/parent/ReadingThemeCard';
@@ -66,6 +67,9 @@ export function ParentChildDetail() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [pendingGrade, setPendingGrade] = useState<number | null>(null);
+  // The 3de kleuterklas (grade 0) sits below the 1ste leerjaar, while it is open to this parent.
+  const { open: kindergartenOpen } = useKindergarten();
+  const minGrade = kindergartenOpen ? 0 : 1;
   // Two tabs: how the child is doing, and what it practises. Kept in the URL
   // so going back returns to the same tab.
   const [params, setParams] = useSearchParams();
@@ -398,8 +402,8 @@ export function ParentChildDetail() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => { if (child.grade > 1) setPendingGrade(child.grade - 1); }}
-                  disabled={child.grade <= 1 || promoteMutation.isPending}
+                  onClick={() => { if (child.grade > minGrade) setPendingGrade(child.grade - 1); }}
+                  disabled={child.grade <= minGrade || promoteMutation.isPending}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <ArrowDown className="w-4 h-4" />

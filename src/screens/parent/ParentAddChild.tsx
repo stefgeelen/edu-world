@@ -10,6 +10,7 @@ import { mapDbError, isSubscriptionLimitError } from '@/lib/errorMessages';
 import { SubscriptionLimitDialog } from '@/components/SubscriptionLimitDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getGradeAssignment } from '@/lib/gradeFromAge';
+import { useKindergarten } from '@/hooks/useKindergarten';
 import { GradeChoice } from '@/components/GradeChoice';
 
 export function ParentAddChild() {
@@ -53,7 +54,8 @@ export function ParentAddChild() {
   const maxChildren = subscription?.max_children ?? 1;
   const canAdd = childrenCount < maxChildren;
 
-  const gradeAssignment = getGradeAssignment(age);
+  const { open: kindergartenOpen } = useKindergarten();
+  const gradeAssignment = getGradeAssignment(age, kindergartenOpen);
   const isFormValid = name.trim().length > 0 && age !== '' && age > 0 && canAdd;
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -163,7 +165,7 @@ export function ParentAddChild() {
           {gradeAssignment && (
             <div className="mt-4">
               <p className="text-sm font-bold text-slate-700 mb-2">Leerjaar</p>
-              <GradeChoice assignment={gradeAssignment} chosen={chosenGrade} onChoose={setChosenGrade} />
+              <GradeChoice assignment={gradeAssignment} chosen={chosenGrade} onChoose={setChosenGrade} kindergartenOpen={kindergartenOpen} />
             </div>
           )}
         </div>

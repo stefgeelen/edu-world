@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { BookOpen, Loader2, Search, ChevronRight } from 'lucide-react';
+import { BookOpen, FlaskConical, Globe, Loader2, Search, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { mapDbError } from '@/lib/errorMessages';
+import { useKindergartenMode, type KindergartenMode } from '@/hooks/useKindergarten';
 
 const SUBJECT_LABELS: Record<string, { label: string; color: string }> = {
   math:    { label: 'Rekenen',    color: 'bg-blue-100 text-blue-700' },
@@ -16,6 +19,76 @@ const SUBJECT_LABELS: Record<string, { label: string; color: string }> = {
 
 function familyKeyFor(route: string): string {
   return route.replace(/\/\d+$/, '');
+}
+
+/**
+ * Test / Live for the 3de kleuterklas as a whole (kindergarten_settings.mode).
+ * Test: only admins can put a child in it. Live: every parent, and the Buddy
+ * forms shift one grade (the kleuter starts at Baby, the 6de leerjaar is Meester).
+ */
+function KindergartenSwitch() {
+  const queryClient = useQueryClient();
+  const { live, isLoading } = useKindergartenMode();
+
+  const setMode = useMutation({
+    mutationFn: async (mode: KindergartenMode) => {
+      const { error } = await supabase.rpc('admin_set_kindergarten_mode', { p_mode: mode });
+      if (error) throw error;
+    },
+    onSuccess: (_data, mode) => {
+      queryClient.invalidateQueries({ queryKey: ['kindergarten-settings'] });
+      toast.success(mode === 'all' ? 'De 3de kleuterklas staat live voor iedereen.' : 'De 3de kleuterklas staat in test: enkel admins.');
+    },
+    onError: (e) => toast.error(mapDbError(e)),
+  });
+
+  const busy = isLoading || setMode.isPending;
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-6 shadow-sm">
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">3de kleuterklas</p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => {
+            if (live && !window.confirm('De 3de kleuterklas terug in test zetten? Kleuters die er al in zitten, blijven erin.')) return;
+            setMode.mutate('admins');
+          }}
+          disabled={busy || !live}
+          aria-pressed={!live}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border transition-colors',
+            !live
+              ? 'bg-sky-600 border-sky-600 text-white'
+              : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+          )}
+        >
+          <FlaskConical className="w-4 h-4" />
+          Test (enkel admins)
+        </button>
+        <button
+          onClick={() => {
+            if (!live && !window.confirm('De 3de kleuterklas live zetten? Elke ouder kan ze dan kiezen, en de Buddy van elk kind schuift een vorm op.')) return;
+            setMode.mutate('all');
+          }}
+          disabled={busy || live}
+          aria-pressed={live}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border transition-colors',
+            live
+              ? 'bg-emerald-600 border-emerald-600 text-white'
+              : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+          )}
+        >
+          <Globe className="w-4 h-4" />
+          Live (iedereen)
+        </button>
+      </div>
+      <p className="text-xs text-slate-500 mt-3">
+        {live
+          ? 'Elke ouder kan de 3de kleuterklas kiezen. De Buddy begint daar als Baby; in het 6de leerjaar is hij Meester.'
+          : 'Enkel admins kunnen een kind in de 3de kleuterklas zetten. De Buddy-vormen van de andere kinderen blijven zoals ze zijn.'}
+      </p>
+    </div>
+  );
 }
 
 export function AdminExercises() {
@@ -74,6 +147,8 @@ export function AdminExercises() {
             </p>
           </div>
         </div>
+
+        <KindergartenSwitch />
 
         {/* Search */}
         <div className="relative mb-6">

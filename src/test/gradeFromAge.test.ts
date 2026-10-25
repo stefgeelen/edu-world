@@ -109,3 +109,21 @@ describe('GRADE_LABELS', () => {
     }
   });
 });
+
+describe('3de kleuterklas (grade 0)', () => {
+  it('suggests the 3de kleuterklas for a child of 5 or younger, once it is open to this parent', () => {
+    expect(gradeForAge(5, true)).toBe(0);
+    expect(gradeForAge(4, true)).toBe(0);
+    expect(gradeForAge(6, true)).toBe(1);
+    expect(getGradeAssignment(5, true)).toMatchObject({ assignedGrade: 0, assignedLabel: '3de kleuterklas', wasClamped: false });
+  });
+
+  it('keeps every young child in the 1ste leerjaar while it is closed, without hinting at it', () => {
+    expect(gradeForAge(5)).toBe(1);
+    expect(getGradeAssignment(5)).toMatchObject({ assignedGrade: 1, wasClamped: false });
+  });
+
+  it('has a label', () => {
+    expect(GRADE_LABELS[0]).toBe('3de kleuterklas');
+  });
+});
