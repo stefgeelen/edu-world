@@ -202,7 +202,7 @@ describe('useCompleteExercise', () => {
 
   it('tells the child what the Buddy earned', async () => {
     await complete({ munten_earned: 8, times_today: 1 });
-    expect(buddyCheer).toHaveBeenCalledWith('🪙 +8 Munten voor je Buddy!', expect.anything());
+    expect(buddyCheer).toHaveBeenCalledWith('Dankjewel!', expect.objectContaining({ munten: 8 }));
   });
 
   it('nudges towards something else once the same type is repeated', async () => {
@@ -212,7 +212,7 @@ describe('useCompleteExercise', () => {
 
   it('celebrates a fulfilled wish above everything else', async () => {
     await complete({ munten_earned: 13, times_today: 1, wish_fulfilled: true, wish_bonus: 5 });
-    expect(buddyCheer).toHaveBeenCalledWith(expect.stringContaining('Wens vervuld! +13'), expect.anything());
+    expect(buddyCheer).toHaveBeenCalledWith(expect.stringContaining('wens is vervuld'), expect.objectContaining({ munten: 13 }));
   });
 
   it('no longer reacts to XP, levels, streaks or finished trimesters', async () => {

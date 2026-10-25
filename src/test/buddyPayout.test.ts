@@ -1,25 +1,32 @@
 import { describe, it, expect } from 'vitest';
-import { payoutMessage } from '@/lib/buddy/payout';
+import { payoutMessage, spokenMunten } from '@/lib/buddy/payout';
 import { practiceGreeting } from '@/lib/buddy/messages';
 import type { PracticeMenu } from '@/hooks/usePracticeMenu';
 
 describe('payoutMessage', () => {
   it('cheers a fresh exercise', () => {
-    expect(payoutMessage({ munten_earned: 8, times_today: 1 })).toBe('🪙 +8 Munten voor je Buddy!');
-    expect(payoutMessage({ munten_earned: 8, times_today: 2 })).toBe('🪙 +8 Munten voor je Buddy!');
+    expect(payoutMessage({ munten_earned: 8, times_today: 1 })).toEqual({ munten: 8, text: 'Dankjewel!' });
+    expect(payoutMessage({ munten_earned: 8, times_today: 2 })).toEqual({ munten: 8, text: 'Dankjewel!' });
   });
 
   it('nudges towards something new from the third time the same type is done today', () => {
-    expect(payoutMessage({ munten_earned: 4, times_today: 3 })).toBe('🪙 +4. Deze ken ik al! Zullen we iets anders proberen?');
+    expect(payoutMessage({ munten_earned: 4, times_today: 3 })).toEqual({ munten: 4, text: 'Deze ken ik al! Zullen we iets anders proberen?' });
   });
 
   it('puts a fulfilled wish first', () => {
-    expect(payoutMessage({ munten_earned: 13, times_today: 1, wish_fulfilled: true })).toBe('⭐ Wens vervuld! +13 🪙 voor je Buddy!');
+    expect(payoutMessage({ munten_earned: 13, times_today: 1, wish_fulfilled: true })).toEqual({ munten: 13, text: 'Mijn wens is vervuld!' });
   });
 
   it('stays quiet when nothing was earned (a child without a Buddy, or an old server)', () => {
     expect(payoutMessage({})).toBeNull();
     expect(payoutMessage({ munten_earned: 0 })).toBeNull();
+  });
+});
+
+describe('spokenMunten', () => {
+  it('says the amount without a plus sign, singular for one', () => {
+    expect(spokenMunten(8)).toBe('8 Munten');
+    expect(spokenMunten(1)).toBe('1 Munt');
   });
 });
 

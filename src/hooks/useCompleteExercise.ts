@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCelebration } from '@/context/CelebrationContext';
 import { buddyToast } from '@/components/feedback/BuddyToast';
 import { payoutMessage, type Payout } from '@/lib/buddy/payout';
+import { buddySpecies } from '@/lib/buddy/species';
 import type { Tables } from '@/integrations/supabase/types';
 
 /** The columns of `children` the gameplay side reads. */
@@ -138,7 +139,12 @@ export function useCompleteExercise() {
       }
 
       const line = data ? payoutMessage(data) : null;
-      if (line) buddyToast.cheer(line, { duration: 4000 });
+      if (line) {
+        // The Buddy row is already cached by the exercise screen (useGame).
+        const row = queryClient.getQueryData<{ species?: string | null }>(['buddy-state', child?.id]);
+        const art = buddySpecies(row?.species).art.happy;
+        buddyToast.cheer(line.text, { munten: line.munten, art, duration: 4000 });
+      }
     },
   });
 
