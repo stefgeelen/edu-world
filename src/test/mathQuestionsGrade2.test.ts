@@ -185,6 +185,13 @@ describe('Tafels', () => {
     }
   });
 
+  it('only the deeltafel open: ten different divisions, all whole', () => {
+    const run = generateTableRun(3, true, false);
+    expect(run).toHaveLength(TABLE_RUN_LENGTH);
+    expect(new Set(run.map((q) => q.answer)).size).toBe(10);
+    expect(run.every((q) => q.operator === ':' && q.num2 === 3 && q.num1 === q.answer * 3)).toBe(true);
+  });
+
   it('with divisions: half × and half :, every division comes out whole', () => {
     for (let i = 0; i < 50; i++) {
       const run = generateTableRun(4, true);

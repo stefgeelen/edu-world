@@ -58,6 +58,7 @@ Kinderen uit het 2de leerjaar kunnen Leapio gebruiken met oefeningen op hun nive
 - Munten en beloningen lopen gewoon via `complete_exercise`. Twee verschillende tafels op dezelfde dag tellen dus als herhaling van hetzelfde type (8, 8, 4 …).
 - In het ouderportaal toont de kaart "Tafels" per tafel: gekend, hoeveel beurten zonder fout, of nog niet geoefend.
 - Migratie: `supabase/migrations/20261013180000_times_tables.sql`.
+- **Sinds 25 okt 2026: tafels per periode** in plaats van per trimester (Stef: "lijkt oké, pas ik later wss nog aan"). Vanaf 1 okt maaltafels 10 en 2; 9 nov: 5; 4 jan: deeltafels 10, 2, 5; 25 jan: 4; 1 mrt: 3 + deeltafels 4 en 3; 20 apr: 6 en 8 (maal en deel); 11 mei: 9, 7 en 1 (maal en deel). In september is Tafels verborgen. De ouder zet in Leerstof → Tafels een maal- en/of deeltafel vroeger open. Aanpassen: `times_table_schedule()` (migratie `20261025230000_times_table_calendar.sql`).
 
 ## Stap 3: Herhalen (beslist door Stef, 2026-10-13)
 

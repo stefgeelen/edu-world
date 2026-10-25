@@ -51,3 +51,40 @@ export function useRecordTimesTableRun(childId: string | undefined) {
     onError: (err) => console.error('Could not save times table run', err),
   });
 }
+
+export interface TimesTableAccess {
+  /** Maaltafels the child can practise now. */
+  multiply: number[];
+  /** Deeltafels the child can practise now. */
+  divide: number[];
+  /** What the parent opened earlier than the calendar. */
+  extraMultiply: number[];
+  extraDivide: number[];
+  /** When each table opens in the school year (times_table_schedule). */
+  schedule: { table: number; kind: 'multiply' | 'divide'; month: number; day: number }[];
+}
+
+/** Which tables are open for a child: the calendar plus what the parent opened. */
+export function useTimesTableAccess(childId: string | undefined) {
+  return useQuery({
+    queryKey: ['times-table-access', childId],
+    queryFn: async (): Promise<TimesTableAccess> => {
+      const { data, error } = await supabase.rpc('child_times_table_access', { p_child_id: childId! });
+      if (error) throw error;
+      const row = data as {
+        multiply: number[]; divide: number[]; extra_multiply: number[]; extra_divide: number[];
+        schedule: TimesTableAccess['schedule'] | null;
+      };
+      return {
+        multiply: row.multiply ?? [],
+        divide: row.divide ?? [],
+        extraMultiply: row.extra_multiply ?? [],
+        extraDivide: row.extra_divide ?? [],
+        schedule: row.schedule ?? [],
+      };
+    },
+    enabled: !!childId,
+    // Offline the exercise falls back to its trimester's tables instead of waiting.
+    retry: 1,
+  });
+}

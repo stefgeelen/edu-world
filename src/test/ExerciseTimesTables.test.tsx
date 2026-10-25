@@ -19,9 +19,13 @@ vi.mock('@/hooks/useCompleteExercise', () => ({
 }));
 let progressMock: Record<number, TableProgress> = {};
 const recordMock = vi.fn();
+// Open tables: the calendar plus what the parent opened (child_times_table_access).
+const OPEN = { multiply: [2, 5, 10], divide: [] as number[], extraMultiply: [], extraDivide: [], schedule: [] };
+let accessMock: { data?: typeof OPEN; isError: boolean } = { data: OPEN, isError: false };
 vi.mock('@/hooks/useTimesTables', () => ({
   useTimesTables: () => ({ data: progressMock }),
   useRecordTimesTableRun: () => ({ mutate: recordMock }),
+  useTimesTableAccess: () => accessMock,
 }));
 vi.mock('@/lib/confetti', () => ({ triggerConfetti: vi.fn() }));
 vi.mock('@/context/GameContext', async () => {
@@ -54,6 +58,7 @@ describe('ExerciseTimesTables', () => {
     vi.useFakeTimers();
     configMock = null;
     progressMock = {};
+    accessMock = { data: OPEN, isError: false };
   });
   afterEach(() => {
     cleanup();
@@ -128,16 +133,46 @@ describe('ExerciseTimesTables', () => {
     expect(navigateMock).toHaveBeenCalled();
   });
 
-  it('mixes in divisions for tables that have them', () => {
-    configMock = { tables: [2, 5, 10], divisionTables: [5] };
-    render(<ExerciseTimesTables />);
-    fireEvent.click(screen.getByLabelText('Tafel van 5'));
+  function operatorsOfRun(table: number): Set<string> {
+    fireEvent.click(screen.getByLabelText(`Tafel van ${table}`));
     const ops = new Set<string>();
     for (let i = 0; i < 10; i++) {
       ops.add(document.querySelector('.text-amber-400')?.textContent ?? '');
       answer(currentAnswer());
       act(() => { vi.advanceTimersByTime(1000); });
     }
-    expect(ops).toEqual(new Set(['×', ':']));
+    return ops;
+  }
+
+  it('mixes in divisions for tables whose deeltafel is open', () => {
+    accessMock = { data: { ...OPEN, divide: [5] }, isError: false };
+    render(<ExerciseTimesTables />);
+    expect(operatorsOfRun(5)).toEqual(new Set(['×', ':']));
+  });
+
+  it('asks only divisions when only the deeltafel is open', () => {
+    accessMock = { data: { ...OPEN, divide: [4] }, isError: false };
+    render(<ExerciseTimesTables />);
+    expect(operatorsOfRun(4)).toEqual(new Set([':']));
+  });
+
+  it('offers only the open tables, and nothing while they load', () => {
+    accessMock = { data: { ...OPEN, multiply: [10, 2] }, isError: false };
+    render(<ExerciseTimesTables />);
+    expect(screen.getByLabelText('Tafel van 2')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Tafel van 5')).not.toBeInTheDocument();
+    cleanup();
+
+    accessMock = { data: undefined, isError: false };
+    render(<ExerciseTimesTables />);
+    expect(screen.queryByLabelText('Tafel van 2')).not.toBeInTheDocument();
+  });
+
+  it("falls back to the trimester's tables when the server cannot be reached", () => {
+    accessMock = { data: undefined, isError: true };
+    configMock = { tables: [3, 4], divisionTables: [] };
+    render(<ExerciseTimesTables />);
+    expect(screen.getByLabelText('Tafel van 3')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Tafel van 2')).not.toBeInTheDocument();
   });
 });

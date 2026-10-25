@@ -268,14 +268,16 @@ function shuffled<T>(items: T[]): T[] {
 /**
  * One run of the table of `table`: 1 × n … 10 × n in random order. With
  * `withDivision` half of the run is divisions (n : n … 10n : n), mixed in.
- * No fact comes twice.
+ * Without `withMultiplication` (only the deeltafel is open) it is all
+ * divisions. No fact comes twice.
  */
-export function generateTableRun(table: number, withDivision: boolean): TableQuestion[] {
+export function generateTableRun(table: number, withDivision: boolean, withMultiplication = true): TableQuestion[] {
   const ks = Array.from({ length: 10 }, (_, i) => i + 1);
   const times = ks.map((k): TableQuestion => ({ num1: k, operator: '×', num2: table, answer: k * table }));
   if (!withDivision) return shuffled(times).slice(0, TABLE_RUN_LENGTH);
 
   const divisions = ks.map((k): TableQuestion => ({ num1: k * table, operator: ':', num2: table, answer: k }));
+  if (!withMultiplication) return shuffled(divisions).slice(0, TABLE_RUN_LENGTH);
   const half = TABLE_RUN_LENGTH / 2;
   return shuffled([...shuffled(times).slice(0, half), ...shuffled(divisions).slice(0, half)]);
 }

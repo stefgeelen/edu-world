@@ -20,6 +20,7 @@ import { useKindergarten } from '@/hooks/useKindergarten';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TimesTablesCard } from '@/components/parent/TimesTablesCard';
 import { ReadingThemeCard } from '@/components/parent/ReadingThemeCard';
+import { TimesTablesAccessCard } from '@/components/parent/TimesTablesAccessCard';
 
 const SUBJECT_CONFIG: Record<string, { label: string; icon: typeof Calculator; color: string; bg: string }> = {
   math: { label: 'Rekenen', icon: Calculator, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -180,7 +181,7 @@ export function ParentChildDetail() {
       // for the reading theme the parent picked: back to the calendar.
       const { error } = await supabase
         .from('children')
-        .update({ grade: newGrade, max_unlocked_stage: 1, reading_theme: null })
+        .update({ grade: newGrade, max_unlocked_stage: 1, reading_theme: null, extra_times_tables: [], extra_division_tables: [] })
         .eq('id', childId!)
         .eq('parent_id', user!.id);
       if (error) throw error;
@@ -194,6 +195,7 @@ export function ParentChildDetail() {
       queryClient.invalidateQueries({ queryKey: ['practice-menu', childId] });
       queryClient.invalidateQueries({ queryKey: ['buddy-state', childId] });
       queryClient.invalidateQueries({ queryKey: ['reading-theme', childId] });
+      queryClient.invalidateQueries({ queryKey: ['times-table-access', childId] });
       toast.success(`${child?.name} is nu in ${GRADE_LABELS[newGrade] ?? `groep ${newGrade}`}!`);
     },
     onError: (e) => toast.error(mapDbError(e)),
@@ -428,6 +430,8 @@ export function ParentChildDetail() {
           </div>
 
           <ReadingThemeCard childId={child.id} childName={child.name} grade={child.grade} />
+
+          <TimesTablesAccessCard childId={child.id} childName={child.name} grade={child.grade} />
 
           {/* Trimester Access Control */}
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">

@@ -259,6 +259,8 @@ export type Database = {
           avatar_id: string | null
           avatar_url: string | null
           created_at: string
+          extra_division_tables: number[]
+          extra_times_tables: number[]
           grade: number
           id: string
           keep_active: boolean
@@ -278,6 +280,8 @@ export type Database = {
           avatar_id?: string | null
           avatar_url?: string | null
           created_at?: string
+          extra_division_tables?: number[]
+          extra_times_tables?: number[]
           grade?: number
           id?: string
           keep_active?: boolean
@@ -297,6 +301,8 @@ export type Database = {
           avatar_id?: string | null
           avatar_url?: string | null
           created_at?: string
+          extra_division_tables?: number[]
+          extra_times_tables?: number[]
           grade?: number
           id?: string
           keep_active?: boolean
@@ -1161,6 +1167,7 @@ export type Database = {
         }[]
       }
       child_reading_theme: { Args: { p_child_id: string }; Returns: Json }
+      child_times_table_access: { Args: { p_child_id: string }; Returns: Json }
       child_times_tables: {
         Args: { p_child_id: string }
         Returns: {

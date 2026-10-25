@@ -29,6 +29,7 @@ const useChildInsightsMock = vi.fn();
 // The tables card has its own test (TimesTablesCard.test.tsx).
 vi.mock('@/components/parent/TimesTablesCard', () => ({ TimesTablesCard: () => null }));
 vi.mock('@/components/parent/ReadingThemeCard', () => ({ ReadingThemeCard: () => null }));
+vi.mock('@/components/parent/TimesTablesAccessCard', () => ({ TimesTablesAccessCard: () => null }));
 vi.mock('@/hooks/useChildInsights', () => ({
   useChildInsights: (childId: string | undefined) => useChildInsightsMock(childId),
 }));
@@ -192,7 +193,7 @@ describe('ParentChildDetail', () => {
     fireEvent.click(screen.getByText('Bevestigen'));
 
     await waitFor(() =>
-      expect(updateSpy).toHaveBeenCalledWith({ grade: 2, max_unlocked_stage: 1, reading_theme: null })
+      expect(updateSpy).toHaveBeenCalledWith({ grade: 2, max_unlocked_stage: 1, reading_theme: null, extra_times_tables: [], extra_division_tables: [] })
     );
     expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is nu in 2de leerjaar!');
     expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['parent-children'] }));

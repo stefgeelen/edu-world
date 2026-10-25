@@ -11,7 +11,7 @@ import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
 import { useCompleteExercise, useCurrentChild } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
-import { useRecordTimesTableRun, useTimesTables, type TableProgress } from '@/hooks/useTimesTables';
+import { useRecordTimesTableRun, useTimesTableAccess, useTimesTables, type TableProgress } from '@/hooks/useTimesTables';
 import { DEFAULT_TIMES_TABLES, TABLE_STICKER_RUNS } from '@/data/difficultyConfig';
 import { generateTableRun, TABLE_RUN_LENGTH, type TableQuestion } from '@/lib/mathQuestions';
 import { exerciseExitPath } from '@/routes/paths';
@@ -66,6 +66,12 @@ export function ExerciseTimesTables() {
   const { data: tableProgress = {} } = useTimesTables(child?.id);
   const recordRun = useRecordTimesTableRun(child?.id);
   const config = useExerciseConfig(DEFAULT_TIMES_TABLES);
+  // Which tables are open: the calendar plus what the parent opened. Offline,
+  // the trimester's tables from the exercise config.
+  const access = useTimesTableAccess(child?.id);
+  const open = access.data
+    ?? (access.isError ? { multiply: config.tables, divide: config.divisionTables } : null);
+  const pickable = open ? [...new Set([...open.multiply, ...open.divide])].sort((a, b) => a - b) : [];
 
   const startTime = useRef(Date.now());
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -86,7 +92,7 @@ export function ExerciseTimesTables() {
 
   const pickTable = (t: number) => {
     setTable(t);
-    setQuestions(generateTableRun(t, config.divisionTables.includes(t)));
+    setQuestions(generateTableRun(t, !!open?.divide.includes(t), !!open?.multiply.includes(t)));
     setIndex(0);
     startTime.current = Date.now();
   };
@@ -186,7 +192,7 @@ export function ExerciseTimesTables() {
               <p className="text-lg font-black text-amber-200">Je kent de tafel van {newSticker}!</p>
             </motion.div>
           ) : table === null ? (
-            <TablePicker tables={config.tables} progress={tableProgress} onPick={pickTable} />
+            open && <TablePicker tables={pickable} progress={tableProgress} onPick={pickTable} />
           ) : question && (
             <motion.div
               key={index}
