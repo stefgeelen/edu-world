@@ -15,7 +15,7 @@ let buddyRow: { species: string; species_school_year: number | null } | undefine
 vi.mock('@/hooks/useBuddy', () => ({ useBuddyRow: () => ({ data: buddyRow, isLoading: false }) }));
 
 const speak = vi.fn();
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak }) }));
 
 const toastError = vi.fn();
 vi.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => toastError(...a) } }));

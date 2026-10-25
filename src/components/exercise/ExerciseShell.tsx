@@ -6,7 +6,7 @@ import { ExplainButton } from '@/components/exercise/ExplainButton';
 import { useBuddyMessage } from '@/hooks/useBuddyMessage';
 import { useRecordIncompleteExercise } from '@/hooks/useRecordIncompleteExercise';
 import type { BuddyMood, BuddySituation } from '@/data/buddyMessages';
-import type { SpeechLine } from '@/hooks/useSpeech';
+import { stopSpeaking, type SpeechLine } from '@/hooks/useSpeech';
 
 interface ExerciseShellProps {
   children: React.ReactNode;
@@ -35,10 +35,15 @@ const START_LIVES = 3;
  * Also saves the attempts that never reach `complete_exercise`, for the parent
  * portal's Aandachtspunten: losing all hearts, and closing the exercise after
  * answering at least once. Neither pays out Munten, XP or rewards.
+ *
+ * Leaving the exercise (the X, finishing, game-over) silences the Buddy at
+ * once, also a question it was still reading or about to read.
  */
 export function ExerciseShell({ children, progress, lives, onClose, onClick, className = '', buddyMood, silenceBuddy = false, explain }: ExerciseShellProps) {
   const { getMessage } = useBuddyMessage();
   const recordIncomplete = useRecordIncompleteExercise();
+
+  useEffect(() => () => stopSpeaking(), []);
 
   // Save a game-over once, when the last heart goes.
   const previousLives = useRef(lives);
@@ -56,6 +61,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
     if (started && unfinished) {
       recordIncomplete('abandoned', progress, START_LIVES - lives);
     }
+    stopSpeaking();
     onClose();
   };
   const [buddyData, setBuddyData] = useState<{ message: string; mood: BuddyMood; buddyImage: string; buddyName: string } | null>(null);

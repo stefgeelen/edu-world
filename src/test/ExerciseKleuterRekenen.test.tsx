@@ -22,7 +22,7 @@ vi.mock('@/context/GameContext', async () => {
 });
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 const speakMock = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: speakMock }) }));
 
 import { ExerciseHowMany } from '@/screens/ExerciseHowMany';
 import { ExerciseMoreLess } from '@/screens/ExerciseMoreLess';

@@ -40,7 +40,7 @@ vi.mock('@/context/GameContext', async () => {
 });
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 const speakMock = vi.fn();
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: speakMock }) }));
 // Fix the round so every question is the same: correct word "kat", with
 // "hond" and "vis" as the wrong options — avoids depending on the real
 // Unsplash-backed picture pool for deterministic drag targets.

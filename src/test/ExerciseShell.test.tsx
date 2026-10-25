@@ -15,6 +15,11 @@ vi.mock('@/context/GameContext', async () => {
 });
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null }) }));
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
+const stopSpeakingMock = vi.fn();
+vi.mock('@/hooks/useSpeech', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/useSpeech')>()),
+  stopSpeaking: () => stopSpeakingMock(),
+}));
 
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 
@@ -75,5 +80,26 @@ describe('ExerciseShell — incomplete attempts', () => {
 
     expect(recordMock).toHaveBeenCalledTimes(1);
     expect(recordMock).toHaveBeenCalledWith('game_over', 20, 3);
+  });
+});
+
+describe('ExerciseShell — the Buddy goes quiet when the child leaves', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('stops talking at once when the child closes the exercise', () => {
+    const { close } = renderShell({ progress: 0, lives: 3 });
+    close();
+    expect(stopSpeakingMock).toHaveBeenCalled();
+  });
+
+  it('stops talking when the exercise goes away (finished, game-over, back)', () => {
+    const view = render(
+      <ExerciseShell onClose={vi.fn()} progress={50} lives={3}>
+        <div />
+      </ExerciseShell>
+    );
+    expect(stopSpeakingMock).not.toHaveBeenCalled();
+    view.unmount();
+    expect(stopSpeakingMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -37,7 +37,7 @@ vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage
 // speak() is chained with .finally() in ExerciseLanguage's playAudio, so the
 // mock must return a real (resolved) promise, not undefined.
 const speakMock = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: speakMock }) }));
 
 import { ExerciseLanguage } from '@/screens/ExerciseLanguage';
 import { APP_PATHS, resetExerciseOrigin, startExerciseFrom } from '@/routes/paths';

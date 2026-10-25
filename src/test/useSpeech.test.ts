@@ -46,3 +46,19 @@ describe('speakText', () => {
     expect(invokeFunction).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('speakText after a stop', () => {
+  it('stays quiet when stopped while the line was still loading', async () => {
+    let answer!: (v: { audioBase64: string }) => void;
+    invokeFunction.mockReturnValue(new Promise((r) => { answer = r; }));
+    const { speakText, stopSpeaking } = await import('@/hooks/useSpeech');
+
+    const said = speakText('Hoeveel appels zie je?');
+    stopSpeaking(); // the child closes the exercise
+    answer({ audioBase64: btoa('mp3') });
+    await said;
+
+    expect(play).not.toHaveBeenCalled();
+  });
+});
+

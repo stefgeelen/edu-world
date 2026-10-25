@@ -22,7 +22,7 @@ vi.mock('@/hooks/usePracticeMenu', async () => {
 vi.mock('@/hooks/useBuddy', () => ({ useBuddy: () => ({ buddy: { name: 'Nootje', munten: 23 } }) }));
 
 const speak = vi.fn();
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak }) }));
 
 let childFixture = { id: 'child-1' };
 vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: childFixture }) }));

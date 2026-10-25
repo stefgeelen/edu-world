@@ -45,7 +45,7 @@ vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage
 // speak() is chained with .finally() in the auto-play effect and playWord(),
 // so the mock must resolve to a real promise, not undefined.
 const speakMock = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock, speakLines: vi.fn(() => Promise.resolve()) }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: speakMock, speakLines: vi.fn(() => Promise.resolve()) }) }));
 
 import { ExerciseSoundHouse } from '@/screens/ExerciseSoundHouse';
 

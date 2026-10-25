@@ -36,7 +36,7 @@ const GROWTH_KEY = 'leapio:buddy-growth-seen:child-1';
 vi.mock('@/lib/confetti', () => ({ triggerConfetti: vi.fn() }));
 
 const speak = vi.fn();
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak }) }));
 
 import { resetSpoken } from '@/lib/spokenOnce';
 import { BuddyRoom } from '@/screens/BuddyRoom';

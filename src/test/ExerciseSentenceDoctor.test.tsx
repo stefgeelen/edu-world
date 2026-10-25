@@ -101,7 +101,7 @@ vi.mock('@/context/GameContext', async () => {
 });
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 const speakMock = vi.fn();
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: speakMock }) }));
 
 import { ExerciseSentenceDoctor } from '@/screens/ExerciseSentenceDoctor';
 import { BUILD_SENTENCES_GRADE_1, FIX_SENTENCES_GRADE_1 } from '@/data/sentenceDoctorSentences';

@@ -21,7 +21,7 @@ vi.mock('@/context/GameContext', async () => {
 });
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 const speakLinesMock = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: vi.fn().mockResolvedValue(undefined), speakLines: speakLinesMock }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: vi.fn().mockResolvedValue(undefined), speakLines: speakLinesMock }) }));
 
 import { ExerciseRhyme } from '@/screens/ExerciseRhyme';
 import { ExerciseFirstSound } from '@/screens/ExerciseFirstSound';

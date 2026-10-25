@@ -23,7 +23,7 @@ vi.mock('@/context/GameContext', async () => {
 });
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 const speakMock = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: speakMock }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: speakMock }) }));
 
 import { ExerciseWordMaker } from '@/screens/ExerciseWordMaker';
 import { splitOnset, wordsUpToTheme } from '@/data/readingThemes';

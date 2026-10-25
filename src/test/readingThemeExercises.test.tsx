@@ -27,7 +27,7 @@ vi.mock('@/context/GameContext', async () => {
 });
 vi.mock('@/hooks/useBuddyMessage', () => ({ useBuddyMessage: () => ({ getMessage: () => null, hasAvatar: false }) }));
 const speakMock = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/hooks/useSpeech', () => ({
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(),
   useSpeech: () => ({ speak: speakMock, speakLines: vi.fn(() => Promise.resolve()) }),
 }));
 

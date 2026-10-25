@@ -4,7 +4,7 @@ import { renderHook } from '@testing-library/react';
 let childFixture: { id: string; grade: number } | undefined;
 vi.mock('@/hooks/useCompleteExercise', () => ({ useCurrentChild: () => ({ data: childFixture }) }));
 const speak = vi.fn();
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak }) }));
 vi.mock('@/hooks/useAdminRole', () => ({ useAdminRole: () => ({ isAdmin: false, isLoading: false }) }));
 vi.mock('@/context/AuthContext', () => ({ useAuth: () => ({ user: null }) }));
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));

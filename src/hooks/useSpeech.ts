@@ -102,15 +102,17 @@ let sequence = 0;
 
 export async function speakText(text: string): Promise<void> {
   if (!text) return;
-  sequence += 1;
+  const id = ++sequence;
 
   try {
     // Cached URLs are reused, so they're only revoked on eviction, never on stop.
     const url = await audioUrlFor(text);
+    // Stopped (or something else spoke) while the line was loading: stay quiet.
+    if (id !== sequence) return;
     const { started } = play(url);
     if (!(await started)) browserSpeak(text);
   } catch {
-    browserSpeak(text);
+    if (id === sequence) browserSpeak(text);
   }
 }
 

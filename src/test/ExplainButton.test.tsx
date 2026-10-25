@@ -12,7 +12,7 @@ vi.mock('@/context/GameContext', async () => {
 let finish: () => void = () => {};
 const speakLines = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
 const stopSpeaking = vi.fn();
-vi.mock('@/hooks/useSpeech', () => ({ useSpeech: () => ({ speak: vi.fn(), speakLines, stopSpeaking }) }));
+vi.mock('@/hooks/useSpeech', () => ({ stopSpeaking: vi.fn(), useSpeech: () => ({ speak: vi.fn(), speakLines, stopSpeaking }) }));
 
 import { ExplainButton } from '@/components/exercise/ExplainButton';
 
