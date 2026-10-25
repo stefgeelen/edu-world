@@ -281,7 +281,7 @@ export function AdminExerciseFamily() {
             {[...rowsByGrade.entries()].map(([grade, gradeRows]) => (
               <div key={grade} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-4">
                 <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
-                  Graad {grade}
+                  {grade === 0 ? '3de kleuterklas' : `Graad ${grade}`}
                 </div>
                 {gradeRows.map((row, i) => (
                   <motion.div

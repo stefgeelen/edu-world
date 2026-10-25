@@ -27,6 +27,9 @@ const ExerciseSubtractBox = lazy(() => import('@/screens/ExerciseSubtractBox').t
 const ExerciseSoundHouse = lazy(() => import('@/screens/ExerciseSoundHouse').then(m => ({ default: m.ExerciseSoundHouse })));
 const ExercisePictureWord = lazy(() => import('@/screens/ExercisePictureWord').then(m => ({ default: m.ExercisePictureWord })));
 const ExerciseWordMaker = lazy(() => import('@/screens/ExerciseWordMaker').then(m => ({ default: m.ExerciseWordMaker })));
+const ExerciseHowMany = lazy(() => import('@/screens/ExerciseHowMany').then(m => ({ default: m.ExerciseHowMany })));
+const ExerciseMoreLess = lazy(() => import('@/screens/ExerciseMoreLess').then(m => ({ default: m.ExerciseMoreLess })));
+const ExerciseNumberMatch = lazy(() => import('@/screens/ExerciseNumberMatch').then(m => ({ default: m.ExerciseNumberMatch })));
 const ExerciseWriteLetter = lazy(() => import('@/screens/ExerciseWriteLetter').then(m => ({ default: m.ExerciseWriteLetter })));
 const ExerciseSumSplit = lazy(() => import('@/screens/ExerciseSumSplit').then(m => ({ default: m.ExerciseSumSplit })));
 const ExerciseEvenOdd = lazy(() => import('@/screens/ExerciseEvenOdd').then(m => ({ default: m.ExerciseEvenOdd })));
@@ -84,6 +87,9 @@ export const appRoutes = (
     <Route path="exercises/sound-house/:id" element={<S><ExerciseSoundHouse /></S>} />
     <Route path="exercises/picture-word/:id" element={<S><ExercisePictureWord /></S>} />
     <Route path="exercises/word-maker/:id" element={<S><ExerciseWordMaker /></S>} />
+    <Route path="exercises/how-many/:id" element={<S><ExerciseHowMany /></S>} />
+    <Route path="exercises/more-less/:id" element={<S><ExerciseMoreLess /></S>} />
+    <Route path="exercises/number-match/:id" element={<S><ExerciseNumberMatch /></S>} />
     <Route path="exercises/write-letter/:id" element={<S><ExerciseWriteLetter /></S>} />
     <Route path="exercises/sum-split/:id" element={<S><ExerciseSumSplit /></S>} />
     <Route path="exercises/even-odd/:id" element={<S><ExerciseEvenOdd /></S>} />

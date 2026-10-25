@@ -221,7 +221,7 @@ export function AdminExercises() {
                     {/* Grades */}
                     <div className="w-32 text-center">
                       <span className="text-sm text-slate-600 font-medium">
-                        {family.grades.map((g) => `Graad ${g}`).join(', ')}
+                        {family.grades.map((g) => (g === 0 ? 'Kleuter' : `Graad ${g}`)).join(', ')}
                       </span>
                     </div>
 

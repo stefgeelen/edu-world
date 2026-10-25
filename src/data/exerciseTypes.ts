@@ -1,4 +1,5 @@
 import {
+  Apple,
   BarChart3,
   Blocks,
   BookOpen,
@@ -6,6 +7,7 @@ import {
   Calculator,
   Clock,
   Coins,
+  Dice5,
   Divide,
   Grid3x3,
   Hash,
@@ -14,6 +16,7 @@ import {
   Link2,
   Minus,
   PenTool,
+  Scale,
   Pencil,
   Puzzle,
   Ruler,
@@ -52,6 +55,9 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   '/exercises/sound-house': Home,
   '/exercises/picture-word': Image,
   '/exercises/word-maker': Blocks,
+  '/exercises/how-many': Apple,
+  '/exercises/more-less': Scale,
+  '/exercises/number-match': Dice5,
 };
 
 export interface SubjectStyle {

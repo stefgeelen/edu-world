@@ -100,6 +100,22 @@ Vier soorten vragen:
   - een stuk van de hoek aantikken: "Kijk goed naar de hoek. Tik in de tekening op het stuk dat ik vraag."
 - **Vraag:** de vraag op het scherm ("Welke lijn is dit?", "Wat is geel gekleurd?" …) **en de antwoorden** ("gebogen lijn, rechte lijn of gebroken lijn?"). Dit is geen leesoefening, dus voorlezen mag.
 
+## Rekenen in de 3de kleuterklas
+
+Een kleuter kan niet lezen: de Buddy zegt **elke vraag vanzelf**, ook opnieuw na een fout. De uitlegknop geeft de uitleg hieronder.
+
+### Hoeveel?
+- **Uitleg:** "Tel wat je ziet. Tik dan op het juiste getal. Onder elk getal staan evenveel stipjes."
+- **Vraag:** "Hoeveel {appels} zie je?" / "Hoeveel stippen zie je?" / "Hoeveel stippen staan er op de dobbelsteen?" Het aantal zegt hij niet.
+
+### Meer of minder
+- **Uitleg:** "Kijk naar de twee kanten. Ik vraag waar er meer of waar er minder zijn. Tik op die kant. Zijn er aan elke kant evenveel? Tik dan op het is-gelijk-teken."
+- **Vraag:** "Waar zijn er meer?" / "Waar zijn er minder?"
+
+### Cijfer bij aantal
+- **Uitleg:** "Kijk naar het getal. Zoek het groepje met precies zoveel. Tik erop."
+- **Vraag:** "Waar zijn er {7}?"
+
 ---
 
 ## Taal (leesoefeningen)

@@ -154,7 +154,17 @@ Wordt het krap, dan gaat de lancering door met de 3 rekenoefeningen en *Beginkla
   - de databank weigert het voor andere ouders
   - de Buddy-namen van de andere kinderen blijven zoals ze zijn
 - **Live:** elke ouder ziet de keuze, een kind van 5 krijgt ze voorgesteld, en de Buddy-vormen schuiven op (Baby in de kleuterklas, Meester in het 6de leerjaar).
-- **Een kleuter ziet enkel oefeningen van de 3de kleuterklas.** Die zijn er nog niet, dus Oefenen zegt "Hier staan nog geen oefeningen".
+- **Een kleuter ziet enkel oefeningen van de 3de kleuterklas.**
+
+**De drie rekenoefeningen zijn gebouwd (25 okt 2026), in Test:** *Hoeveel?*, *Meer of minder* en
+*Cijfer bij aantal*. Elk 10 vragen en 3 hartjes. De Buddy zegt elke vraag vanzelf, ook opnieuw na een
+fout, en er is een luidspreker om ze nog eens te horen.
+- Trimester 1 telt tot 5, trimester 2 tot 7, trimester 3 tot 10.
+- Groepjes zijn voorwerpen (appels, vissen, bloemen …), een dobbelsteen (tot 6) of een getalbeeld.
+- Bij *Hoeveel?* staan onder elk cijfer evenveel stipjes. Bij *Meer of minder* zijn de kanten tot 5
+  minstens 1 verschillend, daarboven minstens 2. Ongeveer één op vijf keer zijn ze evenveel.
+- Nog te bouwen: de taaloefeningen *Rijmen*, *Beginklank* en *Klanken plakken*, en het voorlezen en de
+  prentjes buiten de oefeningen (tabs, tegels, rondleiding).
 - **Nog te beslissen bij de eerste kleuteroefening:** mag een kind uit het 1ste leerjaar de kleuteroefeningen zien onder *Herhalen*? Zoals het nu gebouwd is: ja, net zoals het 2de leerjaar het 1ste ziet.
 - **Bij het live zetten** krijgt een kind dat al speelt een nieuwe Buddy-naam zonder groeifeestje. Dat feestje kan er nog bij.
 

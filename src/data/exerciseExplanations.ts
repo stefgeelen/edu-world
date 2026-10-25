@@ -62,6 +62,11 @@ export const EXPLAIN = {
     'Sleep de woorden in de juiste volgorde, zodat het een goede zin wordt. Tik op de luidspreker als je hulp nodig hebt.',
   sentenceFix: 'In de zin zit één fout woord. Tik erop en kies het juiste woord.',
   writeLetter: 'Volg de stippellijn met je vinger en schrijf de letter na. Elke keer helpt de lijn een beetje minder.',
+  // 3de kleuterklas: de vraag zegt de Buddy al vanzelf bij elke vraag.
+  howMany: 'Tel wat je ziet. Tik dan op het juiste getal. Onder elk getal staan evenveel stipjes.',
+  moreLess:
+    'Kijk naar de twee kanten. Ik vraag waar er meer of waar er minder zijn. Tik op die kant. Zijn er aan elke kant evenveel? Tik dan op het is-gelijk-teken.',
+  numberMatch: 'Kijk naar het getal. Zoek het groepje met precies zoveel. Tik erop.',
 } as const;
 
 const OPERATOR_WORDS: Record<string, string> = {
