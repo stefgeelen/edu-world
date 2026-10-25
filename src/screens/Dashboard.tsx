@@ -11,6 +11,7 @@ import { useGame, type Badge } from '@/context/GameContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { usePlayers } from '@/hooks/usePlayers';
 import { useChildGreeting } from '@/hooks/useChildGreeting';
+import { useKleuterSays } from '@/hooks/useKindergarten';
 import { useChildRewards, rewardCountdown } from '@/hooks/useChildRewards';
 import { quickStarts, isRepeated, usePracticeMenu, wishOpen, type PracticeOption } from '@/hooks/usePracticeMenu';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
@@ -43,6 +44,8 @@ export function Dashboard() {
   const { buddy, badges } = useGame();
   const { isAdmin } = useAdminRole();
   const { greeting } = useChildGreeting();
+  // Een kleuter kan het welkom niet lezen: de Buddy zegt het.
+  useKleuterSays('dashboard', greeting);
   const { data: menu } = usePracticeMenu();
   const { data: rewards = [] } = useChildRewards();
   const { data: players = [] } = usePlayers();

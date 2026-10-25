@@ -30,6 +30,8 @@ vi.mock('@/context/GameContext', () => ({
   useGame: () => ({ buddy: { name: 'Nootje', art: { happy: '' } }, badges: badgesFixture }),
 }));
 vi.mock('@/hooks/useChildGreeting', () => ({ useChildGreeting: () => ({ greeting: 'Hallo, Lien!', childName: 'Lien' }) }));
+const kleuterSaysMock = vi.fn();
+vi.mock('@/hooks/useKindergarten', () => ({ useKleuterSays: (...a: unknown[]) => kleuterSaysMock(...a) }));
 
 let isAdminFixture = false;
 vi.mock('@/hooks/useAdminRole', () => ({ useAdminRole: () => ({ isAdmin: isAdminFixture }) }));
@@ -87,6 +89,11 @@ beforeEach(() => {
 });
 
 describe('Dashboard', () => {
+  it('hands its greeting to the Buddy, who says it aloud to a kleuter', () => {
+    renderDashboard();
+    expect(kleuterSaysMock).toHaveBeenCalledWith('dashboard', 'Hallo, Lien!');
+  });
+
   it('opens the full exercise list from the big green button', () => {
     renderDashboard();
     fireEvent.click(screen.getByRole('button', { name: /Alle oefeningen/ }));

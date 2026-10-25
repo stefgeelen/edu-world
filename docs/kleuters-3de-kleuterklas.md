@@ -177,7 +177,17 @@ Ook hier 10 vragen, 3 hartjes, en de Buddy zegt elke vraag vanzelf.
 - **Klanken plakken:** 36 korte woorden waarvan elke klank een opname heeft (geen d op het einde, want
   die klinkt als t). De prentjes noemt de Buddy hier niet: dan zou hij het antwoord verklappen.
 - Alle drie staan in trimester 1 en worden niet moeilijker per trimester.
-- Nog te bouwen: het voorlezen en de prentjes buiten de oefeningen (tabs, tegels, rondleiding).
+
+**Buiten de oefeningen (25 okt 2026):**
+- De tegels van de zes kleuteroefeningen tonen een prentje in plaats van een icoon: 🍎 Hoeveel?,
+  ⚖️ Meer of minder, 🎲 Cijfer bij aantal, 🐭 Rijmen, 🗣️ Beginklank, 👂 Klanken plakken.
+- Bij een kleuter zegt de Buddy vanzelf het welkom op het dashboard en de vraag bij *Kies je Buddy*
+  (één keer per sessie, zoals het welkom in Oefenen).
+- Wat al vanzelf sprak, voor elk kind: de Buddy-kamer (tekstballon en rondleiding), het welkom in
+  Oefenen, het voorstellen van elke Buddy. De tabs, de zorgknoppen en de Shop hebben al icoontjes of prentjes.
+- Niet gedaan: *Wie speelt er?* weet nog niet welk kind een kleuter is, en zegt dus niets. Daar staat
+  wel de Buddy van elk kind, en meestal kiest de ouder daar.
+- Volgende stap: testen met 2 of 3 kleuters.
 - **Nog te beslissen bij de eerste kleuteroefening:** mag een kind uit het 1ste leerjaar de kleuteroefeningen zien onder *Herhalen*? Zoals het nu gebouwd is: ja, net zoals het 2de leerjaar het 1ste ziet.
 - **Bij het live zetten** krijgt een kind dat al speelt een nieuwe Buddy-naam zonder groeifeestje. Dat feestje kan er nog bij.
 

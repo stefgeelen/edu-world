@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { useCurrentChild } from '@/hooks/useCompleteExercise';
+import { useSpeech } from '@/hooks/useSpeech';
+import { firstTimeSpoken } from '@/lib/spokenOnce';
 
 export type KindergartenMode = 'admins' | 'all';
 
@@ -36,4 +40,28 @@ export function useKindergarten() {
   const { mode, live, isLoading } = useKindergartenMode();
   const { isAdmin, isLoading: roleLoading } = useAdminRole();
   return { mode, live, open: live || isAdmin, isLoading: isLoading || roleLoading };
+}
+
+/**
+ * Is het kind dat nu speelt een kleuter (3de kleuterklas)? Een kleuter kan
+ * niet lezen: dan zegt de Buddy ook buiten de oefeningen wat er staat.
+ */
+export function useIsKleuter(): boolean {
+  const { data: child } = useCurrentChild();
+  return child?.grade === 0;
+}
+
+/**
+ * Bij een kleuter zegt de Buddy `text` vanzelf, één keer per sessie (zoals het
+ * welkom in Oefenen): terugkomen naar dezelfde zin blijft stil, een nieuwe zin
+ * zegt hij wel. Voor andere kinderen doet dit niets.
+ */
+export function useKleuterSays(scope: string, text: string | null | undefined) {
+  const { data: child } = useCurrentChild();
+  const { speak } = useSpeech();
+  const kleuter = child?.grade === 0;
+  useEffect(() => {
+    if (!kleuter || !child || !text) return;
+    if (firstTimeSpoken(`${scope}.${child.id}`, text)) speak(text);
+  }, [kleuter, child, scope, text, speak]);
 }

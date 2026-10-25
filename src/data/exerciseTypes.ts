@@ -94,6 +94,23 @@ export function exerciseTypeIcon(typeKey: string, subject: Subject): LucideIcon 
   return TYPE_ICON[typeKey] ?? subjectStyle(subject).icon;
 }
 
+/**
+ * 3de kleuterklas: een prentje in plaats van een icoon, want een kleuter kan
+ * de naam van de oefening niet lezen. Zo herkent hij ze aan het prentje.
+ */
+const TYPE_PICTURE: Record<string, string> = {
+  '/exercises/how-many': '🍎',
+  '/exercises/more-less': '⚖️',
+  '/exercises/number-match': '🎲',
+  '/exercises/rhyme': '🐭',
+  '/exercises/first-sound': '🗣️',
+  '/exercises/blend': '👂',
+};
+
+export function exerciseTypePicture(typeKey: string): string | undefined {
+  return TYPE_PICTURE[typeKey];
+}
+
 /** "rekenoefeningen", "leesoefeningen", ... for "Nog 12 rekenoefeningen tot je ijsje". */
 export const SUBJECT_EXERCISES: Record<Subject, string> = {
   math: 'rekenoefeningen',

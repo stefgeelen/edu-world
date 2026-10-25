@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useCurrentChild } from '@/hooks/useCompleteExercise';
 import { useBuddyRow } from '@/hooks/useBuddy';
 import { useSpeech } from '@/hooks/useSpeech';
+import { useKleuterSays } from '@/hooks/useKindergarten';
 import { BUDDY_SPECIES_LIST, buddyChoiceMode, buddySpecies, type BuddySpeciesId } from '@/lib/buddy/species';
 import { Ornaments, StarryBackground } from '@/components/dashboard/Vitrine';
 import { VITRINE } from '@/components/dashboard/vitrineStyles';
@@ -48,6 +49,14 @@ export function ChooseBuddy() {
     onError: (e) => toast.error(mapDbError(e) || 'Je Buddy kiezen lukte niet. Probeer het nog eens.'),
   });
 
+  const title = mode === 'first' ? 'Wie komt er bij jou wonen?' : 'Een nieuw schooljaar!';
+  const subtitle =
+    mode === 'first'
+      ? 'Tik op een Buddy om hem te leren kennen.'
+      : `Blijf je bij ${buddySpecies(current).name}, of kies je een nieuwe vriend? Je munten en spullen gaan mee.`;
+  // Een kleuter kan de vraag niet lezen: de Buddy zegt ze.
+  useKleuterSays('choose-buddy', mode ? `${title} ${subtitle}` : null);
+
   if (isLoading) return <LoadingSpinner tone="dark" />;
   // Niets te kiezen (of geen kind): gewoon naar de Buddy.
   if (!child || !buddyRow || !mode) return <Navigate to={APP_PATHS.home} replace />;
@@ -58,11 +67,6 @@ export function ChooseBuddy() {
   };
 
   const staying = mode === 'yearly' && selected === current;
-  const title = mode === 'first' ? 'Wie komt er bij jou wonen?' : 'Een nieuw schooljaar!';
-  const subtitle =
-    mode === 'first'
-      ? 'Tik op een Buddy om hem te leren kennen.'
-      : `Blijf je bij ${buddySpecies(current).name}, of kies je een nieuwe vriend? Je munten en spullen gaan mee.`;
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-y-auto bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618] pb-10" style={{ fontFamily: "'Nunito', sans-serif" }}>
