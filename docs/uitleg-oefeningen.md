@@ -122,11 +122,11 @@ Ook hier zegt de Buddy **elke vraag vanzelf**. De klanken zijn opnames (`public/
 
 ### Rijmen
 - **Uitleg:** "Luister naar het woord. Welk prentje klinkt op het einde net hetzelfde? Dat rijmt. Tik erop."
-- **Vraag:** "Wat rijmt op {huis}?" en daarna de drie prentjes: "{Muis, kat, beer}."
+- **Vraag:** "Wat rijmt op {huis}?" en daarna de drie prentjes, elk apart met een pauze ervoor: "{Muis.} … {Kat.} … {Beer.}"
 
 ### Beginklank
 - **Uitleg:** "Luister naar de klank. Welk prentje begint met die klank? Zeg de woorden zachtjes mee en tik erop."
-- **Vraag:** "Welke prent begint met {mmm}?" en daarna de drie prentjes: "{Maan, bal, kat}."
+- **Vraag:** "Welke prent begint met {mmm}?" en daarna de drie prentjes, elk apart met een pauze ervoor: "{Maan.} … {Bal.} … {Kat.}"
 
 ### Klanken plakken
 - **Uitleg:** "Ik zeg een woord in stukjes. Plak de klanken aan elkaar in je hoofd. Welk woord is dat? Tik op het prentje."

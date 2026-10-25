@@ -176,16 +176,21 @@ export function blendRound(rng: Rng = Math.random, count = 10): PictureQuestion[
 
 // ── Wat de Buddy zegt ────────────────────────────────────────────────────
 
-const names = (q: PictureQuestion) => q.choices.map((p) => p.word).join(', ') + '.';
+/** Stilte tussen de vraag en de prentjes, en tussen twee prentjes: een kleuter moet elk woord kunnen volgen. */
+export const NAME_PAUSE_MS = 700;
 
-/** "Wat rijmt op huis? Muis, kat, beer." De prentjes noemt hij, zodat het kind weet welk woord bedoeld is. */
+/** De drie prentjes, elk apart gezegd met een pauze ervoor. */
+const names = (q: PictureQuestion): SpeechLine[] =>
+  q.choices.flatMap((p) => [{ pause: NAME_PAUSE_MS }, p.word]);
+
+/** "Wat rijmt op huis? … Muis. … Kat. … Beer." De prentjes noemt hij, zodat het kind weet welk woord bedoeld is. */
 export function rhymeSay(q: PictureQuestion): SpeechLine[] {
-  return [`Wat rijmt op ${q.prompt!.word}?`, names(q)];
+  return [`Wat rijmt op ${q.prompt!.word}?`, ...names(q)];
 }
 
-/** "Welke prent begint met (mmm)? Maan, bal, kat." */
+/** "Welke prent begint met (mmm)? … Maan. … Bal. … Kat." */
 export function firstSoundSay(q: PictureQuestion): SpeechLine[] {
-  return ['Welke prent begint met', soundLine(q.sound!), names(q)];
+  return ['Welke prent begint met', soundLine(q.sound!), ...names(q)];
 }
 
 /** "Luister: (v) (i) (s). Welk woord is dat?" Hier noemt hij de prentjes niet: het kind plakt de klanken zelf. */

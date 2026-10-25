@@ -16,7 +16,7 @@ export function ExplainButton({ lines }: { lines: SpeechLine[] }) {
   const button = useRef<HTMLButtonElement>(null);
   const run = useRef(0);
 
-  const key = lines.map((line) => (typeof line === 'string' ? line : line.clip)).join('\n');
+  const key = lines.map((line) => (typeof line === 'string' ? line : 'clip' in line ? line.clip : `pause:${line.pause}`)).join('\n');
   const playingRef = useRef(false);
   playingRef.current = playing;
 

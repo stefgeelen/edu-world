@@ -129,13 +129,16 @@ function browserSpeakToEnd(text: string): Promise<void> {
 }
 
 /**
- * One thing the Buddy says: a sentence for the voice, or a recorded clip (a
+ * One thing the Buddy says: a sentence for the voice, a recorded clip (a
  * letter sound, see `src/data/letterSounds.ts`) with the text the voice says
- * instead when the clip cannot be played.
+ * instead when the clip cannot be played, or a pause in milliseconds (so a
+ * kleuter can follow a list of words).
  */
-export type SpeechLine = string | { clip: string; text: string };
+export type SpeechLine = string | { clip: string; text: string } | { pause: number };
 
-const lineText = (line: SpeechLine) => (typeof line === 'string' ? line : line.text);
+const isPause = (line: SpeechLine): line is { pause: number } => typeof line !== 'string' && 'pause' in line;
+const lineText = (line: SpeechLine) => (typeof line === 'string' ? line : 'text' in line ? line.text : '');
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
  * Says the lines one after the other and resolves when the last one has
@@ -144,13 +147,15 @@ const lineText = (line: SpeechLine) => (typeof line === 'string' ? line : line.t
  */
 export async function speakLines(lines: SpeechLine[]): Promise<void> {
   const id = ++sequence;
-  const said = lines.filter((line) => lineText(line));
+  const said = lines.filter((line) => isPause(line) || lineText(line));
   const urls = said.map((line) => (typeof line === 'string' ? audioUrlFor(line).catch(() => null) : null));
   for (let i = 0; i < said.length; i++) {
     const line = said[i];
     const url = await urls[i];
     if (id !== sequence) return;
-    if (typeof line === 'string') {
+    if (isPause(line)) {
+      await wait(line.pause);
+    } else if (typeof line === 'string') {
       if (url) await playToEnd(url);
       else await browserSpeakToEnd(line);
     } else if (!(await playToEnd(line.clip)) && id === sequence) {

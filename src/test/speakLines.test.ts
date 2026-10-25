@@ -111,4 +111,23 @@ describe('speakLines', () => {
     audios[1].end();
     await done;
   });
+
+  it('waits during a pause before the next word', async () => {
+    const { speakLines } = await import('@/hooks/useSpeech');
+    const done = speakLines(['Wat rijmt op huis?', { pause: 60 }, 'muis']);
+
+    await flush();
+    audios[0].end();
+    await flush();
+    // Still silent: the pause is not over yet.
+    expect(played).toHaveLength(1);
+
+    await new Promise((r) => setTimeout(r, 80));
+    expect(played).toHaveLength(2);
+    // The pause asks nothing of the voice.
+    expect(invokeFunction).toHaveBeenCalledTimes(2);
+
+    audios[1].end();
+    await done;
+  });
 });

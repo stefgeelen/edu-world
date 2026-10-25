@@ -3,7 +3,7 @@ import { mulberry32 } from '@/lib/seededRandom';
 import { RECORDED_SOUNDS } from '@/data/letterSounds';
 import {
   BLEND_WORDS, FIRST_SOUNDS, KLEUTER_WORDS, RHYME_PAIRS, blendRound, blendSay, firstSoundRound, firstSoundSay,
-  pictureWord, rhymeEnd, rhymeRound, rhymeSay,
+  NAME_PAUSE_MS, pictureWord, rhymeEnd, rhymeRound, rhymeSay,
 } from '@/data/kleuterTaal';
 
 // Taal in de 3de kleuterklas: rijmen, de beginklank horen, klanken plakken.
@@ -46,11 +46,12 @@ describe('rhymeRound', () => {
     }
   });
 
-  it('says the word and names the three pictures', () => {
+  it('says the word, then names the three pictures one by one with a pause before each', () => {
     const [q] = rhymeRound(mulberry32(3), 1);
-    const said = rhymeSay(q).join(' ');
-    expect(said).toContain(`Wat rijmt op ${q.prompt!.word}?`);
-    for (const c of q.choices) expect(said).toContain(c.word);
+    expect(rhymeSay(q)).toEqual([
+      `Wat rijmt op ${q.prompt!.word}?`,
+      ...q.choices.flatMap((c) => [{ pause: NAME_PAUSE_MS }, c.word]),
+    ]);
   });
 });
 
@@ -68,9 +69,11 @@ describe('firstSoundRound', () => {
     }
   });
 
-  it('plays the recorded sound, not the letter name', () => {
+  it('plays the recorded sound, not the letter name, then the pictures with pauses', () => {
     const [q] = firstSoundRound(mulberry32(5), 1);
-    expect(firstSoundSay(q)[1]).toEqual({ clip: `/klanken/${q.sound}.mp3`, text: expect.any(String) });
+    const lines = firstSoundSay(q);
+    expect(lines[1]).toEqual({ clip: `/klanken/${q.sound}.mp3`, text: expect.any(String) });
+    expect(lines.slice(2)).toEqual(q.choices.flatMap((c) => [{ pause: NAME_PAUSE_MS }, c.word]));
   });
 });
 
