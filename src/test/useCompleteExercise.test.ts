@@ -82,7 +82,7 @@ describe('useCompleteExercise', () => {
 
   it('sends the child id from useCurrentChild along with the exercise params', async () => {
     rpcMock.mockResolvedValue({
-      data: { attempt_id: 'a1', xp_earned: 10, all_trimesters_completed: false, completed_rewards: [] },
+      data: { attempt_id: 'a1', completed_rewards: [] },
       error: null,
     });
 
@@ -162,7 +162,7 @@ describe('useCompleteExercise', () => {
 
   it('invalidates every progress-related query key on success', async () => {
     rpcMock.mockResolvedValue({
-      data: { attempt_id: 'a1', xp_earned: 10, all_trimesters_completed: false, completed_rewards: [] },
+      data: { attempt_id: 'a1', completed_rewards: [] },
       error: null,
     });
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -216,7 +216,8 @@ describe('useCompleteExercise', () => {
   });
 
   it('no longer reacts to XP, levels, streaks or finished trimesters', async () => {
-    // The RPC still returns these for the parent portal; the child never sees them.
+    // The RPC no longer returns these, but a result saved before 25 Oct 2026
+    // and replayed on a repeated call still can.
     await complete({ leveled_up: true, new_level: 3, streak: 5, all_trimesters_completed: true });
     expect(buddyCheer).not.toHaveBeenCalled();
   });

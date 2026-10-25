@@ -9,8 +9,8 @@ import { createTestQueryClient, queryWrapper, fakeSupabaseChain } from './testUt
 // every row of the family at once.
 
 const rows = (adminOnly: boolean) => [
-  { id: 'ex-1', title: 'Nieuw', route: '/exercises/new/1', subject: 'math', grade: 2, stage: 'stage-1', display_order: 1, xp_reward: 20, is_active: true, admin_only: adminOnly, config: null },
-  { id: 'ex-2', title: 'Nieuw', route: '/exercises/new/2', subject: 'math', grade: 2, stage: 'stage-2', display_order: 1, xp_reward: 20, is_active: true, admin_only: adminOnly, config: null },
+  { id: 'ex-1', title: 'Nieuw', route: '/exercises/new/1', subject: 'math', grade: 2, stage: 'stage-1', display_order: 1, is_active: true, admin_only: adminOnly, config: null },
+  { id: 'ex-2', title: 'Nieuw', route: '/exercises/new/2', subject: 'math', grade: 2, stage: 'stage-2', display_order: 1, is_active: true, admin_only: adminOnly, config: null },
 ];
 
 const fromMock = vi.fn();

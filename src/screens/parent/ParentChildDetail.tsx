@@ -176,7 +176,7 @@ export function ParentChildDetail() {
       // for the reading theme the parent picked: back to the calendar.
       const { error } = await supabase
         .from('children')
-        .update({ grade: newGrade, pending_promotion: false, max_unlocked_stage: 1, reading_theme: null })
+        .update({ grade: newGrade, max_unlocked_stage: 1, reading_theme: null })
         .eq('id', childId!)
         .eq('parent_id', user!.id);
       if (error) throw error;

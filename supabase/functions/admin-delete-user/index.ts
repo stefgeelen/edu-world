@@ -90,9 +90,6 @@ Deno.serve(async (req) => {
       await safeDelete('child_progress', () =>
         admin.from('child_progress').delete().in('child_id', childIds),
       );
-      await safeDelete('trimester_progress', () =>
-        admin.from('trimester_progress').delete().in('child_id', childIds),
-      );
     }
 
     await safeDelete('rewards', () => admin.from('rewards').delete().eq('parent_id', userId));

@@ -66,10 +66,7 @@ interface CompleteExerciseParams {
   answers?: unknown[];
 }
 
-/**
- * The fields of complete_exercise's result the child side acts on. It also
- * returns XP, level and streak; those only feed the parent portal and badges.
- */
+/** The fields of complete_exercise's result the child side acts on. */
 interface CompleteExerciseResult extends Payout {
   attempt_id: string;
   completed_rewards: { id: string; title: string }[];

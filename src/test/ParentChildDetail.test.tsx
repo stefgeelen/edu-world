@@ -79,7 +79,7 @@ import { ParentChildDetail } from '@/screens/parent/ParentChildDetail';
 
 const CHILD = {
   id: 'child-1', name: 'Test Child', grade: 2, streak: 5,
-  max_unlocked_stage: 1, pending_promotion: false,
+  max_unlocked_stage: 1,
 };
 
 function renderScreen(tab?: 'leerstof') {
@@ -192,7 +192,7 @@ describe('ParentChildDetail', () => {
     fireEvent.click(screen.getByText('Bevestigen'));
 
     await waitFor(() =>
-      expect(updateSpy).toHaveBeenCalledWith({ grade: 2, pending_promotion: false, max_unlocked_stage: 1, reading_theme: null })
+      expect(updateSpy).toHaveBeenCalledWith({ grade: 2, max_unlocked_stage: 1, reading_theme: null })
     );
     expect(toastSuccessMock).toHaveBeenCalledWith('Test Child is nu in 2de leerjaar!');
     expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['parent-children'] }));

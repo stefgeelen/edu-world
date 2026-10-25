@@ -223,7 +223,6 @@ export type Database = {
           id: string
           subject: Database["public"]["Enums"]["subject_type"]
           total_time_seconds: number
-          total_xp: number
           updated_at: string
         }
         Insert: {
@@ -233,7 +232,6 @@ export type Database = {
           id?: string
           subject: Database["public"]["Enums"]["subject_type"]
           total_time_seconds?: number
-          total_xp?: number
           updated_at?: string
         }
         Update: {
@@ -243,7 +241,6 @@ export type Database = {
           id?: string
           subject?: Database["public"]["Enums"]["subject_type"]
           total_time_seconds?: number
-          total_xp?: number
           updated_at?: string
         }
         Relationships: [
@@ -267,17 +264,14 @@ export type Database = {
           keep_active: boolean
           last_active_date: string | null
           last_opened_at: string | null
-          level: number
           max_unlocked_stage: number
           name: string
           organization_id: string | null
           parent_id: string | null
           paused: boolean
-          pending_promotion: boolean
           reading_theme: number | null
           streak: number
           updated_at: string
-          xp: number
         }
         Insert: {
           age?: number | null
@@ -289,17 +283,14 @@ export type Database = {
           keep_active?: boolean
           last_active_date?: string | null
           last_opened_at?: string | null
-          level?: number
           max_unlocked_stage?: number
           name: string
           organization_id?: string | null
           parent_id?: string | null
           paused?: boolean
-          pending_promotion?: boolean
           reading_theme?: number | null
           streak?: number
           updated_at?: string
-          xp?: number
         }
         Update: {
           age?: number | null
@@ -311,17 +302,14 @@ export type Database = {
           keep_active?: boolean
           last_active_date?: string | null
           last_opened_at?: string | null
-          level?: number
           max_unlocked_stage?: number
           name?: string
           organization_id?: string | null
           parent_id?: string | null
           paused?: boolean
-          pending_promotion?: boolean
           reading_theme?: number | null
           streak?: number
           updated_at?: string
-          xp?: number
         }
         Relationships: [
           {
@@ -449,7 +437,6 @@ export type Database = {
           stage: string
           subject: Database["public"]["Enums"]["subject_type"]
           title: string
-          xp_reward: number
         }
         Insert: {
           admin_only?: boolean
@@ -464,7 +451,6 @@ export type Database = {
           stage?: string
           subject: Database["public"]["Enums"]["subject_type"]
           title: string
-          xp_reward?: number
         }
         Update: {
           admin_only?: boolean
@@ -479,7 +465,6 @@ export type Database = {
           stage?: string
           subject?: Database["public"]["Enums"]["subject_type"]
           title?: string
-          xp_reward?: number
         }
         Relationships: []
       }
@@ -901,53 +886,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "times_table_runs_child_id_fkey"
-            columns: ["child_id"]
-            isOneToOne: false
-            referencedRelation: "children"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      trimester_progress: {
-        Row: {
-          child_id: string
-          completed_at: string | null
-          created_at: string
-          grade_level: number
-          id: string
-          is_completed: boolean
-          trimester_number: number
-          updated_at: string
-          xp_earned: number
-          xp_threshold: number
-        }
-        Insert: {
-          child_id: string
-          completed_at?: string | null
-          created_at?: string
-          grade_level?: number
-          id?: string
-          is_completed?: boolean
-          trimester_number: number
-          updated_at?: string
-          xp_earned?: number
-          xp_threshold?: number
-        }
-        Update: {
-          child_id?: string
-          completed_at?: string | null
-          created_at?: string
-          grade_level?: number
-          id?: string
-          is_completed?: boolean
-          trimester_number?: number
-          updated_at?: string
-          xp_earned?: number
-          xp_threshold?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "trimester_progress_child_id_fkey"
             columns: ["child_id"]
             isOneToOne: false
             referencedRelation: "children"

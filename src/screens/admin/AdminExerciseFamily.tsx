@@ -150,7 +150,7 @@ export function AdminExerciseFamily() {
         return;
       }
       // New grade — provision inactive stage-1/2/3 rows, copying catalog
-      // metadata from an existing row so title/subject/xp stay consistent.
+      // metadata from an existing row so title/subject stay consistent.
       const template = rows[0];
       if (!template) return;
       const inserts = [1, 2, 3].map((stage) => ({
@@ -160,7 +160,6 @@ export function AdminExerciseFamily() {
         grade,
         stage: `stage-${stage}`,
         display_order: template.display_order,
-        xp_reward: template.xp_reward,
         is_active: false,
         admin_only: template.admin_only,
         config: null,
