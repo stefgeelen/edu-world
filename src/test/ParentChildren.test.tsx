@@ -43,12 +43,12 @@ vi.mock('@/integrations/supabase/client', () => ({
 import { ParentChildren } from '@/screens/parent/ParentChildren';
 
 const CHILD_A = {
-  id: 'child-1', name: 'Test Child A', age: 8, grade: 3, xp: 240, level: 2,
-  streak: 4, pending_promotion: false, buddy_states: { species: 'loeka', species_school_year: 2026 },
+  id: 'child-1', name: 'Test Child A', age: 8, grade: 3,
+  streak: 4, buddy_states: { species: 'loeka', species_school_year: 2026 },
 };
 const CHILD_B = {
-  id: 'child-2', name: 'Test Child B', age: 6, grade: 1, xp: 10, level: 1,
-  streak: 0, pending_promotion: true, buddy_states: null,
+  id: 'child-2', name: 'Test Child B', age: 6, grade: 1,
+  streak: 0, buddy_states: null,
 };
 
 function renderScreen() {
@@ -76,14 +76,14 @@ describe('ParentChildren', () => {
     expect(screen.queryByText('Mijn Kinderen')).not.toBeInTheDocument();
   });
 
-  it('renders each child with grade, XP, and streak once loaded', async () => {
+  it('renders each child with grade and streak once loaded, and no XP', async () => {
     childrenData = [CHILD_A];
     renderScreen();
 
     await waitFor(() => expect(screen.getByText('Mijn Kinderen')).toBeInTheDocument());
     expect(screen.getByText('Test Child A')).toBeInTheDocument();
     expect(screen.getByText('3de leerjaar')).toBeInTheDocument();
-    expect(screen.getByText('240 XP')).toBeInTheDocument();
+    expect(screen.queryByText(/XP/)).not.toBeInTheDocument();
     expect(screen.getByText('4')).toBeInTheDocument();
     expect(screen.getByText('1 van 3 kinderen')).toBeInTheDocument();
   });
@@ -108,14 +108,6 @@ describe('ParentChildren', () => {
     expect(srcs).toHaveLength(1);
     expect(srcs[0]).toContain('loeka-happy');
     expect(screen.getAllByText('Kiest zelf een Buddy')).toHaveLength(2);
-  });
-
-  it('shows the pending-promotion badge only for the child who has one', async () => {
-    childrenData = [CHILD_A, CHILD_B];
-    renderScreen();
-
-    await waitFor(() => expect(screen.getByText('Test Child B')).toBeInTheDocument());
-    expect(screen.getAllByText('Promotie beschikbaar')).toHaveLength(1);
   });
 
   it('shows the empty state and navigates to add-child from it', async () => {

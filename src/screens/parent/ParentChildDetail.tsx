@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import {
-  ChevronLeft, GraduationCap, Zap, Flame, Calculator, BookOpen, PenTool,
+  ChevronLeft, GraduationCap, Calculator, BookOpen, PenTool,
   ArrowUp, ArrowDown, Loader2, Clock, Target, CheckCircle2, AlertTriangle, Lock, Unlock, Heart, Triangle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +16,7 @@ import {
 import { useChildInsights, type ChildInsight } from '@/hooks/useChildInsights';
 import { MAX_SUPPORTED_GRADE } from '@/data/difficultyConfig';
 import { GRADE_LABELS } from '@/lib/gradeFromAge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TimesTablesCard } from '@/components/parent/TimesTablesCard';
 import { ReadingThemeCard } from '@/components/parent/ReadingThemeCard';
 
@@ -66,6 +66,10 @@ export function ParentChildDetail() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [pendingGrade, setPendingGrade] = useState<number | null>(null);
+  // Two tabs: how the child is doing, and what it practises. Kept in the URL
+  // so going back returns to the same tab.
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'leerstof' ? 'leerstof' : 'inzicht';
 
   const { data: child, isLoading: childLoading } = useQuery({
     queryKey: ['parent-child', childId],
@@ -87,7 +91,7 @@ export function ParentChildDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('child_progress')
-        .select('subject, exercises_completed, total_xp, average_score, total_time_seconds')
+        .select('subject, exercises_completed, average_score, total_time_seconds')
         .eq('child_id', childId!);
       if (error) throw error;
       return data ?? [];
@@ -95,19 +99,22 @@ export function ParentChildDetail() {
     enabled: !!childId,
   });
 
-  const { data: trimesters = [] } = useQuery({
-    queryKey: ['parent-child-trimesters', childId],
+  const { data: week } = useQuery({
+    queryKey: ['parent-child-week', childId],
     queryFn: async () => {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await supabase
-        .from('trimester_progress')
-        .select('*')
+        .from('exercise_attempts')
+        .select('time_spent_seconds')
         .eq('child_id', childId!)
-        .eq('grade_level', child?.grade ?? 1)
-        .order('trimester_number');
+        .gte('completed_at', since);
       if (error) throw error;
-      return data ?? [];
+      return {
+        exercises: data?.length ?? 0,
+        seconds: (data ?? []).reduce((sum, a) => sum + (a.time_spent_seconds ?? 0), 0),
+      };
     },
-    enabled: !!childId && !!child,
+    enabled: !!childId,
   });
 
   const { data: insights = [], isLoading: insightsLoading } = useChildInsights(childId);
@@ -177,7 +184,6 @@ export function ParentChildDetail() {
     onSuccess: (_, newGrade) => {
       queryClient.invalidateQueries({ queryKey: ['parent-child', childId] });
       queryClient.invalidateQueries({ queryKey: ['parent-children'] });
-      queryClient.invalidateQueries({ queryKey: ['parent-child-trimesters', childId] });
       // The child's own screens read the grade too: their exercise list, and
       // the Buddy, which grows into the new grade's form.
       queryClient.invalidateQueries({ queryKey: ['my-child'] });
@@ -204,9 +210,6 @@ export function ParentChildDetail() {
       </div>
     );
   }
-
-  const totalExercises = progress.reduce((s, p) => s + p.exercises_completed, 0);
-  const totalTime = progress.reduce((s, p) => s + p.total_time_seconds, 0);
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-5xl mx-auto w-full space-y-6 pb-20">
@@ -244,249 +247,225 @@ export function ParentChildDetail() {
         </div>
       )}
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 text-center">
-          <Zap className="w-5 h-5 text-amber-500 mx-auto mb-1" />
-          <p className="text-2xl font-black text-slate-900">{child.xp}</p>
-          <p className="text-xs font-bold text-slate-400">Totaal XP</p>
-        </div>
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 text-center">
-          <Target className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-          <p className="text-2xl font-black text-slate-900">{totalExercises}</p>
-          <p className="text-xs font-bold text-slate-400">Oefeningen</p>
-        </div>
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 text-center">
-          <Clock className="w-5 h-5 text-teal-500 mx-auto mb-1" />
-          <p className="text-2xl font-black text-slate-900">{formatTime(totalTime)}</p>
-          <p className="text-xs font-bold text-slate-400">Leertijd</p>
-        </div>
-      </div>
+      <Tabs value={tab} onValueChange={(v) => setParams(v === 'leerstof' ? { tab: 'leerstof' } : {}, { replace: true })}>
+        <TabsList className="grid h-auto w-full grid-cols-2 rounded-2xl bg-slate-100 p-1">
+          <TabsTrigger value="inzicht" className="rounded-xl py-2.5 font-bold">Hoe gaat het?</TabsTrigger>
+          <TabsTrigger value="leerstof" className="rounded-xl py-2.5 font-bold">Leerstof</TabsTrigger>
+        </TabsList>
 
-      {/* Per Subject Progress */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="font-bold text-slate-900">Voortgang per vak</h3>
-        </div>
-        {progress.length === 0 ? (
-          <div className="px-5 py-8 text-center text-slate-400 text-sm">Nog geen oefeningen ingevuld.</div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {progress.map((p) => {
-              const cfg = SUBJECT_CONFIG[p.subject];
-              if (!cfg) return null;
-              const Icon = cfg.icon;
-              const score = Math.round((p.average_score ?? 0) * 100);
-              return (
-                <div key={p.subject} className="px-5 py-4 flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${cfg.bg}`}>
-                    <Icon className={`w-5 h-5 ${cfg.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm text-slate-800">{cfg.label}</p>
-                    <p className="text-xs text-slate-500">
-                      {p.exercises_completed} oefeningen · {formatTime(p.total_time_seconds)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-black text-slate-900">{score}%</p>
-                    <p className="text-xs font-bold text-slate-400">{p.total_xp} XP</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Aandachtspunten */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
-          <div>
-            <h3 className="font-bold text-slate-900">Aandachtspunten</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Oefeningen die de laatste tijd vaak moeizaam gaan</p>
-          </div>
-        </div>
-
-        {insightsLoading ? (
-          <div className="divide-y divide-slate-100">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="px-5 py-4 flex items-center gap-4 animate-pulse">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-slate-100 rounded w-2/3" />
-                  <div className="h-2.5 bg-slate-100 rounded w-1/3" />
-                </div>
-                <div className="h-6 w-12 bg-slate-100 rounded" />
-              </div>
-            ))}
-          </div>
-        ) : insights.length === 0 ? (
-          <div className="px-5 py-8 flex flex-col items-center gap-2 text-center">
-            <CheckCircle2 className="w-8 h-8 text-teal-500" />
-            <p className="font-bold text-slate-700 text-sm">Alles gaat goed!</p>
-            <p className="text-xs text-slate-400">Geen oefeningen waar je kind de laatste tijd moeite mee heeft.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {insights.slice(0, 5).map((insight) => {
-              const cfg = SUBJECT_CONFIG[insight.subject];
-              const Icon = cfg?.icon;
-              const colors = struggleColor(insight.struggleShare);
-              return (
-                <div key={insight.exerciseId} className="px-5 py-4 flex items-center gap-4">
-                  {cfg && Icon ? (
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
-                      <Icon className={`w-5 h-5 ${cfg.color}`} />
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm text-slate-800 truncate">{insight.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      {cfg && (
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color}`}>
-                          {cfg.label}
-                        </span>
-                      )}
-                      <span className="text-xs text-slate-400">{stageLabel(insight.stage)}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {insight.struggles} van de laatste {insight.tries} keer moeizaam: {struggleBreakdown(insight)}
-                    </p>
-                  </div>
-                  <div className={`text-right flex-shrink-0 px-2.5 py-1 rounded-xl ${colors.bg}`}>
-                    <p className={`text-lg font-black ${colors.text}`}>
-                      {insight.struggles}/{insight.tries}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <ReadingThemeCard childId={child.id} childName={child.name} grade={child.grade} />
-
-      <TimesTablesCard childId={child.id} grade={child.grade} />
-
-      {/* Trimester Progress */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="font-bold text-slate-900">Trimesters - {GRADE_LABELS[child.grade]}</h3>
-        </div>
-        <div className="p-5 grid grid-cols-3 gap-3">
-          {[1, 2, 3].map((num) => {
-            const t = trimesters.find((tr) => tr.trimester_number === num);
-            const pct = t ? Math.min(Math.round((t.xp_earned / t.xp_threshold) * 100), 100) : 0;
-            const completed = t?.is_completed ?? false;
-            return (
-              <div
-                key={num}
-                className={`rounded-2xl p-4 border text-center ${
-                  completed ? 'bg-teal-50 border-teal-200' : 'bg-slate-50 border-slate-200'
-                }`}
-              >
-                {completed && <CheckCircle2 className="w-5 h-5 text-teal-500 mx-auto mb-1" />}
-                <p className="font-black text-sm text-slate-700 mb-1">Trimester {num}</p>
-                <div className="h-2 bg-slate-200 rounded-full overflow-hidden mb-1">
-                  <div
-                    className={`h-full rounded-full ${completed ? 'bg-teal-500' : 'bg-blue-500'}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <p className="text-xs font-bold text-slate-400">
-                  {t ? `${t.xp_earned}/${t.xp_threshold} XP` : '0/100 XP'}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Trimester Access Control */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="font-bold text-slate-900">Trimester toegang</h3>
-          <p className="text-xs text-slate-500 mt-0.5">Kies tot welk trimester {child.name} toegang heeft.</p>
-        </div>
-        <div className="p-5">
-          <div className="grid grid-cols-3 gap-3">
-            {[1, 2, 3].map((num) => {
-              const isUnlocked = num <= (child.max_unlocked_stage ?? 1);
-              return (
-                <button
-                  key={num}
-                  onClick={() => stageMutation.mutate(num)}
-                  disabled={stageMutation.isPending}
-                  className={`flex flex-col items-center gap-1.5 px-3 py-4 rounded-xl border-2 font-bold text-sm transition-all ${
-                    isUnlocked
-                      ? 'bg-teal-50 border-teal-400 text-teal-700'
-                      : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-slate-300'
-                  }`}
-                >
-                  {isUnlocked ? (
-                    <Unlock className="w-5 h-5" />
-                  ) : (
-                    <Lock className="w-5 h-5" />
-                  )}
-                  <span>Trimester {num}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Grade Promotion / Demotion */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="font-bold text-slate-900">Leerjaar beheren</h3>
-        </div>
-        <div className="p-5 space-y-4">
-          {child.pending_promotion && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+        {/* How the child is doing */}
+        <TabsContent value="inzicht" className="mt-6 space-y-6">
+          {/* Aandachtspunten */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
               <div>
-                <p className="font-bold text-amber-800 text-sm">Alle trimesters voltooid!</p>
-                <p className="text-xs text-amber-700 mt-0.5">
-                  {child.grade < MAX_SUPPORTED_GRADE
-                    ? `${child.name} heeft alle trimesters afgerond en is klaar voor het volgende leerjaar.`
-                    : `${child.name} heeft alle trimesters afgerond! Het volgende leerjaar is nog in ontwikkeling — je kind kan de trimesters blijven herhalen voor extra oefening.`}
-                </p>
+                <h3 className="font-bold text-slate-900">Aandachtspunten</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Oefeningen die de laatste tijd vaak moeizaam gaan</p>
               </div>
             </div>
-          )}
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => { if (child.grade > 1) setPendingGrade(child.grade - 1); }}
-              disabled={child.grade <= 1 || promoteMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ArrowDown className="w-4 h-4" />
-              Vorig leerjaar
-            </button>
-            <button
-              onClick={() => { if (child.grade < MAX_SUPPORTED_GRADE) setPendingGrade(child.grade + 1); }}
-              disabled={child.grade >= MAX_SUPPORTED_GRADE || promoteMutation.isPending}
-              title={child.grade >= MAX_SUPPORTED_GRADE ? 'Nog niet beschikbaar — dit leerjaar is nog in ontwikkeling' : undefined}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
-            >
-              <ArrowUp className="w-4 h-4" />
-              Volgend leerjaar
-            </button>
+            {insightsLoading ? (
+              <div className="divide-y divide-slate-100">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="px-5 py-4 flex items-center gap-4 animate-pulse">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-slate-100 rounded w-2/3" />
+                      <div className="h-2.5 bg-slate-100 rounded w-1/3" />
+                    </div>
+                    <div className="h-6 w-12 bg-slate-100 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : insights.length === 0 ? (
+              <div className="px-5 py-8 flex flex-col items-center gap-2 text-center">
+                <CheckCircle2 className="w-8 h-8 text-teal-500" />
+                <p className="font-bold text-slate-700 text-sm">Alles gaat goed!</p>
+                <p className="text-xs text-slate-400">Geen oefeningen waar je kind de laatste tijd moeite mee heeft.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {insights.slice(0, 5).map((insight) => {
+                  const cfg = SUBJECT_CONFIG[insight.subject];
+                  const Icon = cfg?.icon;
+                  const colors = struggleColor(insight.struggleShare);
+                  return (
+                    <div key={insight.exerciseId} className="px-5 py-4 flex items-center gap-4">
+                      {cfg && Icon ? (
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
+                          <Icon className={`w-5 h-5 ${cfg.color}`} />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-slate-800 truncate">{insight.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {cfg && (
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color}`}>
+                              {cfg.label}
+                            </span>
+                          )}
+                          <span className="text-xs text-slate-400">{stageLabel(insight.stage)}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {insight.struggles} van de laatste {insight.tries} keer moeizaam: {struggleBreakdown(insight)}
+                        </p>
+                      </div>
+                      <div className={`text-right flex-shrink-0 px-2.5 py-1 rounded-xl ${colors.bg}`}>
+                        <p className={`text-lg font-black ${colors.text}`}>
+                          {insight.struggles}/{insight.tries}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          {child.grade >= MAX_SUPPORTED_GRADE && (
-            <p className="text-xs text-slate-400 text-center -mt-1">
-              Volgend leerjaar is nog in ontwikkeling en daarom nog niet beschikbaar.
-            </p>
-          )}
-        </div>
-      </div>
+
+          {/* The last 7 days */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900">De laatste 7 dagen</h3>
+            </div>
+            <div className="p-5 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-slate-50 p-4 text-center">
+                <Target className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+                <p className="text-2xl font-black text-slate-900">{week?.exercises ?? 0}</p>
+                <p className="text-xs font-bold text-slate-400">Oefeningen</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4 text-center">
+                <Clock className="w-5 h-5 text-teal-500 mx-auto mb-1" />
+                <p className="text-2xl font-black text-slate-900">{formatTime(week?.seconds ?? 0)}</p>
+                <p className="text-xs font-bold text-slate-400">Leertijd</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Per Subject Progress */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900">Voortgang per vak</h3>
+            </div>
+            {progress.length === 0 ? (
+              <div className="px-5 py-8 text-center text-slate-400 text-sm">Nog geen oefeningen ingevuld.</div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {progress.map((p) => {
+                  const cfg = SUBJECT_CONFIG[p.subject];
+                  if (!cfg) return null;
+                  const Icon = cfg.icon;
+                  const score = Math.round((p.average_score ?? 0) * 100);
+                  return (
+                    <div key={p.subject} className="px-5 py-4 flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${cfg.bg}`}>
+                        <Icon className={`w-5 h-5 ${cfg.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-slate-800">{cfg.label}</p>
+                        <p className="text-xs text-slate-500">
+                          {p.exercises_completed} oefeningen · {formatTime(p.total_time_seconds)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-black text-slate-900">{score}%</p>
+                        <p className="text-xs font-bold text-slate-400">gemiddeld</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <TimesTablesCard childId={child.id} grade={child.grade} />
+        </TabsContent>
+
+        {/* What the child practises */}
+        <TabsContent value="leerstof" className="mt-6 space-y-6">
+          {/* Grade */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900">Leerjaar</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-slate-600">
+                {child.name} oefent de leerstof van {GRADE_LABELS[child.grade] ?? `groep ${child.grade}`}. Zet het
+                leerjaar mee als je kind overgaat naar een volgend leerjaar.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { if (child.grade > 1) setPendingGrade(child.grade - 1); }}
+                  disabled={child.grade <= 1 || promoteMutation.isPending}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ArrowDown className="w-4 h-4" />
+                  Vorig leerjaar
+                </button>
+                <button
+                  onClick={() => { if (child.grade < MAX_SUPPORTED_GRADE) setPendingGrade(child.grade + 1); }}
+                  disabled={child.grade >= MAX_SUPPORTED_GRADE || promoteMutation.isPending}
+                  title={child.grade >= MAX_SUPPORTED_GRADE ? 'Nog niet beschikbaar — dit leerjaar is nog in ontwikkeling' : undefined}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                  Volgend leerjaar
+                </button>
+              </div>
+              {child.grade >= MAX_SUPPORTED_GRADE && (
+                <p className="text-xs text-slate-400 text-center -mt-1">
+                  Volgend leerjaar is nog in ontwikkeling en daarom nog niet beschikbaar.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <ReadingThemeCard childId={child.id} childName={child.name} grade={child.grade} />
+
+          {/* Trimester Access Control */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900">
+                {child.grade === 1 ? 'Trimester (rekenen, schrijven en de rest)' : 'Trimester'}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Een trimester gaat vanzelf open als {child.name} alle oefeningen van het vorige minstens 5 keer
+                maakte. Wil je sneller? Zet het hier zelf open.
+              </p>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2, 3].map((num) => {
+                  const isUnlocked = num <= (child.max_unlocked_stage ?? 1);
+                  return (
+                    <button
+                      key={num}
+                      onClick={() => stageMutation.mutate(num)}
+                      disabled={stageMutation.isPending}
+                      className={`flex flex-col items-center gap-1.5 px-3 py-4 rounded-xl border-2 font-bold text-sm transition-all ${
+                        isUnlocked
+                          ? 'bg-teal-50 border-teal-400 text-teal-700'
+                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-slate-300'
+                      }`}
+                    >
+                      {isUnlocked ? (
+                        <Unlock className="w-5 h-5" />
+                      ) : (
+                        <Lock className="w-5 h-5" />
+                      )}
+                      <span>Trimester {num}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+        </TabsContent>
+      </Tabs>
 
       <AlertDialog open={pendingGrade !== null} onOpenChange={(o) => !o && setPendingGrade(null)}>
         <AlertDialogContent>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, ChevronRight, GraduationCap, Zap, Flame, Loader2, HelpCircle, PauseCircle } from 'lucide-react';
+import { Plus, ChevronRight, GraduationCap, Flame, Loader2, HelpCircle, PauseCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -146,20 +146,11 @@ export function ParentChildren() {
                     Kiest zelf een Buddy
                   </span>
                 )}
-                {child.pending_promotion && (
-                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">
-                    Promotie beschikbaar
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-500">
                 <span className="flex items-center gap-1 font-medium">
                   <GraduationCap className="w-3.5 h-3.5" />
                   {GRADE_LABELS[child.grade] ?? `Groep ${child.grade}`}
-                </span>
-                <span className="flex items-center gap-1 font-bold text-amber-600">
-                  <Zap className="w-3.5 h-3.5 fill-amber-500" />
-                  {child.xp} XP
                 </span>
                 <span className="flex items-center gap-1 font-bold text-orange-500">
                   <Flame className="w-3.5 h-3.5 fill-orange-500" />

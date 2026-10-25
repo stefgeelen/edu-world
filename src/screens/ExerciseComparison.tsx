@@ -144,7 +144,6 @@ export function ExerciseComparison() {
     if (correct) {
       setStatus('correct');
       correctCount.current += 1;
-      // XP handled by complete_exercise RPC
       triggerConfetti('medium', { colors: ['#f97316', '#fb923c', '#fcd34d', '#34d399', '#60a5fa'] });
       const nextProgress = Math.min(progress + 25, 100);
       setProgress(nextProgress);

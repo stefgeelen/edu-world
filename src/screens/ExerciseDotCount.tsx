@@ -77,7 +77,6 @@ export function ExerciseDotCount() {
     if (dots.length === target) {
       setStatus('correct');
       correctCount.current += 1;
-      // XP handled by complete_exercise RPC
       triggerConfetti('medium');
       const nextProgress = progress + 20;
       setProgress(nextProgress);

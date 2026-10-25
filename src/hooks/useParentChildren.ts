@@ -5,7 +5,7 @@ import type { Tables } from '@/integrations/supabase/types';
 
 export type ParentChild = Pick<
   Tables<'children'>,
-  'id' | 'name' | 'age' | 'grade' | 'xp' | 'level' | 'streak' | 'pending_promotion' | 'paused'
+  'id' | 'name' | 'age' | 'grade' | 'streak' | 'paused'
 > & {
   /**
    * Welke Buddy het kind gekozen heeft; null zolang het kind nog niet zelf
@@ -31,7 +31,7 @@ export function useParentChildren() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('children')
-        .select('id, name, age, grade, xp, level, streak, pending_promotion, paused, buddy_states(species, species_school_year)')
+        .select('id, name, age, grade, streak, paused, buddy_states(species, species_school_year)')
         .eq('parent_id', user!.id)
         .order('created_at', { ascending: true });
       if (error) throw error;

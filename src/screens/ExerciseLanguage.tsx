@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
-// addXp removed — XP handled by complete_exercise RPC
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
@@ -114,7 +113,6 @@ export function ExerciseLanguage() {
       setStatus('correct');
       setProgress(p => p + 20);
       correctCount.current += 1;
-      // XP handled by complete_exercise RPC
       
       triggerConfetti('large', { colors: ['#10b981', '#f59e0b', '#3b82f6'], originY: 0.6 });
       

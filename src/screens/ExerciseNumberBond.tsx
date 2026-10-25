@@ -72,7 +72,6 @@ export function ExerciseNumberBond() {
       setIsNumpadOpen(false);
       setProgress(p => p + 20);
       correctCount.current += 1;
-      // XP handled by complete_exercise RPC
       
       triggerConfetti('large', { colors: ['#10b981', '#34d399', '#fcd34d'], originY: 0.6 });
       

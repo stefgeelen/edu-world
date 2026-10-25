@@ -4,11 +4,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { createTestQueryClient, queryWrapper, fakeSupabaseChain } from './testUtils';
 
-// ParentChildDetail is the richest parent-portal screen: 3 queries (child,
-// per-subject progress, trimester progress), a mocked insights hook, and two
-// mutations (trimester unlock + grade promotion/demotion) that each
-// invalidate several query keys. These tests cover the loading/not-found
-// states, the rendered progress data, the insights list, and both mutations.
+// ParentChildDetail is the richest parent-portal screen, in two tabs: "Hoe
+// gaat het?" (insights, the last 7 days, per-subject progress) and "Leerstof"
+// (grade, reading theme, trimester access, with two mutations that each
+// invalidate several query keys). The tab lives in ?tab=leerstof.
 
 const navigateMock = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => {
@@ -44,7 +43,7 @@ vi.mock('@/data/difficultyConfig', async (importOriginal) => {
 
 let childData: Record<string, unknown> | null = null;
 let progressData: unknown[] = [];
-let trimesterData: unknown[] = [];
+let attemptsData: unknown[] = [];
 let updateResult: { data: unknown; error: unknown } = { data: null, error: null };
 const updateSpy = vi.fn();
 let childrenCallCount = 0;
@@ -66,8 +65,8 @@ const fromMock = vi.fn((table: string) => {
   if (table === 'child_progress') {
     return fakeSupabaseChain(() => ({ data: progressData, error: null }));
   }
-  if (table === 'trimester_progress') {
-    return fakeSupabaseChain(() => ({ data: trimesterData, error: null }));
+  if (table === 'exercise_attempts') {
+    return fakeSupabaseChain(() => ({ data: attemptsData, error: null }));
   }
   return fakeSupabaseChain({ data: null, error: null });
 });
@@ -79,15 +78,15 @@ vi.mock('@/integrations/supabase/client', () => ({
 import { ParentChildDetail } from '@/screens/parent/ParentChildDetail';
 
 const CHILD = {
-  id: 'child-1', name: 'Test Child', grade: 2, xp: 300, streak: 5,
+  id: 'child-1', name: 'Test Child', grade: 2, streak: 5,
   max_unlocked_stage: 1, pending_promotion: false,
 };
 
-function renderScreen() {
+function renderScreen(tab?: 'leerstof') {
   const queryClient = createTestQueryClient();
   const Wrapper = queryWrapper(queryClient);
   return { ...render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[tab ? `/?tab=${tab}` : '/']}>
       <Wrapper><ParentChildDetail /></Wrapper>
     </MemoryRouter>
   ), queryClient };
@@ -98,7 +97,7 @@ describe('ParentChildDetail', () => {
     vi.clearAllMocks();
     childData = { ...CHILD };
     progressData = [];
-    trimesterData = [];
+    attemptsData = [];
     updateResult = { data: null, error: null };
     childrenCallCount = 0;
     useChildInsightsMock.mockReturnValue({ data: [], isLoading: false });
@@ -116,17 +115,32 @@ describe('ParentChildDetail', () => {
     await waitFor(() => expect(screen.getByText('Kind niet gevonden.')).toBeInTheDocument());
   });
 
-  it('renders per-subject progress and summary totals once loaded', async () => {
+  it('opens on "Hoe gaat het?" with the last 7 days and per-subject progress, and no XP', async () => {
     progressData = [
-      { subject: 'math', exercises_completed: 10, total_xp: 80, average_score: 0.8, total_time_seconds: 605 },
+      { subject: 'math', exercises_completed: 10, average_score: 0.8, total_time_seconds: 605 },
     ];
+    attemptsData = [{ time_spent_seconds: 120 }, { time_spent_seconds: 60 }, { time_spent_seconds: 30 }];
     renderScreen();
 
     await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
-    expect(screen.getByText('300')).toBeInTheDocument(); // total XP card
-    expect(screen.getByText('10')).toBeInTheDocument(); // exercises card
+    expect(screen.getByRole('tab', { name: 'Hoe gaat het?' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('De laatste 7 dagen')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('3')).toBeInTheDocument());
+    expect(screen.getByText('3min')).toBeInTheDocument();
     expect(screen.getByText('Rekenen')).toBeInTheDocument();
     expect(screen.getByText('80%')).toBeInTheDocument();
+    expect(screen.queryByText(/XP/)).not.toBeInTheDocument();
+    // Settings live in the other tab.
+    expect(screen.queryByText('Volgend leerjaar')).not.toBeInTheDocument();
+  });
+
+  it('shows the grade and trimester settings under "Leerstof"', async () => {
+    renderScreen('leerstof');
+    await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
+    expect(screen.getByRole('tab', { name: 'Leerstof' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Leerjaar')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Trimester 2' })).toBeInTheDocument();
+    expect(screen.queryByText('Aandachtspunten')).not.toBeInTheDocument();
   });
 
   it('shows the empty-progress message when no subject progress exists yet', async () => {
@@ -152,12 +166,10 @@ describe('ParentChildDetail', () => {
   });
 
   it('unlocks a trimester and invalidates the child + my-child queries on success', async () => {
-    const { queryClient } = renderScreen();
+    const { queryClient } = renderScreen('leerstof');
     await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-    // "Trimester 2" appears both as a progress-card label and as the access
-    // toggle button — scope to the button by accessible role/name.
     fireEvent.click(screen.getByRole('button', { name: 'Trimester 2' }));
 
     await waitFor(() => expect(updateSpy).toHaveBeenCalledWith({ max_unlocked_stage: 2 }));
@@ -171,7 +183,7 @@ describe('ParentChildDetail', () => {
     // actually reachable here; max_unlocked_stage starts at 3 (all trimesters
     // unlocked in the old grade) to verify it gets reset, not carried over.
     childData = { ...CHILD, grade: 1, max_unlocked_stage: 3 };
-    const { queryClient } = renderScreen();
+    const { queryClient } = renderScreen('leerstof');
     await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
@@ -189,7 +201,7 @@ describe('ParentChildDetail', () => {
   it('disables "Volgend leerjaar" once the child is at the highest supported grade, without triggering a mutation', async () => {
     // CHILD.grade is 2, equal to the mocked MAX_SUPPORTED_GRADE — there's no
     // real next grade to promote into yet.
-    renderScreen();
+    renderScreen('leerstof');
     await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
 
     const button = screen.getByText('Volgend leerjaar').closest('button')!;
@@ -201,25 +213,9 @@ describe('ParentChildDetail', () => {
     expect(screen.getByText('Volgend leerjaar is nog in ontwikkeling en daarom nog niet beschikbaar.')).toBeInTheDocument();
   });
 
-  it('shows the pending-promotion banner when the child has completed all trimesters', async () => {
-    childData = { ...CHILD, pending_promotion: true };
-    renderScreen();
-    await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
-    expect(screen.getByText('Alle trimesters voltooid!')).toBeInTheDocument();
-  });
-
-  it('shows a "not ready yet" pending-promotion message when the child is already at the highest supported grade', async () => {
-    // grade 2 === mocked MAX_SUPPORTED_GRADE, so there's genuinely nowhere to
-    // promote to — the copy should say so instead of implying a real next grade.
-    childData = { ...CHILD, grade: 2, pending_promotion: true };
-    renderScreen();
-    await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
-    expect(screen.getByText(/heeft alle trimesters afgerond! Het volgende leerjaar is nog in ontwikkeling/)).toBeInTheDocument();
-  });
-
   it('surfaces a mapped Supabase error via toast when the trimester unlock mutation fails', async () => {
     updateResult = { data: null, error: { message: 'boom' } };
-    renderScreen();
+    renderScreen('leerstof');
     await waitFor(() => expect(screen.getByText('Test Child')).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole('button', { name: 'Trimester 2' }));
