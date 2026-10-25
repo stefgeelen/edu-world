@@ -46,7 +46,7 @@ export function letterSound(letter: string): string {
  * ElevenLabs Voice Changer, in the app's voice). The voice can't say a lone
  * sound well, so a recording always wins; add a sound here with its file.
  */
-export const RECORDED_SOUNDS: ReadonlySet<string> = new Set<string>([]);
+export const RECORDED_SOUNDS: ReadonlySet<string> = new Set<string>(['b', 'k', 'm', 'p']);
 
 /**
  * A letter sound as the Buddy says it: the recording when there is one, else

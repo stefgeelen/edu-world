@@ -16,4 +16,8 @@ describe('letterSounds', () => {
   it('falls back to the voice for a sound without a recording', () => {
     expect(soundLine('zz-not-recorded', 'zzz')).toBe('zzz');
   });
+
+  it('uses the recording for a recorded sound, with the voice as fallback', () => {
+    expect(soundLine('p')).toEqual({ clip: '/klanken/p.mp3', text: 'puh' });
+  });
 });
