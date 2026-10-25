@@ -116,6 +116,22 @@ Een kleuter kan niet lezen: de Buddy zegt **elke vraag vanzelf**, ook opnieuw na
 - **Uitleg:** "Kijk naar het getal. Zoek het groepje met precies zoveel. Tik erop."
 - **Vraag:** "Waar zijn er {7}?"
 
+## Taal in de 3de kleuterklas
+
+Ook hier zegt de Buddy **elke vraag vanzelf**. De klanken zijn opnames (`public/klanken/`), geen lettername.
+
+### Rijmen
+- **Uitleg:** "Luister naar het woord. Welk prentje klinkt op het einde net hetzelfde? Dat rijmt. Tik erop."
+- **Vraag:** "Wat rijmt op {huis}?" en daarna de drie prentjes: "{Muis, kat, beer}."
+
+### Beginklank
+- **Uitleg:** "Luister naar de klank. Welk prentje begint met die klank? Zeg de woorden zachtjes mee en tik erop."
+- **Vraag:** "Welke prent begint met {mmm}?" en daarna de drie prentjes: "{Maan, bal, kat}."
+
+### Klanken plakken
+- **Uitleg:** "Ik zeg een woord in stukjes. Plak de klanken aan elkaar in je hoofd. Welk woord is dat? Tik op het prentje."
+- **Vraag:** "Luister. {v} {i} {s}. Welk woord is dat?" De prentjes noemt hij hier niet: dan zou hij het antwoord zeggen.
+
 ---
 
 ## Taal (leesoefeningen)

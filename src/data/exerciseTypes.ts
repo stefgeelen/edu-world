@@ -9,12 +9,15 @@ import {
   Coins,
   Dice5,
   Divide,
+  Ear,
   Grid3x3,
   Hash,
   Home,
   Image,
   Link2,
+  Music,
   Minus,
+  Mic,
   PenTool,
   Scale,
   Pencil,
@@ -58,6 +61,9 @@ const TYPE_ICON: Record<string, LucideIcon> = {
   '/exercises/how-many': Apple,
   '/exercises/more-less': Scale,
   '/exercises/number-match': Dice5,
+  '/exercises/rhyme': Music,
+  '/exercises/first-sound': Mic,
+  '/exercises/blend': Ear,
 };
 
 export interface SubjectStyle {

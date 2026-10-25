@@ -67,6 +67,9 @@ export const EXPLAIN = {
   moreLess:
     'Kijk naar de twee kanten. Ik vraag waar er meer of waar er minder zijn. Tik op die kant. Zijn er aan elke kant evenveel? Tik dan op het is-gelijk-teken.',
   numberMatch: 'Kijk naar het getal. Zoek het groepje met precies zoveel. Tik erop.',
+  rhyme: 'Luister naar het woord. Welk prentje klinkt op het einde net hetzelfde? Dat rijmt. Tik erop.',
+  firstSound: 'Luister naar de klank. Welk prentje begint met die klank? Zeg de woorden zachtjes mee en tik erop.',
+  blend: 'Ik zeg een woord in stukjes. Plak de klanken aan elkaar in je hoofd. Welk woord is dat? Tik op het prentje.',
 } as const;
 
 const OPERATOR_WORDS: Record<string, string> = {

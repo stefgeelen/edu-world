@@ -163,8 +163,21 @@ fout, en er is een luidspreker om ze nog eens te horen.
 - Groepjes zijn voorwerpen (appels, vissen, bloemen …), een dobbelsteen (tot 6) of een getalbeeld.
 - Bij *Hoeveel?* staan onder elk cijfer evenveel stipjes. Bij *Meer of minder* zijn de kanten tot 5
   minstens 1 verschillend, daarboven minstens 2. Ongeveer één op vijf keer zijn ze evenveel.
-- Nog te bouwen: de taaloefeningen *Rijmen*, *Beginklank* en *Klanken plakken*, en het voorlezen en de
-  prentjes buiten de oefeningen (tabs, tegels, rondleiding).
+
+**De drie taaloefeningen zijn gebouwd (25 okt 2026), in Test:** *Rijmen*, *Beginklank* en *Klanken plakken*.
+Ook hier 10 vragen, 3 hartjes, en de Buddy zegt elke vraag vanzelf.
+- **Prentjes zijn emoji** (59 woorden, in `src/data/kleuterTaal.ts`). Er waren maar 18 echte prenten, te
+  weinig voor rijmparen. Emoji zien er op een iPhone en een Android-toestel wat anders uit; echte
+  tekeningen kunnen ze later vervangen.
+- **Rijmen:** 14 rijmparen (huis–muis, kat–rat, maan–haan, beer–peer, roos–doos, kip–schip, hond–mond,
+  pet–bed, paard–taart, mes–fles, tas–jas, hoed–voet, schaap–aap, tand–hand). De Buddy noemt de drie
+  prentjes, zodat het kind weet welk woord bedoeld is.
+- **Beginklank:** 13 medeklinkers met een opname (b, d, h, k, l, m, n, p, r, s, t, v, z). Klanken die
+  kleuters vaak verwarren (s/z, v/f, b/p, d/t) staan nooit samen in één vraag. De letter staat erbij.
+- **Klanken plakken:** 36 korte woorden waarvan elke klank een opname heeft (geen d op het einde, want
+  die klinkt als t). De prentjes noemt de Buddy hier niet: dan zou hij het antwoord verklappen.
+- Alle drie staan in trimester 1 en worden niet moeilijker per trimester.
+- Nog te bouwen: het voorlezen en de prentjes buiten de oefeningen (tabs, tegels, rondleiding).
 - **Nog te beslissen bij de eerste kleuteroefening:** mag een kind uit het 1ste leerjaar de kleuteroefeningen zien onder *Herhalen*? Zoals het nu gebouwd is: ja, net zoals het 2de leerjaar het 1ste ziet.
 - **Bij het live zetten** krijgt een kind dat al speelt een nieuwe Buddy-naam zonder groeifeestje. Dat feestje kan er nog bij.
 

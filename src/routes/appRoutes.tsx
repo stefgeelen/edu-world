@@ -30,6 +30,9 @@ const ExerciseWordMaker = lazy(() => import('@/screens/ExerciseWordMaker').then(
 const ExerciseHowMany = lazy(() => import('@/screens/ExerciseHowMany').then(m => ({ default: m.ExerciseHowMany })));
 const ExerciseMoreLess = lazy(() => import('@/screens/ExerciseMoreLess').then(m => ({ default: m.ExerciseMoreLess })));
 const ExerciseNumberMatch = lazy(() => import('@/screens/ExerciseNumberMatch').then(m => ({ default: m.ExerciseNumberMatch })));
+const ExerciseRhyme = lazy(() => import('@/screens/ExerciseRhyme').then(m => ({ default: m.ExerciseRhyme })));
+const ExerciseFirstSound = lazy(() => import('@/screens/ExerciseFirstSound').then(m => ({ default: m.ExerciseFirstSound })));
+const ExerciseBlend = lazy(() => import('@/screens/ExerciseBlend').then(m => ({ default: m.ExerciseBlend })));
 const ExerciseWriteLetter = lazy(() => import('@/screens/ExerciseWriteLetter').then(m => ({ default: m.ExerciseWriteLetter })));
 const ExerciseSumSplit = lazy(() => import('@/screens/ExerciseSumSplit').then(m => ({ default: m.ExerciseSumSplit })));
 const ExerciseEvenOdd = lazy(() => import('@/screens/ExerciseEvenOdd').then(m => ({ default: m.ExerciseEvenOdd })));
@@ -90,6 +93,9 @@ export const appRoutes = (
     <Route path="exercises/how-many/:id" element={<S><ExerciseHowMany /></S>} />
     <Route path="exercises/more-less/:id" element={<S><ExerciseMoreLess /></S>} />
     <Route path="exercises/number-match/:id" element={<S><ExerciseNumberMatch /></S>} />
+    <Route path="exercises/rhyme/:id" element={<S><ExerciseRhyme /></S>} />
+    <Route path="exercises/first-sound/:id" element={<S><ExerciseFirstSound /></S>} />
+    <Route path="exercises/blend/:id" element={<S><ExerciseBlend /></S>} />
     <Route path="exercises/write-letter/:id" element={<S><ExerciseWriteLetter /></S>} />
     <Route path="exercises/sum-split/:id" element={<S><ExerciseSumSplit /></S>} />
     <Route path="exercises/even-odd/:id" element={<S><ExerciseEvenOdd /></S>} />

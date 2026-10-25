@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
-import { useSpeech } from '@/hooks/useSpeech';
+import { useSpeech, type SpeechLine } from '@/hooks/useSpeech';
 import { exerciseExitPath } from '@/routes/paths';
 
 /**
@@ -15,13 +15,13 @@ import { exerciseExitPath } from '@/routes/paths';
 export function useTapRounds<Q, A>({ questions, isRight, say }: {
   questions: Q[];
   isRight: (question: Q, answer: A) => boolean;
-  /** Wat de Buddy bij deze vraag zegt. */
-  say: (question: Q) => string;
+  /** Wat de Buddy bij deze vraag zegt: een zin, of zinnen en opgenomen klanken na elkaar. */
+  say: (question: Q) => string | SpeechLine[];
 }) {
   const navigate = useNavigate();
   const exerciseId = useExerciseId();
   const completeExercise = useCompleteExercise();
-  const { speak } = useSpeech();
+  const { speak, speakLines } = useSpeech();
 
   const startTime = useRef(Date.now());
   const correctCount = useRef(0);
@@ -43,8 +43,9 @@ export function useTapRounds<Q, A>({ questions, isRight, say }: {
   const sayQuestion = useCallback(() => {
     if (!current) return;
     setSpeaking(true);
-    speak(say(current)).finally(() => setSpeaking(false));
-  }, [current, say, speak]);
+    const lines = say(current);
+    (typeof lines === 'string' ? speak(lines) : speakLines(lines)).finally(() => setSpeaking(false));
+  }, [current, say, speak, speakLines]);
 
   // Elke nieuwe vraag zegt de Buddy vanzelf.
   useEffect(() => {
