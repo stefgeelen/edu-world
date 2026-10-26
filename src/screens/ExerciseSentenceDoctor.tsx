@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Check, X as XIcon, Stethoscope } from 'lucide-react';
+import { Check, X as XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt, ExerciseActionBar, CheckButton } from '@/components/exercise/ExerciseParts';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseState } from '@/hooks/useExerciseState';
@@ -110,6 +111,8 @@ export function ExerciseSentenceDoctor() {
   // fix mode
   const [fixedSentence, setFixedSentence] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  // A word that was fine but tapped as the broken one: shown red until the next question.
+  const [tappedGoodIndex, setTappedGoodIndex] = useState<number | null>(null);
   // memoize alternatives so they don't reshuffle on every render
   const [alternatives, setAlternatives] = useState<string[]>([]);
 
@@ -138,6 +141,7 @@ export function ExerciseSentenceDoctor() {
       setAlternatives(shuffle([q.correctWord, ...q.distractors]));
     }
     setPopoverOpen(false);
+    setTappedGoodIndex(null);
   }, [buildSentences, fixSentences]);
 
   const exerciseId = useExerciseId();
@@ -189,27 +193,26 @@ export function ExerciseSentenceDoctor() {
     word === question.correctWord ? handleCorrect() : handleIncorrect();
   };
 
+  // The child taps a word that was not broken: that is a wrong answer.
+  const handleTapGoodWord = (index: number) => {
+    if (!question || question.mode !== 'fix' || status !== 'idle') return;
+    setTappedGoodIndex(index);
+    handleIncorrect();
+  };
+
   if (!question) return null;
 
   const isBuild = question.mode === 'build';
 
   return (
     <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} explain={[isBuild ? EXPLAIN.sentenceBuild : EXPLAIN.sentenceFix]} silenceBuddy>
-      <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-10 w-full max-w-xl mx-auto">
+      <div className="flex-1 flex flex-col items-center z-10 relative px-4 sm:px-6 mt-6 md:mt-8 w-full max-w-xl mx-auto">
 
-        {/* Title */}
-        <div className="flex items-center gap-3 mb-2">
-          <Stethoscope className="w-7 h-7 text-emerald-400" />
-          <h2 className="text-lg sm:text-xl font-bold text-white/90">
-            {isBuild ? 'Maak de zin!' : 'Genees de zin!'}
-          </h2>
-        </div>
-
-        <p className="text-sm text-white/60 mb-6 text-center">
+        <ExercisePrompt className="mt-0 md:mt-0">
           {isBuild
             ? 'Sleep de woorden in de juiste volgorde.'
             : 'Tik op het foute woord en kies het juiste.'}
-        </p>
+        </ExercisePrompt>
 
         <SpeakerButton onPlay={handleSpeaker} label="Luister naar de zin" className="mb-8" />
 
@@ -243,20 +246,6 @@ export function ExerciseSentenceDoctor() {
                 </Reorder.Item>
               ))}
             </Reorder.Group>
-
-            <motion.button
-              onPointerDown={handleCheckBuild}
-              disabled={status !== 'idle'}
-              whileTap={{ scale: 0.95 }}
-              className={cn(
-                'w-full max-w-xs py-4 rounded-2xl font-bold text-lg border-b-[6px] transition-all',
-                status === 'idle'
-                  ? 'bg-emerald-500 border-emerald-700 text-white shadow-[0_8px_25px_rgba(16,185,129,0.4)] active:border-b-0 active:translate-y-[6px]'
-                  : 'bg-[#1c1134]/50 border-[#1c1134]/30 text-white/40 cursor-not-allowed',
-              )}
-            >
-              Controleer ✓
-            </motion.button>
           </>
         )}
 
@@ -274,9 +263,9 @@ export function ExerciseSentenceDoctor() {
                       <motion.button
                         onPointerDown={() => setPopoverOpen(true)}
                         whileTap={{ scale: 0.95 }}
-                        className="px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] bg-red-400/80 border-red-600 text-white animate-pulse"
+                        className={WORD_BUTTON}
                       >
-                        🩹 {word}
+                        {word}
                       </motion.button>
                     </PopoverTrigger>
                     <PopoverContent
@@ -299,21 +288,26 @@ export function ExerciseSentenceDoctor() {
                 );
               }
 
+              const isTappedGood = i === tappedGoodIndex;
+              const showsWrong = status === 'incorrect' && (isTappedGood || (isWrongSlot && tappedGoodIndex === null));
               return (
-                <motion.span
+                <motion.button
                   key={i}
-                  animate={status === 'incorrect' && isWrongSlot ? { x: [-4, 4, -3, 3, 0] } : {}}
+                  type="button"
+                  onPointerDown={() => handleTapGoodWord(i)}
+                  disabled={status !== 'idle'}
+                  animate={showsWrong ? { x: [-4, 4, -3, 3, 0] } : {}}
                   className={cn(
-                    'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] transition-colors',
+                    WORD_BUTTON,
                     isFixed
                       ? 'bg-emerald-400 border-emerald-600 text-white'
-                      : status === 'incorrect' && isWrongSlot
+                      : showsWrong
                         ? 'bg-red-400 border-red-600 text-white'
-                        : 'bg-[#2d1b54] border-[#1c1134] text-white/90',
+                        : undefined,
                   )}
                 >
                   {word}
-                </motion.span>
+                </motion.button>
               );
             })}
           </div>
@@ -343,6 +337,16 @@ export function ExerciseSentenceDoctor() {
           )}
         </AnimatePresence>
       </div>
+
+      {isBuild && (
+        <ExerciseActionBar>
+          <CheckButton onClick={handleCheckBuild} disabled={status !== 'idle'} />
+        </ExerciseActionBar>
+      )}
     </ExerciseShell>
   );
 }
+
+/** Every word of a sentence to fix looks the same: the child has to find the broken one. */
+const WORD_BUTTON =
+  'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold border-b-[5px] transition-colors bg-[#2d1b54] border-[#1c1134] text-white/90 hover:bg-[#3b2d71]';

@@ -197,11 +197,11 @@ describe('ExerciseClock component', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
     render(<ExerciseClock />);
 
-    // Leave both hands at their initial 0deg/0deg (correct for minute, wrong
-    // for hour which should be at 30deg) — do not touch the hour hand at all.
+    // Leave both hands where they start: never on the answer. The long hand
+    // starts at 3 or 9, so the hint is about the long hand.
     fireEvent.click(screen.getByRole('button', { name: 'Controleer' }));
 
     expect(triggerConfettiMock).not.toHaveBeenCalled();
-    expect(screen.getByText(/Kijk goed/)).toBeInTheDocument();
+    expect(screen.getByText(/lange wijzer moet naar de 12/)).toBeInTheDocument();
   });
 });

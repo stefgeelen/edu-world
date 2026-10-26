@@ -106,7 +106,7 @@ function SymBadge({ sym }: { sym: CompSymbol }) {
       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center border border-amber-600 shadow-md">
         <span className="font-black text-white" style={{ fontSize: 26 }}>{sym}</span>
       </div>
-      <span className="text-[10px] font-bold text-white/40 whitespace-nowrap">{SYMBOL_LABEL[sym]}</span>
+      <span className="text-xs font-bold text-white/60 whitespace-nowrap">{SYMBOL_LABEL[sym]}</span>
     </div>
   );
 }
@@ -232,7 +232,7 @@ export function ExerciseComparison() {
     ) : (
       <div className="flex flex-col items-center gap-1.5">
         <DotsDisplay count={leftValue} />
-        <span className="text-xs font-bold text-white/40">{countLabel(leftValue)}</span>
+        <span className="text-xs font-bold text-white/60">{countLabel(leftValue)}</span>
       </div>
     );
 
@@ -253,14 +253,14 @@ export function ExerciseComparison() {
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center border border-amber-600 shadow-md">
           <span className="font-black text-white" style={{ fontSize: 28 }}>{symbol}</span>
         </div>
-        <span className="text-[10px] font-bold text-white/40 whitespace-nowrap">{SYMBOL_LABEL[symbol]}</span>
+        <span className="text-xs font-bold text-white/60 whitespace-nowrap">{SYMBOL_LABEL[symbol]}</span>
       </div>
     );
 
     const bottomContent = variation === 2 ? (
       <div className="flex flex-col items-center gap-1.5">
         <DotsDisplay count={rightValue} />
-        <span className="text-xs font-bold text-white/40">{countLabel(rightValue)}</span>
+        <span className="text-xs font-bold text-white/60">{countLabel(rightValue)}</span>
       </div>
     ) : (
       <motion.button
@@ -306,7 +306,7 @@ export function ExerciseComparison() {
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}
-      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md md:max-w-lg mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         <div className="flex-shrink-0">
           <ExercisePrompt>{variationDescriptions[question.variation]}</ExercisePrompt>
@@ -324,7 +324,8 @@ export function ExerciseComparison() {
                 'border-[#3b2d71]'
               )}
             >
-              {renderQuestionContent()}
+              {/* Bigger on a big screen, where there is room for it. */}
+              <div className="md:[zoom:1.3] md:py-2">{renderQuestionContent()}</div>
 
               <AnimatePresence>
                 {status === 'incorrect' && needsSymbol && (
@@ -372,7 +373,7 @@ export function ExerciseComparison() {
                   )}
                 >
                   <span className="font-black" style={{ fontSize: 32 }}>{sym}</span>
-                  <span className="text-[10px] font-bold leading-tight text-center opacity-75">{SYMBOL_LABEL[sym]}</span>
+                  <span className="text-sm font-bold leading-tight text-center opacity-75">{SYMBOL_LABEL[sym]}</span>
                 </motion.button>
               ))}
             </div>

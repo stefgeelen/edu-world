@@ -9,6 +9,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { makeNumberLineSlots, type NumberLineSlot } from '@/lib/mathQuestions';
 import { DEFAULT_NUMBER_LINE } from '@/data/difficultyConfig';
@@ -70,6 +71,12 @@ export function ExerciseNumberLine() {
   }, [nlCfg]);
 
   const blanks = slots.filter(s => s.isBlank);
+  // At most 6 boxes in a row on a phone, 7 on a bigger screen, spread evenly over the rows.
+  const isMobile = useIsMobile();
+  const perRow = isMobile ? 6 : 7;
+  const rowCount = Math.ceil(slots.length / perRow);
+  const rowLength = Math.ceil(slots.length / rowCount);
+  const rows = Array.from({ length: rowCount }, (_, r) => slots.slice(r * rowLength, (r + 1) * rowLength));
   const filled = blanks.filter(s => s.filled);
   const allFilled = blanks.length > 0 && filled.length === blanks.length;
 
@@ -251,14 +258,12 @@ export function ExerciseNumberLine() {
 
         <ExercisePrompt className="mb-0 flex-shrink-0">Tik op een vraagteken en schrijf het juiste getal!</ExercisePrompt>
 
-        {/* Number line */}
-        <div className="flex-shrink-0">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#0a0618] to-transparent pointer-events-none z-10" />
-            <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#0a0618] to-transparent pointer-events-none z-10" />
-            <div className="overflow-x-auto pb-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <div className="flex items-center justify-center px-2 sm:px-4 pt-3 pb-1" style={{ minWidth: 'max-content' }}>
-                {slots.map((slot, idx) => {
+        {/* Number line: a long line continues on the next row, so no slot is ever out of sight. */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-4 pt-3 pb-1">
+          <div className="flex flex-col gap-4 w-fit">
+            {rows.map((row, r) => (
+              <div key={r} className="flex items-center">
+                {row.map((slot, idx) => {
                   const isActive = activeSlot === slot.value;
                   const isGiven = !slot.isBlank;
                   const isFilled = slot.isBlank && slot.filled;
@@ -304,23 +309,7 @@ export function ExerciseNumberLine() {
                   );
                 })}
               </div>
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="flex items-center gap-4 mt-1 px-1">
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-lg bg-gradient-to-b from-indigo-500 to-indigo-700 border border-indigo-800 flex-shrink-0" />
-              <span className="text-xs font-bold text-[#9d8bce]">Gegeven</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-lg bg-[#1c1134] border-2 border-dashed border-[#4c3b82] flex-shrink-0" />
-              <span className="text-xs font-bold text-[#9d8bce]">Leeg</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-lg bg-gradient-to-b from-violet-400 to-violet-600 border border-violet-700 flex-shrink-0" />
-              <span className="text-xs font-bold text-violet-400">Ingevuld</span>
-            </div>
+            ))}
           </div>
         </div>
 

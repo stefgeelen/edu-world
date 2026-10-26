@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useExerciseId } from '@/hooks/useExerciseId';
@@ -206,13 +207,13 @@ export function ExercisePictureWord() {
       silenceBuddy
     >
       <div
-        className="flex-1 flex flex-col items-center z-10 relative px-6 mt-6 md:mt-10 w-full max-w-md mx-auto pb-8"
+        className="flex-1 flex flex-col items-center z-10 relative px-6 w-full max-w-md mx-auto pb-8"
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        <SpeakerButton onPlay={handlePlayAudio} label="Luister naar het woord" className="mb-3" />
-        <p className="mb-4 text-sm font-bold text-white/90">Sleep het juiste woord!</p>
+        <ExercisePrompt>Sleep het juiste woord naar de prent.</ExercisePrompt>
+        <SpeakerButton onPlay={handlePlayAudio} label="Luister naar het woord" className="mb-5" />
 
         {/* Drop zone (picture) */}
         <motion.div

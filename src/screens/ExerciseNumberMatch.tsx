@@ -68,7 +68,7 @@ export function ExerciseNumberMatch() {
                   status !== 'idle' && !isPicked && 'bg-[#2d1b54]/50 border-[#3b2d71] opacity-50',
                 )}
               >
-                <CountGroup group={group} size="md" />
+                <CountGroup group={group} size="md" thingClassName="text-4xl sm:text-5xl" />
               </motion.button>
             );
           })}

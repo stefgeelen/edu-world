@@ -163,7 +163,7 @@ export function ExerciseDotCount() {
             {dotCount === 0 && status === 'idle' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                 <span className="text-4xl opacity-20">✦</span>
-                <p className="text-[#4c3b82] font-bold text-sm">Tik hier om een stip te zetten</p>
+                <p className="text-[#9d8bce] font-bold text-base">Tik hier om een stip te zetten</p>
               </div>
             )}
 

@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { exerciseExitPath } from '@/routes/paths';
 
@@ -384,25 +385,20 @@ export function ExerciseWriteDigit() {
     >
       {/* ── Info bar ── */}
       <div className="px-4 pt-3 pb-2 max-w-md mx-auto w-full flex-shrink-0 z-10">
-        <div className="flex items-center justify-between mb-2.5">
-          <p className="text-sm font-bold text-[#9d8bce] flex items-center gap-1.5">
-            <span className="text-base">✏️</span>
-            {guideCfg.label}
-          </p>
-          <div className="flex items-center gap-2 bg-[#1c1134]/60 border border-[#3b2d71] rounded-2xl px-3 py-1.5">
-            <span className="font-black text-orange-400" style={{ fontSize: 22 }}>{safeDigit}</span>
-            <span className="text-xs font-bold text-orange-300/80">{DIGIT_NAMES[safeDigit]}</span>
-          </div>
-        </div>
+        <ExercisePrompt className="mt-1 mb-3 md:mt-3">{guideCfg.label}</ExercisePrompt>
 
         {isMultiStroke && (
-          <p className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-1.5 mb-2 flex items-center gap-1.5">
+          <p className="text-sm font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-1.5 mb-2 flex items-center gap-1.5">
             <span>☝️</span>
             Schrijf in twee streken — volg de ① en ② op het scherm!
           </p>
         )}
 
-        <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2 bg-[#1c1134]/60 border border-[#3b2d71] rounded-2xl px-3 py-1 mr-1.5 flex-shrink-0">
+            <span className="font-black text-orange-400" style={{ fontSize: 22 }}>{safeDigit}</span>
+            <span className="text-sm font-bold text-orange-300/80">{DIGIT_NAMES[safeDigit]}</span>
+          </div>
           {Array.from({ length: TOTAL_ITERATIONS }).map((_, i) => (
             <div
               key={i}
@@ -415,7 +411,7 @@ export function ExerciseWriteDigit() {
             />
           ))}
         </div>
-        <p className="text-xs font-bold text-[#4c3b82] mt-1.5 text-right">
+        <p className="text-sm font-bold text-[#9d8bce] mt-1.5 text-right">
           Stap {iteration + 1} van {TOTAL_ITERATIONS}
         </p>
       </div>
@@ -471,7 +467,7 @@ export function ExerciseWriteDigit() {
           <AnimatePresence>
             {!hasDrawn && !isAnimating && status === 'idle' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
-                <span className="text-xs font-bold text-[#4c3b82] bg-[#1c1134]/80 px-3 py-1.5 rounded-full">👆 Teken hier met je vinger</span>
+                <span className="text-sm font-bold text-[#9d8bce] bg-[#1c1134]/80 px-3 py-1.5 rounded-full">👆 Teken hier met je vinger</span>
               </motion.div>
             )}
           </AnimatePresence>

@@ -145,7 +145,7 @@ function submitBuildAnswer(correct: boolean) {
   if (correct) {
     act(() => reorderHandlers.onReorder?.(BUILD_CORRECT_ORDER));
   }
-  fireEvent.pointerDown(screen.getByText('Controleer ✓'));
+  fireEvent.click(screen.getByRole('button', { name: /Controleer/ }));
 }
 
 describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to 0.1)', () => {
@@ -163,7 +163,7 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
 
   it('celebrates with confetti once the words are reordered correctly and checked', () => {
     render(<ExerciseSentenceDoctor />);
-    expect(screen.getByText('Maak de zin!')).toBeInTheDocument();
+    expect(screen.getByText('Sleep de woorden in de juiste volgorde.')).toBeInTheDocument();
 
     submitBuildAnswer(true);
 
@@ -187,7 +187,7 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
     for (let round = 0; round < 5; round++) {
       const order = sentences[round].map((word, i) => ({ id: `${i}-${word}`, word }));
       act(() => reorderHandlers.onReorder?.(order));
-      fireEvent.pointerDown(screen.getByText('Controleer ✓'));
+      fireEvent.click(screen.getByRole('button', { name: /Controleer/ }));
       act(() => vi.advanceTimersByTime(1800));
     }
 
@@ -222,7 +222,7 @@ describe('ExerciseSentenceDoctor component — fix mode (Math.random pinned to 0
 
   it('picking the correct replacement word celebrates with confetti', () => {
     render(<ExerciseSentenceDoctor />);
-    expect(screen.getByText('Genees de zin!')).toBeInTheDocument();
+    expect(screen.getByText('Tik op het foute woord en kies het juiste.')).toBeInTheDocument();
 
     fireEvent.pointerDown(screen.getByText(new RegExp(FIX_QUESTION.wrongWord)));
     fireEvent.pointerDown(screen.getByText(FIX_QUESTION.correctWord));
@@ -241,5 +241,19 @@ describe('ExerciseSentenceDoctor component — fix mode (Math.random pinned to 0
     expect(screen.getByText('Probeer opnieuw!')).toBeInTheDocument();
     // The wrong pick still replaces the broken slot's displayed word.
     expect(screen.queryByText(new RegExp(FIX_QUESTION.wrongWord))).not.toBeInTheDocument();
+  });
+
+  it('does not give away the broken word, and tapping a good word counts as wrong', () => {
+    render(<ExerciseSentenceDoctor />);
+
+    const goodIndex = FIX_QUESTION.wrongIndex === 0 ? 1 : 0;
+    const goodWord = screen.getAllByText(FIX_QUESTION.sentence[goodIndex])[0];
+    const brokenWord = screen.getByText(FIX_QUESTION.wrongWord);
+    expect(brokenWord.className).toBe(goodWord.className);
+
+    fireEvent.pointerDown(goodWord);
+
+    expect(triggerConfettiMock).not.toHaveBeenCalled();
+    expect(screen.getByText('Probeer opnieuw!')).toBeInTheDocument();
   });
 });

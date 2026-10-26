@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
 import { useSpeech } from '@/hooks/useSpeech';
@@ -154,9 +155,10 @@ export function ExerciseLanguage() {
       silenceBuddy
     >
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col items-center z-10 relative px-6 mt-8 md:mt-12 w-full max-w-md mx-auto">
+      <div className="flex-1 flex flex-col items-center z-10 relative px-6 w-full max-w-md mx-auto">
+        <ExercisePrompt>Luister en tik op het woord dat je hoort.</ExercisePrompt>
         
-        <SpeakerButton onPlay={playAudio} playing={isPlaying} label="Luister naar het woord" className="mb-10" />
+        <SpeakerButton onPlay={playAudio} playing={isPlaying} label="Luister naar het woord" className="mb-8" />
 
         {/* Word Cards List */}
         <div className="w-full flex flex-col gap-4">

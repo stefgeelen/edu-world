@@ -57,6 +57,22 @@ function expectedMinuteAngle(half: boolean): number {
   return half ? 180 : 0;
 }
 
+/**
+ * Where the hands start: apart, so the child sees both, and neither one
+ * already right. The long hand points at 3 or 9 (the answer is always 12 or 6),
+ * the short hand at an hour at least two away from the answer.
+ */
+function startAngles(task: ClockTask): { hour: number; minute: number } {
+  const minute = Math.random() < 0.5 ? 90 : 270;
+  const underMinuteHand = minute / 30;
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1).filter((h) => {
+    const apart = Math.min((h - task.hour + 12) % 12, (task.hour - h + 12) % 12);
+    return apart >= 2 && h !== underMinuteHand;
+  });
+  const hour = hours[Math.floor(Math.random() * hours.length)];
+  return { hour: (hour % 12) * 30, minute };
+}
+
 /** Snap angle to nearest 15° (hour + half-hour positions) */
 function snapHour(angle: number): number {
   return Math.round(angle / 15) * 15;
@@ -260,15 +276,17 @@ export function ExerciseClock() {
   const clockCfg = useExerciseConfig(DEFAULT_CLOCK);
 
   const [task, setTask] = useState<ClockTask>(() => generateTask(clockCfg.halfHours));
-  const [hourAngle, setHourAngle] = useState(0);
-  const [minuteAngle, setMinuteAngle] = useState(0);
+  const [firstStart] = useState(() => startAngles(task));
+  const [hourAngle, setHourAngle] = useState(firstStart.hour);
+  const [minuteAngle, setMinuteAngle] = useState(firstStart.minute);
   const [hint, setHint] = useState('');
 
   const nextQuestion = useCallback(() => {
     const t = generateTask(clockCfg.halfHours);
     setTask(t);
-    setHourAngle(0);
-    setMinuteAngle(0);
+    const start = startAngles(t);
+    setHourAngle(start.hour);
+    setMinuteAngle(start.minute);
     setHint('');
   }, [clockCfg.halfHours]);
 

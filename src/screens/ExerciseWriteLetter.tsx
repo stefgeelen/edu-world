@@ -340,7 +340,7 @@ export function ExerciseWriteLetter() {
           <AnimatePresence>
             {!hasDrawn && status === 'idle' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
-                <span className="text-xs font-bold text-[#4c3b82] bg-[#1c1134]/80 px-3 py-1.5 rounded-full">👆 Schrijf met je vinger tussen de lijnen</span>
+                <span className="text-sm font-bold text-[#9d8bce] bg-[#1c1134]/80 px-3 py-1.5 rounded-full">👆 Schrijf met je vinger tussen de lijnen</span>
               </motion.div>
             )}
           </AnimatePresence>

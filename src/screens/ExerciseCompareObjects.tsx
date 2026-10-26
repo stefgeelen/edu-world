@@ -104,7 +104,7 @@ function ObjectGrid({ obj, count, highlight }: { obj: ObjectType; count: number;
       </div>
       {/* Count label */}
       <span className={cn(
-        'text-xs font-bold text-center leading-tight',
+        'text-sm font-bold text-center leading-tight',
         highlight === 'correct' || highlight === 'winner' ? 'text-emerald-300' :
         highlight === 'incorrect' ? 'text-red-300' :
         'text-white/50',
@@ -234,12 +234,8 @@ export function ExerciseCompareObjects() {
               <div className="flex gap-3 items-stretch">
                 <ObjectGrid obj={question.left} count={question.leftCount} highlight={leftHighlight} />
 
-                {/* VS divider */}
-                <div className="flex flex-col items-center justify-center gap-1 flex-shrink-0 px-1">
-                  <div className="w-0.5 flex-1 bg-[#3b2d71] rounded-full" />
-                  <span className="text-[11px] font-black text-[#5b4d8a] uppercase tracking-widest">vs</span>
-                  <div className="w-0.5 flex-1 bg-[#3b2d71] rounded-full" />
-                </div>
+                {/* Divider */}
+                <div className="w-0.5 flex-shrink-0 mx-1 bg-[#3b2d71] rounded-full" />
 
                 <ObjectGrid obj={question.right} count={question.rightCount} highlight={rightHighlight} />
               </div>
@@ -274,9 +270,6 @@ export function ExerciseCompareObjects() {
 
         {/* Answer buttons */}
         <div className="flex-shrink-0">
-          <p className="text-xs font-bold text-[#9d8bce] mb-2.5 text-center uppercase tracking-wider">
-            Kies het juiste antwoord
-          </p>
           <div className="grid grid-cols-3 gap-3">
             {BUTTONS.map(({ value, label, icon }) => {
               const isSelected = selected === value;
@@ -300,8 +293,8 @@ export function ExerciseCompareObjects() {
                             : 'bg-[#2d1b54] border-[#4c3b82] text-amber-400 hover:border-amber-400 hover:bg-[#3b2d71] hover:shadow-lg cursor-pointer',
                   )}
                 >
-                  <span className="font-black text-xl leading-none">{icon}</span>
-                  <span className="text-[11px] font-bold leading-tight text-center">{label}</span>
+                  <span className="font-black text-2xl leading-none">{icon}</span>
+                  <span className="text-base font-bold leading-tight text-center">{label}</span>
                 </motion.button>
               );
             })}

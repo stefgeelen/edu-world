@@ -16,9 +16,21 @@ const DICE_PIPS: Record<number, number[]> = {
 /**
  * Een groepje om te tellen (3de kleuterklas): losse voorwerpen in rijen van
  * hoogstens 5, een dobbelsteen (tot 6) of een getalbeeld zoals in de klas.
- * `size` 'md' is voor meer groepjes op één scherm.
+ * `size` 'md' is voor meer groepjes op één scherm. `thingClassName` geeft
+ * losse voorwerpen een andere maat; geef groepjes die het kind vergelijkt
+ * altijd dezelfde, anders lijkt het groepje met grotere prentjes "meer".
  */
-export function CountGroup({ group, size = 'lg', className }: { group: Group; size?: 'md' | 'lg'; className?: string }) {
+export function CountGroup({
+  group,
+  size = 'lg',
+  className,
+  thingClassName,
+}: {
+  group: Group;
+  size?: 'md' | 'lg';
+  className?: string;
+  thingClassName?: string;
+}) {
   const md = size === 'md';
   const label = `${group.count}`;
 
@@ -63,7 +75,7 @@ export function CountGroup({ group, size = 'lg', className }: { group: Group; si
       {rows.map((n, r) => (
         <div key={r} className={cn('flex', md ? 'gap-0.5' : 'gap-2')}>
           {Array.from({ length: n }, (_, i) => (
-            <span key={i} aria-hidden className={cn('leading-none select-none', md ? 'text-2xl' : 'text-5xl')}>
+            <span key={i} aria-hidden className={cn('leading-none select-none', md ? 'text-2xl' : 'text-5xl', thingClassName)}>
               {group.thing.emoji}
             </span>
           ))}

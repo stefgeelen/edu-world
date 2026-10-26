@@ -27,14 +27,15 @@ export function ExerciseModePicker<V extends string>({ modes, onPick }: {
   onPick: (value: V) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
+    // Three in a row from sm on; a last, shorter row stays in the middle.
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-center gap-4 w-full max-w-2xl">
       {modes.map((mode, i) => (
         <motion.button
           key={mode.value}
           type="button"
           whileTap={{ scale: 0.95 }}
           onClick={() => onPick(mode.value)}
-          className={`relative h-24 sm:h-36 md:h-40 rounded-3xl bg-gradient-to-br ${COLORS[i % COLORS.length]} border-b-[6px] shadow-lg text-white flex flex-col items-center justify-center gap-1 px-3`}
+          className={`relative h-24 sm:h-36 md:h-40 sm:w-[calc((100%-2rem)/3)] rounded-3xl bg-gradient-to-br ${COLORS[i % COLORS.length]} border-b-[6px] shadow-lg text-white flex flex-col items-center justify-center gap-1 px-3`}
         >
           <div className="absolute inset-x-0 top-0 h-1/3 bg-white/15 rounded-t-3xl pointer-events-none" />
           <span className="text-2xl md:text-3xl font-black drop-shadow-sm">{mode.title}</span>

@@ -7,6 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeFunction, EdgeFunctionTimeoutError } from '@/lib/invokeFunction';
@@ -254,14 +255,12 @@ export function ExerciseWriteNumber() {
       explain={[EXPLAIN.writeNumber]}
     >
       {/* ── Scrollable content ── */}
-      <div className="flex-1 flex flex-col px-4 pt-5 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
-        {/* Instruction card with dots */}
+        <ExercisePrompt className="mb-0 flex-shrink-0">Tel de stippen en schrijf het getal.</ExercisePrompt>
+
+        {/* The dots to count */}
         <div className="flex-shrink-0">
-          <p className="text-sm font-bold text-[#9d8bce] mb-3 flex items-center gap-1.5">
-            <span className="text-lg">✏️</span>
-            Schrijf het getal dat je ziet met je vinger!
-          </p>
 
           <motion.div
             key={target}
@@ -270,10 +269,7 @@ export function ExerciseWriteNumber() {
             transition={{ type: 'spring', bounce: 0.4 }}
             className="bg-[#1c1134]/60 backdrop-blur-sm rounded-3xl border-2 border-[#3b2d71] shadow-md p-5 flex items-center justify-between"
           >
-            <div>
-              <p className="font-black text-white mb-1">Hoeveel stippen zie je?</p>
-              <NumberImageDots count={target} />
-            </div>
+            <NumberImageDots count={target} />
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-400 to-fuchsia-500 flex items-center justify-center shadow-lg ml-4 flex-shrink-0 ring-4 ring-violet-200/20">
               <span className="font-black text-white" style={{ fontSize: 36 }}>?</span>
             </div>
@@ -306,8 +302,8 @@ export function ExerciseWriteNumber() {
             {/* Empty hint */}
             {!hasDrawn && status === 'idle' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2 z-0">
-                <span className="text-5xl opacity-15">✏️</span>
-                <p className="text-[#4c3b82] font-bold text-sm">Schrijf hier je getal</p>
+                <span className="text-5xl opacity-25">✏️</span>
+                <p className="text-[#9d8bce] font-bold text-base">Schrijf hier je getal</p>
               </div>
             )}
 

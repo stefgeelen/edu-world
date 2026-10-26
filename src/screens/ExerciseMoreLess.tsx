@@ -12,11 +12,18 @@ import { kleuterMax, moreLessQuestionText, moreLessRound, type MoreLessQuestion,
 
 const isRight = (q: MoreLessQuestion, side: Side) => side === q.answer;
 
-const Stack = () => (
-  <div className="flex flex-col gap-1">
-    {[0, 1, 2].map((i) => <div key={i} className="w-8 h-3 rounded-full bg-amber-300" />)}
+/** Drie bolletjes: links en rechts van het =-teken op de knop Evenveel. */
+const Three = () => (
+  <div className="flex gap-1.5">
+    {[0, 1, 2].map((i) => <div key={i} className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 shadow" />)}
   </div>
 );
+
+/** Prentjes zo groot als past in een vak van een half scherm breed: beide kanten even groot. */
+function thingSize(most: number) {
+  if (most <= 3) return 'text-[40px] sm:text-5xl';
+  return 'text-[26px] sm:text-[34px]';
+}
 
 /**
  * Meer of minder (3de kleuterklas). Twee groepjes naast elkaar. De Buddy
@@ -30,6 +37,8 @@ export function ExerciseMoreLess() {
   const { current, status, picked } = game;
 
   if (!current) return null;
+
+  const things = thingSize(Math.max(current.left.count, current.right.count));
 
   const sideClass = (side: Side) => {
     const isPicked = picked === side;
@@ -58,7 +67,7 @@ export function ExerciseMoreLess() {
           key={game.round}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 gap-3 w-full mb-6"
+          className="grid grid-cols-2 gap-2 sm:gap-3 w-full mb-6"
         >
           {(['left', 'right'] as const).map((side) => (
             <button
@@ -67,14 +76,14 @@ export function ExerciseMoreLess() {
               onClick={() => game.answer(side)}
               disabled={status !== 'idle'}
               aria-label={side === 'left' ? 'Links' : 'Rechts'}
-              className={cn(sideClass(side), 'min-h-[13rem]')}
+              className={cn(sideClass(side), 'min-h-[13rem] p-2 sm:p-3')}
             >
-              <CountGroup group={side === 'left' ? current.left : current.right} size="md" />
+              <CountGroup group={side === 'left' ? current.left : current.right} size="md" thingClassName={things} />
             </button>
           ))}
         </motion.div>
 
-        {/* Evenveel: twee gelijke stapeltjes */}
+        {/* Evenveel: evenveel bolletjes aan beide kanten van = */}
         <button
           type="button"
           onClick={() => game.answer('equal')}
@@ -82,9 +91,9 @@ export function ExerciseMoreLess() {
           aria-label="Evenveel"
           className={cn(sideClass('equal'), 'gap-3 px-8 py-4')}
         >
-          <Stack />
+          <Three />
           <span className="text-3xl font-black text-amber-300 leading-none">=</span>
-          <Stack />
+          <Three />
         </button>
       </div>
     </ExerciseShell>

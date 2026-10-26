@@ -237,7 +237,7 @@ export function ExerciseSumSplit() {
         className={cn(
           'relative w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center transition-all duration-300 transform-gpu outline-none',
           locked
-            ? 'bg-[#1c1134]/40 border-4 border-dashed border-[#4c3b82]/50 opacity-50 cursor-not-allowed'
+            ? 'bg-[#1c1134]/60 border-4 border-dashed border-[#4c3b82] cursor-not-allowed'
             : resultStatus === 'correct'
               ? 'bg-emerald-400 border-b-[6px] border-emerald-600 ring-4 ring-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.8)] cursor-pointer'
             : resultStatus === 'incorrect'
@@ -255,7 +255,7 @@ export function ExerciseSumSplit() {
         )}
         <span className={cn(
           'text-2xl md:text-3xl font-black drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]',
-          locked ? 'text-[#4c3b82]/60' :
+          locked ? 'text-[#9d8bce]/60' :
           resultValue ? 'text-white' :
           isActive ? 'text-amber-400' : 'text-amber-400/60'
         )}>

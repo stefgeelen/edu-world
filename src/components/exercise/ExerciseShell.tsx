@@ -106,7 +106,8 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
       </div>
 
       {/* Header */}
-      <div className="pt-8 md:pt-12 px-6 flex items-center gap-4 z-10 w-full max-w-2xl mx-auto">
+      {/* Tighter on a phone, so the progress bar keeps a useful width. */}
+      <div className="pt-8 md:pt-12 px-4 sm:px-6 flex items-center gap-2.5 sm:gap-4 z-10 w-full max-w-2xl mx-auto">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -128,11 +129,11 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
           </motion.div>
         </div>
 
-        <div className="flex gap-1 md:gap-2">
+        <div className="flex gap-0.5 sm:gap-1 md:gap-2">
           {[...Array(START_LIVES)].map((_, i) => (
             i < lives ?
-              <Heart key={i} className="w-6 h-6 md:w-8 md:h-8 text-red-500 fill-red-500 animate-pulse drop-shadow-md" /> :
-              <HeartCrack key={i} className="w-6 h-6 md:w-8 md:h-8 text-[#3b2d71] drop-shadow-md" />
+              <Heart key={i} className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-red-500 fill-red-500 animate-pulse drop-shadow-md" /> :
+              <HeartCrack key={i} className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-[#3b2d71] drop-shadow-md" />
           ))}
         </div>
 

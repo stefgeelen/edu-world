@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
+import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { soundLine } from '@/data/letterSounds';
 import { SpeakerButton } from '@/components/exercise/SpeakerButton';
@@ -152,7 +153,11 @@ export function ExerciseSoundHouse() {
       buddyMood={buddyMood}
       silenceBuddy
     >
-      <div className="flex-1 flex flex-col items-center z-10 relative px-6 mt-6 md:mt-10 w-full max-w-md mx-auto">
+      <div className="flex-1 flex flex-col items-center z-10 relative px-6 w-full max-w-md mx-auto">
+        <ExercisePrompt>
+          Waar hoor je de <span className="text-amber-300">‘{current.sound}’</span>?
+        </ExercisePrompt>
+
         {/* Speaker + sound bubble */}
         <div className="flex items-center gap-4 mb-6">
           <SpeakerButton onPlay={playWord} playing={isPlaying} label="Speel het woord" />
@@ -166,10 +171,6 @@ export function ExerciseSoundHouse() {
             <span className="text-4xl md:text-5xl font-black text-amber-900 lowercase">{current.sound}</span>
           </button>
         </div>
-
-        <p className="text-white/90 text-lg md:text-xl font-bold text-center mb-6">
-          Waar hoor je de <span className="text-amber-300">‘{current.sound}’</span>?
-        </p>
 
         {/* Het Klankhuis */}
         <div className="relative w-full max-w-sm mb-4">
@@ -217,7 +218,7 @@ export function ExerciseSoundHouse() {
                     <span className="relative text-3xl md:text-4xl font-black text-white drop-shadow-lg">
                       {i + 1}
                     </span>
-                    <span className="relative text-[11px] md:text-xs font-bold text-white/90 mt-1 uppercase tracking-wider">
+                    <span className="relative text-sm md:text-base font-bold text-white/90 mt-1 uppercase">
                       {POSITION_LABEL[pos]}
                     </span>
                   </motion.button>
