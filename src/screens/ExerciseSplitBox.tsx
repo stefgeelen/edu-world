@@ -337,7 +337,7 @@ function SplitHalf({ count, showQuestion, status, isAnswerSide }: SplitHalfProps
   }
 
   const isLargeCount = count > 10;
-  const dotSizeClass = isLargeCount ? 'w-5 h-5' : 'w-7 h-7 md:w-10 md:h-10';
+  const dotSizeClass = isLargeCount ? 'w-5 h-5' : 'w-5 h-5 sm:w-7 sm:h-7 md:w-10 md:h-10';
   const gapClass = isLargeCount ? 'gap-1' : 'gap-1.5 md:gap-2.5';
 
   const renderDotGrid = (from: number, to: number) => (
@@ -378,7 +378,7 @@ function SplitHalf({ count, showQuestion, status, isAnswerSide }: SplitHalfProps
   );
 
   return (
-    <div className="flex-1 flex items-center justify-start p-2 md:p-4">
+    <div className="flex-1 flex items-center justify-start py-3 pl-4 pr-2 sm:pl-6 sm:pr-3 md:py-5 md:pl-8 md:pr-4">
       {count <= 10 ? (
         renderDotGrid(0, count)
       ) : (
