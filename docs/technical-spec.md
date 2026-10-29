@@ -1,7 +1,7 @@
 # Leapio — Technical Specification
 
 > **Audience:** engineers and architects working on Leapio. Assumes the reader can read the code; this document exists to explain what is where, why it is shaped that way, and where the sharp edges are.
-> **Last reviewed:** 2026-10-25 (commit `cf52297`: kleutertegels tonen een emoji-prentje via `exerciseTypePicture()`; `useIsKleuter` en `useKleuterSays` toegevoegd aan `useKindergarten.ts`; `Dashboard` en `ChooseBuddy` laten de Buddy de tekst voorlezen voor een kleuter; `spokenOnce`-scope uitgebreid naar `dashboard` en `choose-buddy`). Eerdere review 2026-10-25 (commit `33b6848`). Full review 2026-10-24.
+> **Last reviewed:** 2026-10-29 (commit `090e12e`: Tailwind-variant `short:` voor landscape-schermen ≤ 900px hoog; `ExerciseNumpad` staat in landscape rechts naast de vraag — `numpadInset()` + `useNumpadSide()`; `NUMPAD_SIDE_WIDTH = 340`). Eerdere review 2026-10-25 (commit `cf52297`). Full review 2026-10-24.
 > **Companion docs:** [CONTEXT.md](../CONTEXT.md) (domain vocabulary — authoritative for naming), [CLAUDE.md](../CLAUDE.md) (working conventions), [EXERCISES.md](../EXERCISES.md) (didactic design), [uitleg-oefeningen.md](uitleg-oefeningen.md) (the Buddy's exercise explanations), `wayfinder/buddy-care/` (Buddy Care design tickets), `wayfinder/buddy-centred-app/map.md` (decisions behind the October 2026 redesign), `wayfinder/second-grade/map.md` (2de leerjaar rollout).
 
 ---
