@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X as XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
@@ -106,8 +106,9 @@ export function ExerciseSentenceDoctor() {
   }, [theme, grade]);
 
   const [question, setQuestion] = useState<Question | null>(null);
-  // build mode
+  // build mode: the words still to place (shuffled) and the sentence so far
   const [orderedItems, setOrderedItems] = useState<WordItem[]>([]);
+  const [placed, setPlaced] = useState<WordItem[]>([]);
   // fix mode
   const [fixedSentence, setFixedSentence] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -126,13 +127,14 @@ export function ExerciseSentenceDoctor() {
       const { item: words, index } = pickUnused(buildSentences, usedBuildIndices.current);
       usedBuildIndices.current.add(index);
       const correctOrder: WordItem[] = words.map((w, i) => ({ id: `${i}-${w}`, word: w }));
-      let shuffled = shuffle(correctOrder);
+      const shuffled = shuffle(correctOrder);
       // ensure not already correct
       if (shuffled.every((item, i) => item.id === correctOrder[i].id)) {
         shuffled.reverse();
       }
       setQuestion({ mode: 'build', correctOrder });
       setOrderedItems(shuffled);
+      setPlaced([]);
     } else {
       const { item: q, index } = pickUnused(fixSentences, usedFixIndices.current);
       usedFixIndices.current.add(index);
@@ -172,16 +174,31 @@ export function ExerciseSentenceDoctor() {
 
   const handleSpeaker = () => {
     if (!question) return;
+    // Build: the child's sentence so far, or the whole sentence as help.
     const text = question.mode === 'build'
-      ? orderedItems.map(i => i.word).join(' ')
+      ? (placed.length ? placed : question.correctOrder).map(i => i.word).join(' ')
       : fixedSentence.join(' ');
     return speak(text);
   };
 
   const handleCheckBuild = () => {
     if (!question || question.mode !== 'build' || status !== 'idle') return;
-    const isCorrect = orderedItems.every((item, i) => item.id === question.correctOrder[i].id);
-    isCorrect ? handleCorrect() : handleIncorrect();
+    if (placed.length !== question.correctOrder.length) return;
+    // By word, not id: two "de"s may swap places.
+    const isCorrect = placed.every((item, i) => item.word === question.correctOrder[i].word);
+    if (isCorrect) handleCorrect(); else handleIncorrect();
+  };
+
+  const handlePlace = (item: WordItem) => {
+    if (status !== 'idle') return;
+    setOrderedItems(prev => prev.filter(i => i.id !== item.id));
+    setPlaced(prev => [...prev, item]);
+  };
+
+  const handleUnplace = (item: WordItem) => {
+    if (status !== 'idle') return;
+    setPlaced(prev => prev.filter(i => i.id !== item.id));
+    setOrderedItems(prev => [...prev, item]);
   };
 
   const handlePickWord = (word: string) => {
@@ -190,7 +207,7 @@ export function ExerciseSentenceDoctor() {
     const newSentence = [...fixedSentence];
     newSentence[question.wrongIndex] = word;
     setFixedSentence(newSentence);
-    word === question.correctWord ? handleCorrect() : handleIncorrect();
+    if (word === question.correctWord) handleCorrect(); else handleIncorrect();
   };
 
   // The child taps a word that was not broken: that is a wrong answer.
@@ -210,42 +227,69 @@ export function ExerciseSentenceDoctor() {
 
         <ExercisePrompt className="mt-0 md:mt-0">
           {isBuild
-            ? 'Sleep de woorden in de juiste volgorde.'
+            ? 'Tik de woorden in de juiste volgorde.'
             : 'Tik op het foute woord en kies het juiste.'}
         </ExercisePrompt>
 
         <SpeakerButton onPlay={handleSpeaker} label="Luister naar de zin" className="mb-8" />
 
-        {/* BUILD MODE */}
+        {/* BUILD MODE: a strip with a place per word; tapping a word puts it in
+            the next free place, tapping a placed word sends it back. */}
         {isBuild && (
           <>
-            <Reorder.Group
-              axis="x"
-              values={orderedItems}
-              onReorder={setOrderedItems}
-              className="flex flex-wrap justify-center gap-3 mb-10"
+            <div
+              data-testid="sentence-strip"
+              className={cn(
+                'w-full flex flex-wrap justify-center gap-2 sm:gap-3 rounded-3xl border-2 p-3 sm:p-4 mb-6 min-h-[88px] transition-colors',
+                status === 'correct'
+                  ? 'bg-emerald-500/15 border-emerald-400/60'
+                  : status === 'incorrect'
+                    ? 'bg-red-500/15 border-red-400/50'
+                    : 'bg-[#1c1134]/60 border-[#3b2d71]',
+              )}
             >
+              {question.correctOrder.map((_, i) => {
+                const item = placed[i];
+                return item ? (
+                  <motion.button
+                    key={item.id}
+                    type="button"
+                    layoutId={item.id}
+                    onClick={() => handleUnplace(item)}
+                    disabled={status !== 'idle'}
+                    className={cn(
+                      WORD_BUTTON,
+                      status === 'correct' && 'bg-emerald-400 border-emerald-600 text-white',
+                      status === 'incorrect' && 'bg-red-400 border-red-600 text-white',
+                    )}
+                  >
+                    {item.word}
+                  </motion.button>
+                ) : (
+                  <div
+                    key={`slot-${i}`}
+                    aria-hidden
+                    className="min-w-[72px] sm:min-w-[88px] h-[56px] sm:h-[64px] rounded-2xl border-2 border-dashed border-[#a78bfa]/50"
+                  />
+                );
+              })}
+            </div>
+
+            <div data-testid="word-pool" className="flex flex-wrap justify-center gap-3 mb-6 min-h-[64px]">
               {orderedItems.map((item) => (
-                <Reorder.Item
+                <motion.button
                   key={item.id}
-                  value={item}
-                  drag={status === 'idle'}
-                  className={cn(
-                    'select-none touch-none cursor-grab active:cursor-grabbing',
-                    'px-4 py-3 sm:px-5 sm:py-4 rounded-2xl text-lg sm:text-xl font-bold',
-                    'border-b-[5px] transition-colors',
-                    status === 'correct'
-                      ? 'bg-emerald-400 border-emerald-600 text-white'
-                      : status === 'incorrect'
-                        ? 'bg-red-400 border-red-600 text-white'
-                        : 'bg-[#2d1b54] border-[#1c1134] text-white/90 hover:bg-[#3b2d71]',
-                  )}
-                  whileDrag={{ scale: 1.12, zIndex: 50, boxShadow: '0 12px 30px rgba(0,0,0,0.4)' }}
+                  type="button"
+                  layoutId={item.id}
+                  onClick={() => handlePlace(item)}
+                  disabled={status !== 'idle'}
+                  whileTap={{ scale: 0.95 }}
+                  className={WORD_BUTTON}
                 >
                   {item.word}
-                </Reorder.Item>
+                </motion.button>
               ))}
-            </Reorder.Group>
+            </div>
           </>
         )}
 
@@ -340,7 +384,7 @@ export function ExerciseSentenceDoctor() {
 
       {isBuild && (
         <ExerciseActionBar>
-          <CheckButton onClick={handleCheckBuild} disabled={status !== 'idle'} />
+          <CheckButton onClick={handleCheckBuild} disabled={status !== 'idle' || placed.length !== question.correctOrder.length} />
         </ExerciseActionBar>
       )}
     </ExerciseShell>

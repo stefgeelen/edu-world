@@ -123,7 +123,8 @@ function DenominationVisual({ denom, isOverlay }: { denom: DenominationDef; isOv
 
 /* ── Draggable Denomination ───────────────────────────────────── */
 
-function DraggableDenomination({ id, denom }: { id: string; denom: DenominationDef }) {
+/** Dragged to the kassa, or tapped: a tap puts it in the kassa too, easier for small fingers. */
+function DraggableDenomination({ id, denom, onTap }: { id: string; denom: DenominationDef; onTap: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id });
 
   return (
@@ -131,6 +132,7 @@ function DraggableDenomination({ id, denom }: { id: string; denom: DenominationD
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      onClick={onTap}
       className={`touch-none cursor-grab active:cursor-grabbing transition-opacity ${isDragging ? 'opacity-30' : ''}`}
     >
       <DenominationVisual denom={denom} />
@@ -247,6 +249,15 @@ export function ExerciseMoney() {
     setDragId(event.active.id as string);
   }, []);
 
+  const payIn = useCallback(
+    (denom: DenominationDef) => {
+      setCounter((c) => c + 1);
+      setDroppedItems((prev) => [...prev, { id: `dropped-${counter}`, denom }]);
+      setFeedback(null);
+    },
+    [counter]
+  );
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       setDragId(null);
@@ -255,12 +266,9 @@ export function ExerciseMoney() {
       const denomIndex = parseInt((event.active.id as string).split('-')[1], 10);
       const denom = availableDenoms[denomIndex];
       if (!denom) return;
-
-      setCounter((c) => c + 1);
-      setDroppedItems((prev) => [...prev, { id: `dropped-${counter}`, denom }]);
-      setFeedback(null);
+      payIn(denom);
     },
-    [counter, availableDenoms]
+    [availableDenoms, payIn]
   );
 
   /* ── Pay ──── */
@@ -301,7 +309,7 @@ export function ExerciseMoney() {
       >
         <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-4 md:px-8 lg:px-12 max-w-3xl mx-auto w-full z-10 relative gap-4 md:gap-6 pb-6">
 
-          <ExercisePrompt className="mb-0">Sleep het juiste bedrag in de kassa!</ExercisePrompt>
+          <ExercisePrompt className="mb-0">Sleep of tik het juiste bedrag in de kassa!</ExercisePrompt>
 
           {/* Product and kassa: under each other, side by side on a low wide
               screen so the wallet stays above the action bar. */}
@@ -362,7 +370,7 @@ export function ExerciseMoney() {
             </p>
             <div className="flex flex-wrap gap-3 md:gap-4 justify-center">
               {availableDenoms.map((denom, i) => (
-                <DraggableDenomination key={i} id={`denom-${i}`} denom={denom} />
+                <DraggableDenomination key={i} id={`denom-${i}`} denom={denom} onTap={() => { if (status === 'idle') payIn(denom); }} />
               ))}
             </div>
           </div>

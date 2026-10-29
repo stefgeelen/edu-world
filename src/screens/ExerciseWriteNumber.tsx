@@ -255,7 +255,7 @@ export function ExerciseWriteNumber() {
       explain={[EXPLAIN.writeNumber]}
     >
       {/* ── Scrollable content ── */}
-      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md md:max-w-xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         <ExercisePrompt className="mb-0 flex-shrink-0">Tel de stippen en schrijf het getal.</ExercisePrompt>
 
@@ -276,8 +276,9 @@ export function ExerciseWriteNumber() {
           </motion.div>
         </div>
 
-        {/* Drawing canvas */}
-        <div className="flex-shrink-0" style={{ height: 260 }}>
+        {/* Drawing canvas: grows with the screen, in the canvas's own 4:3 so a
+            stroke is not stretched. */}
+        <div className="flex-shrink-0 w-full aspect-[4/3]">
           <div className={cn(
             'relative w-full h-full rounded-3xl overflow-hidden border-2 transition-colors duration-300',
             status === 'correct'

@@ -97,7 +97,7 @@ function ObjectGrid({ obj, count, highlight, showCount }: { obj: ObjectType; cou
         {inTens(count).map((size, g) => (
           <div key={g} className={`${GETALBEELD_GRID} gap-1.5`}>
             {Array.from({ length: size }).map((_, i) => (
-              <span key={i} className="text-3xl leading-none select-none">{obj.emoji}</span>
+              <span key={i} className="text-3xl md:text-5xl leading-none select-none">{obj.emoji}</span>
             ))}
           </div>
         ))}
@@ -215,7 +215,7 @@ export function ExerciseCompareObjects() {
       onClose={() => navigate(exerciseExitPath())}
       explain={[EXPLAIN.compareObjects]}
     >
-      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md md:max-w-2xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         {/* Instruction */}
         <ExercisePrompt className="mb-1 flex-shrink-0">Welke kant heeft de meeste voorwerpen?</ExercisePrompt>

@@ -16,9 +16,19 @@ import { exerciseExitPath } from '@/routes/paths';
 
 interface Dot {
   id: string;
-  x: number;
-  y: number;
+  cell: number;
 }
+
+/**
+ * Dots land in a grid of 5 across (the five-structure), so they never
+ * overlap and are easy to count. Room for 5 more than the biggest count,
+ * so too many is still possible.
+ */
+const COLS = 5;
+const ROW_HEIGHT = 72;
+const rowsFor = (maxDots: number) => Math.max(3, Math.ceil((maxDots + 5) / COLS));
+const cellX = (cell: number) => ((cell % COLS) + 0.5) / COLS * 100;
+const cellY = (cell: number, rows: number) => (Math.floor(cell / COLS) + 0.5) / rows * 100;
 
 export function ExerciseDotCount() {
   const navigate = useNavigate();
@@ -29,6 +39,7 @@ export function ExerciseDotCount() {
   const areaRef = useRef<HTMLDivElement>(null);
 
   const dotConfig = useExerciseConfig(DEFAULT_DOT_COUNT);
+  const rows = rowsFor(dotConfig.maxDots);
 
   const getRandomTarget = () =>
     Math.floor(Math.random() * (dotConfig.maxDots - dotConfig.minDots + 1)) + dotConfig.minDots;
@@ -54,12 +65,22 @@ export function ExerciseDotCount() {
   const addDotAt = useCallback((clientX: number, clientY: number) => {
     if (status !== 'idle' || !areaRef.current) return;
     const rect = areaRef.current.getBoundingClientRect();
-    const x = ((clientX - rect.left) / rect.width) * 100;
-    const y = ((clientY - rect.top) / rect.height) * 100;
-    const cx = Math.min(Math.max(x, 6), 94);
-    const cy = Math.min(Math.max(y, 8), 92);
-    setDots(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, x: cx, y: cy }]);
-  }, [status]);
+    const x = rect.width ? ((clientX - rect.left) / rect.width) * 100 : 0;
+    const y = rect.height ? ((clientY - rect.top) / rect.height) * 100 : 0;
+    setDots(prev => {
+      // The free cell nearest to the tap (the tapped one, unless it has a dot).
+      const taken = new Set(prev.map(d => d.cell));
+      let best = -1;
+      let bestDistance = Infinity;
+      for (let cell = 0; cell < rows * COLS; cell++) {
+        if (taken.has(cell)) continue;
+        const distance = (cellX(cell) - x) ** 2 + (cellY(cell, rows) - y) ** 2;
+        if (distance < bestDistance) { best = cell; bestDistance = distance; }
+      }
+      if (best < 0) return prev;
+      return [...prev, { id: `${Date.now()}-${Math.random()}`, cell: best }];
+    });
+  }, [status, rows]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -120,7 +141,7 @@ export function ExerciseDotCount() {
       explain={[EXPLAIN.dots, `Zet ${target} ${target === 1 ? 'stip' : 'stippen'}.`]}
     >
       {/* ── Scrollable content ── */}
-      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md md:max-w-lg mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         {/* Instruction + number */}
         <div className="flex-shrink-0">
@@ -142,7 +163,7 @@ export function ExerciseDotCount() {
         </div>
 
         {/* Dot placement area */}
-        <div className="flex-shrink-0" style={{ height: 260 }}>
+        <div className="flex-shrink-0" style={{ height: rows * ROW_HEIGHT }}>
           <motion.div
             ref={areaRef}
             animate={shake ? { x: [-6, 6, -5, 5, -3, 3, 0] } : {}}
@@ -167,15 +188,12 @@ export function ExerciseDotCount() {
               </div>
             )}
 
-            {/* Decorative grid dots */}
-            {[...Array(15)].map((_, i) => (
+            {/* The grid the dots land in */}
+            {[...Array(rows * COLS)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-1.5 h-1.5 rounded-full bg-[#3b2d71] pointer-events-none"
-                style={{
-                  left: `${((i % 5) + 1) * 16.5}%`,
-                  top: `${(Math.floor(i / 5) + 1) * 24}%`,
-                }}
+                className="absolute w-2 h-2 rounded-full bg-[#4c3b82] pointer-events-none -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${cellX(i)}%`, top: `${cellY(i, rows)}%` }}
               />
             ))}
 
@@ -190,10 +208,10 @@ export function ExerciseDotCount() {
                   transition={{ type: 'spring', bounce: 0.6, duration: 0.35 }}
                   className={cn(
                     'absolute w-11 h-11 rounded-full flex items-center justify-center shadow-lg pointer-events-none',
-                    '-translate-x-1/2 -translate-y-1/2',
                     'bg-gradient-to-br from-teal-400 to-emerald-500 ring-2 ring-teal-600',
                   )}
-                  style={{ left: `${dot.x}%`, top: `${dot.y}%` }}
+                  // Centred via framer's x/y: its scale animation would overwrite translate classes.
+                  style={{ left: `${cellX(dot.cell)}%`, top: `${cellY(dot.cell, rows)}%`, x: '-50%', y: '-50%' }}
                 >
                   <div className="w-3 h-3 rounded-full bg-white/50" />
                 </motion.div>

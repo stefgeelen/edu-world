@@ -59,7 +59,7 @@ export const EXPLAIN = {
     'Vooraan, in het midden of achteraan? Tik op het juiste raam van het huis.',
   ],
   sentenceBuild:
-    'Sleep de woorden in de juiste volgorde, zodat het een goede zin wordt. Tik op de luidspreker als je hulp nodig hebt.',
+    'Tik de woorden in de juiste volgorde, zodat het een goede zin wordt. Tik op de luidspreker als je hulp nodig hebt.',
   sentenceFix: 'In de zin zit één fout woord. Tik erop en kies het juiste woord.',
   writeLetter: 'Volg de stippellijn met je vinger en schrijf de letter na. Elke keer helpt de lijn een beetje minder.',
   // 3de kleuterklas: de vraag zegt de Buddy al vanzelf bij elke vraag.

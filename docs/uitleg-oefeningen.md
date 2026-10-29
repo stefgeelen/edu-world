@@ -154,7 +154,7 @@ Hier legt de Buddy alleen uit wat je moet doen. De woorden en zinnen leest de lu
 - Het woord zelf zit achter de luidsprekerknop, zoals bij Woord kiezen.
 
 ### Zinsdokter
-- **Uitleg (zin maken):** "Sleep de woorden in de juiste volgorde, zodat het een goede zin wordt. Tik op de luidspreker als je hulp nodig hebt."
+- **Uitleg (zin maken):** "Tik de woorden in de juiste volgorde, zodat het een goede zin wordt. Tik op de luidspreker als je hulp nodig hebt."
 - **Uitleg (zin genezen):** "In de zin zit één fout woord. Tik erop en kies het juiste woord."
 
 ### Letter schrijven

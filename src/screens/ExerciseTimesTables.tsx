@@ -25,7 +25,7 @@ function TablePicker({ tables, progress, onPick }: {
   onPick: (table: number) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-xl">
+    <div className="flex flex-wrap justify-center gap-4 w-full max-w-xl">
       {tables.map((table) => {
         const p = progress[table];
         const flawless = Math.min(p?.flawlessRuns ?? 0, TABLE_STICKER_RUNS);
@@ -35,11 +35,11 @@ function TablePicker({ tables, progress, onPick }: {
             whileTap={{ scale: 0.95 }}
             onClick={() => onPick(table)}
             aria-label={`Tafel van ${table}${p?.sticker ? ', die ken je!' : ''}`}
-            className="relative h-28 md:h-32 rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 border-b-[6px] border-indigo-800 shadow-lg text-white flex flex-col items-center justify-center gap-1"
+            className="relative w-[calc((100%-1rem)/2)] sm:w-[calc((100%-2rem)/3)] h-28 md:h-36 rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 border-b-[6px] border-indigo-800 shadow-lg text-white flex flex-col items-center justify-center gap-1"
           >
             <div className="absolute inset-x-0 top-0 h-1/3 bg-white/15 rounded-t-3xl pointer-events-none" />
-            <span className="text-xs font-bold uppercase tracking-wider text-white/70">Tafel van</span>
-            <span className="text-4xl md:text-5xl font-black drop-shadow-sm">{table}</span>
+            <span className="text-sm md:text-base font-bold uppercase tracking-wider text-white/80">Tafel van</span>
+            <span className="text-4xl md:text-6xl font-black drop-shadow-sm">{table}</span>
             {p?.sticker ? (
               <span className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-br from-amber-300 to-yellow-500 border-2 border-amber-600 shadow-lg flex items-center justify-center rotate-12" data-testid={`sticker-${table}`}>
                 <Star className="w-5 h-5 text-white fill-white" />

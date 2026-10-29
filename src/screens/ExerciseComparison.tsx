@@ -330,7 +330,7 @@ export function ExerciseComparison() {
               )}
             >
               {/* Bigger on a big screen, where there is room for it. */}
-              <div className="md:[zoom:1.3] md:py-2">{renderQuestionContent()}</div>
+              <div className="md:[zoom:1.6] short:[zoom:1.3] md:py-2">{renderQuestionContent()}</div>
 
               <AnimatePresence>
                 {status === 'incorrect' && needsSymbol && (
@@ -361,7 +361,7 @@ export function ExerciseComparison() {
         {/* Symbol buttons (var 1 & 2) */}
         {needsSymbol && (
           <div className="flex-shrink-0">
-            <p className="text-xs font-bold text-[#9d8bce] mb-2.5 text-center uppercase tracking-wider">Kies het juiste teken</p>
+            <p className="text-sm md:text-base font-bold text-[#9d8bce] mb-2.5 text-center uppercase tracking-wider">Kies het juiste teken</p>
             <div className="grid grid-cols-3 gap-3">
               {(['<', '=', '>'] as CompSymbol[]).map(sym => (
                 <motion.button
@@ -377,7 +377,7 @@ export function ExerciseComparison() {
                     'bg-[#2d1b54] border-[#4c3b82] text-amber-400 hover:border-amber-400 hover:bg-[#3b2d71] hover:shadow-lg cursor-pointer'
                   )}
                 >
-                  <span className="font-black" style={{ fontSize: 32 }}>{sym}</span>
+                  <span className="font-black text-[32px] md:text-[44px]">{sym}</span>
                   <span className="text-sm font-bold leading-tight text-center opacity-75">{SYMBOL_LABEL[sym]}</span>
                 </motion.button>
               ))}

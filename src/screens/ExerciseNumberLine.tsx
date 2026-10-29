@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Trash2, Sparkles, X, Loader2 } from 'lucide-react';
+import { Check, Trash2, Sparkles, X, Loader2, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerConfetti } from '@/lib/confetti';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
@@ -71,9 +71,24 @@ export function ExerciseNumberLine() {
   }, [nlCfg]);
 
   const blanks = slots.filter(s => s.isBlank);
-  // At most 6 boxes in a row on a phone, 7 on a bigger screen, spread evenly over the rows.
+  // As many boxes in a row as the width allows (a line is best on one row),
+  // spread evenly over the rows when it is too long. Box and link widths
+  // match the classes below: w-11 + w-3 on a phone, md:w-14 + md:w-4.
   const isMobile = useIsMobile();
-  const perRow = isMobile ? 6 : 7;
+  const lineRef = useRef<HTMLDivElement>(null);
+  const [lineWidth, setLineWidth] = useState(0);
+  useEffect(() => {
+    const el = lineRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => setLineWidth(entry.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const box = isMobile ? 44 : 56;
+  const link = isMobile ? 12 : 16;
+  const perRow = lineWidth > 0
+    ? Math.max(4, Math.floor((lineWidth + link) / (box + link)))
+    : (isMobile ? 6 : 7);
   const rowCount = Math.ceil(slots.length / perRow);
   const rowLength = Math.ceil(slots.length / rowCount);
   const rows = Array.from({ length: rowCount }, (_, r) => slots.slice(r * rowLength, (r + 1) * rowLength));
@@ -254,12 +269,12 @@ export function ExerciseNumberLine() {
       explain={[EXPLAIN.numberLine]}
     >
       {/* ── Scrollable content ─────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col px-4 gap-5 max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div className="flex-1 flex flex-col px-4 gap-5 max-w-lg md:max-w-4xl mx-auto w-full overflow-y-auto min-h-0 relative z-10">
 
         <ExercisePrompt className="mb-0 flex-shrink-0">Tik op een vraagteken en schrijf het juiste getal!</ExercisePrompt>
 
         {/* Number line: a long line continues on the next row, so no slot is ever out of sight. */}
-        <div className="flex-shrink-0 flex flex-col items-center gap-4 pt-3 pb-1">
+        <div ref={lineRef} className="flex-shrink-0 flex flex-col items-center gap-4 pt-3 pb-1">
           <div className="flex flex-col gap-4 w-fit">
             {rows.map((row, r) => (
               <div key={r} className="flex items-center">
@@ -272,7 +287,7 @@ export function ExerciseNumberLine() {
                     <React.Fragment key={slot.value}>
                       {idx > 0 && (
                         <div className={cn(
-                          'h-1 sm:h-1.5 w-3 sm:w-5 md:w-7 flex-shrink-0 rounded-full',
+                          'h-1 md:h-1.5 w-3 md:w-4 flex-shrink-0 rounded-full',
                           isFilled ? 'bg-violet-400' : isGiven ? 'bg-[#4c3b82]' : 'bg-[#3b2d71]'
                         )} />
                       )}
@@ -280,9 +295,9 @@ export function ExerciseNumberLine() {
                         onClick={() => { if (isEmpty && !roundDone) setActiveSlot(slot.value); }}
                         disabled={!isEmpty || roundDone}
                         className={cn(
-                          'relative w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 transition-all shadow-md text-base sm:text-lg md:text-xl',
+                          'relative w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center font-black flex-shrink-0 border-2 transition-all shadow-md text-base md:text-xl',
                           isGiven && 'bg-gradient-to-b from-indigo-500 to-indigo-700 border-indigo-800 text-white cursor-default',
-                          isEmpty && !roundDone && 'bg-[#1c1134] border-dashed border-[#4c3b82] hover:border-[#a78bfa] hover:bg-[#2d1b54] cursor-pointer',
+                          isEmpty && !roundDone && 'bg-[#2d1b54] border-dashed border-[#a78bfa]/70 hover:border-[#a78bfa] hover:bg-[#2d1b54] cursor-pointer',
                           isEmpty && roundDone && 'bg-[#1c1134] border-dashed border-[#3b2d71] cursor-default',
                           isFilled && 'bg-gradient-to-b from-violet-400 to-violet-600 border-violet-700 text-white cursor-default',
                           isActive && 'ring-4 ring-[#a78bfa]/50 scale-110 shadow-[#a78bfa]/30',
@@ -292,7 +307,7 @@ export function ExerciseNumberLine() {
                         {isGiven && <span>{slot.value}</span>}
                         {isFilled && <span>{slot.value}</span>}
                         {isEmpty && (
-                          <span className={cn('font-black text-xl', isActive ? 'text-[#a78bfa]' : 'text-[#4c3b82]')}>?</span>
+                          <span className={cn('font-black text-xl', isActive ? 'text-white' : roundDone ? 'text-[#4c3b82]' : 'text-[#a78bfa]')}>?</span>
                         )}
                         {isFilled && (
                           <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center shadow-sm">
@@ -300,8 +315,8 @@ export function ExerciseNumberLine() {
                           </div>
                         )}
                         {isEmpty && !roundDone && (
-                          <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#4c3b82] flex items-center justify-center shadow-sm">
-                            <span style={{ fontSize: 9, color: 'white', fontWeight: 900 }}>✏</span>
+                          <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-violet-500 flex items-center justify-center shadow-sm">
+                            <Pencil className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                           </div>
                         )}
                       </button>

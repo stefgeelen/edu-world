@@ -39,7 +39,7 @@ export function PictureChoiceExercise({ questions, say, prompt, top, explain }: 
 
   return (
     <ExerciseShell progress={game.progress} lives={game.lives} onClose={game.close} explain={explain} silenceBuddy>
-      <div className="flex-1 flex flex-col items-center z-10 relative px-4 w-full max-w-md mx-auto">
+      <div className="flex-1 flex flex-col items-center z-10 relative px-4 w-full max-w-md md:max-w-xl mx-auto">
         <ExercisePrompt>{prompt(current)}</ExercisePrompt>
         <SpeakerButton onPlay={game.sayQuestion} playing={game.speaking} label="Luister naar de vraag" className="mb-5" />
 
@@ -53,7 +53,7 @@ export function PictureChoiceExercise({ questions, say, prompt, top, explain }: 
           {top(current)}
         </motion.div>
 
-        <div className="grid grid-cols-3 gap-3 w-full">
+        <div className="grid grid-cols-3 gap-3 md:gap-5 w-full short:max-w-md">
           {current.choices.map((choice, i) => {
             const isPicked = picked === choice.word;
             return (
@@ -74,7 +74,7 @@ export function PictureChoiceExercise({ questions, say, prompt, top, explain }: 
                   status !== 'idle' && !isPicked && 'bg-[#2d1b54]/50 border-[#3b2d71] opacity-50',
                 )}
               >
-                <span aria-hidden className="text-6xl leading-none select-none">{choice.emoji}</span>
+                <span aria-hidden className="text-6xl md:text-8xl short:text-6xl leading-none select-none">{choice.emoji}</span>
               </motion.button>
             );
           })}

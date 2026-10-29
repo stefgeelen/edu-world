@@ -41,13 +41,13 @@ export function CountGroup({
         data-count={label}
         className={cn(
           'grid grid-cols-3 grid-rows-3 rounded-2xl bg-white shadow-lg ring-4 ring-white/20',
-          md ? 'w-28 h-28 p-3 gap-1.5' : 'w-36 h-36 p-4 gap-2',
+          md ? 'w-28 h-28 md:w-36 md:h-36 p-3 gap-1.5' : 'w-36 h-36 p-4 gap-2',
           className,
         )}
       >
         {Array.from({ length: 9 }, (_, i) => (
           <div key={i} className="flex items-center justify-center">
-            {pips.has(i) && <div className={cn('rounded-full bg-[#1a103c]', md ? 'w-5 h-5' : 'w-6 h-6')} />}
+            {pips.has(i) && <div className={cn('rounded-full bg-[#1a103c]', md ? 'w-5 h-5 md:w-6 md:h-6' : 'w-6 h-6')} />}
           </div>
         ))}
       </div>
@@ -60,7 +60,7 @@ export function CountGroup({
         {Array.from({ length: group.count }, (_, i) => (
           <div
             key={i}
-            className={cn('rounded-full bg-gradient-to-br from-amber-300 to-orange-400 shadow', md ? 'w-6 h-6' : 'w-9 h-9')}
+            className={cn('rounded-full bg-gradient-to-br from-amber-300 to-orange-400 shadow', md ? 'w-6 h-6 md:w-9 md:h-9' : 'w-9 h-9')}
           />
         ))}
       </div>
@@ -73,9 +73,9 @@ export function CountGroup({
   return (
     <div data-count={label} className={cn('flex flex-col items-center', md ? 'gap-1' : 'gap-2', className)}>
       {rows.map((n, r) => (
-        <div key={r} className={cn('flex', md ? 'gap-0.5' : 'gap-2')}>
+        <div key={r} className={cn('flex', md ? 'gap-0.5 md:gap-1.5' : 'gap-2')}>
           {Array.from({ length: n }, (_, i) => (
-            <span key={i} aria-hidden className={cn('leading-none select-none', md ? 'text-2xl' : 'text-5xl', thingClassName)}>
+            <span key={i} aria-hidden className={cn('leading-none select-none', md ? 'text-2xl md:text-4xl' : 'text-5xl', thingClassName)}>
               {group.thing.emoji}
             </span>
           ))}

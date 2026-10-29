@@ -299,12 +299,13 @@ export function ExerciseWriteLetter() {
         <p className="mb-3 text-center text-sm font-bold text-[#9d8bce]">{step.hint}</p>
       </div>
 
-      {/* ── Canvas area ── */}
-      <div className="flex-1 min-h-0 px-4 pb-4 max-w-md mx-auto w-full z-10">
+      {/* ── Canvas area: wide on a tablet (writing goes across), in 4:3 and
+          centred instead of a tall narrow card. ── */}
+      <div className="flex-1 min-h-0 px-4 pb-4 max-w-md md:max-w-3xl mx-auto w-full z-10 flex flex-col justify-center">
         <div
           ref={containerRef}
           className={cn(
-            'relative h-full rounded-3xl overflow-hidden border-2 shadow-sm transition-colors duration-300 bg-[#1c1134]',
+            'relative h-full md:h-auto md:aspect-[4/3] md:max-h-full rounded-3xl overflow-hidden border-2 shadow-sm transition-colors duration-300 bg-[#1c1134]',
             status === 'correct' ? 'border-emerald-400/50' :
             status === 'incorrect' ? 'border-red-400/50' :
             'border-[#3b2d71]'

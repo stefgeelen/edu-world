@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act, within } from '@testing-library/react';
 
 /* ── Copied pure logic (not exported by ExerciseSentenceDoctor.tsx) ──────
  * Uses real Math.random (this file only spies on Math.random inside the
@@ -43,30 +43,6 @@ describe('ExerciseSentenceDoctor build-mode shuffle', () => {
 });
 
 /* ── Component ────────────────────────────────────────────────────────── */
-
-// Reorder.Group/Reorder.Item (framer-motion) implement drag-reordering via
-// their own internal PanSession pointer listeners rather than React props,
-// which jsdom cannot reproduce reliably. Only Reorder is mocked (via
-// importOriginal + spread) so the test can call the exact onReorder callback
-// the real Reorder.Group would call once a drag finished — everything else
-// from framer-motion (motion.*, AnimatePresence) stays real.
-const reorderHandlers = vi.hoisted(() => ({
-  onReorder: undefined as ((values: unknown[]) => void) | undefined,
-}));
-
-vi.mock('framer-motion', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('framer-motion')>();
-  return {
-    ...actual,
-    Reorder: {
-      Group: (props: { children: React.ReactNode; onReorder: (values: unknown[]) => void }) => {
-        reorderHandlers.onReorder = props.onReorder;
-        return <div>{props.children}</div>;
-      },
-      Item: (props: { children: React.ReactNode }) => <div>{props.children}</div>,
-    },
-  };
-});
 
 // The real Popover (Radix) needs layout/portal machinery jsdom doesn't
 // provide well; it's not what's under test here (the fix-mode word-pick
@@ -141,10 +117,16 @@ function buildSentenceSequence(rounds: number): string[][] {
   return out;
 }
 
-function submitBuildAnswer(correct: boolean) {
-  if (correct) {
-    act(() => reorderHandlers.onReorder?.(BUILD_CORRECT_ORDER));
+/** Taps the words, in this order, from the pool into the sentence strip. */
+function tapWords(words: string[]) {
+  for (const word of words) {
+    fireEvent.click(within(screen.getByTestId('word-pool')).getAllByRole('button', { name: word })[0]);
   }
+}
+
+function submitBuildAnswer(correct: boolean) {
+  const words = BUILD_CORRECT_ORDER.map((item) => item.word);
+  tapWords(correct ? words : [...words].reverse());
   fireEvent.click(screen.getByRole('button', { name: /Controleer/ }));
 }
 
@@ -161,9 +143,9 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
     vi.restoreAllMocks();
   });
 
-  it('celebrates with confetti once the words are reordered correctly and checked', () => {
+  it('celebrates with confetti once the words are tapped in the right order and checked', () => {
     render(<ExerciseSentenceDoctor />);
-    expect(screen.getByText('Sleep de woorden in de juiste volgorde.')).toBeInTheDocument();
+    expect(screen.getByText('Tik de woorden in de juiste volgorde.')).toBeInTheDocument();
 
     submitBuildAnswer(true);
 
@@ -171,7 +153,21 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
     expect(screen.getByText('Goed gedaan!')).toBeInTheDocument();
   });
 
-  it('shows the "try again" banner when checked without fixing the shuffled order', () => {
+  it('can only check once every word is placed, and a placed word taps back to the pool', () => {
+    render(<ExerciseSentenceDoctor />);
+    const check = screen.getByRole('button', { name: /Controleer/ });
+    const [first, ...rest] = BUILD_CORRECT_ORDER.map((item) => item.word);
+
+    tapWords([first]);
+    expect(check).toBeDisabled();
+    fireEvent.click(within(screen.getByTestId('sentence-strip')).getByRole('button', { name: first }));
+    expect(within(screen.getByTestId('sentence-strip')).queryAllByRole('button')).toHaveLength(0);
+
+    tapWords([first, ...rest]);
+    expect(check).toBeEnabled();
+  });
+
+  it('shows the "try again" banner when checked with the words in the wrong order', () => {
     render(<ExerciseSentenceDoctor />);
 
     submitBuildAnswer(false);
@@ -185,8 +181,7 @@ describe('ExerciseSentenceDoctor component — build mode (Math.random pinned to
 
     const sentences = buildSentenceSequence(5);
     for (let round = 0; round < 5; round++) {
-      const order = sentences[round].map((word, i) => ({ id: `${i}-${word}`, word }));
-      act(() => reorderHandlers.onReorder?.(order));
+      tapWords(sentences[round]);
       fireEvent.click(screen.getByRole('button', { name: /Controleer/ }));
       act(() => vi.advanceTimersByTime(1800));
     }
