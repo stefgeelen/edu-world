@@ -23,7 +23,7 @@ export function AdminDashboard() {
   return (
     <div className="h-screen w-screen bg-slate-50 flex flex-col overflow-hidden">
       {/* Top bar */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+      <header className="bg-white border-b border-slate-200 px-6 py-4 pt-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(APP_PATHS.home)}

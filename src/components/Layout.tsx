@@ -9,11 +9,12 @@ export function Layout() {
   return (
     <GameProvider>
       <CelebrationProvider>
-      <div 
-        className="flex flex-col bg-slate-50 relative overflow-hidden h-[100dvh]" 
+      {/* pt-safe: the strip under the iOS status bar, in the colour every
+          child screen starts with, so the sky runs on behind the clock. */}
+      <div
+        className="flex flex-col bg-[#2d1b54] pt-safe relative overflow-hidden h-[100dvh]"
         style={{ fontFamily: "'Inter', sans-serif" }}
       >
-        {/* Safe Area Top */}
         <div className="flex-1 overflow-hidden relative">
           <Outlet />
         </div>

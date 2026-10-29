@@ -32,7 +32,7 @@ export function ParentLayout() {
   return (
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-4 md:px-8 pt-10 pb-4 flex-shrink-0 shadow-sm">
+      <header className="bg-white border-b border-slate-200 px-4 md:px-8 pt-[max(2.5rem,calc(env(safe-area-inset-top)+1rem))] pb-4 flex-shrink-0 shadow-sm">
         <div className="max-w-5xl mx-auto w-full">
           <div className="flex items-center justify-between mb-4">
             <div>

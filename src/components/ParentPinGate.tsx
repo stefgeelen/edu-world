@@ -93,7 +93,7 @@ export function ParentPinGate({ children }: ParentPinGateProps) {
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex flex-col items-center justify-center px-6 py-10 relative">
       <button
         onClick={() => navigate(APP_PATHS.home)}
-        className="absolute top-6 left-6 flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold text-sm transition-colors"
+        className="absolute top-[max(1.5rem,calc(env(safe-area-inset-top)+0.5rem))] left-6 flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold text-sm transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Terug
       </button>

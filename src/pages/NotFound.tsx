@@ -43,7 +43,7 @@ const NotFound = () => {
         ))}
       </div>
 
-      <header className="relative z-10 mx-auto w-full max-w-7xl px-5 py-5 sm:px-8 lg:px-12">
+      <header className="relative z-10 mx-auto w-full max-w-7xl px-5 py-5 pt-[max(1.25rem,calc(env(safe-area-inset-top)+0.5rem))] sm:px-8 lg:px-12">
         <Link to="/" className="inline-flex items-center" aria-label="Leapio startpagina">
           <img src={leapioLogo} alt="" className="h-9 w-auto" />
         </Link>

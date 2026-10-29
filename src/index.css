@@ -139,6 +139,11 @@ All colors MUST be HSL.
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* The strip under the iOS status bar (home-screen app, black-translucent). */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 @keyframes badge-shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }

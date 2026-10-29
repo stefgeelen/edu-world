@@ -27,7 +27,7 @@ export function LegalPage({
     <main className="min-h-screen bg-lp-cream font-lp-body text-lp-night/85 [&_h1]:font-lp-display [&_h2]:font-lp-display">
       <SEO title={seoTitle} description={description} canonical={canonical} />
 
-      <header className="bg-lp-night px-5 py-6 sm:px-8">
+      <header className="bg-lp-night px-5 py-6 pt-[max(1.5rem,calc(env(safe-area-inset-top)+0.5rem))] sm:px-8">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <Link to="/" aria-label="Leapio startpagina">
             <img src={leapioLogo} alt="" className="h-9 w-auto" />
