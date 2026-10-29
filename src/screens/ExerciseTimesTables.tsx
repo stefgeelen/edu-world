@@ -7,7 +7,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { EXPLAIN, sayCalculation } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
-import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { ExerciseNumpad, useNumpadSide, numpadInset } from '@/components/exercise/ExerciseNumpad';
 import { useCompleteExercise, useCurrentChild } from '@/hooks/useCompleteExercise';
 import { useExerciseId } from '@/hooks/useExerciseId';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
@@ -86,6 +86,7 @@ export function ExerciseTimesTables() {
   const [progress, setProgress] = useState(0);
   const [isNumpadOpen, setIsNumpadOpen] = useState(true);
   const [numpadHeight, setNumpadHeight] = useState(0);
+  const numpadSide = useNumpadSide();
   const [newSticker, setNewSticker] = useState<number | null>(null);
 
   const question = questions[index];
@@ -174,7 +175,7 @@ export function ExerciseTimesTables() {
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div
           className="min-h-full flex flex-col items-center z-10 relative px-4"
-          style={{ paddingBottom: table !== null && isNumpadOpen ? numpadHeight + 16 : 48 }}
+          style={numpadInset(table !== null && isNumpadOpen, numpadSide, numpadHeight, 48)}
         >
           <ExercisePrompt className="mb-6">{prompt}</ExercisePrompt>
 

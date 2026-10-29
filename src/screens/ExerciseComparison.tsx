@@ -10,7 +10,7 @@ import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { explainComparison } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
-import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { ExerciseNumpad, NUMPAD_SIDE_WIDTH, useNumpadSide } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_COMPARISON } from '@/data/difficultyConfig';
 import { KwadraatGrid } from '@/components/exercise/KwadraatGrid';
@@ -128,6 +128,7 @@ export function ExerciseComparison() {
   const [progress, setProgress] = useState(0);
   const [lives, setLives] = useState(3);
   const [numpadHeight, setNumpadHeight] = useState(0);
+  const numpadSide = useNumpadSide();
 
   const needsSymbol = question.variation === 1 || question.variation === 2;
   const needsNumber = question.variation === 3 || question.variation === 4;
@@ -306,7 +307,11 @@ export function ExerciseComparison() {
       onClick={() => setIsNumpadOpen(false)}
     >
       {/* ── Scrollable content ── */}
-      <div className="flex-1 flex flex-col px-4 gap-4 max-w-md md:max-w-lg mx-auto w-full overflow-y-auto min-h-0 relative z-10">
+      <div
+        className="flex-1 flex flex-col px-4 gap-4 max-w-md md:max-w-lg mx-auto w-full overflow-y-auto min-h-0 relative z-10"
+        // The numpad beside the question: move the question out from under it.
+        style={isNumpadOpen && needsNumber && numpadSide ? { marginRight: NUMPAD_SIDE_WIDTH + 16 } : undefined}
+      >
 
         <div className="flex-shrink-0">
           <ExercisePrompt>{variationDescriptions[question.variation]}</ExercisePrompt>

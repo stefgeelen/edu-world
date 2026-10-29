@@ -10,7 +10,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { EXPLAIN, sayCalculation } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
-import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { ExerciseNumpad, useNumpadSide, numpadInset } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_SUBTRACT_BOX } from '@/data/difficultyConfig';
 import { exerciseExitPath } from '@/routes/paths';
@@ -61,6 +61,7 @@ export function ExerciseSubtractBox() {
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [numpadHeight, setNumpadHeight] = useState(0);
+  const numpadSide = useNumpadSide();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const generateQuestion = useCallback(() => {
@@ -190,7 +191,7 @@ export function ExerciseSubtractBox() {
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
       <div
         className="min-h-full flex flex-col items-center z-10 relative px-4"
-        style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 48 }}
+        style={numpadInset(isNumpadOpen, numpadSide, numpadHeight, 48)}
       >
         <ExercisePrompt className="md:mb-8">Streep weg en tel hoeveel er over zijn!</ExercisePrompt>
 

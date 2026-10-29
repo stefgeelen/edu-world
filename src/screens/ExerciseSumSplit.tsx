@@ -9,7 +9,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { EXPLAIN, sayCalculation } from '@/data/exerciseExplanations';
 import { CheckButton, ExerciseActionBar, ExercisePrompt } from '@/components/exercise/ExerciseParts';
-import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { ExerciseNumpad, useNumpadSide, numpadInset } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_SUM_SPLIT } from '@/data/difficultyConfig';
 import { generateSumSplitQuestion as generateQuestion, type SumSplitQuestion as Question } from '@/lib/mathQuestions';
@@ -42,6 +42,7 @@ export function ExerciseSumSplit() {
   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
   const [numpadHeight, setNumpadHeight] = useState(0);
+  const numpadSide = useNumpadSide();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Result slot only unlocks once both split values are filled
@@ -281,7 +282,7 @@ export function ExerciseSumSplit() {
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
       <div
         className="min-h-full flex flex-col items-center z-10 relative px-4"
-        style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 16 }}
+        style={numpadInset(isNumpadOpen, numpadSide, numpadHeight, 16)}
       >
         <ExercisePrompt>Splits om door {question.num1 + question.leftPart} te springen!</ExercisePrompt>
 

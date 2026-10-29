@@ -8,7 +8,7 @@ import { randomInt } from '@/lib/random';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { explainHalfDouble } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
-import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { ExerciseNumpad, useNumpadSide, numpadInset } from '@/components/exercise/ExerciseNumpad';
 import { ExerciseModePicker, type ExerciseMode } from '@/components/exercise/ExerciseModePicker';
 import { ObjectsPicture, countLabel } from '@/components/exercise/CountPicture';
 import { useCompleteExercise } from '@/hooks/useCompleteExercise';
@@ -62,6 +62,7 @@ export function ExerciseHalfDouble() {
   const [lives, setLives] = useState(3);
   const [isNumpadOpen, setIsNumpadOpen] = useState(true);
   const [numpadHeight, setNumpadHeight] = useState(0);
+  const numpadSide = useNumpadSide();
 
   const question = questions[index];
   const progress = (index + (status === 'correct' ? 1 : 0)) * (100 / HALF_DOUBLE_RUN_LENGTH);
@@ -125,7 +126,7 @@ export function ExerciseHalfDouble() {
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div
           className="min-h-full flex flex-col items-center z-10 relative px-4"
-          style={{ paddingBottom: mode !== null && isNumpadOpen ? numpadHeight + 16 : 48 }}
+          style={numpadInset(mode !== null && isNumpadOpen, numpadSide, numpadHeight, 48)}
         >
           <ExercisePrompt className="mb-6">{mode === null ? 'Wat wil je oefenen?' : 'Vul in.'}</ExercisePrompt>
 

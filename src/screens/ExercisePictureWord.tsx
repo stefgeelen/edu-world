@@ -213,7 +213,7 @@ export function ExercisePictureWord() {
         onPointerCancel={handlePointerUp}
       >
         <ExercisePrompt>Sleep het juiste woord naar de prent.</ExercisePrompt>
-        <SpeakerButton onPlay={handlePlayAudio} label="Luister naar het woord" className="mb-5" />
+        <SpeakerButton onPlay={handlePlayAudio} label="Luister naar het woord" className="mb-5 short:mb-3" />
 
         {/* Drop zone (picture) */}
         <motion.div
@@ -223,7 +223,7 @@ export function ExercisePictureWord() {
           }}
           transition={{ duration: status === 'wrong' ? 0.4 : 0.25 }}
           className={cn(
-            'relative w-64 h-64 md:w-72 md:h-72 rounded-full overflow-hidden border-4 transition-all duration-300',
+            'relative w-64 h-64 md:w-72 md:h-72 short:w-52 short:h-52 rounded-full overflow-hidden border-4 transition-all duration-300',
             'bg-[#1c1134] shadow-[0_15px_40px_rgba(0,0,0,0.4)]',
             status === 'idle' && !hovering && 'border-[#3b2d71]',
             status === 'idle' && hovering && 'border-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.6)]',
@@ -240,7 +240,7 @@ export function ExercisePictureWord() {
         </motion.div>
 
         {/* Word cards */}
-        <div className={cn('mt-8 grid gap-3 w-full', optionCount === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+        <div className={cn('mt-8 short:mt-5 grid gap-3 w-full', optionCount === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
           {question.options.map((opt, idx) => {
             const isDragging = drag?.word === opt.word;
             const isWrong = wrongWord === opt.word;

@@ -13,7 +13,7 @@ export function ExercisePrompt({ children, className }: { children: ReactNode; c
   return (
     <h2
       className={cn(
-        'mt-6 mb-5 px-2 text-center text-xl font-black leading-snug tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:mt-8 md:text-2xl',
+        'mt-6 mb-5 px-2 text-center text-xl font-black leading-snug tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] md:mt-8 md:text-2xl short:mt-3 short:mb-3',
         className
       )}
     >

@@ -82,7 +82,7 @@ function objectLabel(obj: ObjectType, count: number): string {
 }
 
 // ── Sub-component: object grid ─────────────────────────────────────────────
-function ObjectGrid({ obj, count, highlight }: { obj: ObjectType; count: number; highlight: 'none' | 'correct' | 'incorrect' | 'winner' }) {
+function ObjectGrid({ obj, count, highlight, showCount }: { obj: ObjectType; count: number; highlight: 'none' | 'correct' | 'incorrect' | 'winner'; showCount: boolean }) {
   return (
     <div className={cn(
       'flex flex-col items-center gap-3 rounded-3xl border-2 p-4 transition-all duration-300 flex-1',
@@ -102,13 +102,18 @@ function ObjectGrid({ obj, count, highlight }: { obj: ObjectType; count: number;
           </div>
         ))}
       </div>
-      {/* Count label */}
-      <span className={cn(
-        'text-sm font-bold text-center leading-tight',
-        highlight === 'correct' || highlight === 'winner' ? 'text-emerald-300' :
-        highlight === 'incorrect' ? 'text-red-300' :
-        'text-white/50',
-      )}>
+      {/* Count label: only after answering, else it gives the answer away.
+          Its place stays reserved so the cards don't jump. */}
+      <span
+        aria-hidden={!showCount}
+        className={cn(
+          'text-sm font-bold text-center leading-tight',
+          highlight === 'correct' || highlight === 'winner' ? 'text-emerald-300' :
+          highlight === 'incorrect' ? 'text-red-300' :
+          'text-white/50',
+          !showCount && 'invisible',
+        )}
+      >
         {objectLabel(obj, count)}
       </span>
     </div>
@@ -232,12 +237,12 @@ export function ExerciseCompareObjects() {
               )}
             >
               <div className="flex gap-3 items-stretch">
-                <ObjectGrid obj={question.left} count={question.leftCount} highlight={leftHighlight} />
+                <ObjectGrid obj={question.left} count={question.leftCount} highlight={leftHighlight} showCount={status !== 'idle'} />
 
                 {/* Divider */}
                 <div className="w-0.5 flex-shrink-0 mx-1 bg-[#3b2d71] rounded-full" />
 
-                <ObjectGrid obj={question.right} count={question.rightCount} highlight={rightHighlight} />
+                <ObjectGrid obj={question.right} count={question.rightCount} highlight={rightHighlight} showCount={status !== 'idle'} />
               </div>
 
               {/* Inline feedback */}

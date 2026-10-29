@@ -9,7 +9,7 @@ import { useExerciseId } from '@/hooks/useExerciseId';
 import { ExerciseShell } from '@/components/exercise/ExerciseShell';
 import { EXPLAIN } from '@/data/exerciseExplanations';
 import { ExercisePrompt } from '@/components/exercise/ExerciseParts';
-import { ExerciseNumpad } from '@/components/exercise/ExerciseNumpad';
+import { ExerciseNumpad, useNumpadSide, numpadInset } from '@/components/exercise/ExerciseNumpad';
 import { useExerciseConfig } from '@/hooks/useExerciseConfig';
 import { DEFAULT_NUMBER_BOND } from '@/data/difficultyConfig';
 import { exerciseExitPath } from '@/routes/paths';
@@ -32,6 +32,7 @@ export function ExerciseNumberBond() {
   const [isNumpadOpen, setIsNumpadOpen] = useState(false);
   const [status, setStatus] = useState<'idle' | 'incorrect' | 'correct'>('idle');
   const [numpadHeight, setNumpadHeight] = useState(0);
+  const numpadSide = useNumpadSide();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const generateQuestion = () => {
@@ -111,7 +112,7 @@ export function ExerciseNumberBond() {
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
       <div
         className="min-h-full flex flex-col items-center z-10 relative px-4"
-        style={{ paddingBottom: isNumpadOpen ? numpadHeight + 16 : 48 }}
+        style={numpadInset(isNumpadOpen, numpadSide, numpadHeight, 48)}
       >
         <ExercisePrompt className="mb-8">Maak samen {question.target}!</ExercisePrompt>
 

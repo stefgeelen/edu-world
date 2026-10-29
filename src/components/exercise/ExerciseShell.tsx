@@ -107,7 +107,7 @@ export function ExerciseShell({ children, progress, lives, onClose, onClick, cla
 
       {/* Header */}
       {/* Tighter on a phone, so the progress bar keeps a useful width. */}
-      <div className="pt-8 md:pt-12 px-4 sm:px-6 flex items-center gap-2.5 sm:gap-4 z-10 w-full max-w-2xl mx-auto">
+      <div className="pt-8 md:pt-12 short:pt-4 px-4 sm:px-6 flex items-center gap-2.5 sm:gap-4 z-10 w-full max-w-2xl mx-auto">
         <button
           onClick={(e) => {
             e.stopPropagation();

@@ -303,14 +303,17 @@ export function ExerciseMoney() {
 
           <ExercisePrompt className="mb-0">Sleep het juiste bedrag in de kassa!</ExercisePrompt>
 
+          {/* Product and kassa: under each other, side by side on a low wide
+              screen so the wallet stays above the action bar. */}
+          <div className="grid gap-4 md:gap-6 short:grid-cols-[2fr_3fr]">
           {/* ── Product / Winkelkast ──── */}
           <motion.div
             key={`${product.name}-${priceCents}`}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#1c1134]/60 backdrop-blur-sm rounded-3xl p-6 md:p-8 border-2 border-[#3b2d71] shadow-lg flex flex-col items-center gap-2"
+            className="bg-[#1c1134]/60 backdrop-blur-sm rounded-3xl p-6 md:p-8 short:p-4 border-2 border-[#3b2d71] shadow-lg flex flex-col items-center justify-center gap-2"
           >
-            <span className="text-6xl md:text-8xl">{product.emoji}</span>
+            <span className="text-6xl md:text-8xl short:text-6xl">{product.emoji}</span>
             <p className="text-white/80 text-base md:text-lg font-semibold">{product.name}</p>
             <div className="bg-emerald-500/20 border border-emerald-400/40 rounded-2xl px-5 py-2 mt-1">
               <span className="text-2xl md:text-3xl font-black text-emerald-300">
@@ -321,6 +324,7 @@ export function ExerciseMoney() {
 
           {/* ── Kassa (Dropzone) ──── */}
           <Kassa droppedItems={droppedItems} totalCents={totalCents} priceCents={priceCents} />
+          </div>
 
           {/* ── Feedback ──── */}
           <AnimatePresence>

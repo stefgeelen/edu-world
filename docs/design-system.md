@@ -39,6 +39,10 @@ Herbruik deze stukken in plaats van ze na te bouwen:
 
 Maten: knoppen 48px hoog (`h-12`), `rounded-2xl` (16px) voor knoppen en rijen, `rounded-3xl` (24px) voor vitrines, randen `border-[3px]` (vitrine) en `border-2` (rij).
 
+Liggend scherm (iPad of gsm in landscape): de breedte-breakpoints geven zo'n scherm de grootste maten terwijl het het minst hoog is. Een oefening past zich daar aan met de variant `short:` (`tailwind.config.ts`: liggend en hoogstens 900px hoog): kleiner, of naast elkaar in plaats van onder elkaar (Geld, Klok). Alles blijft zichtbaar zonder scrollen, ook boven de `ExerciseActionBar`. Het `ExerciseNumpad` staat daar rechts naast de vraag in plaats van als sheet eronder; een scherm houdt er plaats voor met `numpadInset(...)` en `useNumpadSide()`.
+
+Goed en fout: groen en rood zijn voorbehouden aan het antwoord. Antwoordknoppen hebben zelf nooit die kleuren, en het gekozen antwoord krijgt ook een ✓ of ✗.
+
 ## Ouder en admin
 
 Grond `bg-slate-50`, kaarten `bg-white border border-slate-200 rounded-2xl p-5 shadow-sm`. Titels `text-2xl font-black text-slate-900`, uitleg `text-sm font-medium text-slate-500`. Knoppen en tabs `rounded-xl`; actieve tab en hoofdknop blauw (`bg-blue-500`/`bg-blue-600`, wit). Admin gebruikt indigo (`indigo-600`, `indigo-50`). Meldingen: amber (`bg-amber-50 border-amber-200 text-amber-800`) voor aandacht, rose (`bg-rose-50 border-rose-200 text-rose-800`) voor ernstig. Geen sterrenhemel, goud of emoji.

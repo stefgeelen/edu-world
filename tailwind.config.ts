@@ -19,6 +19,13 @@ export default {
       },
     },
     extend: {
+      // short: a wide but low screen (iPad or phone in landscape). The width
+      // breakpoints give such a screen the biggest sizes while it has the
+      // least height, so exercises scale back down with short:. Listed after
+      // the width breakpoints, so short: wins over lg:.
+      screens: {
+        short: { raw: "(orientation: landscape) and (max-height: 900px)" },
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

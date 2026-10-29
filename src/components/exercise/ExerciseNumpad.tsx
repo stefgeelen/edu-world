@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Delete, X, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,38 @@ const ROWS = [
   [7, 8, 9],
 ];
 
+/** Same screen as the `short:` variant in tailwind.config.ts. */
+const SIDE_QUERY = '(orientation: landscape) and (max-height: 900px)';
+
+/** Width of the numpad when it stands beside the question. */
+export const NUMPAD_SIDE_WIDTH = 340;
+
+/**
+ * True on a low wide screen (iPad or phone in landscape). There the numpad
+ * stands on the right, beside the question, instead of a sheet over it.
+ * A screen leaves room with `numpadInset`.
+ */
+export function useNumpadSide(): boolean {
+  const [side, setSide] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(SIDE_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia?.(SIDE_QUERY);
+    if (!mq) return;
+    const update = () => setSide(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return side;
+}
+
+/** The room a screen keeps free for an open numpad: below it, or beside it. */
+export function numpadInset(isOpen: boolean, side: boolean, height: number, closedBottom: number, gap = 16): React.CSSProperties {
+  if (!isOpen) return { paddingBottom: closedBottom };
+  return side
+    ? { paddingBottom: closedBottom, paddingRight: NUMPAD_SIDE_WIDTH + gap }
+    : { paddingBottom: height + gap };
+}
+
 function vibrate() {
   try { navigator.vibrate?.(25); } catch (_) {}
 }
@@ -45,6 +77,7 @@ export function ExerciseNumpad({
   // Keep a stable ref so the auto-submit effect never captures a stale onCheck
   const onCheckRef = useRef(onCheck);
   onCheckRef.current = onCheck;
+  const side = useNumpadSide();
 
   // Auto-submit when input reaches max length
   useEffect(() => {
@@ -65,24 +98,32 @@ export function ExerciseNumpad({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          ref={(el) => { if (el && onHeightChange) onHeightChange(el.offsetHeight); }}
-          initial={{ y: '100%', opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: '100%', opacity: 0 }}
+          key={side ? 'side' : 'sheet'}
+          ref={(el) => { if (el && onHeightChange) onHeightChange(side ? 0 : el.offsetHeight); }}
+          initial={side ? { x: '100%', opacity: 0 } : { y: '100%', opacity: 0 }}
+          animate={side ? { x: 0, opacity: 1 } : { y: 0, opacity: 1 }}
+          exit={side ? { x: '100%', opacity: 0 } : { y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-          className="absolute bottom-0 left-0 right-0 w-full bg-[#1a103c]/95 backdrop-blur-xl px-3 pt-2 pb-4 md:px-6 md:pt-3 md:pb-6 rounded-t-[2rem] md:rounded-t-[3rem] border-t-4 border-[#3b2d71] shadow-[0_-15px_50px_rgba(0,0,0,0.6)] z-50"
+          className={cn(
+            'absolute bg-[#1a103c]/95 backdrop-blur-xl z-50 border-[#3b2d71]',
+            side
+              // Below the header, so the hearts and the Buddy stay in sight.
+              ? 'top-20 bottom-0 right-0 flex flex-col justify-center px-5 py-4 rounded-tl-[2rem] border-l-4 border-t-4 shadow-[-15px_0_50px_rgba(0,0,0,0.6)]'
+              : 'bottom-0 left-0 right-0 w-full px-3 pt-2 pb-4 md:px-6 md:pt-3 md:pb-6 rounded-t-[2rem] md:rounded-t-[3rem] border-t-4 shadow-[0_-15px_50px_rgba(0,0,0,0.6)]',
+          )}
+          style={side ? { width: NUMPAD_SIDE_WIDTH } : undefined}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header: drag pill + close button */}
           <div className="flex items-center justify-between mb-2 md:mb-3">
-            <div className="w-8" />
-            <div className="w-16 h-1.5 bg-[#3b2d71] rounded-full" />
+            <div className="w-11" />
+            {side ? <div /> : <div className="w-16 h-1.5 bg-[#3b2d71] rounded-full" />}
             <button
               onClick={() => { vibrate(); onClose(); }}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-[#2d1b54] hover:bg-[#3b2d71] transition-colors"
+              className="w-11 h-11 flex items-center justify-center rounded-full bg-[#2d1b54] hover:bg-[#3b2d71] transition-colors"
               aria-label="Verberg numpad"
             >
-              <X className="w-4 h-4 text-[#9d8bce]" />
+              <X className="w-5 h-5 text-[#9d8bce]" />
             </button>
           </div>
 

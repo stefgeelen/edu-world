@@ -168,7 +168,7 @@ function ClockFace({ hourAngle, minuteAngle, onHourChange, onMinuteChange, statu
         <button
           type="button"
           onClick={() => setActiveHand('hour')}
-          className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
+          className={`min-h-11 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
             activeHand === 'hour'
               ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
               : 'bg-[#2d1b54] text-white/50 border border-[#3b2d71]'
@@ -179,7 +179,7 @@ function ClockFace({ hourAngle, minuteAngle, onHourChange, onMinuteChange, statu
         <button
           type="button"
           onClick={() => setActiveHand('minute')}
-          className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
+          className={`min-h-11 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
             activeHand === 'minute'
               ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-105'
               : 'bg-[#2d1b54] text-white/50 border border-[#3b2d71]'
@@ -327,9 +327,13 @@ export function ExerciseClock() {
 
   return (
     <ExerciseShell progress={progress} lives={lives} onClose={() => navigate(exerciseExitPath())} explain={[EXPLAIN.clock, `Zet de klok op ${task.label.replace(/^Het is /, '')}.`]}>
-      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-6 px-4 pb-6 z-10 max-w-2xl mx-auto w-full">
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center gap-6 px-4 pb-6 z-10 max-w-2xl short:max-w-4xl mx-auto w-full">
         <ExercisePrompt className="mb-0">Zet de klok juist!</ExercisePrompt>
 
+        {/* Task (and hint) above the clock; beside it on a low wide screen,
+            where the clock would else sink behind the action bar. */}
+        <div className="flex flex-col items-center gap-6 w-full short:flex-row short:justify-center short:items-center short:gap-10">
+        <div className="flex flex-col items-center gap-4 w-full max-w-md short:max-w-sm">
         {/* Task card */}
         <div className="bg-[#1c1134]/60 backdrop-blur-sm border border-[#3b2d71] rounded-2xl p-5 text-center w-full max-w-md">
           <div className="flex items-center justify-center gap-3 mb-2">
@@ -339,15 +343,6 @@ export function ExerciseClock() {
           </div>
           <p className="text-lg md:text-xl text-white/70 font-medium">{task.label}</p>
         </div>
-
-        {/* Clock */}
-        <ClockFace
-          hourAngle={hourAngle}
-          minuteAngle={minuteAngle}
-          onHourChange={setHourAngle}
-          onMinuteChange={setMinuteAngle}
-          status={status}
-        />
 
         {/* Hint */}
         {hint && status === 'incorrect' && (
@@ -359,6 +354,17 @@ export function ExerciseClock() {
             💡 {hint}
           </motion.p>
         )}
+        </div>
+
+        {/* Clock */}
+        <ClockFace
+          hourAngle={hourAngle}
+          minuteAngle={minuteAngle}
+          onHourChange={setHourAngle}
+          onMinuteChange={setMinuteAngle}
+          status={status}
+        />
+        </div>
 
       </div>
 

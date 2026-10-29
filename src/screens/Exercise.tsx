@@ -99,30 +99,35 @@ export function Exercise() {
           key={`${question.num1}${question.operator}${question.num2}`}
           initial={{ opacity: 0, scale: 0.8, rotate: -2 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          className="bg-[#1c1134]/60 backdrop-blur-sm rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-[0_20px_60px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] flex items-center justify-center min-h-[200px] md:min-h-[280px] lg:min-h-[320px] mb-8 md:mb-12 relative overflow-hidden"
+          className="bg-[#1c1134]/60 backdrop-blur-sm rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 short:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.3)] border-2 border-[#3b2d71] flex items-center justify-center min-h-[200px] md:min-h-[280px] lg:min-h-[320px] short:min-h-0 mb-8 md:mb-12 short:mb-6 relative overflow-hidden"
         >
-          <h2 className="text-6xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black text-white tracking-tight flex items-center gap-3 md:gap-6">
+          <h2 className="text-6xl md:text-8xl lg:text-9xl xl:text-[10rem] short:text-8xl font-black text-white tracking-tight flex items-center gap-3 md:gap-6">
             <span className="text-cyan-400 drop-shadow-sm">{question.num1}</span>
-            <span className="text-amber-400">{question.operator}</span>
+            {/* A real minus sign, not the hyphen the generator uses. */}
+            <span className="text-amber-400">{question.operator === '-' ? '−' : question.operator}</span>
             <span className="text-emerald-400 drop-shadow-sm">{question.num2}</span>
             <span className="text-[#9d8bce]">=</span>
-            <span className="text-[#a78bfa] border-b-4 md:border-b-8 border-dashed border-[#3b2d71] w-20 md:w-32 lg:w-40 text-center">
-              ?
+            <span className={cn(
+              'border-b-4 md:border-b-8 border-dashed w-20 md:w-32 lg:w-40 text-center',
+              status === 'correct' ? 'text-emerald-400 border-emerald-500/60' : 'text-[#a78bfa] border-[#3b2d71]',
+            )}>
+              {status === 'correct' ? selectedOption : '?'}
             </span>
           </h2>
         </motion.div>
 
         {/* Options */}
-        <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8 short:gap-4">
           {options.map((option, i) => {
             const isSelected = selectedOption === option;
             const isCorrect = status === 'correct' && isSelected;
             const isWrong = status === 'incorrect' && isSelected;
+            // No green or red here: those are kept for right and wrong.
             const COLORS = [
               'from-blue-500 to-blue-600 border-blue-700',
               'from-violet-500 to-violet-600 border-violet-700',
-              'from-teal-500 to-teal-600 border-teal-700',
-              'from-rose-500 to-rose-600 border-rose-700',
+              'from-amber-400 to-amber-500 border-amber-600',
+              'from-fuchsia-500 to-fuchsia-600 border-fuchsia-700',
             ];
             return (
               <motion.button
@@ -132,17 +137,26 @@ export function Exercise() {
                 onClick={() => handleSelect(option)}
                 disabled={status !== 'idle'}
                 className={cn(
-                  "relative h-24 md:h-28 lg:h-32 rounded-3xl text-4xl md:text-5xl lg:text-6xl font-black transition-all duration-200 flex items-center justify-center overflow-hidden shadow-lg border-b-[6px]",
+                  "relative h-24 md:h-28 lg:h-32 short:h-28 rounded-3xl text-4xl md:text-5xl lg:text-6xl short:text-5xl font-black transition-all duration-200 flex items-center justify-center overflow-hidden shadow-lg border-b-[6px]",
                   isCorrect
                     ? "bg-gradient-to-br from-green-400 to-emerald-600 border-green-700 text-white scale-105 shadow-[0_0_30px_rgba(34,197,94,0.5)]"
                     : isWrong
                     ? "bg-gradient-to-br from-rose-500 to-red-700 border-red-800 text-white shadow-[0_0_30px_rgba(225,29,72,0.5)]"
                     : `bg-gradient-to-br ${COLORS[i]} text-white`,
+                  // While one answer shows right or wrong, the others step back.
+                  status !== 'idle' && !isSelected && "opacity-40",
                   status === 'idle' && "hover:-translate-y-1 hover:border-b-[8px] hover:shadow-xl active:translate-y-0 active:border-b-[4px]",
                 )}
               >
                 <div className="absolute inset-x-0 top-0 h-1/3 bg-white/20 rounded-t-3xl pointer-events-none" />
                 <span className="relative z-10 drop-shadow-sm">{option}</span>
+                {(isCorrect || isWrong) && (
+                  <span className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/25 flex items-center justify-center">
+                    {isCorrect
+                      ? <Check className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={4} />
+                      : <X className="w-6 h-6 md:w-8 md:h-8 text-white" strokeWidth={4} />}
+                  </span>
+                )}
               </motion.button>
             );
           })}
