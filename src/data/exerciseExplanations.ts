@@ -1,3 +1,4 @@
+import { dutchNumberWord } from '@/lib/numberSense';
 import type { SpeechLine } from '@/hooks/useSpeech';
 
 /**
@@ -45,6 +46,16 @@ export const EXPLAIN = {
   tablesPick: 'Welke tafel wil je oefenen? Tik op een tafel.',
   tables: 'Reken de keersom uit en typ het antwoord. Maak je geen fout? Dan verdien je een sticker voor die tafel.',
   geometryPick: 'Wat wil je oefenen? Tik erop.',
+  numberSensePick: 'Wat wil je oefenen? Tik erop.',
+  gridFind:
+    'Dit is het honderdveld. Op de bovenste rij staan de getallen van 1 tot 10, op de rij eronder van 11 tot 20, en zo verder. Op welk getal staat het prentje? Tik op het vakje en typ het getal.',
+  listen: 'Luister goed naar het getal en typ het. Wil je het nog eens horen? Tik op de luidspreker.',
+  groupTens:
+    'Tik telkens tien stippen aan. Zo maak je een groepje van tien. Maak zoveel groepjes als je kan. Hoeveel groepjes van tien heb je? Dat zijn de tientallen. Hoeveel stippen blijven er over? Dat zijn de eenheden.',
+  placeValue:
+    'Een staafje is een tiental: dat zijn er tien. Een blokje is een eenheid: dat is er één. Tel de tientallen en de eenheden en typ het getal.',
+  gridColor:
+    'Kleur het getal op het honderdveld. Je kleurt rij per rij, van links naar rechts. Tik op het vakje van het getal, dan kleurt alles ervoor mee. Klaar? Tik op Controleer.',
   geometryName: 'Kijk goed naar de tekening. Hoe heet wat je ziet? Tik op het juiste woord.',
   geometryChoose: 'Kijk goed naar de tekeningen. Welke past bij de vraag? Tik erop.',
   geometryTap: 'Kijk goed naar de hoek. Tik in de tekening op het stuk dat ik vraag.',
@@ -142,6 +153,29 @@ export function explainHalfDouble(
   return q.kind === 'half'
     ? [EXPLAIN.half, `Wat is de helft van ${what}?`]
     : [EXPLAIN.double, `Wat is het dubbel van ${what}?`];
+}
+
+/**
+ * Getallen tot 100. Zoeken en tellen is de oefening: bij het honderdveld, de
+ * stippen en de kolommen zegt de Buddy het getal niet. Bij "Luister" wel.
+ */
+export function explainNumberSense(
+  mode: string | null,
+  q: { kind: string; number: number; thing?: { name: string } } | undefined,
+): string[] {
+  if (mode === null || !q) return [EXPLAIN.numberSensePick];
+  switch (q.kind) {
+    case 'grid-find':
+      return [EXPLAIN.gridFind, `Op welk getal staat ${q.thing?.name ?? 'het prentje'}?`];
+    case 'listen':
+      return [EXPLAIN.listen, `Het getal is ${dutchNumberWord(q.number)}.`];
+    case 'group-tens':
+      return [EXPLAIN.groupTens];
+    case 'place-value':
+      return [EXPLAIN.placeValue];
+    default:
+      return [EXPLAIN.gridColor, `Kleur ${dutchNumberWord(q.number)}.`];
+  }
 }
 
 /** "a, b of c" */

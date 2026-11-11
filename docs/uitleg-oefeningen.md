@@ -87,6 +87,14 @@ Vier soorten vragen:
 - **Uitleg dubbel:** "Het dubbel is twee keer zoveel. Typ hoeveel het er dan zijn."
 - **Vraag:** "Wat is de helft van {8} {appels}?" / "Wat is het dubbel van {4} {ballen}?"
 
+### Getallen tot 100
+- **Bij het kiezen:** "Wat wil je oefenen? Tik erop."
+- **Honderdveld:** "Dit is het honderdveld. Op de bovenste rij staan de getallen van 1 tot 10, op de rij eronder van 11 tot 20, en zo verder. Op welk getal staat het prentje? Tik op het vakje en typ het getal." Vraag: "Op welk getal staat {de ster}?" (nooit het getal zelf).
+- **Luister:** "Luister goed naar het getal en typ het. Wil je het nog eens horen? Tik op de luidspreker." Vraag: "Het getal is {zevenenveertig}." Hier mag het getal gezegd worden: horen is de oefening.
+- **Groepjes van 10:** "Tik telkens tien stippen aan. Zo maak je een groepje van tien. Maak zoveel groepjes als je kan. Hoeveel groepjes van tien heb je? Dat zijn de tientallen. Hoeveel stippen blijven er over? Dat zijn de eenheden." Geen vraag: tellen is de oefening.
+- **H T E:** "Een staafje is een tiental: dat zijn er tien. Een blokje is een eenheid: dat is er één. Tel de tientallen en de eenheden en typ het getal." Geen vraag.
+- **Kleur het getal:** "Kleur het getal op het honderdveld. Je kleurt rij per rij, van links naar rechts. Tik op het vakje van het getal, dan kleurt alles ervoor mee. Klaar? Tik op Controleer." Vraag: "Kleur {zevenenzestig}."
+
 ### Tafels
 - **Bij het kiezen:** "Welke tafel wil je oefenen? Tik op een tafel."
 - **Uitleg:** "Reken de keersom uit en typ het antwoord. Maak je geen fout? Dan verdien je een sticker voor die tafel."

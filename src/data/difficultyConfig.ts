@@ -204,6 +204,19 @@ export const DEFAULT_HALF_DOUBLE: HalfDoubleConfig = {
   maxNumber: 20,
 };
 
+// ── Getallen tot 100 (ExerciseNumberSense.tsx) ─────────────────────────────
+
+export interface NumberSenseConfig {
+  /** Highest number on the honderdveld and in the dictation (at most 100). */
+  maxNumber: number;
+  /** Most loose dots in "Groepjes van 10" (every ten is ten taps). */
+  maxDots: number;
+}
+
+export const DEFAULT_NUMBER_SENSE: NumberSenseConfig = {
+  maxNumber: 100, maxDots: 59,
+};
+
 // ── Lijnen en hoeken (ExerciseGeometryTerms.tsx) ───────────────────────────
 
 export type GeometryTopic = 'lines' | 'point-line-segment' | 'angles' | 'parallel';

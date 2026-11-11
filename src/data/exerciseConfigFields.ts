@@ -89,6 +89,12 @@ export const CONFIG_FORMS: Record<string, ConfigForm> = {
   '/exercises/half-double': {
     fields: [{ kind: 'number', key: 'maxNumber', label: 'Hoogste getal', min: 4, max: 100, hint: 'Dubbel van getallen tot de helft hiervan, helft van even getallen tot dit getal.' }],
   },
+  '/exercises/number-sense': {
+    fields: [
+      { kind: 'number', key: 'maxNumber', label: 'Hoogste getal', min: 20, max: 100, hint: 'Honderdveld, getallen horen en T/E-kolommen (die gaan tot 99).' },
+      { kind: 'number', key: 'maxDots', label: 'Meeste stippen bij groepjes van 10', min: 21, max: 99, hint: 'Elk tiental is tien tikken; meer dan 59 wordt lang.' },
+    ],
+  },
   '/exercises/geometry-terms': {
     fields: [
       { kind: 'multi', key: 'topics', label: 'Onderdelen', choices: [
