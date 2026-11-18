@@ -9,12 +9,21 @@ import heroImg from '@/assets/beta-hero.jpg';
 import leapioLogo from '@/assets/brand/leapio-logo-donker.svg';
 import { BetaSignupForm } from '@/components/beta/BetaSignupForm';
 import { SEO } from '@/components/SEO';
+import { useRegistrationOpen } from '@/hooks/useRegistrationOpen';
 
-const FAQ_ITEMS = [
-  {
+/** First FAQ answer, by the open-beta switch (Admin → Beta). */
+const WHEN_FAQ = {
+  closed: {
     q: 'Wanneer start de beta?',
     a: 'We nodigen in kleine golven uit, zodat we elk gezin goed kunnen opvolgen. Je krijgt een mailtje zodra je aan de beurt bent.',
   },
+  open: {
+    q: 'Kan ik meteen starten?',
+    a: 'Ja. De beta is open: maak gratis een account, voeg je kind toe en het kan meteen beginnen. Het is nog een beta, dus loopt er iets mis of heb je een idee, laat het ons weten via info@leapio.be.',
+  },
+};
+
+const OTHER_FAQ_ITEMS = [
   {
     q: 'Wat kost Leapio na de beta?',
     a: 'Beta-deelnemers krijgen 1 maand gratis bij de officiële lancering. Daarna start de Basis-formule vanaf €5,99/maand voor één kind, of €8,99/maand voor het Gezinsplan tot 3 kinderen.',
@@ -86,6 +95,8 @@ const STEPS = [
 
 export default function BetaLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const { open: registrationOpen } = useRegistrationOpen();
+  const FAQ_ITEMS = [registrationOpen ? WHEN_FAQ.open : WHEN_FAQ.closed, ...OTHER_FAQ_ITEMS];
   const canonical = 'https://leapio.be/beta';
 
   const jsonLd = [
@@ -146,7 +157,7 @@ export default function BetaLanding() {
           <div className="relative flex items-center justify-between mb-10 md:mb-16">
             <img src={leapioLogo} alt="Leapio" className="h-10 w-auto" />
             <span className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-xs font-bold">
-              <Clock className="w-3.5 h-3.5" /> Beta start binnenkort
+              <Clock className="w-3.5 h-3.5" /> {registrationOpen ? 'De beta is open' : 'Beta start binnenkort'}
             </span>
           </div>
 
@@ -159,7 +170,7 @@ export default function BetaLanding() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-300/40 rounded-full text-amber-200 font-bold text-sm mb-6"
               >
                 <Star className="w-4 h-4 fill-amber-300 text-amber-300" />
-                Beperkte plaatsen voor de beta
+                {registrationOpen ? 'De beta is open: start meteen' : 'Beperkte plaatsen voor de beta'}
               </motion.div>
 
               <motion.h1
@@ -180,7 +191,7 @@ export default function BetaLanding() {
               >
                 Je kind kiest een eigen Buddy en zorgt ervoor. Eten, spelen en slapen kost munten,
                 en munten verdien je met rekenen, lezen en schrijven voor het Vlaamse 1ste leerjaar.
-                Schrijf je in voor de beta en krijg <strong className="text-white">1 maand gratis</strong> bij lancering.
+                {registrationOpen ? 'Doe mee aan de beta' : 'Schrijf je in voor de beta'} en krijg <strong className="text-white">1 maand gratis</strong> bij lancering.
               </motion.p>
 
               <motion.div

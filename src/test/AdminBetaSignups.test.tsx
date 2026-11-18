@@ -18,8 +18,21 @@ vi.mock('sonner', () => ({
   },
 }));
 
+const rpcMock = vi.fn();
+const invokeMock = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: (...args: unknown[]) => fromMock(...args) },
+  supabase: {
+    from: (...args: unknown[]) => fromMock(...args),
+    rpc: (...args: unknown[]) => rpcMock(...args),
+    functions: { invoke: (...args: unknown[]) => invokeMock(...args) },
+  },
+}));
+
+// Open-beta switch (Admin → Beta). Closed by default: the waiting list.
+const registration = { open: false, isLoading: false };
+vi.mock('@/hooks/useRegistrationOpen', () => ({
+  REGISTRATION_SETTINGS_KEY: ['registration-settings'],
+  useRegistrationOpen: () => registration,
 }));
 
 import { AdminBetaSignups } from '@/screens/admin/AdminBetaSignups';
@@ -50,6 +63,10 @@ const SIGNUP_2 = {
 describe('AdminBetaSignups', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    registration.open = false;
+    registration.isLoading = false;
+    // admin_beta_open_mail_pending: nobody left by default.
+    rpcMock.mockResolvedValue({ data: 0, error: null });
   });
 
   it('shows a loading spinner while the signups are being fetched', () => {
@@ -243,6 +260,79 @@ describe('AdminBetaSignups', () => {
 
       await waitFor(() => expect(toastError).toHaveBeenCalled());
       expect(toastSuccess).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('open beta', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('opens registration after the admin confirms', async () => {
+      fromMock.mockReturnValue(fakeSupabaseChain({ data: [SIGNUP_1], error: null }));
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      renderScreen();
+      await screen.findByText('1 aanmelding');
+
+      fireEvent.click(screen.getByRole('button', { name: /Open voor iedereen/ }));
+
+      await waitFor(() => expect(rpcMock).toHaveBeenCalledWith('admin_set_registration_open', { p_open: true }));
+      await waitFor(() => expect(toastSuccess).toHaveBeenCalled());
+    });
+
+    it('changes nothing when the admin cancels', async () => {
+      fromMock.mockReturnValue(fakeSupabaseChain({ data: [SIGNUP_1], error: null }));
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
+      renderScreen();
+      await screen.findByText('1 aanmelding');
+
+      fireEvent.click(screen.getByRole('button', { name: /Open voor iedereen/ }));
+
+      expect(rpcMock).not.toHaveBeenCalledWith('admin_set_registration_open', expect.anything());
+    });
+
+    it('cannot send the open-beta mail while registration is closed', async () => {
+      fromMock.mockReturnValue(fakeSupabaseChain({ data: [SIGNUP_1], error: null }));
+      rpcMock.mockResolvedValue({ data: 3, error: null });
+      renderScreen();
+      await screen.findByText('Zet eerst de registratie open.');
+
+      expect(screen.getByRole('button', { name: 'Mail versturen' })).toBeDisabled();
+    });
+
+    it('sends the mail in batches until nobody is left', async () => {
+      registration.open = true;
+      fromMock.mockReturnValue(fakeSupabaseChain({ data: [SIGNUP_1], error: null }));
+      rpcMock.mockResolvedValue({ data: 70, error: null });
+      invokeMock
+        .mockResolvedValueOnce({ data: { sent: 50, remaining: 20, stopped: null }, error: null })
+        .mockResolvedValueOnce({ data: { sent: 20, remaining: 0, stopped: null }, error: null });
+      renderScreen();
+      await screen.findByText('70 adressen krijgen deze mail.');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Mail versturen' }));
+      await screen.findByRole('alertdialog');
+      fireEvent.click(screen.getByRole('button', { name: 'Versturen' }));
+
+      await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('70 mails verstuurd.'));
+      expect(invokeMock).toHaveBeenCalledTimes(2);
+      expect(invokeMock).toHaveBeenCalledWith('beta-open-announcement', { body: { limit: 50 } });
+    });
+
+    it('stops and says how many went out when Brevo refuses', async () => {
+      registration.open = true;
+      fromMock.mockReturnValue(fakeSupabaseChain({ data: [SIGNUP_1], error: null }));
+      rpcMock.mockResolvedValue({ data: 70, error: null });
+      invokeMock.mockResolvedValueOnce({ data: { sent: 12, remaining: 58, stopped: 'brevo' }, error: null });
+      renderScreen();
+      await screen.findByText('70 adressen krijgen deze mail.');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Mail versturen' }));
+      await screen.findByRole('alertdialog');
+      fireEvent.click(screen.getByRole('button', { name: 'Versturen' }));
+
+      await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringContaining('na 12 mails')));
+      expect(invokeMock).toHaveBeenCalledTimes(1);
     });
   });
 });

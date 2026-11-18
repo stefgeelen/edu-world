@@ -24,6 +24,13 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
+// Open-beta switch (Admin → Beta). Closed by default: the waiting list.
+const registration = { open: false, isLoading: false };
+vi.mock('@/hooks/useRegistrationOpen', () => ({
+  REGISTRATION_SETTINGS_KEY: ['registration-settings'],
+  useRegistrationOpen: () => registration,
+}));
+
 import { BetaSignupForm } from '@/components/beta/BetaSignupForm';
 
 function submit(email: string) {
@@ -35,6 +42,8 @@ function submit(email: string) {
 describe('BetaSignupForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    registration.open = false;
+    registration.isLoading = false;
     invokeMock.mockResolvedValue({ data: { sent: true }, error: null });
   });
 
@@ -76,5 +85,23 @@ describe('BetaSignupForm', () => {
 
     await waitFor(() => expect(toastError).toHaveBeenCalled());
     expect(invokeMock).not.toHaveBeenCalled();
+  });
+
+  it('shows "Gratis starten" instead of the form when registration is open', () => {
+    registration.open = true;
+    render(<MemoryRouter><BetaSignupForm source="hero" /></MemoryRouter>);
+
+    expect(screen.queryByLabelText('E-mailadres')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Gratis starten/ })).toHaveAttribute('href', '/toegang?registreren');
+    expect(screen.getByRole('link', { name: 'Inloggen' })).toHaveAttribute('href', '/toegang');
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it('shows neither form nor button while the switch is loading', () => {
+    registration.isLoading = true;
+    render(<MemoryRouter><BetaSignupForm source="hero" /></MemoryRouter>);
+
+    expect(screen.queryByLabelText('E-mailadres')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Gratis starten/ })).not.toBeInTheDocument();
   });
 });

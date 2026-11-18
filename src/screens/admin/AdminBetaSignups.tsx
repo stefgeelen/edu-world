@@ -1,9 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Mail, Loader2, UserPlus, Trash2 } from 'lucide-react';
+import { Download, Mail, Loader2, UserPlus, Trash2, Lock, Globe, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { campaignOf } from '@/lib/signupSource';
+import { cn } from '@/lib/utils';
+import { mapDbError } from '@/lib/errorMessages';
+import { REGISTRATION_SETTINGS_KEY, useRegistrationOpen } from '@/hooks/useRegistrationOpen';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -59,6 +62,201 @@ async function removeBetaSignup(id: string): Promise<void> {
   const { data, error } = await supabase.from('beta_signups').delete().eq('id', id).select('id');
   if (error) throw error;
   if (!data || data.length === 0) throw new Error('Not deleted');
+}
+
+/**
+ * Open beta (registration_settings.open). Open: anyone can create an account
+ * and the website shows "Gratis starten". Closed: only the waiting list.
+ */
+function RegistrationSwitch() {
+  const queryClient = useQueryClient();
+  const { open, isLoading } = useRegistrationOpen();
+
+  const setOpen = useMutation({
+    mutationFn: async (next: boolean) => {
+      const { error } = await supabase.rpc('admin_set_registration_open', { p_open: next });
+      if (error) throw error;
+    },
+    onSuccess: (_data, next) => {
+      queryClient.invalidateQueries({ queryKey: REGISTRATION_SETTINGS_KEY });
+      queryClient.invalidateQueries({ queryKey: ['admin-beta-open-mail-pending'] });
+      toast.success(next ? 'Registratie staat open: iedereen kan een account maken.' : 'Registratie is dicht: enkel de wachtlijst kan een account maken.');
+    },
+    onError: (e) => toast.error(mapDbError(e)),
+  });
+
+  const busy = isLoading || setOpen.isPending;
+  return (
+    <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 space-y-3" aria-label="Registratie">
+      <div>
+        <h3 className="font-black text-slate-900">Registratie</h3>
+        <p className="text-slate-500 text-sm">
+          {open
+            ? 'Iedereen kan een account maken. De website toont "Gratis starten" in plaats van het wachtlijstformulier.'
+            : 'Enkel wie op de wachtlijst staat, kan een account maken. De website toont het wachtlijstformulier.'}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => {
+            if (open && !window.confirm('Registratie sluiten? Nieuwe ouders komen dan weer op de wachtlijst. Bestaande accounts blijven werken.')) return;
+            setOpen.mutate(false);
+          }}
+          disabled={busy || !open}
+          aria-pressed={!open}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border transition-colors',
+            !open ? 'bg-slate-700 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+          )}
+        >
+          <Lock className="w-4 h-4" />
+          Enkel wachtlijst
+        </button>
+        <button
+          onClick={() => {
+            if (!open && !window.confirm('Registratie openzetten? Iedereen kan dan een account maken, zonder dat jij toegang geeft.')) return;
+            setOpen.mutate(true);
+          }}
+          disabled={busy || open}
+          aria-pressed={open}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold border transition-colors',
+            open ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+          )}
+        >
+          <Globe className="w-4 h-4" />
+          Open voor iedereen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const OPEN_MAIL_BATCH = 50;
+
+interface OpenMailResult {
+  sent: number;
+  remaining: number;
+}
+
+/** Sends the open-beta mail in batches until nobody is left, or a batch fails. */
+async function sendOpenBetaMail(onProgress: (sent: number) => void): Promise<OpenMailResult> {
+  let sent = 0;
+  for (;;) {
+    const { data, error } = await supabase.functions.invoke('beta-open-announcement', {
+      body: { limit: OPEN_MAIL_BATCH },
+    });
+    if (error) throw Object.assign(new Error('Mail failed'), { sent });
+    const batchSent = typeof data?.sent === 'number' ? data.sent : 0;
+    sent += batchSent;
+    onProgress(sent);
+    // The function answers 200 with `stopped` when Brevo refused a mail (e.g.
+    // the daily limit): what was sent before that counts, the rest stays.
+    if (data?.stopped) throw Object.assign(new Error('Mail stopped'), { sent });
+    const remaining = typeof data?.remaining === 'number' ? data.remaining : 0;
+    if (remaining === 0 || batchSent === 0) return { sent, remaining };
+  }
+}
+
+/**
+ * One mail "De beta is open" to everyone on the waiting list who has no
+ * account yet. Each address gets it at most once (beta_signups.open_mail_sent_at).
+ */
+function OpenBetaMail() {
+  const queryClient = useQueryClient();
+  const { open } = useRegistrationOpen();
+  const { data: pending, isLoading } = useQuery({
+    queryKey: ['admin-beta-open-mail-pending'],
+    queryFn: async (): Promise<number> => {
+      const { data, error } = await supabase.rpc('admin_beta_open_mail_pending');
+      if (error) throw error;
+      return data ?? 0;
+    },
+  });
+  const [confirming, setConfirming] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const send = useMutation({
+    mutationFn: () => {
+      setProgress(0);
+      return sendOpenBetaMail(setProgress);
+    },
+    onSuccess: ({ sent, remaining }) => {
+      setConfirming(false);
+      queryClient.invalidateQueries({ queryKey: ['admin-beta-open-mail-pending'] });
+      toast.success(
+        remaining > 0
+          ? `${sent} mails verstuurd. Nog ${remaining} te gaan: probeer later opnieuw.`
+          : `${sent} ${sent === 1 ? 'mail' : 'mails'} verstuurd.`
+      );
+    },
+    onError: (e: Error & { sent?: number }) => {
+      setConfirming(false);
+      queryClient.invalidateQueries({ queryKey: ['admin-beta-open-mail-pending'] });
+      toast.error(
+        `Versturen is gestopt na ${e.sent ?? 0} mails. Probeer later opnieuw; wie al een mail kreeg, krijgt geen tweede.`
+      );
+    },
+  });
+
+  const count = pending ?? 0;
+  return (
+    <div className="bg-white rounded-2xl border-2 border-slate-100 p-4 space-y-3" aria-label="Mail: de beta is open">
+      <div>
+        <h3 className="font-black text-slate-900">Mail: de beta is open</h3>
+        <p className="text-slate-500 text-sm">
+          Eén mail aan iedereen op de wachtlijst die nog geen account heeft, met een link om een account te maken.
+          Elk adres krijgt hem hoogstens één keer.
+        </p>
+      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <button
+          onClick={() => setConfirming(true)}
+          disabled={!open || isLoading || count === 0 || send.isPending}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
+        >
+          {send.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          {send.isPending ? `Versturen... (${progress})` : 'Mail versturen'}
+        </button>
+        <p className="text-sm text-slate-600">
+          {isLoading
+            ? 'Tellen...'
+            : !open
+              ? 'Zet eerst de registratie open.'
+              : count === 0
+                ? 'Iedereen op de lijst kreeg de mail al of heeft een account.'
+                : `${count} ${count === 1 ? 'adres krijgt' : 'adressen krijgen'} deze mail.`}
+        </p>
+      </div>
+
+      <AlertDialog open={confirming} onOpenChange={(o) => { if (!o && !send.isPending) setConfirming(false); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mail naar de wachtlijst sturen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {count} {count === 1 ? 'adres krijgt' : 'adressen krijgen'} de mail "De beta van Leapio is open". Je kan dit niet terugdraaien.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={send.isPending}>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={send.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                send.mutate();
+              }}
+            >
+              {send.isPending ? (
+                <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Versturen... ({progress})</>
+              ) : (
+                <><Send className="w-4 h-4 mr-1.5" /> Versturen</>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -163,6 +361,9 @@ export function AdminBetaSignups() {
         </button>
       </div>
 
+      <RegistrationSwitch />
+      <OpenBetaMail />
+
       <form
         onSubmit={handleGrant}
         className="bg-white rounded-2xl border-2 border-slate-100 p-4 space-y-3"
@@ -171,7 +372,7 @@ export function AdminBetaSignups() {
         <div>
           <h3 className="font-black text-slate-900">Toegang geven</h3>
           <p className="text-slate-500 text-sm">
-            Tijdens de beta kan enkel wie op deze lijst staat een account maken. Zet hier een e-mailadres op de lijst.
+            Zolang de registratie dicht is, kan enkel wie op deze lijst staat een account maken. Zet hier een e-mailadres op de lijst.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">

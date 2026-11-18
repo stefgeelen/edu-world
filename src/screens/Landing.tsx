@@ -8,6 +8,8 @@ import type { LucideIcon } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 import { BetaSignupForm } from '@/components/beta/BetaSignupForm';
 import { cn } from '@/lib/utils';
+import { useRegistrationOpen } from '@/hooks/useRegistrationOpen';
+import { LOGIN_PATH, SIGNUP_PATH } from '@/routes/paths';
 import nootje from '@/assets/landing/nootje.png';
 import vosje from '@/assets/landing/vosje.png';
 import prikkel from '@/assets/landing/prikkel.png';
@@ -94,6 +96,8 @@ function Logo() {
 
 export function Landing() {
   const canonical = 'https://leapio.be/';
+  // Open beta (Admin → Beta): straight to an account instead of the waiting list.
+  const { open: registrationOpen } = useRegistrationOpen();
 
   return (
     <main id="top" className="overflow-hidden bg-lp-cream font-lp-body text-lp-night [&_h1]:font-lp-display [&_h2]:font-lp-display [&_h3]:font-lp-display">
@@ -137,9 +141,20 @@ export function Landing() {
               <Instagram className="h-5 w-5" aria-hidden="true" />
               <span className="hidden sm:inline">Volg ons</span>
             </a>
-            <a href="#beta" className={cn(GOLD_BUTTON, 'h-10 shrink-0 px-4 text-sm sm:px-5')}>
-              Naar de beta
-            </a>
+            {registrationOpen ? (
+              <>
+                <Link to={LOGIN_PATH} className="shrink-0 px-1 text-sm font-bold text-lp-cream/80 transition-colors hover:text-lp-gold">
+                  Inloggen
+                </Link>
+                <Link to={SIGNUP_PATH} className={cn(GOLD_BUTTON, 'h-10 shrink-0 px-4 text-sm sm:px-5')}>
+                  Gratis starten
+                </Link>
+              </>
+            ) : (
+              <a href="#beta" className={cn(GOLD_BUTTON, 'h-10 shrink-0 px-4 text-sm sm:px-5')}>
+                Naar de beta
+              </a>
+            )}
           </div>
         </nav>
 
@@ -155,10 +170,21 @@ export function Landing() {
               Je kind oefent rekenen, lezen en schrijven, verdient Munten en zorgt daarmee voor een eigen Buddy die elke dag wacht.
             </p>
             <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:justify-center sm:gap-4 lg:justify-start">
-              <a href="#beta" className={cn(GOLD_BUTTON, 'h-14 px-7 text-base sm:h-16 sm:px-9 sm:text-lg')}>
-                Schrijf me in voor de beta <ArrowRight className="h-4 w-4" />
-              </a>
-              <span className="text-sm font-semibold text-lp-cream/60">Gratis inschrijven · geen account nodig</span>
+              {registrationOpen ? (
+                <>
+                  <Link to={SIGNUP_PATH} className={cn(GOLD_BUTTON, 'h-14 px-7 text-base sm:h-16 sm:px-9 sm:text-lg')}>
+                    Gratis starten <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <span className="text-sm font-semibold text-lp-cream/60">Gratis tijdens de beta · meteen beginnen</span>
+                </>
+              ) : (
+                <>
+                  <a href="#beta" className={cn(GOLD_BUTTON, 'h-14 px-7 text-base sm:h-16 sm:px-9 sm:text-lg')}>
+                    Schrijf me in voor de beta <ArrowRight className="h-4 w-4" />
+                  </a>
+                  <span className="text-sm font-semibold text-lp-cream/60">Gratis inschrijven · geen account nodig</span>
+                </>
+              )}
             </div>
             <a
               href={INSTAGRAM_URL}
@@ -521,10 +547,12 @@ export function Landing() {
             loading="lazy"
             className="mx-auto mb-4 w-36 drop-shadow-xl motion-safe:animate-lp-float"
           />
-          <p className="font-bold uppercase text-lp-gold">Beta start binnenkort</p>
+          <p className="font-bold uppercase text-lp-gold">{registrationOpen ? 'De beta is open' : 'Beta start binnenkort'}</p>
           <h2 className="mt-3 text-4xl font-extrabold sm:text-6xl">Klaar om leren anders te laten voelen?</h2>
           <p className="mx-auto mt-5 max-w-xl text-lg text-lp-cream/70">
-            We laten gezinnen in golven toe. Schrijf je gratis in en we nemen contact op zodra er een plek vrij is.
+            {registrationOpen
+              ? 'Maak gratis een account, voeg je kind toe en laat het zijn eigen Buddy kiezen. Het kan meteen beginnen.'
+              : 'We laten gezinnen in golven toe. Schrijf je gratis in en we nemen contact op zodra er een plek vrij is.'}
           </p>
           <div className="mx-auto mt-9 max-w-lg text-left">
             <BetaSignupForm variant="inline" source="landing" />

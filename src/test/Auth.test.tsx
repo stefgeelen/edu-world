@@ -29,6 +29,13 @@ vi.mock('sonner', () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 
+// Open-beta switch (Admin → Beta). Closed by default: the waiting list.
+const registration = { open: false, isLoading: false };
+vi.mock('@/hooks/useRegistrationOpen', () => ({
+  REGISTRATION_SETTINGS_KEY: ['registration-settings'],
+  useRegistrationOpen: () => registration,
+}));
+
 function renderAuth() {
   return render(
     <MemoryRouter>
@@ -52,6 +59,8 @@ describe('Auth screen', () => {
   afterEach(() => {
     vi.clearAllMocks();
     currentUser = null;
+    registration.open = false;
+    registration.isLoading = false;
   });
 
   it('disables submit until email and password are both valid (login mode)', () => {
@@ -221,5 +230,27 @@ describe('Auth screen', () => {
       expect(screen.getByPlaceholderText('Wachtwoord')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Registreren' })).toBeInTheDocument();
     });
+  });
+
+  it('opens on the Registreren tab from the "Gratis starten" link', () => {
+    render(
+      <MemoryRouter initialEntries={['/toegang?registreren']}>
+        <Auth />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('Maak een account aan')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Volledige naam')).toBeInTheDocument();
+  });
+
+  it('mentions the waiting list at signup only while registration is closed', () => {
+    const { unmount } = renderAuth();
+    fireEvent.click(screen.getByRole('button', { name: 'Registreren' }));
+    expect(screen.getByText(/Tijdens de beta maak je een account/)).toBeInTheDocument();
+    unmount();
+
+    registration.open = true;
+    renderAuth();
+    fireEvent.click(screen.getByRole('button', { name: 'Registreren' }));
+    expect(screen.queryByText(/Tijdens de beta maak je een account/)).not.toBeInTheDocument();
   });
 });

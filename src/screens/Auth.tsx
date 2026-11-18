@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { isPasswordValid, validatePassword, PASSWORD_MIN_LENGTH } from '@/lib/passwordValidation';
+import { useRegistrationOpen } from '@/hooks/useRegistrationOpen';
 
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
@@ -27,7 +28,12 @@ const INPUT = 'flex-1 min-w-0 bg-transparent text-white font-bold placeholder:te
 export function Auth() {
   const navigate = useNavigate();
   const { signIn, signUp, signInWithOAuth, resetPasswordForEmail, user } = useAuth();
-  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [searchParams] = useSearchParams();
+  const { open: registrationOpen, isLoading: registrationLoading } = useRegistrationOpen();
+  // "Gratis starten" on the site and the open-beta mail link to ?registreren.
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(
+    searchParams.has('registreren') ? 'signup' : 'login'
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -307,7 +313,7 @@ export function Auth() {
           )}
         </button>
 
-        {mode === 'signup' && (
+        {mode === 'signup' && !registrationOpen && !registrationLoading && (
           <p className="text-center text-xs text-[#9d8bce]">
             Tijdens de beta maak je een account met het e-mailadres van de{' '}
             <Link to="/beta" className="font-bold text-amber-300 hover:text-amber-200">wachtlijst</Link>.

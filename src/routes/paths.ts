@@ -22,10 +22,14 @@ export const APP_PATHS = {
 } as const;
 
 /**
- * The login screen. Not linked from the public site (beta): only people who
- * know it find it. Old `/auth` links go to the landing page.
+ * The login screen. Old `/auth` links go to the landing page. While
+ * registration is closed (Admin → Beta) the site does not link it; when open,
+ * the site links it as "Inloggen" and "Gratis starten" (SIGNUP_PATH).
  */
 export const LOGIN_PATH = '/toegang';
+
+/** The login screen, opened on the "Registreren" tab. */
+export const SIGNUP_PATH = `${LOGIN_PATH}?registreren`;
 
 /** The screens an exercise can be started from, and so returns to. */
 export type ExerciseOrigin = typeof APP_PATHS.dashboard | typeof APP_PATHS.practice;

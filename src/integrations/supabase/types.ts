@@ -83,6 +83,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          open_mail_sent_at: string | null
           source: string | null
           user_agent: string | null
         }
@@ -93,6 +94,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          open_mail_sent_at?: string | null
           source?: string | null
           user_agent?: string | null
         }
@@ -103,6 +105,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          open_mail_sent_at?: string | null
           source?: string | null
           user_agent?: string | null
         }
@@ -782,6 +785,24 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_settings: {
+        Row: {
+          id: boolean
+          open: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          open?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          open?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rewards: {
         Row: {
           child_id: string
@@ -940,6 +961,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _beta_open_mail_pending_rows: {
+        Args: never
+        Returns: {
+          child_grade: string | null
+          confirmation_sent_at: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          open_mail_sent_at: string | null
+          source: string | null
+          user_agent: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "beta_signups"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       _buddy_display_name: { Args: { p_species: string }; Returns: string }
       _buddy_ensure_row: {
         Args: { p_child_id: string; p_parent_id: string }
@@ -991,6 +1032,10 @@ export type Database = {
         Returns: boolean
       }
       _can_see_exercise: { Args: { p_admin_only: boolean }; Returns: boolean }
+      _child_open_times_tables: {
+        Args: { p_child: Database["public"]["Tables"]["children"]["Row"] }
+        Returns: Record<string, unknown>
+      }
       _child_practice_options: {
         Args: { p_child_id: string }
         Returns: {
@@ -1004,6 +1049,10 @@ export type Database = {
           type_key: string
         }[]
       }
+      _child_reading_theme: {
+        Args: { p_child: Database["public"]["Tables"]["children"]["Row"] }
+        Returns: number
+      }
       _child_review_options: {
         Args: { p_child_id: string }
         Returns: {
@@ -1015,6 +1064,14 @@ export type Database = {
           subject: Database["public"]["Enums"]["subject_type"]
           title: string
           type_key: string
+        }[]
+      }
+      _claim_beta_open_mail_batch: {
+        Args: { p_limit: number }
+        Returns: {
+          email: string
+          full_name: string
+          id: string
         }[]
       }
       _complete_exercise_core: {
@@ -1033,6 +1090,11 @@ export type Database = {
       _push_cron_active: { Args: never; Returns: boolean }
       _push_cron_secret: { Args: never; Returns: string }
       _push_in_window: { Args: { p_at: string }; Returns: boolean }
+      _school_year_key: {
+        Args: { p_day: number; p_month: number }
+        Returns: number
+      }
+      admin_beta_open_mail_pending: { Args: never; Returns: number }
       admin_engagement_stats: { Args: never; Returns: Json }
       admin_push_stats: { Args: never; Returns: Json }
       admin_set_kindergarten_mode: {
@@ -1040,6 +1102,10 @@ export type Database = {
         Returns: undefined
       }
       admin_set_push_mode: { Args: { p_mode: string }; Returns: undefined }
+      admin_set_registration_open: {
+        Args: { p_open: boolean }
+        Returns: undefined
+      }
       admin_set_subscription: {
         Args: {
           p_plan: Database["public"]["Enums"]["subscription_plan"]
@@ -1208,7 +1274,6 @@ export type Database = {
       practice_menu: { Args: { p_child_id: string }; Returns: Json }
       practice_munten_for: { Args: { p_nth: number }; Returns: number }
       practice_wish_bonus: { Args: never; Returns: number }
-      reading_theme_for_date: { Args: { p_day: string }; Returns: number }
       push_claim_due: {
         Args: never
         Returns: {
@@ -1255,6 +1320,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      reading_theme_for_date: { Args: { p_day: string }; Returns: number }
       record_incomplete_exercise: {
         Args: {
           p_child_id: string
@@ -1269,6 +1335,7 @@ export type Database = {
         Args: { p_child_id: string; p_mistakes: number; p_table_number: number }
         Returns: undefined
       }
+      registration_is_open: { Args: never; Returns: boolean }
       remove_push_subscription: {
         Args: { p_endpoint: string }
         Returns: undefined
@@ -1290,6 +1357,15 @@ export type Database = {
       sync_paused_children: {
         Args: { p_parent_id: string }
         Returns: undefined
+      }
+      times_table_schedule: {
+        Args: never
+        Returns: {
+          from_day: number
+          from_month: number
+          kind: string
+          table_number: number
+        }[]
       }
       touch_activity: {
         Args: { p_child_id?: string; p_standalone?: boolean }

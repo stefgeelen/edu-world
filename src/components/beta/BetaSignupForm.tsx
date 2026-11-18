@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { signupSource } from '@/lib/signupSource';
+import { useRegistrationOpen } from '@/hooks/useRegistrationOpen';
+import { LOGIN_PATH, SIGNUP_PATH } from '@/routes/paths';
 
 const schema = z.object({
   email: z.string().trim().email({ message: 'Vul een geldig e-mailadres in' }).max(255),
@@ -23,7 +25,43 @@ interface Props {
   source?: string;
 }
 
-export function BetaSignupForm({ variant = 'hero', source }: Props) {
+/**
+ * Registration open (Admin → Beta): no waiting list, straight to an account.
+ * Closed: the waiting-list form below. While the switch loads, an empty block
+ * of about the same height, so the page does not jump.
+ */
+export function BetaSignupForm(props: Props) {
+  const { open, isLoading } = useRegistrationOpen();
+  const isInline = props.variant === 'inline';
+  if (isLoading) return <div className="min-h-[140px]" aria-hidden="true" />;
+  if (open) return <StartNowCard inline={isInline} />;
+  return <WaitingListForm {...props} />;
+}
+
+function StartNowCard({ inline }: { inline: boolean }) {
+  return (
+    <div
+      className={cn(
+        'rounded-3xl p-5 md:p-6 shadow-xl border-2 text-center',
+        inline ? 'bg-white/10 border-white/20 backdrop-blur' : 'bg-white/95 backdrop-blur border-amber-200'
+      )}
+    >
+      <Link
+        to={SIGNUP_PATH}
+        className="w-full h-14 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-lg shadow-amber-500/30 active:scale-[0.98] border-b-4 border-amber-700 active:border-b-0 active:translate-y-1 transition-all"
+      >
+        Gratis starten
+        <ArrowRight className="w-5 h-5" strokeWidth={3} />
+      </Link>
+      <p className={cn('mt-3 text-sm', inline ? 'text-white/70' : 'text-slate-500')}>
+        Al een account?{' '}
+        <Link to={LOGIN_PATH} className="font-bold underline underline-offset-2">Inloggen</Link>
+      </p>
+    </div>
+  );
+}
+
+function WaitingListForm({ variant = 'hero', source }: Props) {
   const [success, setSuccess] = useState(false);
   const {
     register,
