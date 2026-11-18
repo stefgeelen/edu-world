@@ -97,7 +97,9 @@ function Logo() {
 export function Landing() {
   const canonical = 'https://leapio.be/';
   // Open beta (Admin → Beta): straight to an account instead of the waiting list.
-  const { open: registrationOpen } = useRegistrationOpen();
+  // While it loads, the buttons keep their place but stay invisible, so a
+  // visitor never sees the waiting-list text flash before "Gratis starten".
+  const { open: registrationOpen, isLoading: registrationLoading } = useRegistrationOpen();
 
   return (
     <main id="top" className="overflow-hidden bg-lp-cream font-lp-body text-lp-night [&_h1]:font-lp-display [&_h2]:font-lp-display [&_h3]:font-lp-display">
@@ -121,7 +123,7 @@ export function Landing() {
 
         <nav className="relative z-20 mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-5 sm:flex sm:justify-between sm:px-8 lg:px-12">
           <Logo />
-          <div className="hidden items-center gap-8 text-sm font-semibold text-lp-cream/80 md:flex">
+          <div className="hidden items-center gap-8 whitespace-nowrap text-sm font-semibold text-lp-cream/80 xl:flex">
             <a href="#zo-werkt-het" className="transition-colors hover:text-lp-gold">Zo werkt het</a>
             <a href="#buddies" className="transition-colors hover:text-lp-gold">De Buddy’s</a>
             <a href="#zelfstandig" className="transition-colors hover:text-lp-gold">Zelfstandig oefenen</a>
@@ -141,6 +143,7 @@ export function Landing() {
               <Instagram className="h-5 w-5" aria-hidden="true" />
               <span className="hidden sm:inline">Volg ons</span>
             </a>
+            <div className={cn('flex items-center gap-2 sm:gap-3', registrationLoading && 'invisible')}>
             {registrationOpen ? (
               <>
                 <Link to={LOGIN_PATH} className="shrink-0 px-1 text-sm font-bold text-lp-cream/80 transition-colors hover:text-lp-gold">
@@ -155,6 +158,7 @@ export function Landing() {
                 Naar de beta
               </a>
             )}
+            </div>
           </div>
         </nav>
 
@@ -169,7 +173,7 @@ export function Landing() {
             <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-lp-cream/80 sm:mt-6 sm:text-xl lg:mx-0">
               Je kind oefent rekenen, lezen en schrijven, verdient Munten en zorgt daarmee voor een eigen Buddy die elke dag wacht.
             </p>
-            <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:justify-center sm:gap-4 lg:justify-start">
+            <div className={cn('mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:justify-center sm:gap-4 lg:justify-start', registrationLoading && 'invisible')}>
               {registrationOpen ? (
                 <>
                   <Link to={SIGNUP_PATH} className={cn(GOLD_BUTTON, 'h-14 px-7 text-base sm:h-16 sm:px-9 sm:text-lg')}>
