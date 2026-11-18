@@ -11,6 +11,10 @@ import { requireUser } from '../_shared/requireUser.ts';
 // and never when it already has an account. When Brevo refuses a mail (e.g.
 // its daily limit), that row and the rest of the batch are released and the
 // call answers `stopped`, so the admin can try again later.
+//
+// With `testEmail` in the body it sends the same mail to that one address
+// only ("[Test]" in the subject), whatever the switch says, and records
+// nothing: for checking the mail before the real send.
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -110,6 +114,33 @@ function htmlBody(fullName: string | null): string {
 </html>`;
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** One mail through Brevo; true when Brevo accepted it. */
+async function sendMail(apiKey: string, email: string, fullName: string | null, subject = SUBJECT, tag = 'beta-open'): Promise<boolean> {
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': apiKey, 'Content-Type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'Leapio', email: SENDER_EMAIL },
+        to: [{ email }],
+        replyTo: { email: 'info@leapio.be' },
+        subject,
+        htmlContent: htmlBody(fullName),
+        textContent: textBody(fullName),
+        tags: [tag],
+      }),
+      signal: AbortSignal.timeout(BREVO_TIMEOUT_MS),
+    });
+    if (!res.ok) console.error('brevo send failed', res.status, await res.text());
+    return res.ok;
+  } catch (e) {
+    console.error('brevo send error', (e as Error).message);
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
@@ -135,16 +166,23 @@ Deno.serve(async (req) => {
     if (roleErr) throw roleErr;
     if (!roleRow) return json({ error: 'Forbidden' }, 403);
 
-    const { data: isOpen, error: openErr } = await admin.rpc('registration_is_open');
-    if (openErr) throw openErr;
-    if (isOpen !== true) return json({ error: 'Registration is closed' }, 409);
-
     let body: any = {};
     try {
       body = await req.json();
     } catch {
       // No body: default batch size.
     }
+
+    if (body?.testEmail !== undefined) {
+      const testEmail = typeof body.testEmail === 'string' ? body.testEmail.trim().toLowerCase() : '';
+      if (!EMAIL_PATTERN.test(testEmail) || testEmail.length > 255) return json({ error: 'Invalid email' }, 400);
+      const ok = await sendMail(BREVO_API_KEY, testEmail, null, `[Test] ${SUBJECT}`, 'beta-open-test');
+      return ok ? json({ sent: 1, test: true }) : json({ error: 'Mail could not be sent' }, 502);
+    }
+
+    const { data: isOpen, error: openErr } = await admin.rpc('registration_is_open');
+    if (openErr) throw openErr;
+    if (isOpen !== true) return json({ error: 'Registration is closed' }, 409);
     const limit = Number.isInteger(body?.limit) ? Math.min(Math.max(body.limit, 1), 100) : DEFAULT_BATCH;
 
     const { data: rows, error: claimErr } = await admin.rpc('_claim_beta_open_mail_batch', { p_limit: limit });
@@ -155,27 +193,7 @@ Deno.serve(async (req) => {
     let stopped: string | null = null;
     for (let i = 0; i < batch.length; i++) {
       const row = batch[i];
-      let ok = false;
-      try {
-        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-          method: 'POST',
-          headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json', accept: 'application/json' },
-          body: JSON.stringify({
-            sender: { name: 'Leapio', email: SENDER_EMAIL },
-            to: [{ email: row.email }],
-            replyTo: { email: 'info@leapio.be' },
-            subject: SUBJECT,
-            htmlContent: htmlBody(row.full_name),
-            textContent: textBody(row.full_name),
-            tags: ['beta-open'],
-          }),
-          signal: AbortSignal.timeout(BREVO_TIMEOUT_MS),
-        });
-        ok = res.ok;
-        if (!ok) console.error('brevo send failed', res.status, await res.text());
-      } catch (e) {
-        console.error('brevo send error', (e as Error).message);
-      }
+      const ok = await sendMail(BREVO_API_KEY, row.email, row.full_name);
 
       if (!ok) {
         // Release this row and the rest of the batch, so a later try sends them.

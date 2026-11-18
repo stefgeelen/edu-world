@@ -334,5 +334,19 @@ describe('AdminBetaSignups', () => {
       await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringContaining('na 12 mails')));
       expect(invokeMock).toHaveBeenCalledTimes(1);
     });
+
+    it('sends a test mail to one address only', async () => {
+      fromMock.mockReturnValue(fakeSupabaseChain({ data: [SIGNUP_1], error: null }));
+      invokeMock.mockResolvedValueOnce({ data: { sent: 1, test: true }, error: null });
+      renderScreen();
+      await screen.findByText('1 aanmelding');
+
+      fireEvent.change(screen.getByLabelText('Adres voor de testmail'), { target: { value: ' Ik@Example.TEST ' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Stuur testmail' }));
+
+      await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Testmail verstuurd naar ik@example.test.'));
+      expect(invokeMock).toHaveBeenCalledTimes(1);
+      expect(invokeMock).toHaveBeenCalledWith('beta-open-announcement', { body: { testEmail: 'ik@example.test' } });
+    });
   });
 });

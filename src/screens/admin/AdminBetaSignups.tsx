@@ -175,6 +175,22 @@ function OpenBetaMail() {
   });
   const [confirming, setConfirming] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [testEmail, setTestEmail] = useState('');
+
+  // One mail to one address, "[Test]" in the subject; records nothing.
+  const sendTest = useMutation({
+    mutationFn: async (address: string) => {
+      const { error } = await supabase.functions.invoke('beta-open-announcement', {
+        body: { testEmail: address.trim().toLowerCase() },
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_data, address) => {
+      toast.success(`Testmail verstuurd naar ${address.trim().toLowerCase()}.`);
+    },
+    onError: () => toast.error('De testmail kon niet verstuurd worden.'),
+  });
+  const testEmailValid = EMAIL_PATTERN.test(testEmail.trim());
 
   const send = useMutation({
     mutationFn: () => {
@@ -228,6 +244,35 @@ function OpenBetaMail() {
                 : `${count} ${count === 1 ? 'adres krijgt' : 'adressen krijgen'} deze mail.`}
         </p>
       </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (testEmailValid && !sendTest.isPending) sendTest.mutate(testEmail);
+        }}
+        className="flex flex-col sm:flex-row gap-2 pt-1"
+        aria-label="Testmail"
+      >
+        <input
+          type="email"
+          value={testEmail}
+          onChange={e => setTestEmail(e.target.value)}
+          placeholder="Testmail naar…"
+          aria-label="Adres voor de testmail"
+          className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400"
+        />
+        <button
+          type="submit"
+          disabled={!testEmailValid || sendTest.isPending}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
+        >
+          {sendTest.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+          Stuur testmail
+        </button>
+      </form>
+      <p className="text-xs text-slate-500 -mt-1">
+        De testmail gaat enkel naar dat adres, met "[Test]" in het onderwerp. Er wordt niets bijgehouden.
+      </p>
 
       <AlertDialog open={confirming} onOpenChange={(o) => { if (!o && !send.isPending) setConfirming(false); }}>
         <AlertDialogContent>
