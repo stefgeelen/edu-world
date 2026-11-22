@@ -26,8 +26,12 @@ export function TabBar() {
   if (hideTabBar) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-50 pb-safe pointer-events-none">
-      <div className="bg-gradient-to-b from-[#241650]/95 to-[#1a103c]/95 backdrop-blur-md border-t-[3px] border-amber-400/30 shadow-[0_-12px_40px_rgba(251,191,36,0.12)] mx-auto max-w-7xl sm:max-w-md sm:mb-4 sm:rounded-[2.5rem] sm:border-[3px] rounded-t-[2rem] pointer-events-auto overflow-hidden">
+    // On phones the bar itself runs down over the home-indicator strip, so the
+    // safe-area padding sits inside the coloured bar; otherwise the screen
+    // scrolls visibly underneath it. From sm up the bar floats as a pill and
+    // the safe area stays outside it.
+    <div className="absolute bottom-0 left-0 right-0 z-50 sm:pb-[env(safe-area-inset-bottom)] pointer-events-none">
+      <div className="bg-gradient-to-b from-[#241650]/95 to-[#1a103c]/95 backdrop-blur-md border-t-[3px] border-amber-400/30 shadow-[0_-12px_40px_rgba(251,191,36,0.12)] mx-auto max-w-7xl pb-[env(safe-area-inset-bottom)] sm:pb-0 sm:max-w-md sm:mb-4 sm:rounded-[2.5rem] sm:border-[3px] rounded-t-[2rem] pointer-events-auto overflow-hidden">
         <div className="flex items-center justify-around h-20 md:h-24 px-4 md:px-6 w-full relative z-10">
           {tabs.map((tab) => {
             const isActive = [tab.path, ...tab.also].some(
