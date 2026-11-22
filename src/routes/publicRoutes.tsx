@@ -10,6 +10,7 @@ const ResetPassword = lazy(() => import('@/screens/ResetPassword').then(m => ({ 
 const SetupParentPin = lazy(() => import('@/screens/SetupParentPin').then(m => ({ default: m.SetupParentPin })));
 const SetupNotifications = lazy(() => import('@/screens/SetupNotifications').then(m => ({ default: m.SetupNotifications })));
 const BetaLanding = lazy(() => import('@/screens/BetaLanding'));
+const LandingProposal = lazy(() => import('@/screens/LandingProposal'));
 const Privacy = lazy(() => import('@/screens/Privacy'));
 const Terms = lazy(() => import('@/screens/Terms'));
 const AuthCallback = lazy(() => import('@/screens/AuthCallback').then(m => ({ default: m.AuthCallback })));
@@ -18,6 +19,8 @@ export const publicRoutes = (
   <>
     <Route path="/" element={<Suspense fallback={<LoadingSpinner />}><Index /></Suspense>} />
     <Route path="/beta" element={<Suspense fallback={<LoadingSpinner />}><BetaLanding /></Suspense>} />
+    {/* Voorstel voor een nieuwe startpagina (mock-up, niet gelinkt, noindex). */}
+    <Route path="/voorstel" element={<Suspense fallback={<LoadingSpinner />}><LandingProposal /></Suspense>} />
     <Route path="/privacy" element={<Suspense fallback={<LoadingSpinner />}><Privacy /></Suspense>} />
     <Route path="/voorwaarden" element={<Suspense fallback={<LoadingSpinner />}><Terms /></Suspense>} />
     <Route path={LOGIN_PATH} element={<Suspense fallback={<LoadingSpinner tone="dark" />}><Auth /></Suspense>} />
