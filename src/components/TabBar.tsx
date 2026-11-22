@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { LayoutDashboard, PawPrint } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { APP_PATHS } from '@/routes/paths';
@@ -26,13 +25,13 @@ export function TabBar() {
   if (hideTabBar) return null;
 
   return (
-    // On phones the bar itself runs down over the home-indicator strip, so the
-    // safe-area padding sits inside the coloured bar; otherwise the screen
-    // scrolls visibly underneath it. From sm up the bar floats as a pill and
+    // On phones the bar itself runs down over the home-indicator strip (else
+    // the screen scrolls visibly underneath it), and the tabs sit centred in
+    // the whole bar, strip included. From sm up the bar floats as a pill and
     // the safe area stays outside it.
     <div className="absolute bottom-0 left-0 right-0 z-50 sm:pb-[env(safe-area-inset-bottom)] pointer-events-none">
-      <div className="bg-gradient-to-b from-[#241650]/95 to-[#1a103c]/95 backdrop-blur-md border-t-[3px] border-amber-400/30 shadow-[0_-12px_40px_rgba(251,191,36,0.12)] mx-auto max-w-7xl pb-[env(safe-area-inset-bottom)] sm:pb-0 sm:max-w-md sm:mb-4 sm:rounded-[2.5rem] sm:border-[3px] rounded-t-[2rem] pointer-events-auto overflow-hidden">
-        <div className="flex items-center justify-around h-20 md:h-24 px-4 md:px-6 w-full relative z-10">
+      <div className="bg-gradient-to-b from-[#241650]/95 to-[#1a103c]/95 backdrop-blur-md border-t-[3px] border-amber-400/30 shadow-[0_-12px_40px_rgba(251,191,36,0.12)] mx-auto max-w-7xl sm:max-w-md sm:mb-4 sm:rounded-[2.5rem] sm:border-[3px] rounded-t-[2rem] pointer-events-auto overflow-hidden">
+        <div className="flex items-center justify-around h-[calc(5rem+env(safe-area-inset-bottom))] sm:h-20 md:h-24 px-4 md:px-6 w-full relative z-10">
           {tabs.map((tab) => {
             const isActive = [tab.path, ...tab.also].some(
               (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
@@ -46,10 +45,8 @@ export function TabBar() {
                 aria-current={isActive ? 'page' : undefined}
                 className="relative flex flex-col items-center justify-center w-full h-full group outline-none"
               >
-                <div className={cn(
-                  "flex flex-col items-center gap-1.5 transition-all duration-300 transform-gpu",
-                  isActive ? "-translate-y-1" : "group-hover:-translate-y-0.5"
-                )}>
+                {/* Only icon and label; the colour shows which tab is active. */}
+                <div className="flex flex-col items-center gap-1.5">
                   <div className={cn(
                     "p-2.5 rounded-2xl transition-all duration-300",
                     isActive ? "bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_0_16px_rgba(251,191,36,0.45)]" : "bg-transparent group-hover:bg-[#0f0828]/60"
@@ -60,21 +57,12 @@ export function TabBar() {
                     )} />
                   </div>
                   <span className={cn(
-                    "text-[10px] md:text-xs font-bold transition-all duration-300",
-                    isActive ? "text-amber-300 drop-shadow-sm scale-110" : "text-[#9d8bce] scale-100"
+                    "text-[10px] md:text-xs font-bold transition-colors duration-300",
+                    isActive ? "text-amber-300 drop-shadow-sm" : "text-[#9d8bce]"
                   )}>
                     {tab.label}
                   </span>
                 </div>
-                
-                {/* Active indicator dot */}
-                {isActive && (
-                  <motion.div 
-                    layoutId="activeTab"
-                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-amber-400"
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  />
-                )}
               </button>
             );
           })}
