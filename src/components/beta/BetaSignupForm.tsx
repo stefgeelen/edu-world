@@ -110,7 +110,7 @@ function WaitingListForm({ variant = 'hero', source }: Props) {
 
   if (success) {
     const shareText = encodeURIComponent(
-      'Ontdek Leapio: je kind oefent voor het 1ste leerjaar en verzorgt zo een eigen Buddy. Schrijf je in voor de beta:'
+      'Ontdek Leapio: je kind oefent rekenen, lezen en schrijven en verzorgt zo een eigen Buddy. Schrijf je in voor de beta:'
     );
     // Zonder ?bron=…: wie via een gedeelde link komt, telt niet als Instagram.
     const shareUrl = encodeURIComponent(

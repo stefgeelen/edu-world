@@ -105,7 +105,7 @@ export function Landing() {
     <main id="top" className="overflow-hidden bg-lp-cream font-lp-body text-lp-night [&_h1]:font-lp-display [&_h2]:font-lp-display [&_h3]:font-lp-display">
       <SEO
         title="Leapio — Oefenen wordt een avontuur"
-        description="Je kind oefent rekenen, lezen en schrijven voor het Vlaamse 1ste leerjaar, verdient Munten en zorgt daarmee voor een eigen Buddy die elke dag wacht."
+        description="Je kind oefent rekenen, lezen en schrijven, verdient Munten en zorgt daarmee voor een eigen Buddy die elke dag wacht. Voor kleuters en de lagere school in Vlaanderen."
         canonical={canonical}
       />
 
@@ -165,7 +165,7 @@ export function Landing() {
         <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-3 px-5 pb-10 pt-5 sm:min-h-[calc(92svh-80px)] sm:gap-8 sm:px-8 sm:pb-16 sm:pt-8 lg:grid-cols-[0.9fr_1.1fr] lg:px-12 lg:pb-10">
           <div className="max-w-2xl text-center lg:text-left">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-lp-gold/40 bg-lp-gold/10 px-3 py-2 text-xs font-bold text-lp-gold sm:mb-5 sm:px-4 sm:text-sm">
-              <Sparkles className="h-4 w-4" /> Voor het Vlaamse 1ste leerjaar
+              <Sparkles className="h-4 w-4" /> Kleuters en lagere school
             </p>
             <h1 className="text-[2.7rem] font-extrabold leading-[1.02] sm:text-6xl lg:text-7xl xl:text-8xl">
               Oefenen wordt een <span className="text-lp-gold">avontuur.</span>

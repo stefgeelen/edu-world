@@ -42,11 +42,11 @@ const OTHER_FAQ_ITEMS = [
   },
   {
     q: 'Voor welke leeftijden is het bedoeld?',
-    a: 'Leapio is ontworpen voor kinderen van 6 en 7 jaar — het 1ste leerjaar in Vlaanderen. De oefeningen volgen de drie trimesters van het schooljaar, en jij kan als ouder bepalen hoe ver je kind vooruit mag.',
+    a: 'Leapio is er nu voor de 3de kleuterklas, het 1ste en het 2de leerjaar in Vlaanderen, en groeit stap voor stap mee tot het 6de leerjaar. De oefeningen volgen de drie trimesters van het schooljaar, en jij kan als ouder bepalen hoe ver je kind vooruit mag.',
   },
   {
     q: 'Is het ook in lijn met het Vlaamse curriculum?',
-    a: 'Ja. Leapio is specifiek gebouwd rond het Vlaamse trimestersysteem en de leerdoelen van het 1ste leerjaar. Geen Nederlandse aanpassing — echt Belgisch.',
+    a: 'Ja. Leapio is specifiek gebouwd rond het Vlaamse trimestersysteem en de Vlaamse leerdoelen van elk leerjaar. Geen Nederlandse aanpassing — echt Belgisch.',
   },
   {
     q: 'Hoe zit het met privacy?',
@@ -106,7 +106,7 @@ export default function BetaLanding() {
       name: 'Leapio',
       operatingSystem: 'Web, iOS, Android',
       applicationCategory: 'EducationalApplication',
-      description: 'Leerapp voor het 1ste leerjaar in Vlaanderen. Je kind oefent rekenen, lezen en schrijven en verdient zo munten om een eigen Buddy te verzorgen. Volgens het Vlaamse leerplan.',
+      description: 'Leerapp voor kleuters en de lagere school in Vlaanderen. Je kind oefent rekenen, lezen en schrijven en verdient zo munten om een eigen Buddy te verzorgen. Volgens het Vlaamse leerplan.',
       inLanguage: 'nl-BE',
       offers: {
         '@type': 'Offer',
@@ -139,8 +139,8 @@ export default function BetaLanding() {
   return (
     <>
       <SEO
-        title="Leapio Beta — Oefenen voor het 1ste Leerjaar, met een eigen Buddy | Vlaanderen"
-        description="Schrijf je in voor de Leapio beta. Je kind oefent rekenen, lezen en schrijven en verzorgt zo een eigen Buddy. Gebouwd voor het Vlaamse 1ste leerjaar."
+        title="Leapio Beta — Oefenen wordt een avontuur"
+        description="Doe mee aan de Leapio beta. Je kind oefent rekenen, lezen en schrijven en verzorgt zo een eigen Buddy. Voor kleuters en de lagere school in Vlaanderen."
         canonical={canonical}
         ogImage={heroImg}
         jsonLd={jsonLd}
@@ -179,8 +179,7 @@ export default function BetaLanding() {
                 transition={{ duration: 0.5, delay: 0.05 }}
                 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight mb-5"
               >
-                Jouw kind oefent <span className="text-amber-300">voor zijn Buddy</span>.
-                <br className="hidden md:block" /> Zonder gezeur.
+                Oefenen wordt een <span className="text-amber-300">avontuur.</span>
               </motion.h1>
 
               <motion.p
@@ -190,7 +189,7 @@ export default function BetaLanding() {
                 className="text-lg md:text-xl text-violet-100/90 mb-8 max-w-xl leading-relaxed"
               >
                 Je kind kiest een eigen Buddy en zorgt ervoor. Eten, spelen en slapen kost munten,
-                en munten verdien je met rekenen, lezen en schrijven voor het Vlaamse 1ste leerjaar.
+                en munten verdien je met rekenen, lezen en schrijven, voor kleuters en de lagere school in Vlaanderen.{' '}
                 {registrationOpen ? 'Doe mee aan de beta' : 'Schrijf je in voor de beta'} en krijg <strong className="text-white">1 maand gratis</strong> bij lancering.
               </motion.p>
 
@@ -294,10 +293,10 @@ export default function BetaLanding() {
           <div className="max-w-4xl mx-auto text-center">
             <Smartphone className="w-12 h-12 mx-auto text-violet-700 mb-4" />
             <h2 className="text-2xl md:text-3xl font-black mb-4 tracking-tight">
-              Voor Vlaamse kinderen van 6 en 7 jaar
+              Voor Vlaamse kleuters en de lagere school
             </h2>
             <p className="text-lg text-slate-700 leading-relaxed">
-              Speciaal ontworpen voor het <strong>1ste leerjaar</strong>.
+              Nu voor de <strong>3de kleuterklas</strong>, het <strong>1ste</strong> en het <strong>2de leerjaar</strong>, en we bouwen verder tot het 6de leerjaar.
               Werkt op tablet, smartphone en computer — installeer als app zonder app store.
               In het <strong>Nederlands</strong>, en de Buddy en de oefeningen spreken hardop voor kinderen die nog leren lezen.
             </p>
