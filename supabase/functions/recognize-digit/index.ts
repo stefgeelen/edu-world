@@ -57,15 +57,16 @@ serve(async (req) => {
               },
               {
                 type: "text",
-                text: `You are a handwriting recognition system for a children's educational app. A child (age 5-8) has drawn a number on a canvas. Look at the image and determine what whole number (0-100) they wrote. Children's handwriting may be messy or imperfect - be generous in your interpretation.
+                text: `You are a handwriting recognition system for a children's educational app. A child (age 5-8) wrote a whole number (0-100) with their finger. The image shows it in black on white, cropped to what they drew. Children's handwriting is messy - be generous in your interpretation.
 
 Rules:
 - Respond with ONLY a JSON object: {"recognized": <number>}
-- If you can identify a number, return it even if it's messy
-- The number should be between 0 and 100
-- If the drawing is completely unrecognizable as any number, return {"recognized": null}
-- Numbers like "10", "47" or "100" are several digits written next to each other: read them as one number
-- Be lenient - children's handwriting is imperfect`,
+- If you can identify a number, return it even if it's messy, wobbly, tilted or unevenly sized
+- Several digits written next to each other are one number: "1" and "0" side by side is 10, "4" and "7" is 47. Digits may be far apart or touching
+- A single straight stroke, with or without a small flag at the top, is 1. Only read 7 when there is a clear horizontal bar at the top
+- Mirrored digits (a backwards 2, 3, 5, 7 or 9) are common at this age: read them as the digit they mirror
+- A loop that is not quite closed is still a 0, 6, 8 or 9
+- If the drawing is completely unrecognizable as any number, return {"recognized": null}`,
               },
             ],
           },
@@ -88,7 +89,10 @@ Rules:
       const jsonMatch = content.match(/\{[^}]+\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        recognized = parsed.recognized;
+        // The model sometimes answers "7" instead of 7; a strict === would
+        // then turn a correct answer into "ik zie 7, maar we zoeken 7".
+        const value = Number(parsed.recognized);
+        recognized = parsed.recognized !== null && Number.isInteger(value) ? value : null;
       }
     } catch {
       console.error("Failed to parse AI response:", content);
