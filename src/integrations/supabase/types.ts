@@ -1096,6 +1096,15 @@ export type Database = {
       }
       admin_beta_open_mail_pending: { Args: never; Returns: number }
       admin_engagement_stats: { Args: never; Returns: Json }
+      admin_preview_practice: {
+        Args: {
+          p_day?: string
+          p_grade: number
+          p_open_stage: number
+          p_reading_theme?: number
+        }
+        Returns: Json
+      }
       admin_push_stats: { Args: never; Returns: Json }
       admin_set_kindergarten_mode: {
         Args: { p_mode: string }

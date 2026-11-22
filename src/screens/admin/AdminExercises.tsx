@@ -2,24 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { BookOpen, FlaskConical, Globe, Loader2, Search, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronRight, Eye, FlaskConical, Globe, LayoutGrid, List, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { mapDbError } from '@/lib/errorMessages';
 import { useKindergartenMode, type KindergartenMode } from '@/hooks/useKindergarten';
+import { CurriculumView } from '@/components/admin/CurriculumView';
+import { PracticePreview } from '@/components/admin/PracticePreview';
+import { exerciseFamilyKey, exerciseTypeName, GRADE_NAMES, subjectLabel } from '@/data/exerciseCatalog';
+import { gradesIn } from '@/lib/curriculum';
 
-const SUBJECT_LABELS: Record<string, { label: string; color: string }> = {
-  math:    { label: 'Rekenen',    color: 'bg-blue-100 text-blue-700' },
-  reading: { label: 'Lezen',      color: 'bg-violet-100 text-violet-700' },
-  writing: { label: 'Schrijven',  color: 'bg-orange-100 text-orange-700' },
-  other:   { label: 'Andere',     color: 'bg-teal-100 text-teal-700' },
-  geometry: { label: 'Meetkunde', color: 'bg-pink-100 text-pink-700' },
-};
+type View = 'leerplan' | 'preview' | 'list';
 
-function familyKeyFor(route: string): string {
-  return route.replace(/\/\d+$/, '');
-}
+const VIEWS: { id: View; label: string; icon: typeof LayoutGrid }[] = [
+  { id: 'leerplan', label: 'Leerplan', icon: LayoutGrid },
+  { id: 'preview', label: 'Wat ziet een kind?', icon: Eye },
+  { id: 'list', label: 'Alle oefentypes', icon: List },
+];
 
 /**
  * Test / Live for the 3de kleuterklas as a whole (kindergarten_settings.mode).
@@ -93,6 +93,7 @@ function KindergartenSwitch() {
 
 export function AdminExercises() {
   const navigate = useNavigate();
+  const [view, setView] = useState<View>('leerplan');
   const [search, setSearch] = useState('');
 
   const { data: exercises = [], isLoading } = useQuery({
@@ -108,17 +109,19 @@ export function AdminExercises() {
     },
   });
 
+  const openFamily = (familyKey: string) => navigate(`/admin/exercises/${encodeURIComponent(familyKey)}`);
+
   const families = new Map<string, typeof exercises>();
   for (const ex of exercises) {
-    const key = familyKeyFor(ex.route);
+    const key = exerciseFamilyKey(ex.route);
     if (!families.has(key)) families.set(key, []);
     families.get(key)!.push(ex);
   }
 
   const familyList = [...families.entries()].map(([familyKey, rows]) => ({
     familyKey,
-    title: rows[0].title,
-    subject: rows[0].subject,
+    name: exerciseTypeName(familyKey, rows[0].title),
+    subject: (rows.find((r) => r.is_active) ?? rows[0]).subject,
     grades: [...new Set(rows.map((r) => r.grade))].sort((a, b) => a - b),
     activeCount: rows.filter((r) => r.is_active).length,
     inTest: rows.some((r) => r.admin_only),
@@ -126,7 +129,7 @@ export function AdminExercises() {
   }));
 
   const filtered = familyList.filter((f) =>
-    f.title.toLowerCase().includes(search.toLowerCase())
+    f.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const activeCount = exercises.filter((ex) => ex.is_active).length;
@@ -134,7 +137,7 @@ export function AdminExercises() {
 
   return (
     <div className="p-6 md:p-8 overflow-y-auto h-full">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
@@ -143,100 +146,109 @@ export function AdminExercises() {
           <div>
             <h2 className="text-2xl font-black text-slate-900">Oefeningen</h2>
             <p className="text-sm text-slate-500">
-              {activeCount} actief, {inactiveCount} inactief
+              {familyList.length} oefentypes · {activeCount} rijen actief, {inactiveCount} uit
             </p>
           </div>
         </div>
 
         <KindergartenSwitch />
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Zoek op naam..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          />
+        {/* Views */}
+        <div className="mb-6 flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
+          {VIEWS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={view === id}
+              onClick={() => setView(id)}
+              className={cn(
+                'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold transition-colors',
+                view === id ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Loading */}
         {isLoading && (
           <div className="flex justify-center py-12">
             <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
           </div>
         )}
 
-        {/* Table */}
-        {!isLoading && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            {/* Table header */}
-            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-              <span>Naam</span>
-              <span className="w-28 text-center">Categorie</span>
-              <span className="w-32 text-center">Graden</span>
-              <span className="w-20 text-center">Actief</span>
+        {!isLoading && view === 'leerplan' && <CurriculumView rows={exercises} onOpen={openFamily} />}
+
+        {!isLoading && view === 'preview' && <PracticePreview grades={gradesIn(exercises)} />}
+
+        {!isLoading && view === 'list' && (
+          <>
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Zoek op naam..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
             </div>
 
-            {/* Rows */}
-            {filtered.length === 0 ? (
-              <div className="px-5 py-8 text-center text-slate-400 text-sm">
-                Geen oefeningen gevonden.
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <span>Naam</span>
+                <span className="w-28 text-center">Categorie</span>
+                <span className="w-40 text-center">Leerjaren</span>
+                <span className="w-20 text-center">Actief</span>
               </div>
-            ) : (
-              filtered.map((family, i) => {
-                const subCfg = SUBJECT_LABELS[family.subject] ?? { label: family.subject, color: 'bg-slate-100 text-slate-600' };
 
-                return (
-                  <motion.button
-                    key={family.familyKey}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.02 }}
-                    onClick={() => navigate(`/admin/exercises/${encodeURIComponent(family.familyKey)}`)}
-                    className="w-full grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-4 items-center border-b border-slate-100 last:border-b-0 text-left hover:bg-slate-50 transition-colors"
-                  >
-                    {/* Name */}
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-sm text-slate-900">
-                        {family.title}
-                        {family.inTest && (
-                          <span className="ml-2 px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold uppercase align-middle">
-                            Test
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono">{family.familyKey}</span>
-                    </div>
-
-                    {/* Subject badge */}
-                    <div className="w-28 flex justify-center">
-                      <span className={cn('px-2.5 py-1 rounded-full text-xs font-bold', subCfg.color)}>
-                        {subCfg.label}
-                      </span>
-                    </div>
-
-                    {/* Grades */}
-                    <div className="w-32 text-center">
-                      <span className="text-sm text-slate-600 font-medium">
-                        {family.grades.map((g) => (g === 0 ? 'Kleuter' : `Graad ${g}`)).join(', ')}
-                      </span>
-                    </div>
-
-                    {/* Active count + chevron */}
-                    <div className="w-20 flex items-center justify-center gap-1.5">
-                      <span className="text-sm font-semibold text-slate-600">
-                        {family.activeCount}/{family.totalCount}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-slate-300" />
-                    </div>
-                  </motion.button>
-                );
-              })
-            )}
-          </div>
+              {filtered.length === 0 ? (
+                <div className="px-5 py-8 text-center text-slate-400 text-sm">
+                  Geen oefeningen gevonden.
+                </div>
+              ) : (
+                filtered.map((family, i) => {
+                  const subCfg = subjectLabel(family.subject);
+                  return (
+                    <motion.button
+                      key={family.familyKey}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.02 }}
+                      onClick={() => openFamily(family.familyKey)}
+                      className="w-full grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-4 items-center border-b border-slate-100 last:border-b-0 text-left hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm text-slate-900">
+                          {family.name}
+                          {family.inTest && (
+                            <span className="ml-2 px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 text-[10px] font-bold uppercase align-middle">
+                              Test
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono">{family.familyKey}</span>
+                      </div>
+                      <div className="w-28 flex justify-center">
+                        <span className={cn('px-2.5 py-1 rounded-full text-xs font-bold', subCfg.color)}>{subCfg.label}</span>
+                      </div>
+                      <div className="w-40 text-center">
+                        <span className="text-sm text-slate-600 font-medium">
+                          {family.grades.map((g) => (g === 0 ? 'Kleuter' : (GRADE_NAMES[g] ?? `${g}`).replace(' leerjaar', ''))).join(', ')}
+                        </span>
+                      </div>
+                      <div className="w-20 flex items-center justify-center gap-1.5">
+                        <span className="text-sm font-semibold text-slate-600">{family.activeCount}/{family.totalCount}</span>
+                        <ChevronRight className="w-4 h-4 text-slate-300" />
+                      </div>
+                    </motion.button>
+                  );
+                })
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
