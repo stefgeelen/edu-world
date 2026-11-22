@@ -1,7 +1,7 @@
 # Leapio — Technical Specification
 
 > **Audience:** engineers and architects working on Leapio. Assumes the reader can read the code; this document exists to explain what is where, why it is shaped that way, and where the sharp edges are.
-> **Last reviewed:** 2026-10-29 (commit `090e12e`: Tailwind-variant `short:` voor landscape-schermen ≤ 900px hoog; `ExerciseNumpad` staat in landscape rechts naast de vraag — `numpadInset()` + `useNumpadSide()`; `NUMPAD_SIDE_WIDTH = 340`). Eerdere review 2026-10-25 (commit `cf52297`). Full review 2026-10-24.
+> **Last reviewed:** 2026-11-18 (commit `32cc4ff`: `beta-open-announcement` test-mode toegevoegd — `testEmail` in body stuurt preview-mail met `[Test]`-onderwerp zonder registratieschakelaarcheck en zonder `open_mail_sent_at` te schrijven; "Stuur testmail"-knop in `AdminBetaSignups`). Eerdere review 2026-11-18 (commit `8276a1b`: open-beta registratieschakelaar).
 > **Companion docs:** [CONTEXT.md](../CONTEXT.md) (domain vocabulary — authoritative for naming), [CLAUDE.md](../CLAUDE.md) (working conventions), [EXERCISES.md](../EXERCISES.md) (didactic design), [uitleg-oefeningen.md](uitleg-oefeningen.md) (the Buddy's exercise explanations), `wayfinder/buddy-care/` (Buddy Care design tickets), `wayfinder/buddy-centred-app/map.md` (decisions behind the October 2026 redesign), `wayfinder/second-grade/map.md` (2de leerjaar rollout).
 
 ---
@@ -15,11 +15,11 @@ Leapio is a gamified, Dutch-language (Flemish) learning web app for primary-scho
 | Actor | Surface | Entry |
 |---|---|---|
 | Child | `/app/*` game screens | Parent hands over the device after login; "Wie speelt er?" when several children can play |
-| Parent | `/app/parent/*` portal, PIN-gated | `/toegang` (`LOGIN_PATH`, unlinked during the beta) → PIN |
+| Parent | `/app/parent/*` portal, PIN-gated | `/toegang` (`LOGIN_PATH`; linked as "Inloggen" when registration is open, unlinked when closed) → PIN |
 | Admin | `/admin/*` | `user_roles.role = 'admin'` |
 | Prospect | `/`, `/beta` landing + waiting-list signup, `/privacy`, `/voorwaarden` | Public |
 
-**Product status (matters architecturally):** the app is a closed beta: only an email on the waiting list (`beta_signups`) can create an account (trigger on `auth.users`, §7.1). Content exists for the **1ste and 2de leerjaar**: `MAX_SUPPORTED_GRADE = 2` in [difficultyConfig.ts](../src/data/difficultyConfig.ts) (raised on 2026-10-13, when the parent could start picking the 2de). Grade 2 has its own maths rows (`20261013120000`), Tafels, Helft en dubbel and Meetkunde; its taal (reading/writing) is still open, so a grade-2 child reaches the 1ste-leerjaar reading/writing exercises only through **Herhalen** (§9.8). The beta marketing pages still target the 1ste leerjaar. Grades above 2 have no content.
+**Product status (matters architecturally):** the app is in beta. Registration is controlled by a switch (`registration_settings.open`, §7.1): when closed (the default), only an email on `beta_signups` can create an account; when open, anyone can. The trigger on `auth.users` (`enforce_beta_signup_list`) checks the switch first. Content exists for the **1ste and 2de leerjaar**: `MAX_SUPPORTED_GRADE = 2` in [difficultyConfig.ts](../src/data/difficultyConfig.ts) (raised on 2026-10-13, when the parent could start picking the 2de). Grade 2 has its own maths rows (`20261013120000`), Tafels, Helft en dubbel and Meetkunde; its taal (reading/writing) is still open, so a grade-2 child reaches the 1ste-leerjaar reading/writing exercises only through **Herhalen** (§9.8). The beta marketing pages still target the 1ste leerjaar. Grades above 2 have no content.
 
 ---
 
@@ -252,6 +252,7 @@ Exercise routes, all `/app/exercises/<family>/:id` where **`:id` is the stage nu
 | `rhyme` | `ExerciseRhyme` | Grade 0 (in test since 2026-10-25): Buddy shows and names a picture (emoji); pick the rhyming picture from 3 choices; 14 rhyme pairs; Buddy names all three choices so the child knows which word is meant; 10 rounds via `useTapRounds` |
 | `first-sound` | `ExerciseFirstSound` | Grade 0 (in test since 2026-10-25): Buddy plays the recorded sound of a consonant; pick the picture whose name starts with it from 3 choices; 13 consonants; confusable pairs (s/z, v/f, b/p, d/t) never appear together; the letter is displayed; 10 rounds via `useTapRounds` |
 | `blend` | `ExerciseBlend` | Grade 0 (in test since 2026-10-25): Buddy says a word sound by sound using recordings (e.g. v – i – s); pick the matching picture from 3 choices; Buddy does not name the pictures; only 2–3-sound words whose every sound has a recording (36 words); 10 rounds via `useTapRounds` |
+| `number-sense` | `ExerciseNumberSense` | Grade 2 (in test since 2026-11-11, `20261111120000_number_sense_to_100.sql`): `ExerciseModePicker` with six modes. Question logic in `src/lib/numberSense.ts`; visual components in `src/components/exercise/NumberSenseParts.tsx` (`HundredGrid`, `LooseDotsField`, `PlaceValueColumns`, `AnswerBox`). Grid-find: a thing (emoji) placed on the 10×10 `HundredGrid`; type the number. Listen: `dutchNumberWord(n)` spoken by the Buddy on mount via `speakText`; `SpeakerButton` replays; numpad. Group-tens: loose dots laid out by `scatterDots()`; tap or sweep to form groups of ten; T/E numpad after all dots are grouped. Place-value: tens rods + units blocks in named columns (H empty for now); numpad. Colour: the target number shown large; tap a cell of `HundredGrid` to colour row by row up to that square; `ExerciseActionBar`. Mix: one of each kind (never a second grouping), 6 questions shuffled. Config keys: `maxNumber` (default 100) and `maxDots` (default 59). Database: 3 rows (stages 1–3, all `admin_only = true`), route family `/exercises/number-sense` |
 
 **Grade-0 exercise loop (`useTapRounds`).** A shared hook (`src/hooks/useTapRounds.ts`) drives all six kleuter exercises: it plays the question text (or a list of speech lines) via speech on mount and after each wrong answer (`silenceBuddy` is set on `ExerciseShell` to prevent overlap with the Uitleg button). `useTapRounds` was extended to accept a list of `SpeechLine[]` per question (needed by Beginklank and Klanken plakken, which mix text and recorded-sound clips). The math exercises use route `:id` as the trimester (1 = up to 5, 2 = up to 7, 3 = up to 10); `kleuterMax(id)` resolves the maximum. Math question generators and the `CountGroup` drawing component live in `src/lib/kleuterRekenen.ts` and `src/components/exercise/CountGroup.tsx`. Language exercises share one screen `src/components/exercise/PictureChoice.tsx` (`PictureChoiceExercise`) with word data and question generators in `src/data/kleuterTaal.ts` (59 words, 14 rhyme pairs, emoji pictures). Database rows: `20261025200000_kindergarten_maths.sql` (9 rows: 3 math types × 3 trimesters) and `20261025220000_kindergarten_language.sql` (3 rows: 3 language types × trimester 1, all `admin_only = true`).
 
@@ -268,7 +269,7 @@ Shared exercise parts (since 2026-10): every screen renders inside `ExerciseShel
 
 ### 5.4 Admin (`/admin/*`) — `<AdminRoute>` → `<ParentErrorBoundary>` → `<AdminDashboard>`
 
-`index` → redirect to `users` · `users` (`ChangePlanDialog` → `admin_set_subscription`; warns how many children a smaller package pauses) · `subscriptions` · `stats` (engagement + home-screen adoption, from `admin_engagement_stats`) · `exercises` (per family, "Test" when any row is `admin_only`) · `exercises/:familyKey` (`AdminExerciseFamily`: per-row settings form `ExerciseConfigForm` driven by `data/exerciseConfigFields.ts`, raw-JSON fallback, Test/Live switch for all rows of the family) · `beta` (waiting list with source; "Toegang geven" inserts an email with source `admin · toegang`; "Verwijder" deletes a row) · `meldingen` (`AdminPush`: push switch + `admin_push_stats`) · `feedback`.
+`index` → redirect to `users` · `users` (`ChangePlanDialog` → `admin_set_subscription`; warns how many children a smaller package pauses) · `subscriptions` · `stats` (engagement + home-screen adoption, from `admin_engagement_stats`) · `exercises` (per family, "Test" when any row is `admin_only`) · `exercises/:familyKey` (`AdminExerciseFamily`: per-row settings form `ExerciseConfigForm` driven by `data/exerciseConfigFields.ts`, raw-JSON fallback, Test/Live switch for all rows of the family) · `beta` (`AdminBetaSignups`: waiting list with source; **"Registratie"** toggle `RegistrationSwitch` → `admin_set_registration_open`; **"De beta is open"-mail** button → `beta-open-announcement` (pending count via `admin_beta_open_mail_pending`); "Toegang geven" inserts an email with source `admin · toegang`; "Verwijder" deletes a row) · `meldingen` (`AdminPush`: push switch + `admin_push_stats`) · `feedback`.
 
 ---
 
@@ -294,7 +295,8 @@ Shared exercise parts (since 2026-10): every screen renders inside `ExerciseShel
 | `parent_pins` | bcrypt PIN hash per user | `pin_hash` |
 | `user_roles` | Platform roles | `app_role` (admin/moderator/user) |
 | `feedback` | In-app parent feedback → admin triage | `category`, `status`, `admin_notes` |
-| `beta_signups` | Beta waiting list; also the allow-list for new accounts (§7.1) | `email` (unique, stored lowercase), `full_name`, `child_grade`, `source` (page + `?bron=`/`utm_source`, or `admin · toegang`), `user_agent`, `confirmation_sent_at`. Anyone may INSERT; admin SELECT and DELETE |
+| `beta_signups` | Beta waiting list; also the allow-list for new accounts when registration is closed (§7.1) | `email` (unique, stored lowercase), `full_name`, `child_grade`, `source` (page + `?bron=`/`utm_source`, or `admin · toegang`), `user_agent`, `confirmation_sent_at`, **`open_mail_sent_at`** (set when the "De beta is open" announcement mail was sent; NULL = not yet sent). Anyone may INSERT; admin SELECT and DELETE |
+| `registration_settings` | Singleton (`id = true`): the open-beta switch | **`open`** (boolean, default `false`); starts closed. `anon` and `authenticated` may SELECT; `admin_set_registration_open(p_open)` is the only write path (admin check inside). Read via `registration_is_open()` (STABLE DEFINER, readable by all) |
 | `push_settings` | Singleton (`id = true`): the admin push switch | `mode` (`off`/`admins`/`all`), starts `off` |
 | `push_subscriptions` | One row per device with push on | `parent_id`, unique `endpoint`, `p256dh`, `auth`, `user_agent`, `last_success_at`. Parent SELECT own; writes only via RPC |
 | `push_preferences` | Which kinds a parent wants (no row = all on) | `buddy`, `insights`. Parent SELECT/INSERT/UPDATE own |
@@ -302,7 +304,7 @@ Shared exercise parts (since 2026-10): every screen renders inside `ExerciseShel
 
 **Enums:** `app_role`, `org_role`, `user_type`, `subject_type` (`math`/`reading`/`writing`/`other`/`geometry`), `subscription_plan` (`free`/`basic`/`family`/`school`), `subscription_status` (`trialing`/`active`/`past_due`/`canceled`/`expired`), `exercise_status`.
 
-**Triggers worth knowing:** `enforce_max_children` (`BEFORE INSERT` on `children`, raises the subscription-limit message, R5), `guard_children_paused`, `children_after_delete_sync` (a removed child frees a place), `block_paused_child_attempt`, `block_paused_child_buddy`, `guard_admin_only_attempt`, **`children_check_grade`** (`BEFORE INSERT OR UPDATE OF grade` on `children`: rejects grade 0 for a non-admin caller when `kindergarten_settings.mode = 'admins'`; a child already at grade 0 is exempt so it does not break when the switch is set back to Test), and `on_auth_user_created_beta_check` on **`auth.users`** (§7.1).
+**Triggers worth knowing:** `enforce_max_children` (`BEFORE INSERT` on `children`, raises the subscription-limit message, R5), `guard_children_paused`, `children_after_delete_sync` (a removed child frees a place), `block_paused_child_attempt`, `block_paused_child_buddy`, `guard_admin_only_attempt`, **`children_check_grade`** (`BEFORE INSERT OR UPDATE OF grade` on `children`: rejects grade 0 for a non-admin caller when `kindergarten_settings.mode = 'admins'`; a child already at grade 0 is exempt so it does not break when the switch is set back to Test), and `on_auth_user_created_beta_check` on **`auth.users`** (§7.1 — calls `enforce_beta_signup_list`, which checks `registration_settings.open` first; if open, allows any new account; if closed, requires the email to be in `beta_signups`).
 
 **Stripe columns exist but there is no payment integration in the codebase** — no Stripe SDK, no webhook function. Packages are requested by mail and set by an admin in Admin → Gebruikers (`admin_set_subscription`), which also pauses or unpauses children.
 
@@ -343,7 +345,12 @@ Shared exercise parts (since 2026-10): every screen renders inside `ExerciseShel
 | `_child_reading_theme(children)` | STABLE DEFINER, EXECUTE revoked | Internal | Returns the active theme for a child row: `children.reading_theme` when set, else `reading_theme_for_date(now())`; grade ≠ 1 always returns 10 |
 | `child_reading_theme(child_id)` | STABLE DEFINER + `_can_access_child`; `authenticated` only | `useReadingTheme` (parent portal + exercise screens) | Returns `{ theme, calendar_theme, chosen_theme }` for the given child |
 | `_buddy_ensure_row`, `_buddy_tick`, `_buddy_item`, `_buddy_window_hours`, `_child_practice_options`, `_child_review_options`, `_can_access_child` | DEFINER, **EXECUTE revoked from `anon`/`authenticated`** | Internal only | Buddy simulation; pickable exercises per child (own grade; lower grades for Herhalen; both skip `admin_only` rows for non-admins, and `_child_practice_options` also skips `from_reading_theme` rows below the child's active theme); the shared ownership predicate, which since `20261014210000` returns `false` (never NULL) for a signed-out caller or a child with neither parent nor organisation |
-| `enforce_beta_signup_list()` | DEFINER trigger function, EXECUTE revoked | `BEFORE INSERT` on `auth.users` | Raises `not on beta list` (P0001) unless `lower(email)` is in `beta_signups` |
+| `enforce_beta_signup_list()` | DEFINER trigger function, EXECUTE revoked | `BEFORE INSERT` on `auth.users` | Calls `registration_is_open()` first; if open, returns NEW immediately. Otherwise raises `not on beta list` (P0001) unless `lower(email)` is in `beta_signups` |
+| `registration_is_open()` | STABLE DEFINER; SELECT granted to `anon`, `authenticated` | Client (`useRegistrationOpen`), `enforce_beta_signup_list` | Returns `registration_settings.open`, default `false` |
+| `admin_set_registration_open(p_open)` | DEFINER + admin check inside; `authenticated` only | `AdminBetaSignups` (`RegistrationSwitch`) | Sets `registration_settings.open`; validates non-NULL |
+| `admin_beta_open_mail_pending()` | STABLE DEFINER + admin check; `authenticated` only | `AdminBetaSignups` | Count of `beta_signups` rows with `open_mail_sent_at IS NULL` and no account yet |
+| `_beta_open_mail_pending_rows()` | STABLE DEFINER; `service_role` only | `beta-open-announcement` | Returns the full `beta_signups` rows matching the above criteria |
+| `_claim_beta_open_mail_batch(p_limit)` | DEFINER; `service_role` only | `beta-open-announcement` | UPDATE-claims the next `p_limit` (max 100) eligible rows with `open_mail_sent_at = now()` and returns `(id, email, full_name)`; uses `FOR UPDATE SKIP LOCKED` for concurrency safety |
 | `exercise_type_key(route)`, `practice_munten_for(n)`, `practice_wish_bonus()`, `_practice_day_start()`, `buddy_growth_target(grade, day)`, `buddy_next_growth(current, target)` | IMMUTABLE/STABLE SQL helpers | Internal | The economy and growth rules in one place each (§9.7, §9.8) |
 
 ### 6.3 Exercise resolution chain
@@ -384,7 +391,8 @@ A child navigating to `/app/exercises/math/2` triggers three independent lookups
 ['parent-subscription', userId]           ['parent-subscription-detail', userId]
 ['feedback', userId]
 
-// Platform-wide settings (readable by all authenticated users)
+// Platform-wide settings (readable by everyone, even anon)
+['registration-settings']                        ← useRegistrationOpen; readable by anon; invalidated by RegistrationSwitch
 ['kindergarten-settings']                        ← useKindergartenMode; invalidated by KindergartenSwitch
 
 // Admin (unscoped — admin sees everything)
@@ -392,7 +400,7 @@ A child navigating to `/app/exercises/math/2` triggers three independent lookups
 ['admin-subscriptions']                          ['admin-subscriptions-detail']
 ['admin-stats-subscriptions']                    ['admin-engagement']
 ['admin-exercises']    ['admin-exercise-family', routePrefix]
-['admin-beta-signups'] ['admin-feedback']   ['admin-push-stats']
+['admin-beta-signups'] ['admin-beta-open-mail-pending']  ['admin-feedback']   ['admin-push-stats']
 
 // Push notifications (parent, per device / per account)
 ['push-status', userId]   ['push-preferences', userId]   ['push-devices', userId]
@@ -425,8 +433,8 @@ Since 2026-10-14 the hook guards the payout from the client side too: `mutate` g
 
 ### 7.1 Flow
 
-1. `/toegang` (`LOGIN_PATH`; `/auth` redirects to `/`) — email+password or Google OAuth. Both redirect to `${origin}/auth/callback`. The URL is not linked from the site during the beta; this is obscurity, not access control.
-2. **Beta gate (since 2026-10-19):** a `BEFORE INSERT` trigger on `auth.users` (`on_auth_user_created_beta_check` → `enforce_beta_signup_list`) refuses a new account, email signup or first Google sign-in alike, whose email is not in `beta_signups`. Existing accounts and email changes are unaffected. The app maps `not on beta list` (and, after Google, `Database error saving new user`) to a Dutch message pointing at `/beta` (`mapAuthError`, `AuthCallback`). To open up: `DROP TRIGGER on_auth_user_created_beta_check ON auth.users`. An admin gives access by adding the email in Admin → Beta; note that the public `/beta` form inserts into the same table (R24).
+1. `/toegang` (`LOGIN_PATH`; `/auth` redirects to `/`) — email+password or Google OAuth. Both redirect to `${origin}/auth/callback`. The URL is hidden from the public site when registration is closed; when open it is linked as "Inloggen" and "Gratis starten" (`SIGNUP_PATH = LOGIN_PATH + '?registreren'`, which opens the Registreren tab). `useRegistrationOpen` (query key `['registration-settings']`, readable by `anon`, falls back to closed on error) drives this switch on every public page.
+2. **Account gate (since 2026-10-19; open-beta switch since 2026-11-18):** a `BEFORE INSERT` trigger on `auth.users` (`on_auth_user_created_beta_check` → `enforce_beta_signup_list`) is called for every new account (email signup and first Google sign-in alike). `enforce_beta_signup_list` first calls `registration_is_open()` (reads `registration_settings.open`): if `true`, the account is allowed straight through. If `false`, the email must be in `beta_signups` (case-insensitive). Existing accounts and email changes are unaffected. The app maps `not on beta list` (and, after Google, `Database error saving new user`) to a Dutch message pointing at `/beta` (`mapAuthError`, `AuthCallback`). To open registration: `SELECT admin_set_registration_open(true)` (admin only) or via Admin → Beta. An admin gives access by adding the email in Admin → Beta; note that the public `/beta` form inserts into the same table (R24).
 3. With email confirmation enabled, `signUp` resolves **without a session**; `AuthProvider.signUp` returns `needsEmailConfirmation` so the caller does not push an unauthenticated user into onboarding. Auth mails use the Leapio templates in `supabase/templates/` (pasted into the Supabase dashboard by hand; sender and footer still Supabase's built-in mailer).
 4. `/auth/callback` picks the session up and routes onward: existing user → `/app`, new user → `/auth/setup-pin?redirect=/app/add-child`.
 5. `/auth/setup-pin` — 4-digit PIN, validated and bcrypt-hashed server-side by `set_parent_pin`; a first PIN continues to `/auth/meldingen` (push question), then the redirect.
@@ -475,10 +483,10 @@ An RLS denial is not an error. Supabase returns `[]` or `null` with `error === n
 |---|---|---|
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | Client bundle | Public by design; safety rests entirely on RLS |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Every edge function that checks the caller (`requireUser`, `admin-delete-user`, `delete-account`, `send-push-notifications`) | Injected by Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | `admin-delete-user`, `delete-account`, `beta-signup-confirmation`, `send-push-notifications` | Never in the client |
+| `SUPABASE_SERVICE_ROLE_KEY` | `admin-delete-user`, `delete-account`, `beta-signup-confirmation`, `beta-open-announcement`, `send-push-notifications` | Never in the client |
 | `ANTHROPIC_API_KEY` | `recognize-digit` | Server-side only |
 | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL_ID` | `synthesize-speech` | Voice/model overridable per environment |
-| `BREVO_API_KEY`, `BETA_MAIL_SENDER` (optional, defaults to the info@ address) | `beta-signup-confirmation` | Transactional mail via the Brevo HTTP API (10s timeout). The function returns 500 when the key is missing |
+| `BREVO_API_KEY`, `BETA_MAIL_SENDER` (optional, defaults to the info@ address) | `beta-signup-confirmation`, `beta-open-announcement` | Transactional mail via the Brevo HTTP API (10s timeout). The function returns 500 when the key is missing |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (GitHub secrets) | Keep-alive workflow | CI uses a dead local URL and a placeholder key instead, so tests never reach the real project |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | `send-push-notifications` | Web Push signing. The public half is also hard-coded in `src/lib/pushConfig.ts` (public by design); rotating the pair invalidates every stored subscription |
 | Vault `push_cron_secret` | Database only | Created by the migration with a random value; pg_cron sends it as `x-push-cron-secret`, the function compares it via `_push_cron_secret()`. Never in an env var or file |
@@ -495,6 +503,7 @@ An RLS denial is not an error. Supabase returns `[]` or `null` with `error === n
 | `admin-delete-user` | `AdminUsers` | JWT + `user_roles` admin; `verify_jwt = false` in `config.toml` | |
 | `send-push-notifications` | pg_cron, parent test | Cron secret or `requireUser`; `verify_jwt = false` | §10.5 |
 | `beta-signup-confirmation` | `BetaSignupForm` (fire-and-forget, `supabase.functions.invoke`, not `invokeFunction`) | None beyond the anon key; self-limiting | Claims the row first (`UPDATE … SET confirmation_sent_at WHERE email = … AND confirmation_sent_at IS NULL AND created_at >= now() − 15 min`), so at most one mail per address ever and never for rows older than 15 minutes (admin-added rows are never mailed because only the form calls it). On a Brevo error the claim is released for a retry |
+| `beta-open-announcement` | `AdminBetaSignups` (batch button or "Stuur testmail", `invokeFunction`, awaited) | `requireUser` + admin role check inside | **Normal mode** (no `testEmail` in body): only when `registration_is_open()`; claims batches of 50 via `_claim_beta_open_mail_batch(50)`, mails each address via Brevo, marks success. A Brevo refusal marks the row sent and continues; an unexpected error stops the batch. Each address at most once (`open_mail_sent_at`). **Test mode** (`testEmail` in body, any string): sends the same mail to that single address with `[Test]` prepended to the subject, regardless of the registration switch, and records nothing (`open_mail_sent_at` unchanged). Used by the admin to preview the mail before the real send. |
 
 ---
 
@@ -651,13 +660,15 @@ Boundaries: `<ErrorBoundary>` (root, and again inside `/app`) with a forest-them
 
 `manifest.json` (`start_url: /app`, theme and background `#1d1145` night purple, separate `any` and `maskable` icon entries), `icon-192/512`, a real 180px `apple-touch-icon`, PNG favicons, theme-color and Apple meta tags are in place. Since 2026-10 the icon is the "L-sprong" logo (full set in `brand/leapio-logo/`); the app icons are rasterised from `src/assets/brand/icon-leapio.svg` by `scripts/build-icons.sh` (headless Chrome, always at 512px then scaled down); the PNGs are committed because the build has no image step.
 
+**iOS status-bar treatment (since 2026-10-29):** `index.html` uses `viewport-fit=cover` and `apple-mobile-web-app-status-bar-style: black-translucent`. As a home-screen app the child app's night sky runs on behind the iOS clock/signal bar; screens keep the strip below it free with the `.pt-safe` utility class (`padding-top: env(safe-area-inset-top, 0px)`). `<Layout>` (the child-app wrapper) applies `.pt-safe` against `#2d1b54` — the deep-purple that every child screen starts with — so the colour under the clock always matches. Parent portal, admin, PIN gate, legal pages and 404 apply `.pt-safe` as well (resolves to 0 in plain Safari).
+
 `useInstallPrompt` reports an `InstallMode`: `installed` · `native` (`beforeinstallprompt` available) · `ios-safari` (guided Share → *Zet op beginscherm* steps) · `ios-other` (asks to open in Safari) · `none`. Dismissal is stored as a timestamp and holds for 14 days. `lib/platform.ts` `isStandalone()` also feeds `touch_activity`. `useOnlineStatus` / `<OfflineBanner>` surface connectivity.
 
 **The only service worker is `public/sw.js`, for push** (§10.5): no fetch handler, nothing cached. The app is installable but not offline-capable: an installed Leapio opened without connectivity shows a browser error, not the banner. The banner only helps a tab that is already loaded; since 2026-10-14 such a tab that is offline at `/app` shows a retry screen instead of "kind toevoegen". See §13 R6.
 
 ### 10.3 SEO & marketing surface
 
-`<SEO>` (react-helmet-async) plus `public/sitemap.xml` (`/`, `/beta`, `/privacy`, `/voorwaarden`) and `robots.txt` (lists the sitemap). The Lovable scaffold metadata in `index.html` was cleaned up on 2026-09-28: own `og-image.jpg` (1200×630, with size and alt), no Lovable author/twitter tags, Leapio descriptions. Every absolute URL (OG image, `og:url`, sitemap, `robots.txt`, the canonical of both marketing pages, pinned to `https://leapio.be` rather than the current origin) points at `https://leapio.be` (live since 2026-10-16; `leapio.vercel.app` 308-redirects there). The landing page is the night-sky Buddy design (2026-10-02) with no login button; the beta page is narrowed to the 1ste leerjaar. `/beta` still sets its own `og:image` to `src/assets/beta-hero.jpg`, which shows "XP" coins (R18). `/privacy` and `/voorwaarden` are short static pages (`LegalPage`). Every contact link uses the single info@ address. `SEO-AUDIT.md` covers SEO separately.
+`<SEO>` (react-helmet-async) plus `public/sitemap.xml` (`/`, `/beta`, `/privacy`, `/voorwaarden`) and `robots.txt` (lists the sitemap). The Lovable scaffold metadata in `index.html` was cleaned up on 2026-09-28: own share image (1200×630, with size and alt; since 2026-11-22 `og-image-v2.jpg`: logo, headline "Oefenen wordt een avontuur." (same as the landing page) and the four Buddies; the `index.html` title and descriptions say "kleuters en de lagere school" instead of the 1ste leerjaar, new file name so WhatsApp and others fetch it again), no Lovable author/twitter tags, Leapio descriptions. Every absolute URL (OG image, `og:url`, sitemap, `robots.txt`, the canonical of both marketing pages, pinned to `https://leapio.be` rather than the current origin) points at `https://leapio.be` (live since 2026-10-16; `leapio.vercel.app` 308-redirects there). The landing page is the night-sky Buddy design (2026-10-02) with no login button; since 2026-11-22 neither page names a single grade: they say "kleuters en de lagere school" (now 3de kleuterklas, 1ste and 2de leerjaar, growing to the 6de). `/beta` still sets its own `og:image` to `src/assets/beta-hero.jpg`, which shows "XP" coins (R18). `/privacy` and `/voorwaarden` are short static pages (`LegalPage`). Every contact link uses the single info@ address. `SEO-AUDIT.md` covers SEO separately.
 
 ### 10.4 Activity & install telemetry
 
@@ -826,7 +837,7 @@ The first-visit tour and the "Buddy grew" moment are remembered in `localStorage
 `admin_push_stats` counts any exercise by any child of the parent after a notification. It cannot separate the notification's effect from normal play; there is no control group.
 
 ### R24 · The beta gate is only as closed as the public waiting-list form — **Medium (product/security)**, new 2026-10-19 — see FSD D-14
-The `auth.users` trigger admits any email present in `beta_signups`, and `beta_signups` accepts an INSERT from `anon` (the `/beta` form). So anyone who finds `/toegang` can put their own address on the list via `/beta` and register a minute later; "Toegang geven" in Admin → Beta is then not needed. The hidden login URL is obscurity, not access control. If the intent is "only people the admin let in", the gate needs a flag the public cannot set (e.g. `beta_signups.access_granted_at`, written only by admins, checked by the trigger).
+When registration is **closed**: the `auth.users` trigger admits any email present in `beta_signups`, and `beta_signups` accepts an INSERT from `anon` (the `/beta` form). So anyone who finds `/toegang` can put their own address on the list via `/beta` and register a minute later; "Toegang geven" in Admin → Beta is then not needed. The hidden login URL is obscurity, not access control. If the intent is "only people the admin let in", the gate needs a flag the public cannot set (e.g. `beta_signups.access_granted_at`, written only by admins, checked by the trigger). When registration is **open** (since 2026-11-18, via `registration_settings.open`), the gate is intentionally absent — this is by design, not a risk.
 
 ### R25 · Anyone can make Leapio send a mail to any address — **Low/Medium (abuse)**, new 2026-10-23 — see FSD module 15
 `beta-signup-confirmation` runs with the public anon key and mails an address that was inserted into `beta_signups` in the last 15 minutes and never mailed. Since that insert is also public, a script can enter third-party addresses and trigger one Leapio mail each through Brevo. Bounded (one mail per address, ever, no attacker-controlled content beyond the optional name, which is HTML-escaped) but it costs Brevo quota and sender reputation, and the insert itself has no rate limit or CAPTCHA.
@@ -964,7 +975,7 @@ Decisions already made, with the reasoning, so they are not silently reversed.
 A sequence, not a backlog — each step makes the next one safer. Updated 2026-10-24.
 
 1. **Server-side PIN throttling** (R1). The only genuine security hole left; the PIN now also guards which children play and the push settings.
-2. **Decide what the beta gate must mean** (R24), and rate-limit the public signup + mail path (R25) before more traffic is driven to `/beta`.
+2. **Rate-limit the public signup + mail path** (R25) before more traffic is driven to `/beta`. The beta gate question (R24) is now partly resolved: an admin switch opens or closes registration; the remaining question (D-14) is whether "closed" needs an invited-only flag beyond the waiting list.
 3. **pgTAP (or equivalent) coverage for `_complete_exercise_core`, the `complete_exercise` wrapper, `practice_menu`, `sync_paused_children`, the triggers and `push_claim_due`** (R22). They hold the whole economy, trimester opening, growth, pausing and push, and are only tested through mocks against the single live database.
 4. **Make lint pass and add it to CI; pin Node** (R7, R26). The type gate exists now; the lint gate does not.
 5. **Error reporting in both boundaries** (R4), then **replace the string-matched error detection with codes** (R5), which now covers four messages.
