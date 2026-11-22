@@ -1,0 +1,41 @@
+{
+  "_uitleg": "Complexiteitsbudget per flow: hoeveel tikken, velden en schermen een gebruiker maximaal nodig heeft. De flowtest telt het echte aantal; komt het erboven, dan meldt de QA-flow-agent 'te complex' (een waarschuwing, de test faalt er niet op). Pas een budget alleen bewust aan, met de reden in 'why'. Uitleg per flow in e2e/FLOWS.md. Startwaarden op 22 nov 2026 = wat de app toen echt deed.",
+  "flows": {
+    "onboarding": {
+      "taps": 4,
+      "fields": 7,
+      "screens": 7,
+      "why": "Nieuwe ouder tot in de Buddy-kamer: account, PIN (2x), meldingen overslaan, kind, Buddy. Elke extra stap kost aanmeldingen."
+    },
+    "oefening-starten": {
+      "taps": 3,
+      "fields": 0,
+      "screens": 5,
+      "why": "Een kind van 6 moet zonder hulp van de app-opening tot een oefening komen."
+    },
+    "oefening-afmaken": {
+      "taps": 0,
+      "fields": 0,
+      "screens": 2,
+      "why": "Na de laatste vraag meteen terug naar waar het kind begon, met Munten erbij; geen extra schermen ertussen."
+    },
+    "game-over": {
+      "taps": 0,
+      "fields": 0,
+      "screens": 2,
+      "why": "Drie fouten: meteen terug, geen Munten, geen extra schermen."
+    },
+    "ouderportaal": {
+      "taps": 1,
+      "fields": 1,
+      "screens": 2,
+      "why": "Van het dashboard naar het ouderportaal: één knop en de PIN."
+    },
+    "wie-speelt-er": {
+      "taps": 1,
+      "fields": 0,
+      "screens": 4,
+      "why": "Gezin met twee kinderen: bij het openen kiest het kind zichzelf met één tik. Het 4de scherm is een doorverwijzing via /app na de keuze (geen extra tik)."
+    }
+  }
+}

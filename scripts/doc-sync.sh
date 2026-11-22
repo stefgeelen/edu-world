@@ -67,7 +67,7 @@ while [ $runs -lt 3 ]; do
     --permission-mode acceptEdits \
     --allowedTools "Read Edit Write Glob Grep Bash(git log:*) Bash(git show:*) Bash(git diff:*) Bash(git rev-parse:*) Bash(ls:*) Bash(wc:*)" \
     --add-dir "$fsd" \
-    --no-session-persistence 2>&1)
+    --no-session-persistence < /dev/null 2>&1)
   status=$?
   printf '%s\n\n' "$out" >> "$log"
 

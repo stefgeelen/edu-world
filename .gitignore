@@ -31,3 +31,7 @@ dist-ssr
 # itself lives in the tracked supabase/config.toml)
 supabase/.temp
 public/klanken/*.m4a
+
+# Flowtests (Playwright): resultaten, screenshots, traces
+e2e/.results/
+supabase/.branches/

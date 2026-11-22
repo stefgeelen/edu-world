@@ -1,0 +1,58 @@
+name: Flowtests
+
+# De belangrijkste flows van de app (onboarding, oefenen, ouderportaal, ...) in
+# een echte browser, tegen een LOKALE Supabase in Docker op de runner: alle
+# migraties + supabase/seed.sql op een lege database. Gebruikt geen enkele
+# secret en kan productie niet bereiken. Uitleg: e2e/FLOWS.md.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: flows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+      - run: npm ci
+
+      - name: Lokale Supabase (alle migraties + seed)
+        run: supabase start -x studio,imgproxy,logflare,vector,realtime,storage-api,postgres-meta,supavisor,edge-runtime
+
+      - name: Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Flowtests
+        run: npx playwright test
+
+      - name: Samenvatting
+        if: always()
+        run: |
+          {
+            echo '### Flowtests'
+            echo '```'
+            node e2e/support/summary.mjs || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Screenshots en traces bij een fout
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flowtests
+          path: e2e/.results/
+          retention-days: 14

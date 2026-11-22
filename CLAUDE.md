@@ -119,6 +119,13 @@ After every commit, the git hook `.githooks/post-commit` starts `scripts/doc-syn
 - Turn on per clone: `git config core.hooksPath .githooks` (not versioned). The `claude` CLI must be logged in.
 - Skip once: `LEAPIO_DOC_SYNC=0 git commit …`. Dry run: `DRY_RUN=1 scripts/doc-sync.sh`.
 
+## Flowtests and the QA-flow agent
+The same post-commit hook also starts `scripts/qa-flow.sh` in the background: it resets the **local** Supabase (Docker, `supabase start`; all migrations + `supabase/seed.sql`), runs the Playwright flowtests in `e2e/flows/` (mobile Chromium) and sends a macOS notification. When a flow breaks, gets more complex, or the commits touched screens/routes/migrations, the `qa-flow` agent (`.claude/agents/qa-flow.md`, Sonnet) explains the cause and writes `e2e/.results/rapport.md`; it only ever edits `e2e/`. Flow map and gaps: `e2e/FLOWS.md`; complexity budgets (taps, fields, screens per flow): `e2e/budgets.json`. CI runs the same set in `.github/workflows/flows.yml`.
+- Tests never reach production: `e2e/support/localSupabase.ts` refuses any non-local Supabase URL and the browser blocks every non-local request.
+- Manual: `npm run test:flows` (with reset) · `npx playwright test --ui` · `/qa-flow` · `/qa-flow verken <gebied>`. Script: `FORCE=1 scripts/qa-flow.sh`, `NO_AGENT=1`, `NO_RESET=1`. Skip once: `LEAPIO_QA_FLOW=0 git commit …`. Log: `.git/qa-flow/log.txt`. Docker not running → skipped locally, CI still runs.
+- Write flowtests with `e2e/support/fixtures.ts` (`flow.start/open/tap/fill/type/end` count what the user does; `db` is a service-role client on the local DB) and the helpers in `e2e/support/helpers.ts`. New flow → add it to `budgets.json` and `FLOWS.md`.
+- **Reference data that was missing from migrations:** `badges` (now in `seed.sql`) and 32 `exercises` rows incl. all of grade 1 (now in `20261122150000_exercise_catalogue_backfill.sql`, a no-op in production). Rows added to production by hand break the local DB and CI again: put new catalogue rows in a migration.
+
 ## Running Tests
 ```bash
 npm test          # run all tests (Vitest)
@@ -131,7 +138,7 @@ npm run lint      # ESLint
 - Data hooks (`useCompleteExercise`, `usePracticeMenu`, `useChildInsights` (struggle rule), `ExerciseShell` (saving game-overs/abandons), `useDifficultyLevel`, `useExerciseId`, `useExerciseState`, `useAdminRole`)
 - Buddy care system (`buddyState`, `buddyCatalog`, `useBuddy`) — decay/illness/death rules, shop economy, catalog integrity, RPC plumbing
 - Pure logic (`generateMathQuestion`, `gradeFromAge`, `seededRandom`, `errorMessages`, `addChildLogic`, Buddy growth + payout copy)
-- E2E: `e2e/onboarding.spec.ts` (Playwright) — signup through first exercise only
+- E2E: `e2e/flows/` (Playwright against a local Supabase) — onboarding, starting/finishing an exercise, game-over, parent portal + PIN, Wie speelt er (see `e2e/FLOWS.md`)
 
 **What still has NO tests:** landing pages, `ResetPassword`, `AuthCallback`, and `SetupParentPin` beyond its session guard; `GameContext` / `CelebrationContext`; the `useSpeech` hook itself beyond its audio cache, online-status, install-prompt and exercise-config hooks.
 
@@ -142,7 +149,7 @@ npm run lint      # ESLint
 |------|-----|
 | `src/context/AuthContext.tsx` | Session state, auth gate for whole app |
 | `src/hooks/useCompleteExercise.ts` | Persists progress, triggers 13 query invalidations |
-| `supabase/migrations/20261001120000_buddy_centred_practice.sql` | `practice_menu` + `complete_exercise`: unlocking, payouts, wishes, growth — no local DB to test against |
+| `supabase/migrations/20261001120000_buddy_centred_practice.sql` | `practice_menu` + `complete_exercise`: unlocking, payouts, wishes, growth — covered end-to-end by `e2e/flows/oefenen.spec.ts` against the local DB |
 | `src/screens/ExerciseWriteNumber.tsx` | Canvas + edge function + complex state machine |
 | `src/screens/ExerciseNumberLine.tsx` | 618 lines, drag interactions, pointer events |
 | `src/screens/ExerciseClock.tsx` | Pointer drag, potential missing listener cleanup |

@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:flows": "sh -c 'supabase status >/dev/null 2>&1 || supabase start -x studio,imgproxy,logflare,vector,realtime,storage-api,postgres-meta,supavisor; supabase db reset --local && playwright test; node e2e/support/summary.mjs'",
+    "qa:flow": "scripts/qa-flow.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
