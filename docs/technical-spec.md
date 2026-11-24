@@ -1,7 +1,7 @@
 # Leapio — Technical Specification
 
 > **Audience:** engineers and architects working on Leapio. Assumes the reader can read the code; this document exists to explain what is where, why it is shaped that way, and where the sharp edges are.
-> **Last reviewed:** 2026-11-18 (commit `32cc4ff`: `beta-open-announcement` test-mode toegevoegd — `testEmail` in body stuurt preview-mail met `[Test]`-onderwerp zonder registratieschakelaarcheck en zonder `open_mail_sent_at` te schrijven; "Stuur testmail"-knop in `AdminBetaSignups`). Eerdere review 2026-11-18 (commit `8276a1b`: open-beta registratieschakelaar).
+> **Last reviewed:** 2026-11-22 (commits `a84794e`–`0619873`: canvas-afbeelding voor handschriftherkenning bijgesneden naar de inkt en omgezet naar zwart op wit; `/voorstel` als ongelinkte niet-geïndexeerde landingspagina; website-slagzin "Oefenen wordt een avontuur" op alle publieke pagina's, geen enkel leerjaar meer apart benoemd; Playwright flowtests in `e2e/flows/` tegen een lokale Supabase + CI-workflow + `qa-flow`-agent; `seed.sql` bevat nu de badge-rijen; migratie `20261122150000_exercise_catalogue_backfill.sql` vult de 32 ontbrekende oefenrijen voor het 1ste leerjaar in). Eerdere review 2026-11-22 (commit `1ee4c1f`: drie weergaven in `AdminExercises` — Leerplan (`CurriculumView`), "Wat ziet een kind?" (`PracticePreview`) en Alle oefentypes; nieuwe RPC `admin_preview_practice`; `src/data/exerciseCatalog.ts` centraliseert namen, keuzes en config-samenvattingen per oefentype). Eerdere review 2026-11-18 (commit `32cc4ff`: `beta-open-announcement` test-mode; `8276a1b`: open-beta registratieschakelaar).
 > **Companion docs:** [CONTEXT.md](../CONTEXT.md) (domain vocabulary — authoritative for naming), [CLAUDE.md](../CLAUDE.md) (working conventions), [EXERCISES.md](../EXERCISES.md) (didactic design), [uitleg-oefeningen.md](uitleg-oefeningen.md) (the Buddy's exercise explanations), `wayfinder/buddy-care/` (Buddy Care design tickets), `wayfinder/buddy-centred-app/map.md` (decisions behind the October 2026 redesign), `wayfinder/second-grade/map.md` (2de leerjaar rollout).
 
 ---
@@ -71,7 +71,7 @@ src/
 │   │                   #   SpeakerButton, ExerciseModePicker, ExerciseNumpad, GeometryFigure, CountPicture, KwadraatGrid
 │   ├── buddy/          # BuddyStage, CarePanel, GrowthMoment, ExerciseTypeIcon
 │   ├── dashboard/      # Vitrine (StarryBackground, Ornaments, Payout) + vitrineStyles — the shared dark look
-│   ├── admin/          # ChangePlanDialog, ExerciseConfigForm
+│   ├── admin/          # ChangePlanDialog, ExerciseConfigForm, CurriculumView, PracticePreview
 │   ├── parent/         # ChooseActiveChildrenDialog, PushNotificationsSettings, PushNudge, TimesTablesCard, ReadingThemeCard
 │   ├── auth/           # NightSky (onboarding background)
 │   ├── legal/          # LegalPage (/privacy, /voorwaarden)
@@ -81,7 +81,7 @@ src/
 ├── context/            # AuthContext, GameContext, CelebrationContext
 ├── hooks/              # 28 hooks (data access, game logic, platform)
 ├── routes/             # publicRoutes, appRoutes, parentRoutes, adminRoutes, paths.ts (APP_PATHS, LOGIN_PATH, exercise origin)
-├── data/               # Static config & content pools (11 modules, incl. exerciseExplanations, exerciseConfigFields, letterSounds, readingThemes)
+├── data/               # Static config & content pools (12 modules, incl. exerciseExplanations, exerciseConfigFields, exerciseCatalog, letterSounds, readingThemes)
 ├── lib/                # Cross-cutting utilities (incl. playingChild, geometryQuestions, getalbeeld, reloadOnStaleChunk, push)
 │   └── buddy/          # Buddy domain logic (catalog, constants, schedule, state, messages, growth, payout, species)
 ├── types/              # game.ts
@@ -93,8 +93,9 @@ supabase/
 ├── migrations/         # 45 SQL migrations (schema, RLS, RPCs)
 ├── functions/          # 6 Deno edge functions + _shared/requireUser.ts
 └── templates/          # Auth mail templates (pasted into Supabase by hand)
-e2e/                    # Playwright: onboarding.spec.ts
-.github/workflows/      # ci.yml, supabase-keepalive.yml
+e2e/                    # Playwright flowtests against a local Supabase: flows/ (onboarding, oefenen, ouder, wie-speelt-er),
+│                       #   support/ (fixtures, helpers, localSupabase), budgets.json, FLOWS.md, summary.mjs
+.github/workflows/      # ci.yml, flows.yml (Playwright flowtests on every push), supabase-keepalive.yml
 brand/                  # Logo set (SVG/PNG/PDF) of the 2026-10 L-sprong logo
 wayfinder/buddy-care/   # Feature design tickets (001-011)
 wayfinder/buddy-centred-app/  # map.md: decisions of the Oct 2026 redesign
@@ -120,7 +121,8 @@ main.tsx: installStaleChunkReload()     ← vite:preloadError → reload once (�
           <Routes>
             publicRoutes                  /, /beta, /privacy, /voorwaarden, /toegang (LOGIN_PATH),
                                           /auth (→ /), /auth/setup-pin, /auth/meldingen,
-                                          /auth/callback, /reset-password
+                                          /auth/callback, /reset-password,
+                                          /voorstel (unlinked mock-up, noindex)
             adminRoutes    <AdminRoute><ParentErrorBoundary><AdminDashboard/>
             parentRoutes   <ProtectedRoute><ParentPinGate><ParentErrorBoundary><ParentLayout/>
             appRoutes      <ProtectedRoute><ErrorBoundary><Layout/>
@@ -170,7 +172,7 @@ These are load-bearing; removing them regresses something measurable.
 | `useMemo` on the auth context value | AuthContext | Without it every token refresh re-renders the whole authenticated tree including the guards. |
 | `child_exercise_stats` RPC | [migration](../supabase/migrations/20260911170000_child_exercise_stats_and_timeout.sql) | Three hooks used to download every attempt row a child had ever produced and aggregate in JS — a payload that grows for the life of the account. |
 | One shared 5s clock in `BuddyFxProvider` | useBuddy.tsx | N Buddy consumers on a screen cost one timer, not N. |
-| Canvas downscale to 450px long edge | [canvasRecognition.ts](../src/lib/canvasRecognition.ts) | Halves the per-call token cost of handwriting recognition. |
+| Canvas crop + recolour + downscale (≤450px) for recognition | [canvasRecognition.ts](../src/lib/canvasRecognition.ts) | A child writes small in one corner; the number was lost when downscaled whole. `inkBounds()` finds the bounding box of the ink (alpha > 40), adds a 20% margin, scales up to `MAX_UPSCALE` (3×) if tiny, caps the long edge at 450 px, recolours the strokes black and flattens onto white. Halves the token cost and fixes recognition accuracy. |
 | In-memory audio cache, last 60 lines | [useSpeech.ts](../src/hooks/useSpeech.ts) | The Buddy repeats a small set of sentences on every tap; without it each repeat was an ElevenLabs call. |
 | One `practice_menu` RPC for list + Herhalen + payouts + Wishes | migration `20261001120000`, current version `20261014180000` | One round-trip feeds the Dashboard and the exercise list, and the payout shown is by construction the payout earned. |
 | `statement_timeout = 15s` on `authenticated`/`anon` | migration `20260911170000` | Caps a runaway query instead of holding a connection indefinitely. |
@@ -269,7 +271,7 @@ Shared exercise parts (since 2026-10): every screen renders inside `ExerciseShel
 
 ### 5.4 Admin (`/admin/*`) — `<AdminRoute>` → `<ParentErrorBoundary>` → `<AdminDashboard>`
 
-`index` → redirect to `users` · `users` (`ChangePlanDialog` → `admin_set_subscription`; warns how many children a smaller package pauses) · `subscriptions` · `stats` (engagement + home-screen adoption, from `admin_engagement_stats`) · `exercises` (per family, "Test" when any row is `admin_only`) · `exercises/:familyKey` (`AdminExerciseFamily`: per-row settings form `ExerciseConfigForm` driven by `data/exerciseConfigFields.ts`, raw-JSON fallback, Test/Live switch for all rows of the family) · `beta` (`AdminBetaSignups`: waiting list with source; **"Registratie"** toggle `RegistrationSwitch` → `admin_set_registration_open`; **"De beta is open"-mail** button → `beta-open-announcement` (pending count via `admin_beta_open_mail_pending`); "Toegang geven" inserts an email with source `admin · toegang`; "Verwijder" deletes a row) · `meldingen` (`AdminPush`: push switch + `admin_push_stats`) · `feedback`.
+`index` → redirect to `users` · `users` (`ChangePlanDialog` → `admin_set_subscription`; warns how many children a smaller package pauses) · `subscriptions` · `stats` (engagement + home-screen adoption, from `admin_engagement_stats`) · `exercises` (`AdminExercises` with three-tab segmented control: **Leerplan** (`CurriculumView` — per grade pill, per exercise type one row, three trimester cells from `buildCurriculum()` in `src/lib/curriculum.ts`; names and config summaries from `EXERCISE_CATALOG` in `src/data/exerciseCatalog.ts`; click → open family), **Wat ziet een kind?** (`PracticePreview` — grade + open_stage + date + leesthema picker → `admin_preview_practice` RPC → practice tiles, hidden list with reasons, Herhalen block; for grade 2 shows open times tables on the picked date), **Alle oefentypes** (the original searchable family list)) · `exercises/:familyKey` (`AdminExerciseFamily`: per-row settings form `ExerciseConfigForm` driven by `data/exerciseConfigFields.ts`, raw-JSON fallback, Test/Live switch for all rows of the family) · `beta` (`AdminBetaSignups`: waiting list with source; **"Registratie"** toggle `RegistrationSwitch` → `admin_set_registration_open`; **"De beta is open"-mail** button → `beta-open-announcement` (pending count via `admin_beta_open_mail_pending`); "Toegang geven" inserts an email with source `admin · toegang`; "Verwijder" deletes a row) · `meldingen` (`AdminPush`: push switch + `admin_push_stats`) · `feedback`.
 
 ---
 
@@ -340,6 +342,7 @@ Shared exercise parts (since 2026-10): every screen renders inside `ExerciseShel
 | `push_claim_test()` | DEFINER + `auth.uid()` | `send-push-notifications` (parent test) | Logs a `test` row; max 3/hour |
 | `admin_set_push_mode(mode)` / `admin_push_stats()` | DEFINER + admin check inside | `AdminPush` | Switch; JSON with devices, sent, failed, played-within-24h overall and per kind |
 | `admin_set_kindergarten_mode(p_mode)` | DEFINER + admin check inside | `AdminExercises` (`KindergartenSwitch`) | Sets `kindergarten_settings.mode` to `admins` or `all`; validates the value |
+| `admin_preview_practice(grade, open_stage, day?, reading_theme?)` | STABLE DEFINER + admin check inside; EXECUTE revoked from `PUBLIC`/`anon`, granted to `authenticated` | `PracticePreview` (`AdminExercises` tab "Wat ziet een kind?") | Returns a JSON payload `{day, grade, open_stage, reading_theme, times_tables, practice[], hidden[], review[]}` simulating what a child of that grade would see in Oefenen. Same unlock rules as `_child_practice_options` and `_child_review_options`: highest active row per type up to `p_open_stage`; leesthema follows calendar or `p_reading_theme` (grade 1 only, others always get theme 10); Tafels hidden when no table is open on `p_day` per the calendar (parent's extra tafels not counted); test exercises included and marked `admin_only: true`. `hidden[]` explains why each active type is not shown (stage not yet open, reading_theme, or no times table). Migration `20261122120000_admin_preview_practice.sql` |
 | `_push_in_window(at)`, `_push_cron_active()`, `_push_cron_secret()`, `_buddy_display_name(species)` | Internal (EXECUTE revoked; `_push_cron_secret` granted to `service_role`) | pg_cron, the RPCs above, the edge function | Send window (Europe/Brussels); "should cron call at all"; the Vault secret; Buddy name for copy |
 | `reading_theme_for_date(day)` | IMMUTABLE SQL | Internal + `authenticated` | Calendar theme for a given date (1–10); same step-function as `calendarReadingTheme` in `src/data/readingThemes.ts` — change both together |
 | `_child_reading_theme(children)` | STABLE DEFINER, EXECUTE revoked | Internal | Returns the active theme for a child row: `children.reading_theme` when set, else `reading_theme_for_date(now())`; grade ≠ 1 always returns 10 |
@@ -539,7 +542,7 @@ Design points worth preserving:
 
 `ExerciseWriteNumber` and the written questions of `ExerciseNumberLine`:
 
-canvas pointer strokes → `canvasToRecognitionBase64()` (downscale to ≤450px long edge, keep the transparent background because that is what the model has always received) → `invokeFunction('recognize-digit', …)` → edge function (signed-in users only) calls Anthropic `claude-haiku-4-5` with a lenient children's-handwriting prompt → `{recognized: number | null}` (plus `isCorrect` when a `target` is sent).
+canvas pointer strokes → `canvasToRecognitionBase64()` (crop to the ink's bounding box + 20% margin; recolour strokes black on white; scale down to ≤450px long edge, up to 3× if the number is tiny) → `invokeFunction('recognize-digit', …)` → edge function (signed-in users only) calls Anthropic `claude-haiku-4-5` with a lenient children's-handwriting prompt → `{recognized: number | null}` (plus `isCorrect` when a `target` is sent). Prior to 2026-11-22, the full transparent canvas was sent downscaled; a small number in a corner was a few dozen pixels in a large empty image, causing misreads ("1" as "7"). Now the number fills the image regardless of where on the canvas the child drew it.
 
 `ExerciseWriteDigit` and `ExerciseWriteLetter` do **not** call the model: they compare the traced pixels with a reference glyph on the canvas (share of drawn pixels inside the zone), so they cost nothing per answer.
 
@@ -709,7 +712,7 @@ pg_cron 'send-push-notifications'  */15 * * * *
 
 **Not covered:** landing pages, `Privacy`/`Terms`, `NotFound` · `AuthCallback` / `ResetPassword` · `GameContext` / `CelebrationContext` · the online-status and exercise-config hooks · **the SQL itself** (no pgTAP; `complete_exercise`, `_complete_exercise_core`, `practice_menu`, `sync_paused_children`, the triggers, `push_claim_due` and the `buddy_*` RPCs are only exercised through mocks) · the edge functions.
 
-**E2E:** `e2e/onboarding.spec.ts` covers signup through the first exercise (uses `LOGIN_PATH`). Not run in CI; with the beta trigger it needs an email on the waiting list.
+**E2E (since 2026-11-22):** `e2e/flows/` contains four Playwright flowtest files — `onboarding.spec.ts` (signup → first exercise), `oefenen.spec.ts` (start + finish an exercise, game-over), `ouder.spec.ts` (parent portal behind PIN), `wie-speelt-er.spec.ts` (child switch). Every test runs against a **local** Supabase in Docker (`supabase start`), after `supabase/seed.sql` (now also inserts `badges` rows) and all migrations including `20261122150000_exercise_catalogue_backfill.sql` (inserts the 32 grade-1 exercise rows missing from earlier migrations; a no-op in production). `e2e/support/localSupabase.ts` refuses any non-local Supabase URL and the browser blocks every non-local request. Complexity budgets per flow in `budgets.json`; flow map in `FLOWS.md`. **Run in CI** via `.github/workflows/flows.yml` on every push. The post-commit hook (`scripts/qa-flow.sh`) resets the local DB, runs the flowtests and notifies; the `qa-flow` agent explains failures and updates `e2e/` when screens or routes change. Manual: `npm run test:flows`. The old `e2e/onboarding.spec.ts` (Lovable scaffold, never ran in CI) is replaced.
 
 **Conventions:** shared helpers in `src/test/testUtils.tsx` (`createTestQueryClient`, `queryWrapper`, `fakeSupabaseChain`). Mock Supabase/auth at the module boundary; assert behaviour, not implementation. Anchor time-sensitive fixtures to `Date.now()` — Buddy hooks tick against the real clock and will decay a fixed past timestamp out from under a test.
 
