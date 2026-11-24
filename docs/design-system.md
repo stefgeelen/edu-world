@@ -30,6 +30,8 @@ Het oude palet `edu-*` staat nog in 4 bestanden (`BuddyRoom`, `BuddyShop`, `Care
 
 Goud (`amber-400` → `orange-500`) betekent *hier ben je* of *beloning*: actieve tab, Munten, rand rond de Buddy. Groen (`emerald-500` → `emerald-600`) betekent *nakijken of doorgaan*.
 
+Geen beelden die naar AI ogen: geen geschilderde of fotoachtige achtergrondscènes (het bos is op 24 november 2026 daarom weggehaald). De sterrenhemel blijft verloop plus sterren; sfeer komt van de Buddy, iconen en kleur.
+
 Herbruik deze stukken in plaats van ze na te bouwen:
 
 - Schermgrond: `bg-gradient-to-b from-[#2d1b54] via-[#1a103c] to-[#0a0618]` met `StarryBackground` (`src/components/dashboard/Vitrine.tsx`).

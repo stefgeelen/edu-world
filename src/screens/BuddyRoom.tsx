@@ -20,7 +20,6 @@ import { daysUntilNextGrowth, growthForm } from '@/lib/buddy/growth';
 import { buddySpecies } from '@/lib/buddy/species';
 import { APP_PATHS } from '@/routes/paths';
 import { firstTimeSpoken } from '@/lib/spokenOnce';
-import forestScene from '@/assets/forest-scene.jpg';
 
 /** Welke Care Action de Buddy nu vraagt — die knop wiebelt als hint voor het kind. */
 const CUE_ACTION: Partial<Record<BuddyCue, CareActionId>> = {
@@ -148,13 +147,6 @@ function BuddyRoomContent() {
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
       <StarryBackground />
-      {/* The forest, at night: it fades into the same sky as the dashboard. */}
-      <div
-        className="absolute inset-x-0 top-0 h-[56vh] bg-cover bg-center opacity-80 brightness-[0.7] saturate-[0.85] [mask-image:linear-gradient(to_bottom,black_45%,transparent)]"
-        style={{ backgroundImage: `url(${forestScene})` }}
-        aria-hidden
-      />
-      <div className="absolute inset-x-0 top-0 h-[56vh] bg-gradient-to-b from-[#2d1b54]/70 via-[#2d1b54]/20 to-transparent" aria-hidden />
 
       <div className="relative z-10 mx-auto flex min-h-full w-full max-w-md flex-col px-4 pt-4 sm:pt-6 md:max-w-3xl lg:max-w-5xl">
         <header className={cn(VITRINE, 'flex items-center gap-2 border-amber-400/30 p-3 shadow-[0_8px_32px_rgba(251,191,36,0.12)]')}>
