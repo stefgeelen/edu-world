@@ -39,8 +39,10 @@ vi.mock('@/hooks/useAdminRole', () => ({ useAdminRole: () => ({ isAdmin: isAdmin
 let playersFixture: { id: string; name: string; species: string | null; paused: boolean }[] = [];
 vi.mock('@/hooks/usePlayers', () => ({ usePlayers: () => ({ data: playersFixture }) }));
 
-const signOut = vi.fn().mockResolvedValue({});
-vi.mock('@/integrations/supabase/client', () => ({ supabase: { auth: { signOut: () => signOut() } } }));
+vi.mock('@/integrations/supabase/client', () => ({ supabase: { auth: { signOut: vi.fn() } } }));
+
+let muntenFixture: number | undefined = 42;
+vi.mock('@/hooks/useBuddy', () => ({ useBuddyRow: () => ({ data: muntenFixture == null ? undefined : { munten: muntenFixture } }) }));
 
 import { Dashboard } from '@/screens/Dashboard';
 import { APP_PATHS, exerciseExitPath, startExerciseFrom } from '@/routes/paths';
@@ -66,6 +68,7 @@ const renderDashboard = () =>
 beforeEach(() => {
   vi.clearAllMocks();
   isAdminFixture = false;
+  muntenFixture = 42;
   rewardsFixture = [];
   playersFixture = [{ id: 'child-1', name: 'Lien', species: 'nootje', paused: false }];
   badgesFixture = [
@@ -94,7 +97,7 @@ describe('Dashboard', () => {
     expect(kleuterSaysMock).toHaveBeenCalledWith('dashboard', 'Hallo, Lien!');
   });
 
-  it('opens the full exercise list from the big green button', () => {
+  it('opens the full exercise list', () => {
     renderDashboard();
     fireEvent.click(screen.getByRole('button', { name: /Alle oefeningen/ }));
     expect(navigateMock).toHaveBeenCalledWith('/app/oefenen');
@@ -119,11 +122,37 @@ describe('Dashboard', () => {
     expect(exerciseExitPath()).toBe('/app/dashboard');
   });
 
-  it('counts the Buddy’s wishes in the Snel starten header, without listing them twice', () => {
+  it('puts the open wish on the big play button', () => {
     renderDashboard();
-    const quick = screen.getByRole('region', { name: 'Snel starten' });
-    expect(within(quick).getByRole('status', { name: 'Wensen van Nootje: 1 / 2 vervuld' })).toBeInTheDocument();
+    const play = within(screen.getByRole('region', { name: 'Snel starten' })).getAllByRole('button')[0];
+    expect(play).toHaveTextContent('Speel!');
+    expect(play).toHaveTextContent('Wens: Klokkijken');
+    fireEvent.click(play);
+    expect(navigateMock).toHaveBeenCalledWith('/app/exercises/clock/1');
+  });
+
+  it('lets the Buddy count its wishes in its speech bubble, without listing them twice', () => {
+    renderDashboard();
+    expect(screen.getByText('Help je mij met nog 1 wens?')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'Wensen van Nootje: 1 / 2 vervuld' })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: /Wensen/ })).not.toBeInTheDocument();
+  });
+
+  it('shows the child’s Munten, once they are known', () => {
+    renderDashboard();
+    expect(screen.getByLabelText('42 Munten')).toHaveTextContent('42');
+  });
+
+  it('shows no Munten counter before the Buddy is loaded', () => {
+    muntenFixture = undefined;
+    renderDashboard();
+    expect(screen.queryByLabelText(/^\d+ Munten$/)).not.toBeInTheDocument();
+  });
+
+  it('opens the Buddy’s room from the Buddy', () => {
+    renderDashboard();
+    fireEvent.click(screen.getByRole('button', { name: 'Naar je Buddy' }));
+    expect(navigateMock).toHaveBeenCalledWith('/app/home');
   });
 
   it('cheers when every wish is fulfilled', () => {
@@ -168,11 +197,9 @@ describe('Dashboard', () => {
     expect(navigateMock).toHaveBeenCalledWith('/app/parent');
   });
 
-  it('signs out and returns to the login screen', async () => {
+  it('has no logout button: logging out lives in the parent portal, behind the PIN', () => {
     renderDashboard();
-    fireEvent.click(screen.getByRole('button', { name: 'Uitloggen' }));
-    await vi.waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/toegang'));
-    expect(signOut).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Uitloggen' })).not.toBeInTheDocument();
   });
 
   it('offers no switch for an only child', () => {
