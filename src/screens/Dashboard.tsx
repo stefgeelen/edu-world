@@ -250,15 +250,16 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* The Buddy's forest closes the page, and is the room for the tab bar. A
-          block, not pb-32: Safari leaves the bottom padding of a flex scroll
-          container out of the scroll height, so content that ends just behind
-          the tab bar could not be scrolled into view. */}
+      {/* Room for the tab bar: on a phone and tablet the Buddy's forest closes
+          the page, on desktop it is empty. A block, not pb-32: Safari leaves the
+          bottom padding of a flex scroll container out of the scroll height, so
+          content that ends just behind the tab bar could not be scrolled into view. */}
       <div
-        className="relative shrink-0 -mt-6 h-48 bg-cover bg-center opacity-70 brightness-[0.7] saturate-[0.85] [mask-image:linear-gradient(to_bottom,transparent,black_55%)] pointer-events-none"
+        className="relative shrink-0 -mt-6 h-48 bg-cover bg-center opacity-70 brightness-[0.7] saturate-[0.85] [mask-image:linear-gradient(to_bottom,transparent,black_55%)] pointer-events-none lg:hidden"
         style={{ backgroundImage: `url(${forestScene})` }}
         aria-hidden="true"
       />
+      <div className="hidden lg:block h-32 shrink-0" aria-hidden="true" />
     </div>
   );
 }
