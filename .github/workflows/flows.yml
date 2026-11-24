@@ -17,7 +17,9 @@ concurrency:
 
 jobs:
   flows:
-    runs-on: ubuntu-latest
+    # Vast op 24.04: ubuntu-latest is 26.04, en daar installeert Playwright 1.59
+    # Chromium niet ("does not support chromium on ubuntu26.04-x64").
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
