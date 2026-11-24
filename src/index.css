@@ -139,6 +139,19 @@ All colors MUST be HSL.
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Child app (Layout adds .child-app to <html>): no scroll bounce on the page
+   or inside any scrolling screen, and a dark page behind it, so iPhone never
+   shows white past the top or bottom edge. */
+html.child-app,
+html.child-app body {
+  background-color: #1a103c;
+}
+
+html.child-app,
+html.child-app * {
+  overscroll-behavior: none;
+}
+
 /* The strip under the iOS status bar (home-screen app, black-translucent). */
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0px);

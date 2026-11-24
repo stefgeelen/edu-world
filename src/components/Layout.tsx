@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { TabBar } from './TabBar';
 import { GameProvider } from '@/context/GameContext';
@@ -6,6 +6,13 @@ import { CelebrationProvider } from '@/context/CelebrationContext';
 import '@/lib/speechUnlock';
 
 export function Layout() {
+  // While the child app is open the page itself never rubber-bands, and if
+  // iOS still shows past an edge it is night sky, not the white body.
+  useEffect(() => {
+    document.documentElement.classList.add('child-app');
+    return () => document.documentElement.classList.remove('child-app');
+  }, []);
+
   return (
     <GameProvider>
       <CelebrationProvider>
